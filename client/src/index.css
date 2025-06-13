@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(158, 64%, 52%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Spark Comex brand colors */
+  --spark-50: hsl(158, 64%, 96%);
+  --spark-100: hsl(158, 64%, 89%);
+  --spark-500: hsl(158, 64%, 52%);
+  --spark-600: hsl(158, 64%, 45%);
+  --spark-700: hsl(158, 64%, 38%);
+  --spark-900: hsl(158, 64%, 20%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(158, 64%, 52%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Spark Comex utility classes */
+.bg-spark-50 { background-color: var(--spark-50); }
+.bg-spark-100 { background-color: var(--spark-100); }
+.bg-spark-500 { background-color: var(--spark-500); }
+.bg-spark-600 { background-color: var(--spark-600); }
+.bg-spark-700 { background-color: var(--spark-700); }
+.bg-spark-900 { background-color: var(--spark-900); }
+
+.text-spark-50 { color: var(--spark-50); }
+.text-spark-100 { color: var(--spark-100); }
+.text-spark-500 { color: var(--spark-500); }
+.text-spark-600 { color: var(--spark-600); }
+.text-spark-700 { color: var(--spark-700); }
+.text-spark-900 { color: var(--spark-900); }
+
+.border-spark-50 { border-color: var(--spark-50); }
+.border-spark-100 { border-color: var(--spark-100); }
+.border-spark-500 { border-color: var(--spark-500); }
+.border-spark-600 { border-color: var(--spark-600); }
+.border-spark-700 { border-color: var(--spark-700); }
+.border-spark-900 { border-color: var(--spark-900); }
+
+.ring-spark-200 { --tw-ring-color: hsl(158, 64%, 85%); }
+.ring-spark-500 { --tw-ring-color: var(--spark-500); }
+
+.focus\:ring-spark-500:focus { --tw-ring-color: var(--spark-500); }
+.focus\:border-spark-500:focus { border-color: var(--spark-500); }
+
+.hover\:bg-spark-50:hover { background-color: var(--spark-50); }
+.hover\:bg-spark-100:hover { background-color: var(--spark-100); }
+.hover\:bg-spark-700:hover { background-color: var(--spark-700); }
+
+.hover\:text-spark-700:hover { color: var(--spark-700); }
+
+/* Custom gradient for Spark branding */
+.bg-gradient-spark {
+  background: linear-gradient(135deg, var(--spark-600), var(--spark-700));
+}
