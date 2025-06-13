@@ -292,7 +292,7 @@ export default function CreditPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
               <p className="text-gray-600">Carregando solicitações...</p>
             </div>
-          ) : applications.length === 0 ? (
+          ) : !applications || !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-2">Nenhuma solicitação encontrada</p>
@@ -302,7 +302,7 @@ export default function CreditPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {applications.map((application: any) => (
+              {Array.isArray(applications) && applications.map((application: any) => (
                 <div
                   key={application.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
