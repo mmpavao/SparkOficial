@@ -31,16 +31,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Disabled for Replit deployment
       maxAge: sessionTtl,
+      sameSite: 'lax',
     },
   }));
 
   // Authentication middleware
   const requireAuth = (req: any, res: any, next: any) => {
+    console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
     if (!req.session?.userId) {
+      console.log("Authentication failed - no session or user ID");
       return res.status(401).json({ message: "Não autorizado" });
     }
+    console.log("Authentication successful for user:", req.session.userId);
     next();
   };
 
@@ -91,20 +95,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("Login attempt for:", req.body.email);
       const { email, password } = loginSchema.parse(req.body);
       
       const user = await storage.getUserByEmail(email);
       if (!user) {
+        console.log("User not found:", email);
         return res.status(401).json({ message: "Email ou senha inválidos" });
       }
 
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
+        console.log("Invalid password for user:", email);
         return res.status(401).json({ message: "Email ou senha inválidos" });
       }
 
       // Set session
       req.session.userId = user.id;
+      console.log("Session created for user ID:", user.id, "Session ID:", req.sessionID);
 
       // Return user without password
       const { password: _, ...userResponse } = user;

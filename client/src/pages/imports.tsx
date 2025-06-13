@@ -83,6 +83,16 @@ export default function ImportsPage() {
 
   // Calculate real metrics from API data
   const calculateMetrics = () => {
+    if (!imports || !Array.isArray(imports)) {
+      return {
+        totalImports: 0,
+        activeImports: 0,
+        completedImports: 0,
+        totalValue: 0,
+        imports: []
+      };
+    }
+
     const importsArray = imports as any[];
     const totalImports = importsArray.length;
     const activeImports = importsArray.filter(imp => 
