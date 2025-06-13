@@ -97,8 +97,11 @@ export default function AuthPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-spark flex-col justify-center items-center p-12 text-white">
         <div className="max-w-md text-center">
           <div className="mb-8">
-            <h1 className="text-5xl font-bold mb-2">SPARK</h1>
-            <h2 className="text-2xl font-medium opacity-90">COMEX</h2>
+            <img 
+              src="/spark-logo.png" 
+              alt="Spark Comex" 
+              className="h-20 w-auto mx-auto mb-4"
+            />
           </div>
           <p className="text-lg opacity-90 mb-8">
             Plataforma completa de crédito e importação para empresários brasileiros que importam da China
@@ -125,8 +128,11 @@ export default function AuthPage() {
         <div className="max-w-md mx-auto w-full">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
-            <h1 className="text-3xl font-bold text-spark-600 mb-1">SPARK</h1>
-            <h2 className="text-lg font-medium text-gray-800">COMEX</h2>
+            <img 
+              src="/spark-logo.png" 
+              alt="Spark Comex" 
+              className="h-12 w-auto mx-auto"
+            />
           </div>
 
           {/* Login Form */}

@@ -99,8 +99,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       >
         <div className="flex items-center justify-between p-6 border-b">
           <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
-            <h1 className="text-xl font-bold text-spark-600">SPARK</h1>
-            <p className="text-sm text-gray-600">COMEX</p>
+            <img 
+              src="/spark-logo.png" 
+              alt="Spark Comex" 
+              className="h-8 w-auto"
+            />
           </div>
           <div className="flex items-center space-x-2">
             <Button

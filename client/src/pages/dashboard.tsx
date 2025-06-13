@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +14,15 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
+
+  // Fetch real data from APIs
+  const { data: creditApplications = [] } = useQuery({
+    queryKey: ["/api/credit/applications"],
+  });
+
+  const { data: imports = [] } = useQuery({
+    queryKey: ["/api/imports"],
+  });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -30,6 +40,29 @@ export default function Dashboard() {
     };
     return roleMap[role] || "Usuário";
   };
+
+  // Calculate real metrics from API data
+  const calculateMetrics = () => {
+    const approvedApplications = (creditApplications as any[]).filter(app => app.status === 'approved');
+    const totalApprovedCredit = approvedApplications.reduce((sum, app) => sum + parseFloat(app.approvedAmount || 0), 0);
+    const totalRequestedCredit = approvedApplications.reduce((sum, app) => sum + parseFloat(app.requestedAmount || 0), 0);
+    
+    const activeImports = (imports as any[]).filter(imp => ['ordered', 'shipped', 'customs'].includes(imp.status));
+    const totalImportValue = (imports as any[]).reduce((sum, imp) => sum + parseFloat(imp.totalValue || 0), 0);
+    
+    const completedImports = (imports as any[]).filter(imp => imp.status === 'completed');
+    const estimatedSavings = totalImportValue * 0.15; // Estimated 15% savings
+    
+    return {
+      availableCredit: totalApprovedCredit - (totalApprovedCredit * 0.6), // Assuming 60% utilization
+      usedCredit: totalApprovedCredit * 0.6,
+      activeImportsCount: activeImports.length,
+      totalImportValue,
+      estimatedSavings
+    };
+  };
+
+  const metrics = calculateMetrics();
 
   return (
     <div className="space-y-6">
