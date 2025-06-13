@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,30 +42,28 @@ interface AIInsightsSidebarProps {
 }
 
 export default function AIInsightsSidebar({ isOpen, onClose, onMinimize }: AIInsightsSidebarProps) {
-  const [insights, setInsights] = useState<Insight[]>([]);
 
   // Fetch real data for analysis
-  const { data: creditApplications = [] as any[] } = useQuery({
+  const { data: creditApplications = [], isSuccess: creditSuccess } = useQuery({
     queryKey: ["/api/credit/applications"],
   });
 
-  const { data: imports = [] as any[] } = useQuery({
+  const { data: imports = [], isSuccess: importsSuccess } = useQuery({
     queryKey: ["/api/imports"],
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isSuccess: userSuccess } = useQuery({
     queryKey: ["/api/auth/user"],
   });
 
   // Generate AI insights based on real data
-  useEffect(() => {
-    if (Array.isArray(creditApplications) && Array.isArray(imports)) {
-      if (creditApplications.length > 0 || imports.length > 0) {
-        const generatedInsights = generateInsights(creditApplications as any[], imports as any[], user as any);
-        setInsights(generatedInsights);
-      }
-    }
-  }, [creditApplications, imports, user]);
+  const currentInsights = creditSuccess && importsSuccess && userSuccess 
+    ? generateInsights(
+        Array.isArray(creditApplications) ? creditApplications : [],
+        Array.isArray(imports) ? imports : [],
+        user || {}
+      )
+    : [];
 
   const generateInsights = (credits: any[], importData: any[], userData: any): Insight[] => {
     const insights: Insight[] = [];
