@@ -1,13 +1,36 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { 
+  users, 
+  creditApplications, 
+  imports,
+  type User, 
+  type InsertUser,
+  type CreditApplication,
+  type InsertCreditApplication,
+  type Import,
+  type InsertImport,
+} from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
+  // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByCnpj(cnpj: string): Promise<User | undefined>;
   createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User>;
+  
+  // Credit application operations
+  createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication>;
+  getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]>;
+  getCreditApplication(id: number): Promise<CreditApplication | undefined>;
+  updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication>;
+  
+  // Import operations
+  createImport(importData: InsertImport): Promise<Import>;
+  getImportsByUser(userId: number): Promise<Import[]>;
+  getImport(id: number): Promise<Import | undefined>;
+  updateImportStatus(id: number, status: string, updateData?: any): Promise<Import>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -32,6 +55,101 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  // Credit application operations
+  async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
+    const [creditApp] = await db
+      .insert(creditApplications)
+      .values(application)
+      .returning();
+    return creditApp;
+  }
+
+  async getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]> {
+    return await db
+      .select()
+      .from(creditApplications)
+      .where(eq(creditApplications.userId, userId))
+      .orderBy(desc(creditApplications.createdAt));
+  }
+
+  async getCreditApplication(id: number): Promise<CreditApplication | undefined> {
+    const [application] = await db
+      .select()
+      .from(creditApplications)
+      .where(eq(creditApplications.id, id));
+    return application || undefined;
+  }
+
+  async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date() 
+    };
+    
+    if (reviewData) {
+      if (reviewData.reviewedBy) updateData.reviewedBy = reviewData.reviewedBy;
+      if (reviewData.approvedAmount) updateData.approvedAmount = reviewData.approvedAmount;
+      if (reviewData.interestRate) updateData.interestRate = reviewData.interestRate;
+      if (reviewData.paymentTerms) updateData.paymentTerms = reviewData.paymentTerms;
+      if (reviewData.notes) updateData.notes = reviewData.notes;
+      updateData.reviewedAt = new Date();
+    }
+
+    const [application] = await db
+      .update(creditApplications)
+      .set(updateData)
+      .where(eq(creditApplications.id, id))
+      .returning();
+    return application;
+  }
+
+  // Import operations
+  async createImport(importData: InsertImport): Promise<Import> {
+    const [importRecord] = await db
+      .insert(imports)
+      .values(importData)
+      .returning();
+    return importRecord;
+  }
+
+  async getImportsByUser(userId: number): Promise<Import[]> {
+    return await db
+      .select()
+      .from(imports)
+      .where(eq(imports.userId, userId))
+      .orderBy(desc(imports.createdAt));
+  }
+
+  async getImport(id: number): Promise<Import | undefined> {
+    const [importRecord] = await db
+      .select()
+      .from(imports)
+      .where(eq(imports.id, id));
+    return importRecord || undefined;
+  }
+
+  async updateImportStatus(id: number, status: string, updateData?: any): Promise<Import> {
+    const data: any = { 
+      status, 
+      updatedAt: new Date() 
+    };
+    
+    if (updateData) {
+      if (updateData.trackingNumber) data.trackingNumber = updateData.trackingNumber;
+      if (updateData.customsStatus) data.customsStatus = updateData.customsStatus;
+      if (updateData.estimatedDelivery) data.estimatedDelivery = updateData.estimatedDelivery;
+      if (updateData.notes) data.notes = updateData.notes;
+      if (updateData.documents) data.documents = updateData.documents;
+    }
+
+    const [importRecord] = await db
+      .update(imports)
+      .set(data)
+      .where(eq(imports.id, id))
+      .returning();
+    return importRecord;
   }
 }
 
