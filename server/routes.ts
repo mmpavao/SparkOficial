@@ -150,6 +150,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Credit application routes
+  app.post('/api/credit/applications', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationData = { ...req.body, userId };
+      
+      const application = await storage.createCreditApplication(applicationData);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error("Error creating credit application:", error);
+      res.status(500).json({ message: "Erro ao criar solicitação de crédito" });
+    }
+  });
+
+  app.get('/api/credit/applications', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applications = await storage.getCreditApplicationsByUser(userId);
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching credit applications:", error);
+      res.status(500).json({ message: "Erro ao buscar solicitações de crédito" });
+    }
+  });
+
+  app.get('/api/credit/applications/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(id);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      if (application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching credit application:", error);
+      res.status(500).json({ message: "Erro ao buscar solicitação de crédito" });
+    }
+  });
+
+  // Import routes
+  app.post('/api/imports', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const importData = { ...req.body, userId };
+      
+      const importRecord = await storage.createImport(importData);
+      res.status(201).json(importRecord);
+    } catch (error) {
+      console.error("Error creating import:", error);
+      res.status(500).json({ message: "Erro ao criar importação" });
+    }
+  });
+
+  app.get('/api/imports', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const imports = await storage.getImportsByUser(userId);
+      res.json(imports);
+    } catch (error) {
+      console.error("Error fetching imports:", error);
+      res.status(500).json({ message: "Erro ao buscar importações" });
+    }
+  });
+
+  app.get('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const importRecord = await storage.getImport(id);
+      
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+      
+      if (importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      res.json(importRecord);
+    } catch (error) {
+      console.error("Error fetching import:", error);
+      res.status(500).json({ message: "Erro ao buscar importação" });
+    }
+  });
+
+  app.patch('/api/imports/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, ...updateData } = req.body;
+      
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+      
+      if (importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      const updatedImport = await storage.updateImportStatus(id, status, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status da importação" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
