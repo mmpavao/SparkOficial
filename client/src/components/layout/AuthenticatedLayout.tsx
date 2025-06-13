@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+import AIInsightsButton from "@/components/ai-insights/AIInsightsButton";
 import { 
   Menu, 
   X, 
@@ -232,6 +233,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           {children}
         </main>
       </div>
+
+      {/* AI Insights Button */}
+      <AIInsightsButton />
     </div>
   );
 }

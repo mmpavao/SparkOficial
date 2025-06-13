@@ -45,11 +45,11 @@ export default function AIInsightsSidebar({ isOpen, onClose, onMinimize }: AIIns
   const [insights, setInsights] = useState<Insight[]>([]);
 
   // Fetch real data for analysis
-  const { data: creditApplications = [] } = useQuery({
+  const { data: creditApplications = [] as any[] } = useQuery({
     queryKey: ["/api/credit/applications"],
   });
 
-  const { data: imports = [] } = useQuery({
+  const { data: imports = [] as any[] } = useQuery({
     queryKey: ["/api/imports"],
   });
 
@@ -59,9 +59,11 @@ export default function AIInsightsSidebar({ isOpen, onClose, onMinimize }: AIIns
 
   // Generate AI insights based on real data
   useEffect(() => {
-    if (creditApplications.length > 0 || imports.length > 0) {
-      const generatedInsights = generateInsights(creditApplications as any[], imports as any[], user as any);
-      setInsights(generatedInsights);
+    if (Array.isArray(creditApplications) && Array.isArray(imports)) {
+      if (creditApplications.length > 0 || imports.length > 0) {
+        const generatedInsights = generateInsights(creditApplications as any[], imports as any[], user as any);
+        setInsights(generatedInsights);
+      }
     }
   }, [creditApplications, imports, user]);
 
