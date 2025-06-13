@@ -11,6 +11,7 @@ import ImportsPage from "@/pages/imports";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
+import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
 function Router() {
   const { data: user, isLoading } = useQuery({
@@ -37,17 +38,19 @@ function Router() {
   return (
     <Switch>
       {isAuthenticated ? (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/credit" component={CreditPage} />
-          <Route path="/imports" component={ImportsPage} />
-          <Route path="/reports" component={ReportsPage} />
-          <Route path="/settings" component={SettingsPage} />
-        </>
+        <AuthenticatedLayout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/credit" component={CreditPage} />
+            <Route path="/imports" component={ImportsPage} />
+            <Route path="/reports" component={ReportsPage} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </AuthenticatedLayout>
       ) : (
         <Route path="/" component={AuthPage} />
       )}
-      <Route component={NotFound} />
     </Switch>
   );
 }
