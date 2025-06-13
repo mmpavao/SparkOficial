@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { insertImportSchema, type InsertImport } from "@shared/schema";
 import { 
   Truck, 
   Package, 
@@ -34,64 +39,83 @@ export default function ImportsPage() {
     queryKey: ["/api/auth/user"],
   });
 
-  // Mock data for imports
-  const importData = {
-    totalImports: 12,
-    activeImports: 3,
-    completedImports: 8,
-    totalValue: 2450000,
-    imports: [
-      {
-        id: "IMP001",
-        description: "Smartphones e Acessórios",
-        supplier: "Shenzhen Tech Co.",
-        value: 450000,
-        status: "in_transit",
-        origin: "Shenzhen, China",
-        destination: "Santos, SP",
-        estimatedArrival: "2024-06-20",
-        trackingCode: "BR123456789CN",
-        paymentStatus: "paid"
-      },
-      {
-        id: "IMP002", 
-        description: "Componentes Eletrônicos",
-        supplier: "Beijing Electronics Ltd.",
-        value: 280000,
-        status: "customs",
-        origin: "Beijing, China",
-        destination: "São Paulo, SP",
-        estimatedArrival: "2024-06-18",
-        trackingCode: "BR987654321CN",
-        paymentStatus: "pending"
-      },
-      {
-        id: "IMP003",
-        description: "Equipamentos de Informática",
-        supplier: "Guangzhou Hardware Inc.",
-        value: 650000,
-        status: "completed",
-        origin: "Guangzhou, China", 
-        destination: "Rio de Janeiro, RJ",
-        estimatedArrival: "2024-06-10",
-        trackingCode: "BR456789123CN",
-        paymentStatus: "paid"
-      }
-    ]
+  // Fetch real imports data
+  const { data: imports = [], isLoading } = useQuery({
+    queryKey: ["/api/imports"],
+  });
+
+  // Form setup
+  const form = useForm<InsertImport>({
+    resolver: zodResolver(insertImportSchema),
+    defaultValues: {
+      supplierName: "",
+      supplierLocation: "",
+      productDescription: "",
+      totalValue: "",
+      currency: "USD",
+      status: "planning",
+      notes: "",
+    },
+  });
+
+  // Create import mutation
+  const createImportMutation = useMutation({
+    mutationFn: async (data: InsertImport) => {
+      return await apiRequest("/api/imports", "POST", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Importação criada!",
+        description: "Sua nova importação foi registrada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
+      setShowNewImportForm(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao criar importação",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Calculate real metrics from API data
+  const calculateMetrics = () => {
+    const importsArray = imports as any[];
+    const totalImports = importsArray.length;
+    const activeImports = importsArray.filter(imp => 
+      ['ordered', 'shipped', 'customs'].includes(imp.status)
+    ).length;
+    const completedImports = importsArray.filter(imp => imp.status === 'completed').length;
+    const totalValue = importsArray.reduce((sum, imp) => sum + parseFloat(imp.totalValue || 0), 0);
+
+    return {
+      totalImports,
+      activeImports,
+      completedImports,
+      totalValue,
+      imports: importsArray
+    };
   };
+
+  const importData = calculateMetrics();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Concluído</Badge>;
-      case "in_transit":
-        return <Badge className="bg-blue-100 text-blue-800"><Ship className="w-3 h-3 mr-1" />Em Trânsito</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Entregue</Badge>;
+      case "shipped":
+        return <Badge className="bg-blue-100 text-blue-800"><Ship className="w-3 h-3 mr-1" />Enviado</Badge>;
       case "customs":
         return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Na Alfândega</Badge>;
-      case "preparing":
-        return <Badge className="bg-purple-100 text-purple-800"><Package className="w-3 h-3 mr-1" />Preparando</Badge>;
-      case "delayed":
-        return <Badge className="bg-red-100 text-red-800"><AlertCircle className="w-3 h-3 mr-1" />Atrasado</Badge>;
+      case "ordered":
+        return <Badge className="bg-purple-100 text-purple-800"><Package className="w-3 h-3 mr-1" />Pedido Feito</Badge>;
+      case "planning":
+        return <Badge className="bg-gray-100 text-gray-800"><Clock className="w-3 h-3 mr-1" />Planejamento</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -113,6 +137,10 @@ export default function ImportsPage() {
   const filteredImports = filterStatus === "all" 
     ? importData.imports 
     : importData.imports.filter(imp => imp.status === filterStatus);
+
+  const onSubmit = (data: InsertImport) => {
+    createImportMutation.mutate(data);
+  };
 
   return (
     <div className="space-y-6">
@@ -271,75 +299,123 @@ export default function ImportsPage() {
             <CardHeader>
               <CardTitle>Nova Importação</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="description">Descrição dos Produtos</Label>
-                  <Input id="description" placeholder="Ex: Smartphones Samsung" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="supplier">Fornecedor</Label>
-                  <Input id="supplier" placeholder="Nome do fornecedor" className="mt-1" />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="value">Valor Total (R$)</Label>
-                  <Input id="value" type="number" placeholder="Ex: 50000" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="origin">Origem</Label>
-                  <Input id="origin" placeholder="Ex: Shenzhen, China" className="mt-1" />
-                </div>
-              </div>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="productDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descrição dos Produtos</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Smartphones Samsung" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="supplierName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome do Fornecedor</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do fornecedor" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="totalValue"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valor Total (USD)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="Ex: 50000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="supplierLocation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Localização do Fornecedor</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Shenzhen, China" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="destination">Destino</Label>
-                  <Input id="destination" placeholder="Ex: Santos, SP" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="transport">Meio de Transporte</Label>
-                  <Select>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sea">Marítimo</SelectItem>
-                      <SelectItem value="air">Aéreo</SelectItem>
-                      <SelectItem value="land">Terrestre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Moeda</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a moeda" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                            <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                            <SelectItem value="EUR">EUR - Euro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div>
-                <Label htmlFor="notes">Observações</Label>
-                <Textarea id="notes" placeholder="Informações adicionais..." className="mt-1" />
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Observações</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Informações adicionais..." {...field} value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div className="flex space-x-3 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowNewImportForm(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={() => {
-                    toast({
-                      title: "Importação criada!",
-                      description: "Sua nova importação foi registrada com sucesso.",
-                    });
-                    setShowNewImportForm(false);
-                  }}
-                  className="flex-1 bg-spark-600 hover:bg-spark-700"
-                >
-                  Criar Importação
-                </Button>
-              </div>
+                  <div className="flex space-x-3 mt-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowNewImportForm(false)}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={createImportMutation.isPending}
+                      className="flex-1 bg-spark-600 hover:bg-spark-700"
+                    >
+                      {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </div>
