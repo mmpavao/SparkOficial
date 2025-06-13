@@ -17,10 +17,13 @@ import {
   Plus,
   FileText,
   Package,
-  PiggyBank
+  PiggyBank,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 export default function Dashboard() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -58,6 +61,10 @@ export default function Dashboard() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -71,57 +78,117 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed inset-y-0 left-0 bg-white shadow-lg transform transition-all duration-300 ease-in-out z-50 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        } ${
+          sidebarCollapsed ? "lg:w-16" : "lg:w-64"
+        } lg:translate-x-0 w-64`}
       >
         <div className="flex items-center justify-between p-6 border-b">
-          <div>
+          <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
             <h1 className="text-xl font-bold text-spark-600">SPARK</h1>
             <p className="text-sm text-gray-600">COMEX</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSidebar}
-            className="lg:hidden"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebarCollapse}
+              className="hidden lg:flex"
+            >
+              {sidebarCollapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebar}
+              className="lg:hidden"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <nav className="p-4 space-y-2">
           <Button
             variant="ghost"
-            className="w-full justify-start text-spark-600 bg-spark-50 hover:bg-spark-100"
+            className={`w-full text-spark-600 bg-spark-50 hover:bg-spark-100 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
           >
-            <Home className="w-4 h-4 mr-3" />
-            Dashboard
+            <Home className="w-4 h-4 lg:mr-0 mr-3" />
+            <span className={`transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+            }`}>
+              Dashboard
+            </span>
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-gray-50">
-            <CreditCard className="w-4 h-4 mr-3" />
-            Crédito
+          <Button 
+            variant="ghost" 
+            className={`w-full hover:bg-gray-50 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
+          >
+            <CreditCard className="w-4 h-4 lg:mr-0 mr-3" />
+            <span className={`transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+            }`}>
+              Crédito
+            </span>
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-gray-50">
-            <Truck className="w-4 h-4 mr-3" />
-            Importações
+          <Button 
+            variant="ghost" 
+            className={`w-full hover:bg-gray-50 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
+          >
+            <Truck className="w-4 h-4 lg:mr-0 mr-3" />
+            <span className={`transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+            }`}>
+              Importações
+            </span>
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-gray-50">
-            <BarChart3 className="w-4 h-4 mr-3" />
-            Relatórios
+          <Button 
+            variant="ghost" 
+            className={`w-full hover:bg-gray-50 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 lg:mr-0 mr-3" />
+            <span className={`transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+            }`}>
+              Relatórios
+            </span>
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-gray-50">
-            <Settings className="w-4 h-4 mr-3" />
-            Configurações
+          <Button 
+            variant="ghost" 
+            className={`w-full hover:bg-gray-50 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
+          >
+            <Settings className="w-4 h-4 lg:mr-0 mr-3" />
+            <span className={`transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+            }`}>
+              Configurações
+            </span>
           </Button>
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <div className="flex items-center mb-3">
+          <div className={`flex items-center mb-3 ${sidebarCollapsed ? "lg:justify-center" : ""}`}>
             <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
               {user?.fullName && getInitials(user.fullName)}
             </div>
-            <div className="ml-3 min-w-0 flex-1">
+            <div className={`ml-3 min-w-0 flex-1 transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"
+            }`}>
               <p className="text-sm font-medium text-gray-900 truncate">
                 {user?.fullName}
               </p>
@@ -132,12 +199,18 @@ export default function Dashboard() {
           </div>
           <Button
             variant="ghost"
-            className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+            className={`w-full text-red-600 hover:bg-red-50 hover:text-red-700 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
             onClick={handleLogout}
             disabled={logoutMutation.isPending}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            {logoutMutation.isPending ? "Saindo..." : "Sair"}
+            <LogOut className="w-4 h-4 lg:mr-0 mr-2" />
+            <span className={`transition-opacity duration-300 ${
+              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+            }`}>
+              {logoutMutation.isPending ? "Saindo..." : "Sair"}
+            </span>
           </Button>
         </div>
       </div>
@@ -151,7 +224,9 @@ export default function Dashboard() {
       )}
 
       {/* Main Content */}
-      <div className="lg:ml-64">
+      <div className={`transition-all duration-300 ease-in-out ${
+        sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
+      }`}>
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b">
           <div className="flex items-center justify-between px-6 py-4">
@@ -172,15 +247,6 @@ export default function Dashboard() {
                 <Bell className="w-4 h-4" />
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </Button>
-
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {user?.fullName && getInitials(user.fullName)}
-                </div>
-                <span className="ml-2 text-sm font-medium text-gray-700 hidden sm:block">
-                  {user?.fullName}
-                </span>
-              </div>
             </div>
           </div>
         </header>
