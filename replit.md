@@ -37,9 +37,10 @@ Spark Comex is a full-stack web application designed for Brazilian importers to 
 - Password hashing with bcrypt
 - Registration with Brazilian business validation (CNPJ)
 - Form validation using Zod schemas
+- Personalized welcome screen with user's name and role
 
 ### Database Schema
-- **Users Table**: Stores Brazilian importer company information including CNPJ, company name, contact details
+- **Users Table**: Stores Brazilian importer company information including CNPJ, company name, contact details, and user role
 - **Sessions Table**: Handles user session storage with automatic expiration
 - Drizzle ORM provides type-safe database operations
 
@@ -110,6 +111,7 @@ Spark Comex is a full-stack web application designed for Brazilian importers to 
 ```
 Changelog:
 - June 13, 2025. Initial setup
+- June 13, 2025. Implemented personalized welcome screen with user's name and role
 ```
 
 ## User Preferences

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { 
   Menu, 
@@ -28,10 +29,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-  });
+  const { user } = useAuth();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
