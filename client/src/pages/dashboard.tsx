@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Plus,
   FileText,
@@ -12,18 +12,49 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-  });
+  const { user } = useAuth();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
+  const getRoleDisplay = (role: string) => {
+    const roleMap: Record<string, string> = {
+      importer: "Importador",
+      admin: "Administrador",
+      analyst: "Analista",
+      manager: "Gerente"
+    };
+    return roleMap[role] || "Usuário";
+  };
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
+      {/* Personalized Welcome Section */}
       <div className="bg-gradient-spark rounded-xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Bem-vindo à Spark Comex!</h2>
-        <p className="opacity-90">
-          Gerencie seus créditos e importações da China de forma simples e eficiente.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">
+              {getGreeting()}, {user?.fullName?.split(' ')[0] || 'Usuário'}! 👋
+            </h2>
+            <p className="opacity-90 mb-1">
+              {getRoleDisplay(user?.role || 'importer')} na {user?.companyName}
+            </p>
+            <p className="opacity-75 text-sm">
+              Gerencie seus créditos e importações da China de forma simples e eficiente.
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+              <span className="text-2xl font-bold">
+                {user?.fullName?.split(' ').map(name => name[0]).join('').slice(0, 2) || 'SC'}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
