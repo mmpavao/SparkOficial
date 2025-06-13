@@ -6,6 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
+import CreditPage from "@/pages/credit";
+import ImportsPage from "@/pages/imports";
+import ReportsPage from "@/pages/reports";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -33,7 +37,13 @@ function Router() {
   return (
     <Switch>
       {isAuthenticated ? (
-        <Route path="/" component={Dashboard} />
+        <>
+          <Route path="/" component={Dashboard} />
+          <Route path="/credit" component={CreditPage} />
+          <Route path="/imports" component={ImportsPage} />
+          <Route path="/reports" component={ReportsPage} />
+          <Route path="/settings" component={SettingsPage} />
+        </>
       ) : (
         <Route path="/" component={AuthPage} />
       )}
