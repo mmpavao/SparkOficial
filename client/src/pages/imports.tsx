@@ -88,7 +88,9 @@ export default function ImportsPage() {
     const activeImports = importsArray.filter(imp => 
       ['ordered', 'shipped', 'customs'].includes(imp.status)
     ).length;
-    const completedImports = importsArray.filter(imp => imp.status === 'completed').length;
+    const completedImports = importsArray.filter(imp => 
+      ['completed', 'delivered'].includes(imp.status)
+    ).length;
     const totalValue = importsArray.reduce((sum, imp) => sum + parseFloat(imp.totalValue || 0), 0);
 
     return {
@@ -237,11 +239,12 @@ export default function ImportsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="preparing">Preparando</SelectItem>
-                <SelectItem value="in_transit">Em Trânsito</SelectItem>
+                <SelectItem value="planning">Planejamento</SelectItem>
+                <SelectItem value="ordered">Pedido Feito</SelectItem>
+                <SelectItem value="shipped">Enviado</SelectItem>
                 <SelectItem value="customs">Na Alfândega</SelectItem>
+                <SelectItem value="delivered">Entregue</SelectItem>
                 <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="delayed">Atrasado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -250,46 +253,80 @@ export default function ImportsPage() {
 
       {/* Imports List */}
       <div className="space-y-4">
-        {filteredImports.map((importItem) => (
-          <Card key={importItem.id}>
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-4 mb-2">
-                    <h3 className="font-semibold text-lg">{importItem.id}</h3>
-                    {getStatusBadge(importItem.status)}
-                    {getPaymentBadge(importItem.paymentStatus)}
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Carregando importações...</p>
+          </div>
+        ) : filteredImports.length === 0 ? (
+          <div className="text-center py-8">
+            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-2">Nenhuma importação encontrada</p>
+            <p className="text-sm text-gray-400">
+              {filterStatus === "all" 
+                ? "Clique em 'Nova Importação' para começar" 
+                : "Tente alterar o filtro de status"}
+            </p>
+          </div>
+        ) : (
+          filteredImports.map((importItem: any) => (
+            <Card key={importItem.id}>
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-4 mb-2">
+                      <h3 className="font-semibold text-lg">IMP-{String(importItem.id).padStart(3, '0')}</h3>
+                      {getStatusBadge(importItem.status)}
+                    </div>
+                    <p className="text-gray-600 mb-2">{importItem.productDescription}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        <span className="font-medium">Fornecedor:</span>
+                        <span className="ml-1">{importItem.supplierName}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        <span className="font-medium">Local:</span>
+                        <span className="ml-1">{importItem.supplierLocation}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        <span className="font-medium">Valor:</span>
+                        <span className="ml-1">{importItem.currency} {parseFloat(importItem.totalValue).toLocaleString()}</span>
+                      </div>
+                      {importItem.estimatedDelivery && (
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          <span className="font-medium">Previsão:</span>
+                          <span className="ml-1">{new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      )}
+                      {importItem.trackingNumber && (
+                        <div className="flex items-center">
+                          <Package className="w-4 h-4 mr-2" />
+                          <span className="font-medium">Rastreamento:</span>
+                          <span className="ml-1">{importItem.trackingNumber}</span>
+                        </div>
+                      )}
+                      {importItem.notes && (
+                        <div className="flex items-center md:col-span-2">
+                          <span className="font-medium">Observações:</span>
+                          <span className="ml-1">{importItem.notes}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-gray-600 mb-2">{importItem.description}</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {importItem.origin} → {importItem.destination}
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Chegada prevista: {new Date(importItem.estimatedArrival).toLocaleDateString('pt-BR')}
-                    </div>
-                    <div className="flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      R$ {importItem.value.toLocaleString()}
-                    </div>
-                    <div className="flex items-center">
-                      <Package className="w-4 h-4 mr-2" />
-                      {importItem.trackingCode}
-                    </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Detalhes
+                    </Button>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Detalhes
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* New Import Form Modal */}

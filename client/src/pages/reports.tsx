@@ -28,40 +28,90 @@ export default function ReportsPage() {
     queryKey: ["/api/auth/user"],
   });
 
-  // Analytics data for reports
-  const reportData = {
-    overview: {
-      totalImported: 2450000,
-      totalImports: 12,
-      avgImportValue: 204166,
-      creditUsed: 75000,
-      monthlyGrowth: 15.5,
-      topSuppliers: [
-        { name: "Shenzhen Tech Co.", value: 850000, imports: 4 },
-        { name: "Beijing Electronics Ltd.", value: 620000, imports: 3 },
-        { name: "Guangzhou Hardware Inc.", value: 480000, imports: 2 }
-      ],
-      monthlyImports: [
-        { month: "Jan", value: 320000, count: 2 },
-        { month: "Fev", value: 450000, count: 3 },
-        { month: "Mar", value: 380000, count: 2 },
-        { month: "Abr", value: 520000, count: 4 },
-        { month: "Mai", value: 780000, count: 1 }
-      ]
-    },
-    financial: {
-      totalPaid: 2100000,
-      pending: 350000,
-      creditLimit: 100000,
-      creditUsed: 75000,
-      avgPaymentTime: 18,
-      paymentMethods: [
-        { method: "Transferência Bancária", percentage: 65 },
-        { method: "Carta de Crédito", percentage: 25 },
-        { method: "Crédito Spark", percentage: 10 }
-      ]
-    }
+  // Fetch real data from APIs
+  const { data: creditApplications = [] } = useQuery({
+    queryKey: ["/api/credit/applications"],
+  });
+
+  const { data: imports = [] } = useQuery({
+    queryKey: ["/api/imports"],
+  });
+
+  // Calculate real analytics from API data
+  const calculateReportData = () => {
+    const importsArray = imports as any[];
+    const creditsArray = creditApplications as any[];
+    
+    const totalImported = importsArray.reduce((sum, imp) => sum + parseFloat(imp.totalValue || 0), 0);
+    const totalImports = importsArray.length;
+    const avgImportValue = totalImports > 0 ? totalImported / totalImports : 0;
+    const creditUsed = creditsArray
+      .filter(app => app.status === 'approved')
+      .reduce((sum, app) => sum + parseFloat(app.approvedAmount || 0), 0) * 0.6; // Assuming 60% utilization
+    
+    // Calculate top suppliers
+    const supplierMap = new Map();
+    importsArray.forEach(imp => {
+      const supplier = imp.supplierName;
+      if (supplier) {
+        if (!supplierMap.has(supplier)) {
+          supplierMap.set(supplier, { name: supplier, value: 0, imports: 0 });
+        }
+        const data = supplierMap.get(supplier);
+        data.value += parseFloat(imp.totalValue || 0);
+        data.imports += 1;
+      }
+    });
+    
+    const topSuppliers = Array.from(supplierMap.values())
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 3);
+
+    // Calculate monthly imports (simplified - using creation dates)
+    const monthlyMap = new Map();
+    importsArray.forEach(imp => {
+      if (imp.createdAt) {
+        const date = new Date(imp.createdAt);
+        const monthKey = date.toLocaleDateString('pt-BR', { month: 'short' });
+        if (!monthlyMap.has(monthKey)) {
+          monthlyMap.set(monthKey, { month: monthKey, value: 0, count: 0 });
+        }
+        const data = monthlyMap.get(monthKey);
+        data.value += parseFloat(imp.totalValue || 0);
+        data.count += 1;
+      }
+    });
+    
+    const monthlyImports = Array.from(monthlyMap.values()).slice(-5);
+
+    return {
+      overview: {
+        totalImported,
+        totalImports,
+        avgImportValue,
+        creditUsed,
+        monthlyGrowth: 15.5, // Placeholder calculation
+        topSuppliers,
+        monthlyImports
+      },
+      financial: {
+        totalPaid: totalImported * 0.85, // Assuming 85% paid
+        pending: totalImported * 0.15, // Assuming 15% pending
+        creditLimit: creditsArray
+          .filter(app => app.status === 'approved')
+          .reduce((sum, app) => sum + parseFloat(app.approvedAmount || 0), 0),
+        creditUsed,
+        avgPaymentTime: 18, // Placeholder
+        paymentMethods: [
+          { method: "Transferência Bancária", percentage: 65 },
+          { method: "Carta de Crédito", percentage: 25 },
+          { method: "Crédito Spark", percentage: 10 }
+        ]
+      }
+    };
   };
+
+  const reportData = calculateReportData();
 
   const reportTypes = [
     { value: "overview", label: "Visão Geral" },
