@@ -2,21 +2,31 @@ import { users, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
-// keep IStorage the same
+// Interface for storage operations
+export interface IStorage {
+  getUser(id: number): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByCnpj(cnpj: string): Promise<User | undefined>;
+  createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User>;
+}
 
-// rewrite MemStorage to DatabaseStorage
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async getUserByCnpj(cnpj: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.cnpj, cnpj));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(insertUser)

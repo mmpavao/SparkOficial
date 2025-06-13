@@ -6,6 +6,13 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 
+// Extend the session interface
+declare module "express-session" {
+  interface SessionData {
+    userId: number;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session configuration
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -31,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   const requireAuth = (req: any, res: any, next: any) => {
-    if (!req.session.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({ message: "Não autorizado" });
     }
     next();
