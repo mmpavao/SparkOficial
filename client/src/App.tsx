@@ -8,10 +8,13 @@ import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 
-function AuthCheck({ children }: { children: React.ReactNode }) {
+function Router() {
   const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   if (isLoading) {
@@ -24,15 +27,6 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-
-  return children;
-}
-
-function Router() {
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
-  });
 
   const isAuthenticated = !!user;
 
@@ -53,9 +47,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <AuthCheck>
-          <Router />
-        </AuthCheck>
+        <Router />
       </TooltipProvider>
     </QueryClientProvider>
   );
