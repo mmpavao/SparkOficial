@@ -117,22 +117,20 @@ export default function ImportsPage() {
   const importData = calculateMetrics();
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Concluído</Badge>;
-      case "delivered":
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Entregue</Badge>;
-      case "shipped":
-        return <Badge className="bg-blue-100 text-blue-800"><Ship className="w-3 h-3 mr-1" />Enviado</Badge>;
-      case "customs":
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Na Alfândega</Badge>;
-      case "ordered":
-        return <Badge className="bg-purple-100 text-purple-800"><Package className="w-3 h-3 mr-1" />Pedido Feito</Badge>;
-      case "planning":
-        return <Badge className="bg-gray-100 text-gray-800"><Clock className="w-3 h-3 mr-1" />Planejamento</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
+    const statusMap = {
+      delivered: { label: t.imports.status.delivered, icon: CheckCircle, className: "bg-green-100 text-green-800" },
+      customs: { label: t.imports.status.customs, icon: Clock, className: "bg-yellow-100 text-yellow-800" },
+      in_transit: { label: t.imports.status.in_transit, icon: Ship, className: "bg-blue-100 text-blue-800" },
+      ordered: { label: t.imports.status.ordered, icon: Package, className: "bg-purple-100 text-purple-800" },
+      planning: { label: t.imports.status.planning, icon: Clock, className: "bg-gray-100 text-gray-800" },
+      cancelled: { label: t.imports.status.cancelled, icon: AlertCircle, className: "bg-red-100 text-red-800" }
+    };
+    
+    const config = statusMap[status as keyof typeof statusMap];
+    if (!config) return <Badge variant="secondary">{status}</Badge>;
+    
+    const Icon = config.icon;
+    return <Badge className={config.className}><Icon className="w-3 h-3 mr-1" />{config.label}</Badge>;
   };
 
   const getPaymentBadge = (status: string) => {
@@ -161,7 +159,7 @@ export default function ImportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Importações</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t.imports.title}</h1>
           <p className="text-gray-600">Gerencie suas importações da China</p>
         </div>
         <Button 
@@ -169,7 +167,7 @@ export default function ImportsPage() {
           className="bg-spark-600 hover:bg-spark-700"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Nova Importação
+          {t.imports.newImport}
         </Button>
       </div>
 
@@ -179,7 +177,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total de Importações</p>
+                <p className="text-sm text-gray-600">{t.dashboard.totalImports}</p>
                 <p className="text-2xl font-bold text-gray-900">{importData.totalImports}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -193,7 +191,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Importações Ativas</p>
+                <p className="text-sm text-gray-600">{t.dashboard.activeImports}</p>
                 <p className="text-2xl font-bold text-gray-900">{importData.activeImports}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">

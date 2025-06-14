@@ -48,7 +48,7 @@ export default function CreditPage() {
   const queryClient = useQueryClient();
 
   const form = useForm<CreditApplicationForm>({
-    resolver: zodResolver(creditApplicationSchema),
+    resolver: zodResolver(createCreditApplicationSchema(t)),
     defaultValues: {
       requestedAmount: "",
       purpose: "",
@@ -160,7 +160,7 @@ export default function CreditPage() {
                     name="requestedAmount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valor Solicitado (R$)</FormLabel>
+                        <FormLabel>{t.credit.requestedAmount}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -174,7 +174,7 @@ export default function CreditPage() {
                   />
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Empresa</label>
+                    <label className="text-sm font-medium">{t.auth.companyName}</label>
                     <Input
                       value={user?.companyName || ""}
                       disabled
@@ -188,10 +188,10 @@ export default function CreditPage() {
                   name="purpose"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Finalidade do Crédito</FormLabel>
+                      <FormLabel>{t.credit.purpose}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Descreva para que você pretende usar este crédito (ex: importação de eletrônicos da China, compra de matéria-prima, etc.)"
+                          placeholder={t.credit.businessPlan}
                           {...field}
                         />
                       </FormControl>
