@@ -38,18 +38,44 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/auth/logout", "POST");
+      try {
+        return await apiRequest("/api/auth/logout", "POST");
+      } catch (error) {
+        console.error("Logout API error:", error);
+        // Even if API fails, proceed with client-side cleanup
+        throw error;
+      }
     },
     onSuccess: () => {
+      // Clear React Query cache
       queryClient.clear();
+      
+      // Clear any localStorage/sessionStorage data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Redirect to auth page
       window.location.href = "/auth";
     },
     onError: (error) => {
+      console.error("Logout error:", error);
+      
+      // Even on error, clear client-side data and redirect
+      queryClient.clear();
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Show error but still redirect after a short delay
       toast({
-        title: "Erro",
-        description: "Erro ao fazer logout",
-        variant: "destructive",
+        title: "Logout",
+        description: "Logout realizado (sessão pode persistir no servidor)",
+        variant: "default",
       });
+      
+      // Force redirect after 1 second
+      setTimeout(() => {
+        window.location.href = "/auth";
+      }, 1000);
     },
   });
 

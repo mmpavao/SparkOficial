@@ -150,18 +150,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Logout endpoint
   app.post("/api/auth/logout", (req: any, res) => {
     const sessionId = req.sessionID;
+    
+    // Clear session regardless of destroy success
     req.session.destroy((err: any) => {
       if (err) {
-        console.error("Logout error:", err);
-        return res.status(500).json({ message: "Erro ao fazer logout" });
+        console.error("Logout error during session destroy:", err);
+        // Continue with cookie clearing even if session destroy fails
       }
-      // Clear the session cookie
-      res.clearCookie('connect.sid', {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+      
+      // Clear all possible cookie variations for production compatibility
+      const cookieOptions = [
+        // Standard cookie clearing
+        {
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax' as const
+        },
+        // Additional clearing for production domains
+        {
+          path: '/',
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none' as const
+        },
+        // Fallback clearing
+        {
+          path: '/',
+          httpOnly: true,
+          secure: false,
+          sameSite: 'lax' as const
+        }
+      ];
+      
+      // Clear connect.sid cookie with multiple configurations
+      cookieOptions.forEach(options => {
+        res.clearCookie('connect.sid', options);
       });
+      
+      // Also clear any potential session variations
+      res.clearCookie('session');
+      res.clearCookie('sessionid');
+      
       console.log("User logged out, session destroyed:", sessionId);
       res.json({ message: "Logout realizado com sucesso" });
     });

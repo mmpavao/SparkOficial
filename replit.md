@@ -144,6 +144,12 @@ Changelog:
   * Improved type safety and removed 'any' usage
   * Unified duplicate code across dashboard and admin pages
   * Enhanced performance with better query optimization
+- June 14, 2025. Implemented sophisticated user management system:
+  * Created role-based sidebar separation ("Área do Importador" vs "Área Admin")
+  * Built comprehensive user management with creation, role updates, and deactivation
+  * Implemented three-tier access control (super admin > admin > importer)
+  * Added API routes with proper authentication and authorization
+  * Enhanced logout functionality for production compatibility with multiple cookie clearing strategies
 ```
 
 ## User Preferences
