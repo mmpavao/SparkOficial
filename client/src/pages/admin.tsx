@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";
-import { User, CreditApplication, Import } from "@shared/schema";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import type { User, CreditApplication, Import } from "@shared/schema";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -169,7 +170,7 @@ export default function AdminPage() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.cnpj}</TableCell>
                       <TableCell>
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
+                        {formatDate(user.createdAt)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -200,17 +201,15 @@ export default function AdminPage() {
                   {allCreditApplications.map((application) => (
                     <TableRow key={application.id}>
                       <TableCell className="font-medium">
-                        {(allUsers.find((u: any) => u.id === application.userId)?.companyName) || 'N/A'}
+                        {(allUsers.find((u: User) => u.id === application.userId)?.companyName) || 'N/A'}
                       </TableCell>
-                      <TableCell>{formatCurrency(Number(application.requestedAmount))}</TableCell>
+                      <TableCell>{formatCurrency(application.requestedAmount)}</TableCell>
                       <TableCell>{application.purpose}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusBadge(application.status)}>
-                          {application.status}
-                        </Badge>
+                        <StatusBadge status={application.status} type="credit" />
                       </TableCell>
                       <TableCell>
-                        {application.createdAt ? new Date(application.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
+                        {formatDate(application.createdAt)}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -271,14 +270,12 @@ export default function AdminPage() {
                     <TableRow key={importItem.id}>
                       <TableCell className="font-medium">{importItem.productDescription}</TableCell>
                       <TableCell>{importItem.supplierName}</TableCell>
-                      <TableCell>{formatCurrency(Number(importItem.totalValue))}</TableCell>
+                      <TableCell>{formatCurrency(importItem.totalValue)}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusBadge(importItem.status)}>
-                          {importItem.status}
-                        </Badge>
+                        <StatusBadge status={importItem.status} type="import" />
                       </TableCell>
                       <TableCell>
-                        {importItem.estimatedDelivery ? new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 'N/A'}
+                        {formatDate(importItem.estimatedDelivery)}
                       </TableCell>
                     </TableRow>
                   ))}
