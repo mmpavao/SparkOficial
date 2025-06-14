@@ -612,6 +612,7 @@ export const enTranslations: Translations = {
     notes: 'Notes',
     newApplication: 'New Application',
     cancel: 'Cancel',
+    nextDue: 'Next Due',
   },
   
   imports: {
@@ -863,6 +864,7 @@ export const zhTranslations: Translations = {
     notes: '备注',
     newApplication: '新申请',
     cancel: '取消',
+    nextDue: '下次到期',
   },
   
   imports: {
@@ -1114,6 +1116,7 @@ export const esTranslations: Translations = {
     notes: 'Notas',
     newApplication: 'Nueva Solicitud',
     cancel: 'Cancelar',
+    nextDue: 'Próximo Vencimiento',
   },
   
   imports: {
