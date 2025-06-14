@@ -23,8 +23,6 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   role: text("role").notNull().default("importer"),
-  isActive: text("is_active").notNull().default("true"),
-  createdBy: serial("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -33,8 +31,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  createdBy: true,
-  isActive: true,
 }).extend({
   confirmPassword: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -47,13 +43,10 @@ export const createAdminUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  createdBy: true,
-  isActive: true,
-  password: true,
 }).extend({
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
   confirmPassword: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
-  role: z.enum(["admin", "importer"]).default("admin"),
+  role: z.enum(["super_admin", "admin", "importer"]).default("admin"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],

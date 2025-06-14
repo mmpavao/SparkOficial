@@ -36,6 +36,12 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   getAllCreditApplications(): Promise<CreditApplication[]>;
   getAllImports(): Promise<Import[]>;
+  
+  // User management operations
+  createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User>;
+  updateUserRole(userId: number, role: string): Promise<User>;
+  deactivateUser(userId: number): Promise<User>;
+  getUsersByRole(role: string): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
