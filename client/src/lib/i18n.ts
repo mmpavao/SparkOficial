@@ -876,6 +876,12 @@ export const zhTranslations: Translations = {
       cancelled: '已取消',
     },
     importSuccess: '进口记录成功！',
+    importError: '进口记录错误',
+    location: '位置',
+    supplierLocation: '供应商位置',
+    createImport: '创建进口',
+    importCreated: '进口创建成功',
+    viewImport: '查看进口',
   },
   
   roles: {
@@ -947,6 +953,17 @@ export const zhTranslations: Translations = {
     fromDate: '开始日期',
     toDate: '结束日期',
     reportType: '报告类型',
+    overview: '概览',
+    last30Days: '最近30天',
+    last90Days: '最近90天',
+    lastYear: '去年',
+    customRange: '自定义范围',
+    exportPdf: '导出PDF',
+    exportExcel: '导出Excel',
+    noDataAvailable: '无可用数据',
+    period: '时间段',
+    selectPeriod: '选择时间段',
+    selectReport: '选择报告',
   },
   
   settings: {
@@ -1107,6 +1124,12 @@ export const esTranslations: Translations = {
       cancelled: 'Cancelado',
     },
     importSuccess: '¡Importación registrada exitosamente!',
+    importError: 'Error al registrar importación',
+    location: 'Ubicación',
+    supplierLocation: 'Ubicación del Proveedor',
+    createImport: 'Crear Importación',
+    importCreated: 'Importación creada con éxito',
+    viewImport: 'Ver Importación',
   },
   
   roles: {
@@ -1178,6 +1201,17 @@ export const esTranslations: Translations = {
     fromDate: 'Fecha Desde',
     toDate: 'Fecha Hasta',
     reportType: 'Tipo de Informe',
+    overview: 'Resumen',
+    last30Days: 'Últimos 30 días',
+    last90Days: 'Últimos 90 días',
+    lastYear: 'Último año',
+    customRange: 'Rango personalizado',
+    exportPdf: 'Exportar PDF',
+    exportExcel: 'Exportar Excel',
+    noDataAvailable: 'No hay datos disponibles',
+    period: 'Período',
+    selectPeriod: 'Seleccionar período',
+    selectReport: 'Seleccionar informe',
   },
   
   settings: {

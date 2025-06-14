@@ -28,13 +28,17 @@ import {
   X
 } from "lucide-react";
 
-const creditApplicationSchema = z.object({
-  requestedAmount: z.string().min(1, "Valor é obrigatório"),
-  purpose: z.string().min(10, "Finalidade deve ter pelo menos 10 caracteres"),
+const createCreditApplicationSchema = (t: any) => z.object({
+  requestedAmount: z.string().min(1, t.validation.required),
+  purpose: z.string().min(10, t.validation.minLength.replace('{0}', '10')),
   notes: z.string().optional(),
 });
 
-type CreditApplicationForm = z.infer<typeof creditApplicationSchema>;
+type CreditApplicationForm = {
+  requestedAmount: string;
+  purpose: string;
+  notes?: string;
+};
 
 export default function CreditPage() {
   const [showForm, setShowForm] = useState(false);
