@@ -203,7 +203,7 @@ export default function AdminPage() {
                       <TableCell className="font-medium">
                         {(allUsers.find((u: User) => u.id === application.userId)?.companyName) || 'N/A'}
                       </TableCell>
-                      <TableCell>{formatCurrency(application.requestedAmount)}</TableCell>
+                      <TableCell>{formatCurrency(Number(application.requestedAmount))}</TableCell>
                       <TableCell>{application.purpose}</TableCell>
                       <TableCell>
                         <StatusBadge status={application.status} type="credit" />
@@ -270,7 +270,7 @@ export default function AdminPage() {
                     <TableRow key={importItem.id}>
                       <TableCell className="font-medium">{importItem.productDescription}</TableCell>
                       <TableCell>{importItem.supplierName}</TableCell>
-                      <TableCell>{formatCurrency(importItem.totalValue)}</TableCell>
+                      <TableCell>{formatCurrency(Number(importItem.totalValue))}</TableCell>
                       <TableCell>
                         <StatusBadge status={importItem.status} type="import" />
                       </TableCell>
