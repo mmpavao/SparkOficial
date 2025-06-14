@@ -157,7 +157,7 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.common.name || 'Nome'}</TableHead>
+                    <TableHead>{t.admin.name}</TableHead>
                     <TableHead>{t.admin.company}</TableHead>
                     <TableHead>{t.auth.email}</TableHead>
                     <TableHead>{t.auth.cnpj}</TableHead>
