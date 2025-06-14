@@ -51,14 +51,14 @@ export default function AuthPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Login realizado com sucesso!",
+        title: t.auth.loginSuccess,
         description: "Bem-vindo de volta à Spark Comex.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro no login",
-        description: error.message || "Verifique suas credenciais e tente novamente.",
+        title: t.errors.loginFailed,
+        description: error.message || t.errors.loginFailed,
         variant: "destructive",
       });
     },
@@ -72,14 +72,14 @@ export default function AuthPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Conta criada com sucesso!",
+        title: t.auth.registerSuccess,
         description: "Bem-vindo à Spark Comex.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro no cadastro",
-        description: error.message || "Verifique os dados e tente novamente.",
+        title: t.errors.registrationFailed,
+        description: error.message || t.errors.registrationFailed,
         variant: "destructive",
       });
     },
@@ -106,20 +106,20 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-lg opacity-90 mb-8">
-            Plataforma completa de crédito e importação para empresários brasileiros que importam da China
+            {t.auth.platformDescription}
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm opacity-75">
             <div className="flex items-center">
               <Shield className="w-4 h-4 mr-2" />
-              <span>Seguro</span>
+              <span>{t.auth.secure}</span>
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              <span>Rápido</span>
+              <span>{t.auth.fast}</span>
             </div>
             <div className="flex items-center">
               <TrendingUp className="w-4 h-4 mr-2" />
-              <span>Eficiente</span>
+              <span>{t.auth.efficient}</span>
             </div>
           </div>
         </div>
@@ -141,8 +141,8 @@ export default function AuthPage() {
           {isLogin ? (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo de volta</h2>
-                <p className="text-gray-600">Entre em sua conta para continuar</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.welcomeBack}</h2>
+                <p className="text-gray-600">{t.auth.loginDescription}</p>
               </div>
 
               <Form {...loginForm}>

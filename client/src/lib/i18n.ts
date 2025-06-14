@@ -36,6 +36,24 @@ export interface Translations {
     dontHaveAccount: string;
     loginSuccess: string;
     registerSuccess: string;
+    welcomeBack: string;
+    loginDescription: string;
+    platformDescription: string;
+    secure: string;
+    fast: string;
+    efficient: string;
+    rememberMe: string;
+    forgotPassword: string;
+    signIn: string;
+    signingIn: string;
+    createAccount: string;
+    createAccountDescription: string;
+    acceptTerms: string;
+    termsOfUse: string;
+    privacyPolicy: string;
+    creatingAccount: string;
+    haveAccount: string;
+    signInNow: string;
   };
   
   // Dashboard
@@ -249,6 +267,24 @@ export const ptTranslations: Translations = {
     dontHaveAccount: 'Não tem uma conta?',
     loginSuccess: 'Login realizado com sucesso!',
     registerSuccess: 'Cadastro realizado com sucesso!',
+    welcomeBack: 'Bem-vindo de volta',
+    loginDescription: 'Entre em sua conta para continuar',
+    platformDescription: 'Plataforma completa de crédito e importação para empresários brasileiros que importam da China',
+    secure: 'Seguro',
+    fast: 'Rápido',
+    efficient: 'Eficiente',
+    rememberMe: 'Lembrar-me',
+    forgotPassword: 'Esqueceu a senha?',
+    signIn: 'Entrar',
+    signingIn: 'Entrando...',
+    createAccount: 'Criar conta',
+    createAccountDescription: 'Cadastre sua empresa na plataforma',
+    acceptTerms: 'Aceito os',
+    termsOfUse: 'Termos de Uso',
+    privacyPolicy: 'Política de Privacidade',
+    creatingAccount: 'Criando conta...',
+    haveAccount: 'Já tem uma conta?',
+    signInNow: 'Faça login',
   },
   
   dashboard: {
@@ -451,6 +487,24 @@ export const enTranslations: Translations = {
     dontHaveAccount: 'Don\'t have an account?',
     loginSuccess: 'Login successful!',
     registerSuccess: 'Registration successful!',
+    welcomeBack: 'Welcome back',
+    loginDescription: 'Sign in to your account to continue',
+    platformDescription: 'Complete credit and import platform for Brazilian entrepreneurs importing from China',
+    secure: 'Secure',
+    fast: 'Fast',
+    efficient: 'Efficient',
+    rememberMe: 'Remember me',
+    forgotPassword: 'Forgot password?',
+    signIn: 'Sign In',
+    signingIn: 'Signing in...',
+    createAccount: 'Create account',
+    createAccountDescription: 'Register your company on the platform',
+    acceptTerms: 'I accept the',
+    termsOfUse: 'Terms of Use',
+    privacyPolicy: 'Privacy Policy',
+    creatingAccount: 'Creating account...',
+    haveAccount: 'Already have an account?',
+    signInNow: 'Sign in now',
   },
   
   dashboard: {
