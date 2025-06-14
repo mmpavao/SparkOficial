@@ -34,13 +34,13 @@ export default function AdminPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
       toast({
         title: t.common.success,
-        description: "Status da solicitação de crédito foi atualizado com sucesso.",
+        description: t.admin.creditStatusUpdated,
       });
     },
     onError: () => {
       toast({
         title: t.common.error,
-        description: "Erro ao atualizar status da solicitação.",
+        description: t.admin.creditStatusError,
         variant: "destructive",
       });
     },
@@ -52,9 +52,9 @@ export default function AdminPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <Shield className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-            <h2 className="text-xl font-semibold mb-2">Acesso Negado</h2>
+            <h2 className="text-xl font-semibold mb-2">{t.admin.accessDenied}</h2>
             <p className="text-gray-600">
-              Você não tem permissão para acessar esta área.
+              {t.admin.noPermission}
             </p>
           </CardContent>
         </Card>

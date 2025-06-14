@@ -195,6 +195,10 @@ export interface Translations {
     totalUsers: string;
     systemMetrics: string;
     recentActivity: string;
+    creditStatusUpdated: string;
+    creditStatusError: string;
+    accessDenied: string;
+    noPermission: string;
   };
   
   // Reports
@@ -452,6 +456,10 @@ export const ptTranslations: Translations = {
     totalUsers: 'Total de Usuários',
     systemMetrics: 'Métricas do Sistema',
     recentActivity: 'Atividade Recente',
+    creditStatusUpdated: 'Status da solicitação de crédito foi atualizado com sucesso',
+    creditStatusError: 'Erro ao atualizar status da solicitação',
+    accessDenied: 'Acesso Negado',
+    noPermission: 'Você não tem permissão para acessar esta área',
   },
   
   reports: {
@@ -704,6 +712,10 @@ export const enTranslations: Translations = {
     totalUsers: 'Total Users',
     systemMetrics: 'System Metrics',
     recentActivity: 'Recent Activity',
+    creditStatusUpdated: 'Credit application status updated successfully',
+    creditStatusError: 'Error updating application status',
+    accessDenied: 'Access Denied',
+    noPermission: 'You do not have permission to access this area',
   },
   
   reports: {
@@ -956,6 +968,10 @@ export const zhTranslations: Translations = {
     totalUsers: '总用户数',
     systemMetrics: '系统指标',
     recentActivity: '最近活动',
+    creditStatusUpdated: '信贷申请状态更新成功',
+    creditStatusError: '更新申请状态时出错',
+    accessDenied: '访问被拒绝',
+    noPermission: '您没有权限访问此区域',
   },
   
   reports: {
@@ -1208,6 +1224,10 @@ export const esTranslations: Translations = {
     totalUsers: 'Total de Usuarios',
     systemMetrics: 'Métricas del Sistema',
     recentActivity: 'Actividad Reciente',
+    creditStatusUpdated: 'Estado de solicitud de crédito actualizado exitosamente',
+    creditStatusError: 'Error al actualizar estado de la solicitud',
+    accessDenied: 'Acceso Denegado',
+    noPermission: 'No tiene permiso para acceder a esta área',
   },
   
   reports: {
