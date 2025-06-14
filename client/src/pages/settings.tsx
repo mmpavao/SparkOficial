@@ -267,10 +267,10 @@ export default function SettingsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
-                        <SelectItem value="USD">Dólar Americano ($)</SelectItem>
-                        <SelectItem value="EUR">Euro (€)</SelectItem>
-                        <SelectItem value="CNY">Yuan Chinês (¥)</SelectItem>
+                        <SelectItem value="BRL">{t.currency.BRL} (R$)</SelectItem>
+                        <SelectItem value="USD">{t.currency.USD} ($)</SelectItem>
+                        <SelectItem value="EUR">{t.currency.EUR} (€)</SelectItem>
+                        <SelectItem value="CNY">{t.currency.CNY} (¥)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

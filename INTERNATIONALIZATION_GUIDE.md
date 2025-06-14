@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Sistema completo de internacionalização implementado para suporte a múltiplos idiomas, começando com Português (padrão) e Inglês.
+Sistema completo de internacionalização implementado para suporte a múltiplos idiomas: Português (padrão), Inglês e Chinês Simplificado.
 
 ## Arquitetura
 
@@ -20,7 +20,7 @@ client/src/
 
 #### 1. Sistema de Traduções (`lib/i18n.ts`)
 - **Tipos TypeScript**: `Language`, `Translations`
-- **Idiomas suportados**: Português (pt), Inglês (en)
+- **Idiomas suportados**: Português (pt), Inglês (en), Chinês Simplificado (zh)
 - **Persistência**: localStorage para preferência do usuário
 - **Fallback**: Português como idioma padrão
 
@@ -178,9 +178,9 @@ import LanguageSelector from "@/components/ui/language-selector";
    - Interpolação de variáveis
 
 3. **Novos Idiomas**
-   - Espanhol (es)
-   - Chinês (zh)
-   - Framework para adição fácil
+   - ✅ Chinês Simplificado (zh) - Implementado
+   - Espanhol (es) - Planejado
+   - Framework para adição fácil de novos idiomas
 
 ## Benefícios
 
@@ -213,6 +213,7 @@ import LanguageSelector from "@/components/ui/language-selector";
 ```typescript
 // Português: "Bom dia, João!"
 // Inglês: "Good morning, John!"
+// Chinês: "早上好, 约翰!"
 {getGreeting()}, {getFirstName(user?.fullName)}!
 ```
 
@@ -220,6 +221,7 @@ import LanguageSelector from "@/components/ui/language-selector";
 ```typescript
 // Português: "Área do Importador"
 // Inglês: "Importer Area"
+// Chinês: "进口商区"
 {t.nav.importerArea}
 ```
 
@@ -227,7 +229,16 @@ import LanguageSelector from "@/components/ui/language-selector";
 ```typescript
 // Português: "Em Análise"
 // Inglês: "Under Review"
+// Chinês: "审核中"
 {t.credit.status.under_review}
+```
+
+### Moedas Localizadas
+```typescript
+// Português: "Yuan Chinês"
+// Inglês: "Chinese Yuan"
+// Chinês: "人民币"
+{t.currency.CNY}
 ```
 
 ## Conclusão

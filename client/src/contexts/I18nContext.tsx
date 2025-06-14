@@ -32,6 +32,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   const availableLanguages = [
     { code: 'pt' as Language, name: 'Português', flag: '🇧🇷' },
     { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
+    { code: 'zh' as Language, name: '中文', flag: '🇨🇳' },
   ];
 
   const changeLanguage = (newLanguage: Language) => {

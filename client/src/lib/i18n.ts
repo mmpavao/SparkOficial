@@ -1,9 +1,9 @@
 /**
  * Internationalization system for Spark Comex
- * Supports Portuguese (default) and English
+ * Supports Portuguese (default), English, and Simplified Chinese
  */
 
-export type Language = 'pt' | 'en';
+export type Language = 'pt' | 'en' | 'zh';
 
 export interface Translations {
   // Navigation and Layout
@@ -623,10 +623,213 @@ export const enTranslations: Translations = {
   },
 };
 
+// Chinese translations (Simplified Mandarin)
+export const zhTranslations: Translations = {
+  nav: {
+    dashboard: '仪表板',
+    credit: '信贷',
+    imports: '进口',
+    reports: '报告',
+    settings: '设置',
+    adminArea: '管理区',
+    importerArea: '进口商区',
+    users: '用户',
+    logout: '注销',
+  },
+  
+  auth: {
+    login: '登录',
+    register: '注册',
+    email: '邮箱',
+    password: '密码',
+    confirmPassword: '确认密码',
+    companyName: '公司名称',
+    cnpj: 'CNPJ',
+    fullName: '全名',
+    phone: '电话',
+    loginButton: '登录',
+    registerButton: '注册',
+    alreadyHaveAccount: '已有账户？',
+    dontHaveAccount: '没有账户？',
+    loginSuccess: '登录成功！',
+    registerSuccess: '注册成功！',
+  },
+  
+  dashboard: {
+    welcome: '欢迎',
+    goodMorning: '早上好',
+    goodAfternoon: '下午好',
+    goodEvening: '晚上好',
+    manageCreditsAndImports: '简单高效地管理您的信贷和中国进口业务。',
+    totalCredit: '总信贷',
+    availableCredit: '可用信贷',
+    totalImports: '总进口',
+    activeImports: '活跃进口',
+    recentApplications: '最近申请',
+    recentImports: '最近进口',
+    viewAll: '查看全部',
+    noData: '暂无数据',
+  },
+  
+  credit: {
+    title: '信贷管理',
+    requestCredit: '申请信贷',
+    requestedAmount: '申请金额',
+    requestedCurrency: '货币',
+    businessPlan: '商业计划',
+    financialDocuments: '财务文件',
+    expectedUsage: '预期用途',
+    submitApplication: '提交申请',
+    myApplications: '我的申请',
+    status: {
+      pending: '待处理',
+      under_review: '审核中',
+      approved: '已批准',
+      rejected: '已拒绝',
+      cancelled: '已取消',
+    },
+    applicationSuccess: '信贷申请提交成功！',
+  },
+  
+  imports: {
+    title: '进口管理',
+    newImport: '新进口',
+    supplier: '供应商',
+    product: '产品',
+    quantity: '数量',
+    unitPrice: '单价',
+    totalValue: '总价值',
+    currency: '货币',
+    expectedDelivery: '预计交付',
+    notes: '备注',
+    submitImport: '提交进口',
+    myImports: '我的进口',
+    status: {
+      planning: '计划中',
+      ordered: '已下单',
+      in_transit: '运输中',
+      customs: '海关',
+      delivered: '已交付',
+      cancelled: '已取消',
+    },
+    importSuccess: '进口记录成功！',
+  },
+  
+  roles: {
+    super_admin: '超级管理员',
+    admin: '管理员',
+    importer: '进口商',
+    inactive: '未激活',
+  },
+  
+  currency: {
+    USD: '美元',
+    EUR: '欧元',
+    CNY: '人民币',
+    BRL: '巴西雷亚尔',
+  },
+  
+  common: {
+    save: '保存',
+    cancel: '取消',
+    edit: '编辑',
+    delete: '删除',
+    view: '查看',
+    create: '创建',
+    update: '更新',
+    loading: '加载中...',
+    error: '错误',
+    success: '成功',
+    date: '日期',
+    amount: '金额',
+    status: '状态',
+    actions: '操作',
+    search: '搜索',
+    filter: '筛选',
+    export: '导出',
+    import: '导入',
+    total: '总计',
+    available: '可用',
+    used: '已使用',
+    pending: '待处理',
+    approved: '已批准',
+    rejected: '已拒绝',
+    active: '活跃',
+    inactive: '未激活',
+    yes: '是',
+    no: '否',
+  },
+  
+  admin: {
+    title: '管理面板',
+    userManagement: '用户管理',
+    createUser: '创建用户',
+    editUser: '编辑用户',
+    deactivateUser: '停用用户',
+    activateUser: '激活用户',
+    changeRole: '更改角色',
+    totalUsers: '总用户数',
+    systemMetrics: '系统指标',
+    recentActivity: '最近活动',
+  },
+  
+  reports: {
+    title: '报告',
+    creditReport: '信贷报告',
+    importReport: '进口报告',
+    userReport: '用户报告',
+    financialReport: '财务报告',
+    generateReport: '生成报告',
+    dateRange: '日期范围',
+    fromDate: '开始日期',
+    toDate: '结束日期',
+    reportType: '报告类型',
+  },
+  
+  settings: {
+    title: '设置',
+    profile: '个人资料',
+    preferences: '偏好设置',
+    language: '语言',
+    notifications: '通知',
+    security: '安全',
+    changePassword: '更改密码',
+    currentPassword: '当前密码',
+    newPassword: '新密码',
+    confirmNewPassword: '确认新密码',
+    updateProfile: '更新个人资料',
+    profileUpdated: '个人资料更新成功！',
+  },
+  
+  validation: {
+    required: '此字段为必填项',
+    invalidEmail: '邮箱格式无效',
+    invalidCnpj: 'CNPJ格式无效',
+    invalidPhone: '电话格式无效',
+    passwordMismatch: '密码不匹配',
+    minLength: '最少{0}个字符',
+    maxLength: '最多{0}个字符',
+    invalidCurrency: '货币格式无效',
+  },
+  
+  errors: {
+    generic: '发生意外错误',
+    networkError: '网络连接错误',
+    unauthorized: '未授权',
+    forbidden: '访问被拒绝',
+    notFound: '未找到',
+    serverError: '服务器内部错误',
+    sessionExpired: '会话已过期',
+    loginFailed: '登录失败',
+    registrationFailed: '注册失败',
+  },
+};
+
 // Translation collections
 export const translations: Record<Language, Translations> = {
   pt: ptTranslations,
   en: enTranslations,
+  zh: zhTranslations,
 };
 
 // Get current language from localStorage or default to Portuguese
