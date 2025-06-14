@@ -11,6 +11,7 @@ import ImportsPage from "@/pages/imports";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminPage from "@/pages/admin";
+import AdminUsersPage from "@/pages/admin-users";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
@@ -39,6 +40,7 @@ function Router() {
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/admin" component={AdminPage} />
+            <Route path="/admin/users" component={AdminUsersPage} />
             <Route component={NotFound} />
           </Switch>
         </AuthenticatedLayout>
