@@ -24,6 +24,7 @@ export default function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("last_30_days");
   const [selectedReport, setSelectedReport] = useState("overview");
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],

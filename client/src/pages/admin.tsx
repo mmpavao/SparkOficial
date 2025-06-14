@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
+import { useTranslation } from "@/contexts/I18nContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import type { User, CreditApplication, Import } from "@shared/schema";
 export default function AdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Check if user is admin (using email for now)
   const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
