@@ -177,6 +177,7 @@ export interface Translations {
     inactive: string;
     yes: string;
     no: string;
+    all: string;
   };
   
   // Admin
@@ -431,6 +432,7 @@ export const ptTranslations: Translations = {
     inactive: 'Inativo',
     yes: 'Sim',
     no: 'Não',
+    all: 'Todos',
   },
   
   admin: {
@@ -679,6 +681,7 @@ export const enTranslations: Translations = {
     inactive: 'Inactive',
     yes: 'Yes',
     no: 'No',
+    all: 'All',
   },
   
   admin: {
@@ -927,6 +930,7 @@ export const zhTranslations: Translations = {
     inactive: '未激活',
     yes: '是',
     no: '否',
+    all: '全部',
   },
   
   admin: {
@@ -1175,6 +1179,7 @@ export const esTranslations: Translations = {
     inactive: 'Inactivo',
     yes: 'Sí',
     no: 'No',
+    all: 'Todos',
   },
   
   admin: {
