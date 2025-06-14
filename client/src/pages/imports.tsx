@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertImportSchema, type InsertImport } from "@shared/schema";
 import { 
@@ -34,6 +35,7 @@ export default function ImportsPage() {
   const [showNewImportForm, setShowNewImportForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],

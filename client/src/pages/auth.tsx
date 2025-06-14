@@ -394,13 +394,13 @@ export default function AuthPage() {
               </Form>
 
               <div className="text-center">
-                <span className="text-gray-600">Já tem uma conta? </span>
+                <span className="text-gray-600">{t.auth.haveAccount} </span>
                 <Button 
                   variant="link" 
                   onClick={() => setIsLogin(true)}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  Faça login
+                  {t.auth.signInNow}
                 </Button>
               </div>
             </div>
