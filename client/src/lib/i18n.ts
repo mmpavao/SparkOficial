@@ -1,9 +1,9 @@
 /**
  * Internationalization system for Spark Comex
- * Supports Portuguese (default), English, and Simplified Chinese
+ * Supports Portuguese (default), English, Simplified Chinese, and Spanish
  */
 
-export type Language = 'pt' | 'en' | 'zh';
+export type Language = 'pt' | 'en' | 'zh' | 'es';
 
 export interface Translations {
   // Navigation and Layout
@@ -825,11 +825,214 @@ export const zhTranslations: Translations = {
   },
 };
 
+// Spanish translations
+export const esTranslations: Translations = {
+  nav: {
+    dashboard: 'Panel',
+    credit: 'Crédito',
+    imports: 'Importaciones',
+    reports: 'Informes',
+    settings: 'Configuración',
+    adminArea: 'Área Admin',
+    importerArea: 'Área Importador',
+    users: 'Usuarios',
+    logout: 'Cerrar Sesión',
+  },
+  
+  auth: {
+    login: 'Iniciar Sesión',
+    register: 'Registrarse',
+    email: 'Correo',
+    password: 'Contraseña',
+    confirmPassword: 'Confirmar Contraseña',
+    companyName: 'Nombre de la Empresa',
+    cnpj: 'CNPJ',
+    fullName: 'Nombre Completo',
+    phone: 'Teléfono',
+    loginButton: 'Iniciar Sesión',
+    registerButton: 'Registrarse',
+    alreadyHaveAccount: '¿Ya tienes una cuenta?',
+    dontHaveAccount: '¿No tienes una cuenta?',
+    loginSuccess: '¡Inicio de sesión exitoso!',
+    registerSuccess: '¡Registro exitoso!',
+  },
+  
+  dashboard: {
+    welcome: 'Bienvenido',
+    goodMorning: 'Buenos días',
+    goodAfternoon: 'Buenas tardes',
+    goodEvening: 'Buenas noches',
+    manageCreditsAndImports: 'Gestiona tus créditos e importaciones de China de forma simple y eficiente.',
+    totalCredit: 'Crédito Total',
+    availableCredit: 'Crédito Disponible',
+    totalImports: 'Total Importaciones',
+    activeImports: 'Importaciones Activas',
+    recentApplications: 'Solicitudes Recientes',
+    recentImports: 'Importaciones Recientes',
+    viewAll: 'Ver Todas',
+    noData: 'Sin datos disponibles',
+  },
+  
+  credit: {
+    title: 'Gestión de Crédito',
+    requestCredit: 'Solicitar Crédito',
+    requestedAmount: 'Monto Solicitado',
+    requestedCurrency: 'Moneda',
+    businessPlan: 'Plan de Negocio',
+    financialDocuments: 'Documentos Financieros',
+    expectedUsage: 'Uso Esperado',
+    submitApplication: 'Enviar Solicitud',
+    myApplications: 'Mis Solicitudes',
+    status: {
+      pending: 'Pendiente',
+      under_review: 'En Revisión',
+      approved: 'Aprobado',
+      rejected: 'Rechazado',
+      cancelled: 'Cancelado',
+    },
+    applicationSuccess: '¡Solicitud de crédito enviada exitosamente!',
+  },
+  
+  imports: {
+    title: 'Gestión de Importaciones',
+    newImport: 'Nueva Importación',
+    supplier: 'Proveedor',
+    product: 'Producto',
+    quantity: 'Cantidad',
+    unitPrice: 'Precio Unitario',
+    totalValue: 'Valor Total',
+    currency: 'Moneda',
+    expectedDelivery: 'Entrega Esperada',
+    notes: 'Notas',
+    submitImport: 'Enviar Importación',
+    myImports: 'Mis Importaciones',
+    status: {
+      planning: 'Planificando',
+      ordered: 'Pedido',
+      in_transit: 'En Tránsito',
+      customs: 'Aduanas',
+      delivered: 'Entregado',
+      cancelled: 'Cancelado',
+    },
+    importSuccess: '¡Importación registrada exitosamente!',
+  },
+  
+  roles: {
+    super_admin: 'Super Administrador',
+    admin: 'Administrador',
+    importer: 'Importador',
+    inactive: 'Inactivo',
+  },
+  
+  currency: {
+    USD: 'Dólar Estadounidense',
+    EUR: 'Euro',
+    CNY: 'Yuan Chino',
+    BRL: 'Real Brasileño',
+  },
+  
+  common: {
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    view: 'Ver',
+    create: 'Crear',
+    update: 'Actualizar',
+    loading: 'Cargando...',
+    error: 'Error',
+    success: 'Éxito',
+    date: 'Fecha',
+    amount: 'Monto',
+    status: 'Estado',
+    actions: 'Acciones',
+    search: 'Buscar',
+    filter: 'Filtrar',
+    export: 'Exportar',
+    import: 'Importar',
+    total: 'Total',
+    available: 'Disponible',
+    used: 'Usado',
+    pending: 'Pendiente',
+    approved: 'Aprobado',
+    rejected: 'Rechazado',
+    active: 'Activo',
+    inactive: 'Inactivo',
+    yes: 'Sí',
+    no: 'No',
+  },
+  
+  admin: {
+    title: 'Panel de Administración',
+    userManagement: 'Gestión de Usuarios',
+    createUser: 'Crear Usuario',
+    editUser: 'Editar Usuario',
+    deactivateUser: 'Desactivar Usuario',
+    activateUser: 'Activar Usuario',
+    changeRole: 'Cambiar Rol',
+    totalUsers: 'Total de Usuarios',
+    systemMetrics: 'Métricas del Sistema',
+    recentActivity: 'Actividad Reciente',
+  },
+  
+  reports: {
+    title: 'Informes',
+    creditReport: 'Informe de Crédito',
+    importReport: 'Informe de Importaciones',
+    userReport: 'Informe de Usuarios',
+    financialReport: 'Informe Financiero',
+    generateReport: 'Generar Informe',
+    dateRange: 'Rango de Fechas',
+    fromDate: 'Fecha Desde',
+    toDate: 'Fecha Hasta',
+    reportType: 'Tipo de Informe',
+  },
+  
+  settings: {
+    title: 'Configuración',
+    profile: 'Perfil',
+    preferences: 'Preferencias',
+    language: 'Idioma',
+    notifications: 'Notificaciones',
+    security: 'Seguridad',
+    changePassword: 'Cambiar Contraseña',
+    currentPassword: 'Contraseña Actual',
+    newPassword: 'Nueva Contraseña',
+    confirmNewPassword: 'Confirmar Nueva Contraseña',
+    updateProfile: 'Actualizar Perfil',
+    profileUpdated: '¡Perfil actualizado exitosamente!',
+  },
+  
+  validation: {
+    required: 'Este campo es obligatorio',
+    invalidEmail: 'Correo inválido',
+    invalidCnpj: 'CNPJ inválido',
+    invalidPhone: 'Teléfono inválido',
+    passwordMismatch: 'Las contraseñas no coinciden',
+    minLength: 'Mínimo {0} caracteres',
+    maxLength: 'Máximo {0} caracteres',
+    invalidCurrency: 'Moneda inválida',
+  },
+  
+  errors: {
+    generic: 'Ocurrió un error inesperado',
+    networkError: 'Error de conexión',
+    unauthorized: 'No autorizado',
+    forbidden: 'Acceso denegado',
+    notFound: 'No encontrado',
+    serverError: 'Error interno del servidor',
+    sessionExpired: 'Sesión expirada',
+    loginFailed: 'Error de inicio de sesión',
+    registrationFailed: 'Error de registro',
+  },
+};
+
 // Translation collections
 export const translations: Record<Language, Translations> = {
   pt: ptTranslations,
   en: enTranslations,
   zh: zhTranslations,
+  es: esTranslations,
 };
 
 // Get current language from localStorage or default to Portuguese

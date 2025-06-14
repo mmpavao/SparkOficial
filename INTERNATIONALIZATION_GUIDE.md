@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Sistema completo de internacionalização implementado para suporte a múltiplos idiomas: Português (padrão), Inglês e Chinês Simplificado.
+Sistema completo de internacionalização implementado para suporte a múltiplos idiomas: Português (padrão), Inglês, Chinês Simplificado e Espanhol.
 
 ## Arquitetura
 
@@ -20,7 +20,7 @@ client/src/
 
 #### 1. Sistema de Traduções (`lib/i18n.ts`)
 - **Tipos TypeScript**: `Language`, `Translations`
-- **Idiomas suportados**: Português (pt), Inglês (en), Chinês Simplificado (zh)
+- **Idiomas suportados**: Português (pt), Inglês (en), Chinês Simplificado (zh), Espanhol (es)
 - **Persistência**: localStorage para preferência do usuário
 - **Fallback**: Português como idioma padrão
 
@@ -179,7 +179,7 @@ import LanguageSelector from "@/components/ui/language-selector";
 
 3. **Novos Idiomas**
    - ✅ Chinês Simplificado (zh) - Implementado
-   - Espanhol (es) - Planejado
+   - ✅ Espanhol (es) - Implementado
    - Framework para adição fácil de novos idiomas
 
 ## Benefícios
@@ -214,6 +214,7 @@ import LanguageSelector from "@/components/ui/language-selector";
 // Português: "Bom dia, João!"
 // Inglês: "Good morning, John!"
 // Chinês: "早上好, 约翰!"
+// Espanhol: "Buenos días, Juan!"
 {getGreeting()}, {getFirstName(user?.fullName)}!
 ```
 
@@ -222,6 +223,7 @@ import LanguageSelector from "@/components/ui/language-selector";
 // Português: "Área do Importador"
 // Inglês: "Importer Area"
 // Chinês: "进口商区"
+// Espanhol: "Área Importador"
 {t.nav.importerArea}
 ```
 
@@ -230,6 +232,7 @@ import LanguageSelector from "@/components/ui/language-selector";
 // Português: "Em Análise"
 // Inglês: "Under Review"
 // Chinês: "审核中"
+// Espanhol: "En Revisión"
 {t.credit.status.under_review}
 ```
 
@@ -238,11 +241,12 @@ import LanguageSelector from "@/components/ui/language-selector";
 // Português: "Yuan Chinês"
 // Inglês: "Chinese Yuan"
 // Chinês: "人民币"
+// Espanhol: "Yuan Chino"
 {t.currency.CNY}
 ```
 
 ## Conclusão
 
-Sistema de internacionalização robusto e completo, pronto para uso em produção com suporte para Português, Inglês e Chinês Simplificado. Arquitetura extensível permite fácil adição de novos idiomas e funcionalidades localizadas.
+Sistema de internacionalização robusto e completo, pronto para uso em produção com suporte para Português, Inglês, Chinês Simplificado e Espanhol. Arquitetura extensível permite fácil adição de novos idiomas e funcionalidades localizadas.
 
 A implementação segue as melhores práticas de desenvolvimento React com TypeScript, garantindo type safety, performance e manutenibilidade a longo prazo.
