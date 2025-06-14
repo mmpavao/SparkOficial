@@ -152,7 +152,7 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t.auth.email}</FormLabel>
                         <FormControl>
                           <Input 
                             type="email" 
@@ -171,7 +171,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Senha</FormLabel>
+                        <FormLabel>{t.auth.password}</FormLabel>
                         <FormControl>
                           <PasswordInput 
                             placeholder="••••••••" 
@@ -187,10 +187,10 @@ export default function AuthPage() {
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
                       <Checkbox className="data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" />
-                      <span className="ml-2 text-sm text-gray-600">Lembrar-me</span>
+                      <span className="ml-2 text-sm text-gray-600">{t.auth.rememberMe}</span>
                     </label>
                     <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0">
-                      Esqueceu a senha?
+                      {t.auth.forgotPassword}
                     </Button>
                   </div>
 
@@ -199,19 +199,19 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? "Entrando..." : "Entrar"}
+                    {loginMutation.isPending ? t.auth.signingIn : t.auth.signIn}
                   </Button>
                 </form>
               </Form>
 
               <div className="text-center">
-                <span className="text-gray-600">Não tem uma conta? </span>
+                <span className="text-gray-600">{t.auth.dontHaveAccount} </span>
                 <Button 
                   variant="link" 
                   onClick={() => setIsLogin(false)}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  Cadastre-se agora
+                  {t.auth.registerButton}
                 </Button>
               </div>
             </div>
@@ -219,8 +219,8 @@ export default function AuthPage() {
             /* Register Form */
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Criar conta</h2>
-                <p className="text-gray-600">Cadastre sua empresa na plataforma</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.createAccount}</h2>
+                <p className="text-gray-600">{t.auth.createAccountDescription}</p>
               </div>
 
               <Form {...registerForm}>
@@ -231,7 +231,7 @@ export default function AuthPage() {
                       name="companyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome da Empresa</FormLabel>
+                          <FormLabel>{t.auth.companyName}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Sua Empresa Ltda" 
@@ -249,7 +249,7 @@ export default function AuthPage() {
                       name="cnpj"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>CNPJ</FormLabel>
+                          <FormLabel>{t.auth.cnpj}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="00.000.000/0000-00" 
@@ -272,7 +272,7 @@ export default function AuthPage() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome Completo</FormLabel>
+                        <FormLabel>{t.auth.fullName}</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="Seu nome completo" 
@@ -291,7 +291,7 @@ export default function AuthPage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefone</FormLabel>
+                          <FormLabel>{t.auth.phone}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="(11) 99999-9999" 
@@ -313,7 +313,7 @@ export default function AuthPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t.auth.email}</FormLabel>
                           <FormControl>
                             <Input 
                               type="email" 
@@ -334,7 +334,7 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Senha</FormLabel>
+                          <FormLabel>{t.auth.password}</FormLabel>
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••" 
@@ -352,7 +352,7 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirmar Senha</FormLabel>
+                          <FormLabel>{t.auth.confirmPassword}</FormLabel>
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••" 
@@ -372,13 +372,13 @@ export default function AuthPage() {
                       className="mt-1 data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" 
                     />
                     <span className="ml-2 text-sm text-gray-600">
-                      Aceito os{" "}
+                      {t.auth.acceptTerms}{" "}
                       <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                        Termos de Uso
+                        {t.auth.termsOfUse}
                       </Button>{" "}
                       e{" "}
                       <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                        Política de Privacidade
+                        {t.auth.privacyPolicy}
                       </Button>
                     </span>
                   </div>
@@ -388,7 +388,7 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={registerMutation.isPending}
                   >
-                    {registerMutation.isPending ? "Criando conta..." : "Criar Conta"}
+                    {registerMutation.isPending ? t.auth.creatingAccount : t.auth.createAccount}
                   </Button>
                 </form>
               </Form>
