@@ -83,7 +83,7 @@ export default function AdminPage() {
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.admin.title}</h1>
-        <p className="text-gray-600">Gerencie usuários, créditos e importações</p>
+        <p className="text-gray-600">{t.admin.manageUsersCreditsImports}</p>
       </div>
 
       {/* Statistics Cards */}
@@ -93,7 +93,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Usuários</p>
+                <p className="text-sm font-medium text-gray-600">{t.admin.totalUsers}</p>
                 <p className="text-2xl font-bold text-gray-900">{allUsers.length}</p>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <CreditCard className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
+                <p className="text-sm font-medium text-gray-600">{t.admin.requestedCredit}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatCurrency(metrics.totalCreditRequested)}
                 </p>
@@ -119,7 +119,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
+                <p className="text-sm font-medium text-gray-600">{t.admin.approvedCredit}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatCurrency(metrics.totalCreditApproved)}
                 </p>
@@ -133,7 +133,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <Package className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Importações</p>
+                <p className="text-sm font-medium text-gray-600">{t.admin.totalImports}</p>
                 <p className="text-2xl font-bold text-gray-900">{allImports.length}</p>
               </div>
             </div>
@@ -143,25 +143,25 @@ export default function AdminPage() {
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="users">Usuários</TabsTrigger>
-          <TabsTrigger value="credit">Solicitações de Crédito</TabsTrigger>
-          <TabsTrigger value="imports">Importações</TabsTrigger>
+          <TabsTrigger value="users">{t.admin.users}</TabsTrigger>
+          <TabsTrigger value="credit">{t.admin.applications}</TabsTrigger>
+          <TabsTrigger value="imports">{t.admin.imports}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle>Usuários Cadastrados</CardTitle>
+              <CardTitle>{t.admin.users}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>CNPJ</TableHead>
-                    <TableHead>Data de Cadastro</TableHead>
+                    <TableHead>{t.common.name || 'Nome'}</TableHead>
+                    <TableHead>{t.admin.company}</TableHead>
+                    <TableHead>{t.auth.email}</TableHead>
+                    <TableHead>{t.auth.cnpj}</TableHead>
+                    <TableHead>{t.admin.requestDate}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -215,6 +215,18 @@ export interface Translations {
     applications: string;
     users: string;
     imports: string;
+    name: string;
+    registrationDate: string;
+    creditApplications: string;
+    amount: string;
+    status: string;
+    actions: string;
+    supplier: string;
+    product: string;
+    deliveryDate: string;
+    noUsers: string;
+    noCreditApplications: string;
+    noImports: string;
   };
   
   // Reports
