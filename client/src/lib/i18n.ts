@@ -98,6 +98,7 @@ export interface Translations {
     notes: string;
     newApplication: string;
     cancel: string;
+    nextDue: string;
   };
   
   // Import Management
@@ -359,6 +360,7 @@ export const ptTranslations: Translations = {
     notes: 'Observações',
     newApplication: 'Nova Solicitação',
     cancel: 'Cancelar',
+    nextDue: 'Próximo Vencimento',
   },
   
   imports: {
@@ -891,6 +893,8 @@ export const zhTranslations: Translations = {
     createImport: '创建进口',
     importCreated: '进口创建成功',
     viewImport: '查看进口',
+    clickNewImport: '点击"新建进口"开始',
+    tryChangeFilter: '尝试更改状态筛选',
   },
   
   roles: {
@@ -1140,6 +1144,8 @@ export const esTranslations: Translations = {
     createImport: 'Crear Importación',
     importCreated: 'Importación creada con éxito',
     viewImport: 'Ver Importación',
+    clickNewImport: 'Haga clic en "Nueva Importación" para comenzar',
+    tryChangeFilter: 'Pruebe cambiar el filtro de estado',
   },
   
   roles: {

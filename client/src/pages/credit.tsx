@@ -275,7 +275,7 @@ export default function CreditPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Próximo Vencimento</p>
+                <p className="text-sm text-gray-600">{t.credit.nextDue}</p>
                 <p className="text-2xl font-bold text-orange-600">15 dias</p>
                 <p className="text-xs text-gray-500 mt-1">R$ 5.000</p>
               </div>
