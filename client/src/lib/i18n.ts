@@ -123,6 +123,12 @@ export interface Translations {
       cancelled: string;
     };
     importSuccess: string;
+    importError: string;
+    location: string;
+    supplierLocation: string;
+    createImport: string;
+    importCreated: string;
+    viewImport: string;
   };
   
   // User Roles
@@ -199,6 +205,17 @@ export interface Translations {
     fromDate: string;
     toDate: string;
     reportType: string;
+    overview: string;
+    last30Days: string;
+    last90Days: string;
+    lastYear: string;
+    customRange: string;
+    exportPdf: string;
+    exportExcel: string;
+    noDataAvailable: string;
+    period: string;
+    selectPeriod: string;
+    selectReport: string;
   };
   
   // Settings
@@ -363,6 +380,12 @@ export const ptTranslations: Translations = {
       cancelled: 'Cancelado',
     },
     importSuccess: 'Importação cadastrada com sucesso!',
+    importError: 'Erro ao cadastrar importação',
+    location: 'Localização',
+    supplierLocation: 'Local do Fornecedor',
+    createImport: 'Criar Importação',
+    importCreated: 'Importação criada com sucesso',
+    viewImport: 'Ver Importação',
   },
   
   roles: {
@@ -434,6 +457,17 @@ export const ptTranslations: Translations = {
     fromDate: 'Data Inicial',
     toDate: 'Data Final',
     reportType: 'Tipo de Relatório',
+    overview: 'Visão Geral',
+    last30Days: 'Últimos 30 dias',
+    last90Days: 'Últimos 90 dias',
+    lastYear: 'Último ano',
+    customRange: 'Período customizado',
+    exportPdf: 'Exportar PDF',
+    exportExcel: 'Exportar Excel',
+    noDataAvailable: 'Nenhum dado disponível',
+    period: 'Período',
+    selectPeriod: 'Selecionar período',
+    selectReport: 'Selecionar relatório',
   },
   
   settings: {
@@ -594,6 +628,12 @@ export const enTranslations: Translations = {
       cancelled: 'Cancelled',
     },
     importSuccess: 'Import registered successfully!',
+    importError: 'Error registering import',
+    location: 'Location',
+    supplierLocation: 'Supplier Location',
+    createImport: 'Create Import',
+    importCreated: 'Import created successfully',
+    viewImport: 'View Import',
   },
   
   roles: {
@@ -665,6 +705,17 @@ export const enTranslations: Translations = {
     fromDate: 'From Date',
     toDate: 'To Date',
     reportType: 'Report Type',
+    overview: 'Overview',
+    last30Days: 'Last 30 days',
+    last90Days: 'Last 90 days',
+    lastYear: 'Last year',
+    customRange: 'Custom range',
+    exportPdf: 'Export PDF',
+    exportExcel: 'Export Excel',
+    noDataAvailable: 'No data available',
+    period: 'Period',
+    selectPeriod: 'Select period',
+    selectReport: 'Select report',
   },
   
   settings: {
