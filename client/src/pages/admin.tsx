@@ -25,7 +25,7 @@ export default function AdminPage() {
   // Update credit application status
   const updateCreditMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      return await apiRequest(`/api/admin/credit-applications/${id}/status`, "PUT", { status });
+      return await apiRequest("PUT", `/api/admin/credit-applications/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
@@ -169,7 +169,7 @@ export default function AdminPage() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.cnpj}</TableCell>
                       <TableCell>
-                        {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -200,9 +200,9 @@ export default function AdminPage() {
                   {allCreditApplications.map((application) => (
                     <TableRow key={application.id}>
                       <TableCell className="font-medium">
-                        {application.companyName}
+                        {(allUsers.find((u: any) => u.id === application.userId)?.companyName) || 'N/A'}
                       </TableCell>
-                      <TableCell>{formatCurrency(application.requestedAmount)}</TableCell>
+                      <TableCell>{formatCurrency(Number(application.requestedAmount))}</TableCell>
                       <TableCell>{application.purpose}</TableCell>
                       <TableCell>
                         <Badge className={getStatusBadge(application.status)}>
@@ -210,7 +210,7 @@ export default function AdminPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(application.createdAt).toLocaleDateString('pt-BR')}
+                        {application.createdAt ? new Date(application.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -269,16 +269,16 @@ export default function AdminPage() {
                 <TableBody>
                   {allImports.map((importItem) => (
                     <TableRow key={importItem.id}>
-                      <TableCell className="font-medium">{importItem.productName}</TableCell>
+                      <TableCell className="font-medium">{importItem.productDescription}</TableCell>
                       <TableCell>{importItem.supplierName}</TableCell>
-                      <TableCell>{formatCurrency(importItem.totalValue)}</TableCell>
+                      <TableCell>{formatCurrency(Number(importItem.totalValue))}</TableCell>
                       <TableCell>
                         <Badge className={getStatusBadge(importItem.status)}>
                           {importItem.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR')}
+                        {importItem.estimatedDelivery ? new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 'N/A'}
                       </TableCell>
                     </TableRow>
                   ))}
