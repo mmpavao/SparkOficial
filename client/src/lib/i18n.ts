@@ -92,6 +92,12 @@ export interface Translations {
       cancelled: string;
     };
     applicationSuccess: string;
+    applicationSent: string;
+    applicationError: string;
+    purpose: string;
+    notes: string;
+    newApplication: string;
+    cancel: string;
   };
   
   // Import Management

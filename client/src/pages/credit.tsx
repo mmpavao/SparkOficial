@@ -66,16 +66,16 @@ export default function CreditPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       toast({
-        title: "Solicitação enviada!",
-        description: "Sua solicitação de crédito foi enviada para análise.",
+        title: t.credit.applicationSuccess,
+        description: t.credit.applicationSent,
       });
       setShowForm(false);
       form.reset();
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao enviar solicitação",
-        description: error.message || "Tente novamente.",
+        title: t.credit.applicationError,
+        description: error.message || t.common.error,
         variant: "destructive",
       });
     },
@@ -95,9 +95,9 @@ export default function CreditPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      pending: { label: "Pendente", variant: "secondary" as const, icon: Clock },
-      under_review: { label: "Em Análise", variant: "default" as const, icon: FileText },
-      approved: { label: "Aprovado", variant: "default" as const, icon: CheckCircle },
+      pending: { label: t.credit.status.pending, variant: "secondary" as const, icon: Clock },
+      under_review: { label: t.credit.status.under_review, variant: "default" as const, icon: FileText },
+      approved: { label: t.credit.status.approved, variant: "default" as const, icon: CheckCircle },
       rejected: { label: "Rejeitado", variant: "destructive" as const, icon: XCircle },
     };
     
