@@ -1,32 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { User, CreditApplication, Import } from "@shared/schema";
-
-interface MetricsData {
-  totalUsers: number;
-  totalCreditRequested: number;
-  totalCreditApproved: number;
-  totalImports: number;
-  activeImports: number;
-  completedImports: number;
-  totalImportValue: number;
-  utilizationRate: number;
-}
+import { MetricsData } from "@/types";
+import { QUERY_KEYS } from "@/lib/constants";
+import { buildMetricsData } from "@/lib/metrics";
 
 export function useMetrics(isAdmin = false) {
   const { data: user } = useQuery<User>({
-    queryKey: ["/api/auth/user"],
+    queryKey: QUERY_KEYS.auth,
   });
 
   const { data: creditApplications = [] } = useQuery<CreditApplication[]>({
-    queryKey: isAdmin ? ["/api/admin/credit-applications"] : ["/api/credit/applications"],
+    queryKey: isAdmin ? QUERY_KEYS.admin.creditApplications : QUERY_KEYS.creditApplications,
   });
 
   const { data: imports = [] } = useQuery<Import[]>({
-    queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"],
+    queryKey: isAdmin ? QUERY_KEYS.admin.imports : QUERY_KEYS.imports,
   });
 
   const { data: users = [] } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
+    queryKey: QUERY_KEYS.admin.users,
     enabled: isAdmin,
   });
 
