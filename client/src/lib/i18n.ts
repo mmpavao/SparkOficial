@@ -235,6 +235,12 @@ export interface Translations {
     loginFailed: string;
     registrationFailed: string;
   };
+
+  // Not Found Page
+  notFound: {
+    title: string;
+    message: string;
+  };
 }
 
 // Portuguese translations (default)
@@ -455,9 +461,14 @@ export const ptTranslations: Translations = {
     loginFailed: 'Falha no login',
     registrationFailed: 'Falha no cadastro',
   },
+
+  notFound: {
+    title: '404 - Página Não Encontrada',
+    message: 'A página que você está procurando não existe ou foi movida.',
+  },
 };
 
-// English translations
+// English translations  
 export const enTranslations: Translations = {
   nav: {
     dashboard: 'Dashboard',
@@ -674,6 +685,11 @@ export const enTranslations: Translations = {
     sessionExpired: 'Session expired',
     loginFailed: 'Login failed',
     registrationFailed: 'Registration failed',
+  },
+
+  notFound: {
+    title: '404 - Page Not Found',
+    message: 'The page you are looking for does not exist or has been moved.',
   },
 };
 
@@ -895,6 +911,11 @@ export const zhTranslations: Translations = {
     loginFailed: '登录失败',
     registrationFailed: '注册失败',
   },
+
+  notFound: {
+    title: '404 - 页面未找到',
+    message: '您正在查找的页面不存在或已被移动。',
+  },
 };
 
 // Spanish translations
@@ -1114,6 +1135,11 @@ export const esTranslations: Translations = {
     sessionExpired: 'Sesión expirada',
     loginFailed: 'Error de inicio de sesión',
     registrationFailed: 'Error de registro',
+  },
+
+  notFound: {
+    title: '404 - Página No Encontrada',
+    message: 'La página que busca no existe o ha sido movida.',
   },
 };
 
