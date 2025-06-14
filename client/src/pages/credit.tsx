@@ -205,10 +205,10 @@ export default function CreditPage() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Observações Adicionais (Opcional)</FormLabel>
+                      <FormLabel>{t.credit.notes}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Informações adicionais que possam ajudar na análise..."
+                          placeholder={t.credit.notes}
                           {...field}
                         />
                       </FormControl>
@@ -223,14 +223,14 @@ export default function CreditPage() {
                     disabled={createApplicationMutation.isPending}
                     className="bg-spark-600 hover:bg-spark-700"
                   >
-                    {createApplicationMutation.isPending ? "Enviando..." : "Enviar Solicitação"}
+{createApplicationMutation.isPending ? t.common.loading : t.credit.submitApplication}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowForm(false)}
                   >
-                    Cancelar
+{t.credit.cancel}
                   </Button>
                 </div>
               </form>
@@ -245,9 +245,9 @@ export default function CreditPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Crédito Disponível</p>
+                <p className="text-sm text-gray-600">{t.dashboard.availableCredit}</p>
                 <p className="text-2xl font-bold text-green-600">R$ 25.000</p>
-                <p className="text-xs text-gray-500 mt-1">Limite aprovado</p>
+                <p className="text-xs text-gray-500 mt-1">{t.common.approved}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-green-600" />
@@ -290,18 +290,18 @@ export default function CreditPage() {
       {/* Applications List */}
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de Solicitações</CardTitle>
+          <CardTitle>{t.credit.myApplications}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando solicitações...</p>
+              <p className="text-gray-600">{t.common.loading}...</p>
             </div>
           ) : !applications || !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">Nenhuma solicitação encontrada</p>
+              <p className="text-gray-500 mb-2">{t.dashboard.noData}</p>
               <p className="text-sm text-gray-400">
                 Suas solicitações de crédito aparecerão aqui.
               </p>

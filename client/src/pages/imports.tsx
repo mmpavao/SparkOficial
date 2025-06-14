@@ -239,22 +239,22 @@ export default function ImportsPage() {
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder="Buscar por código, fornecedor..." className="pl-10" />
+                <Input placeholder={t.common.search + "..."} className="pl-10" />
               </div>
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full sm:w-48">
                 <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filtrar por status" />
+                <SelectValue placeholder={t.common.filter} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="planning">Planejamento</SelectItem>
-                <SelectItem value="ordered">Pedido Feito</SelectItem>
-                <SelectItem value="shipped">Enviado</SelectItem>
-                <SelectItem value="customs">Na Alfândega</SelectItem>
-                <SelectItem value="delivered">Entregue</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
+                <SelectItem value="all">{t.common.all}</SelectItem>
+                <SelectItem value="planning">{t.imports.status.planning}</SelectItem>
+                <SelectItem value="ordered">{t.imports.status.ordered}</SelectItem>
+                <SelectItem value="in_transit">{t.imports.status.in_transit}</SelectItem>
+                <SelectItem value="customs">{t.imports.status.customs}</SelectItem>
+                <SelectItem value="delivered">{t.imports.status.delivered}</SelectItem>
+                <SelectItem value="cancelled">{t.imports.status.cancelled}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -265,12 +265,12 @@ export default function ImportsPage() {
       <div className="space-y-4">
         {isLoading ? (
           <div className="text-center py-8">
-            <p className="text-gray-500">Carregando importações...</p>
+            <p className="text-gray-500">{t.common.loading}...</p>
           </div>
         ) : filteredImports.length === 0 ? (
           <div className="text-center py-8">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">Nenhuma importação encontrada</p>
+            <p className="text-gray-500 mb-2">{t.dashboard.noData}</p>
             <p className="text-sm text-gray-400">
               {filterStatus === "all" 
                 ? "Clique em 'Nova Importação' para começar" 
