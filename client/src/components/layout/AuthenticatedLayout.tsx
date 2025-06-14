@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import AIInsightsButton from "@/components/ai-insights/AIInsightsButton";
+import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
 import { 
   Menu, 
   X, 
@@ -103,7 +104,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         <div className="flex items-center justify-between p-6 border-b">
           <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
             <img 
-              src="/spark-logo.png" 
+              src={sparkLogo} 
               alt="Spark Comex" 
               className="h-8 w-auto"
             />
