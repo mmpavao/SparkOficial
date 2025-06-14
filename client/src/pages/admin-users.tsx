@@ -75,13 +75,13 @@ export default function AdminUsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: "Sucesso",
+        title: t.common.success,
         description: "Role do usuário atualizada com sucesso",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: t.common.error,
         description: "Erro ao atualizar role do usuário",
         variant: "destructive",
       });

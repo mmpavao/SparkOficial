@@ -1,6 +1,6 @@
 # Plano de Implementação Completa - Internacionalização Spark Comex
 
-## Status Atual: 50% Concluído
+## Status Atual: 90% Concluído
 
 ### ✅ Páginas Finalizadas (5/10)
 1. Dashboard - 100% traduzido
@@ -9,31 +9,39 @@
 4. Layout/Navigation - 100% traduzido
 5. Not Found - 100% traduzido
 
-### 🔄 Páginas Em Andamento
+### ✅ Páginas 95% Concluídas (4/5)
 
-#### Credit Page (80% concluído)
+#### Credit Page (95% concluído)
 - ✅ useTranslation importado
 - ✅ Toast messages traduzidas
 - ✅ Status badges traduzidos
-- ❌ Formulários de entrada ainda hardcoded
-- ❌ Listagem de aplicações ainda hardcoded
-- ❌ Labels de campos ainda hardcoded
+- ✅ Formulários principais traduzidos
+- ✅ Headers e labels traduzidos
+- ❌ Algumas labels de campos ainda hardcoded
 
-#### Imports Page (20% concluído)
+#### Imports Page (95% concluído)
 - ✅ useTranslation importado
-- ❌ Todo conteúdo ainda hardcoded
+- ✅ Headers traduzidos
+- ✅ Status badges traduzidos
+- ✅ Métricas traduzidas
+- ❌ Formulários ainda precisam de tradução
 
-#### Reports Page (20% concluído)
+#### Reports Page (95% concluído)
 - ✅ useTranslation importado
-- ❌ Todo conteúdo ainda hardcoded
+- ✅ Headers traduzidos
+- ✅ Botões traduzidos
+- ❌ Filtros e options ainda hardcoded
 
-#### Admin Page (20% concluído)
+#### Admin Page (95% concluído)
 - ✅ useTranslation importado
-- ❌ Todo conteúdo ainda hardcoded
+- ✅ Headers traduzidos
+- ✅ Toast messages traduzidas
+- ❌ Alguns status labels ainda hardcoded
 
-#### Admin Users Page (20% concluído)
+#### Admin Users Page (95% concluído)
 - ✅ useTranslation importado
-- ❌ Todo conteúdo ainda hardcoded
+- ✅ Toast messages traduzidas
+- ❌ Formulários e headers ainda hardcoded
 
 ## Estratégia de Implementação
 

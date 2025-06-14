@@ -142,7 +142,7 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Relatórios</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t.reports.title}</h1>
           <p className="text-gray-600">Análise e insights das suas operações</p>
         </div>
         <Button 
@@ -150,7 +150,7 @@ export default function ReportsPage() {
           className="bg-spark-600 hover:bg-spark-700"
         >
           <Download className="w-4 h-4 mr-2" />
-          Exportar Relatório
+{t.reports.generateReport}
         </Button>
       </div>
 

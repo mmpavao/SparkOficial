@@ -33,13 +33,13 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
       toast({
-        title: "Status atualizado",
+        title: t.common.success,
         description: "Status da solicitação de crédito foi atualizado com sucesso.",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
+        title: t.common.error,
         description: "Erro ao atualizar status da solicitação.",
         variant: "destructive",
       });
@@ -82,7 +82,7 @@ export default function AdminPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Área Administrativa</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.admin.title}</h1>
         <p className="text-gray-600">Gerencie usuários, créditos e importações</p>
       </div>
 
