@@ -129,6 +129,8 @@ export interface Translations {
     createImport: string;
     importCreated: string;
     viewImport: string;
+    clickNewImport: string;
+    tryChangeFilter: string;
   };
   
   // User Roles
@@ -387,6 +389,8 @@ export const ptTranslations: Translations = {
     createImport: 'Criar Importação',
     importCreated: 'Importação criada com sucesso',
     viewImport: 'Ver Importação',
+    clickNewImport: 'Clique em "Nova Importação" para começar',
+    tryChangeFilter: 'Tente alterar o filtro de status',
   },
   
   roles: {
@@ -636,6 +640,8 @@ export const enTranslations: Translations = {
     createImport: 'Create Import',
     importCreated: 'Import created successfully',
     viewImport: 'View Import',
+    clickNewImport: 'Click "New Import" to get started',
+    tryChangeFilter: 'Try changing the status filter',
   },
   
   roles: {

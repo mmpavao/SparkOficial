@@ -273,8 +273,8 @@ export default function ImportsPage() {
             <p className="text-gray-500 mb-2">{t.dashboard.noData}</p>
             <p className="text-sm text-gray-400">
               {filterStatus === "all" 
-                ? "Clique em 'Nova Importação' para começar" 
-                : "Tente alterar o filtro de status"}
+                ? t.imports.clickNewImport
+                : t.imports.tryChangeFilter}
             </p>
           </div>
         ) : (
