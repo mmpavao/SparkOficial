@@ -145,11 +145,11 @@ export default function AIInsightsSidebar() {
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="bg-green-50 p-2 rounded-lg">
               <div className="text-green-800 font-medium">{summary.totalOpportunities}</div>
-              <div className="text-green-600 text-xs">{t.insights?.opportunities || 'Opportunities'}</div>
+              <div className="text-green-600 text-xs">{t.insights.opportunities}</div>
             </div>
             <div className="bg-blue-50 p-2 rounded-lg">
               <div className="text-blue-800 font-medium">{summary.urgentActions}</div>
-              <div className="text-blue-600 text-xs">{t.insights?.urgentActions || 'Urgent'}</div>
+              <div className="text-blue-600 text-xs">{t.insights.urgentActions}</div>
             </div>
           </div>
         )}
@@ -231,8 +231,8 @@ export default function AIInsightsSidebar() {
         {insights.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             <Brain className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm">{t.insights?.noInsights || 'No insights available'}</p>
-            <p className="text-xs mt-1">{t.insights?.checkBackLater || 'Check back later for AI recommendations'}</p>
+            <p className="text-sm">{t.insights.noInsights}</p>
+            <p className="text-xs mt-1">{t.insights.checkBackLater}</p>
           </div>
         )}
       </ScrollArea>
@@ -240,7 +240,7 @@ export default function AIInsightsSidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>{t.insights?.lastUpdated || 'Last updated'}</span>
+          <span>{t.insights.lastUpdated}</span>
           <span>{formatDate(new Date())}</span>
         </div>
       </div>
