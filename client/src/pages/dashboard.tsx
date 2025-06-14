@@ -2,6 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { useMetrics } from "@/hooks/useMetrics";
+import MetricsCard from "@/components/common/MetricsCard";
+import StatusBadge from "@/components/common/StatusBadge";
 import { 
   Plus,
   FileText,
@@ -14,15 +17,7 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
-
-  // Fetch real data from APIs
-  const { data: creditApplications = [] } = useQuery({
-    queryKey: ["/api/credit/applications"],
-  });
-
-  const { data: imports = [] } = useQuery({
-    queryKey: ["/api/imports"],
-  });
+  const { metrics, creditApplications, imports } = useMetrics();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,28 +36,7 @@ export default function Dashboard() {
     return roleMap[role] || "Usuário";
   };
 
-  // Calculate real metrics from API data
-  const calculateMetrics = () => {
-    const approvedApplications = (creditApplications as any[]).filter(app => app.status === 'approved');
-    const totalApprovedCredit = approvedApplications.reduce((sum, app) => sum + parseFloat(app.approvedAmount || 0), 0);
-    const totalRequestedCredit = approvedApplications.reduce((sum, app) => sum + parseFloat(app.requestedAmount || 0), 0);
-    
-    const activeImports = (imports as any[]).filter(imp => ['ordered', 'shipped', 'customs'].includes(imp.status));
-    const totalImportValue = (imports as any[]).reduce((sum, imp) => sum + parseFloat(imp.totalValue || 0), 0);
-    
-    const completedImports = (imports as any[]).filter(imp => imp.status === 'completed');
-    const estimatedSavings = totalImportValue * 0.15; // Estimated 15% savings
-    
-    return {
-      availableCredit: totalApprovedCredit - (totalApprovedCredit * 0.6), // Assuming 60% utilization
-      usedCredit: totalApprovedCredit * 0.6,
-      activeImportsCount: activeImports.length,
-      totalImportValue,
-      estimatedSavings
-    };
-  };
 
-  const metrics = calculateMetrics();
 
   return (
     <div className="space-y-6">
@@ -92,20 +66,12 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Crédito Disponível</p>
-                <p className="text-2xl font-bold text-gray-900">R$ 25.000</p>
-                <p className="text-xs text-gray-500 mt-1">Limite aprovado</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetricsCard
+          title="Crédito Aprovado"
+          value={`R$ ${metrics.totalCreditApproved.toLocaleString('pt-BR')}`}
+          icon={CreditCard}
+          iconColor="text-green-600"
+        />
 
         <Card>
           <CardContent className="p-6">

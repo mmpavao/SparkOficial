@@ -55,7 +55,7 @@ export function useMetrics(isAdmin = false) {
     ).length;
 
     const totalImportValue = imports.reduce(
-      (sum, imp) => sum + (imp.totalValue || 0), 0
+      (sum, imp) => sum + Number(imp.totalValue || 0), 0
     );
 
     return {
