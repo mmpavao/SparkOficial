@@ -14,6 +14,7 @@ import {
   Truck, 
   BarChart3, 
   Settings, 
+  Shield,
   LogOut,
   Bell,
   ChevronLeft,

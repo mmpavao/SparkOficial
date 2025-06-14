@@ -156,6 +156,19 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return importRecord;
   }
+
+  // Admin operations
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getAllCreditApplications(): Promise<CreditApplication[]> {
+    return await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt));
+  }
+
+  async getAllImports(): Promise<Import[]> {
+    return await db.select().from(imports).orderBy(desc(imports.createdAt));
+  }
 }
 
 export const storage = new DatabaseStorage();
