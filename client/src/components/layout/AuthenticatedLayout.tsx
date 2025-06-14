@@ -19,7 +19,9 @@ import {
   LogOut,
   Bell,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users,
+  UserCog
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -30,60 +32,62 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location, setLocation] = useLocation();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/auth/logout");
-      return response.json();
+      return await apiRequest("/api/auth/logout", {
+        method: "POST",
+      });
     },
     onSuccess: () => {
       queryClient.clear();
-      toast({
-        title: "Logout realizado com sucesso!",
-        description: "Até logo!",
-      });
+      window.location.href = "/auth";
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
-        title: "Erro no logout",
-        description: error.message || "Erro ao fazer logout.",
+        title: "Erro",
+        description: "Erro ao fazer logout",
         variant: "destructive",
       });
     },
   });
 
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleSidebarCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
   const getInitials = (name: string) => {
     return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
+      .split(' ')
+      .map(n => n[0])
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
-  const navigationItems = [
+  // Navegação da Área do Importador (disponível para todos)
+  const importerNavigation = [
     { path: "/", icon: Home, label: "Dashboard" },
     { path: "/credit", icon: CreditCard, label: "Crédito" },
     { path: "/imports", icon: Truck, label: "Importações" },
     { path: "/reports", icon: BarChart3, label: "Relatórios" },
     { path: "/settings", icon: Settings, label: "Configurações" },
-    ...(user?.email === "pavaosmart@gmail.com" ? [{ path: "/admin", icon: Shield, label: "Administração" }] : []),
   ];
+
+  // Navegação da Área Admin (apenas para super admin e admins)
+  const adminNavigation = [
+    { path: "/admin", icon: Shield, label: "Painel Admin" },
+    { path: "/admin/users", icon: Users, label: "Gestão de Usuários" },
+  ];
+
+  // Verificar se o usuário tem acesso à área admin
+  const hasAdminAccess = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
 
   const isActiveRoute = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -133,33 +137,82 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           </div>
         </div>
 
-        <nav className="p-4 space-y-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActiveRoute(item.path);
-            
-            return (
-              <Button
-                key={item.path}
-                variant="ghost"
-                className={`w-full transition-colors ${
-                  sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
-                } ${
-                  active 
-                    ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
-                    : "hover:bg-gray-50"
-                }`}
-                onClick={() => setLocation(item.path)}
-              >
-                <Icon className="w-4 h-4 lg:mr-0 mr-3" />
-                <span className={`transition-opacity duration-300 ${
-                  sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
-                }`}>
-                  {item.label}
-                </span>
-              </Button>
-            );
-          })}
+        <nav className="p-4 space-y-4">
+          {/* Área do Importador */}
+          <div>
+            <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
+                Área do Importador
+              </h3>
+            </div>
+            <div className="space-y-1">
+              {importerNavigation.map((item) => {
+                const Icon = item.icon;
+                const active = isActiveRoute(item.path);
+                
+                return (
+                  <Button
+                    key={item.path}
+                    variant="ghost"
+                    className={`w-full transition-colors ${
+                      sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                    } ${
+                      active 
+                        ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                        : "hover:bg-gray-50"
+                    }`}
+                    onClick={() => setLocation(item.path)}
+                  >
+                    <Icon className="w-4 h-4 lg:mr-0 mr-3" />
+                    <span className={`transition-opacity duration-300 ${
+                      sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                    }`}>
+                      {item.label}
+                    </span>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Área Admin - apenas para super admin e admins */}
+          {hasAdminAccess && (
+            <div>
+              <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
+                  Área Admin
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {adminNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActiveRoute(item.path);
+                  
+                  return (
+                    <Button
+                      key={item.path}
+                      variant="ghost"
+                      className={`w-full transition-colors ${
+                        sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                      } ${
+                        active 
+                          ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => setLocation(item.path)}
+                    >
+                      <Icon className="w-4 h-4 lg:mr-0 mr-3" />
+                      <span className={`transition-opacity duration-300 ${
+                        sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                      }`}>
+                        {item.label}
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
@@ -173,20 +226,21 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               <p className="text-sm font-medium text-gray-900 truncate">
                 {user?.fullName}
               </p>
-              <p className="text-xs text-gray-500 truncate">
-                {user?.companyName}
+              <p className="text-xs text-gray-500 truncate capitalize">
+                {user?.role === "admin" ? "Administrador" : "Importador"}
               </p>
             </div>
           </div>
           <Button
             variant="ghost"
-            className={`w-full text-red-600 hover:bg-red-50 hover:text-red-700 ${
-              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
-            }`}
+            size="sm"
             onClick={handleLogout}
             disabled={logoutMutation.isPending}
+            className={`w-full transition-colors hover:bg-red-50 hover:text-red-600 ${
+              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+            }`}
           >
-            <LogOut className="w-4 h-4 lg:mr-0 mr-2" />
+            <LogOut className="w-4 h-4 lg:mr-0 mr-3" />
             <span className={`transition-opacity duration-300 ${
               sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
             }`}>
@@ -218,20 +272,20 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 onClick={toggleSidebar}
                 className="mr-4 lg:hidden"
               >
-                <Menu className="w-4 h-4" />
+                <Menu className="w-5 h-5" />
               </Button>
+              <h1 className="text-xl font-semibold text-gray-900">
+                Spark Comex
+              </h1>
             </div>
-
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="relative">
+              <Button variant="ghost" size="sm">
                 <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </Button>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="p-6">
           {children}
         </main>
