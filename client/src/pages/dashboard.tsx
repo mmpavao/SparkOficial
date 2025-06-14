@@ -31,10 +31,10 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">
-              {getGreeting()}, {user?.fullName?.split(' ')[0] || 'Usuário'}! 👋
+              {getGreeting()}, {getFirstName(user?.fullName)}! 👋
             </h2>
             <p className="opacity-90 mb-1">
-              {getRoleDisplay(user?.role || 'importer')} na {user?.companyName}
+              {getRoleDisplayName(user?.role as any)} na {user?.companyName}
             </p>
             <p className="opacity-75 text-sm">
               Gerencie seus créditos e importações da China de forma simples e eficiente.
