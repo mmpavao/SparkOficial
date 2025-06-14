@@ -7,6 +7,7 @@ import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { getGreeting, getFirstName, getRoleDisplayName } from "@/utils/roleUtils";
+import AIInsightsSidebar from "@/components/insights/AIInsightsSidebar";
 import { 
   Plus,
   FileText,
@@ -27,7 +28,8 @@ export default function Dashboard() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full">
+      <div className="flex-1 space-y-6 pr-4">
       {/* Personalized Welcome Section */}
       <div className="bg-gradient-spark rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
@@ -157,6 +159,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* AI Insights Sidebar */}
+      <AIInsightsSidebar />
     </div>
   );
 }
