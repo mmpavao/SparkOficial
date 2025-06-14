@@ -55,7 +55,7 @@ export default function AIInsightsSidebar() {
   const { t } = useTranslation();
   const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
 
-  const { data: insightsData, isLoading } = useQuery({
+  const { data: insightsData, isLoading } = useQuery<InsightsData>({
     queryKey: ['/api/insights/ai-recommendations'],
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
@@ -136,7 +136,7 @@ export default function AIInsightsSidebar() {
         <div className="flex items-center gap-2 mb-3">
           <Brain className="h-5 w-5 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            {t.insights?.title || 'AI Insights'}
+            {t.insights.title}
           </h2>
           <Zap className="h-4 w-4 text-yellow-500" />
         </div>
@@ -158,7 +158,7 @@ export default function AIInsightsSidebar() {
       {/* Insights List */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-3">
-          {insights.map((insight) => (
+          {insights.map((insight: AIInsight) => (
             <Card 
               key={insight.id} 
               className={`cursor-pointer transition-all ${

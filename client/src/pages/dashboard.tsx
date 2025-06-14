@@ -30,8 +30,8 @@ export default function Dashboard() {
   return (
     <div className="flex h-full">
       <div className="flex-1 space-y-6 pr-4">
-      {/* Personalized Welcome Section */}
-      <div className="bg-gradient-spark rounded-xl p-6 text-white">
+        {/* Personalized Welcome Section */}
+        <div className="bg-gradient-spark rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">
@@ -158,6 +158,7 @@ export default function Dashboard() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
       
       {/* AI Insights Sidebar */}

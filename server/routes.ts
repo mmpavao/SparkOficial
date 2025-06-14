@@ -574,7 +574,8 @@ function generateAIInsights(user: any, creditApplications: any[], imports: any[]
 
   // Supplier diversification
   if (imports.length > 0) {
-    const suppliers = [...new Set(imports.map(imp => imp.supplierName))];
+    const uniqueSuppliers = new Set(imports.map(imp => imp.supplierName));
+    const suppliers = Array.from(uniqueSuppliers);
     const supplierConcentration = imports.length / suppliers.length;
     
     if (supplierConcentration > 3) {
