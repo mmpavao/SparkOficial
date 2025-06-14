@@ -73,50 +73,26 @@ export default function Dashboard() {
           iconColor="text-green-600"
         />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Importações Ativas</p>
-                <p className="text-2xl font-bold text-gray-900">3</p>
-                <p className="text-xs text-gray-500 mt-1">Em andamento</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Truck className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetricsCard
+          title="Importações Ativas"
+          value={metrics.activeImports}
+          icon={Truck}
+          iconColor="text-blue-600"
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Importado</p>
-                <p className="text-2xl font-bold text-gray-900">R$ 1.2M</p>
-                <p className="text-xs text-gray-500 mt-1">Este ano</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetricsCard
+          title="Total Importado"
+          value={`R$ ${metrics.totalImportValue.toLocaleString('pt-BR')}`}
+          icon={BarChart3}
+          iconColor="text-purple-600"
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Economia Total</p>
-                <p className="text-2xl font-bold text-gray-900">R$ 180K</p>
-                <p className="text-xs text-gray-500 mt-1">Com Spark Comex</p>
-              </div>
-              <div className="w-12 h-12 bg-spark-100 rounded-lg flex items-center justify-center">
-                <PiggyBank className="w-6 h-6 text-spark-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetricsCard
+          title="Total de Importações"
+          value={metrics.totalImports}
+          icon={Package}
+          iconColor="text-spark-600"
+        />
       </div>
 
       {/* Recent Activities and Quick Actions */}

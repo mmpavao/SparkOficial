@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useMetrics } from "@/hooks/useMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, CreditCard, Package, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import MetricsCard from "@/components/common/MetricsCard";
+import StatusBadge from "@/components/common/StatusBadge";
+import { User, CreditApplication, Import } from "@shared/schema";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -16,32 +20,12 @@ export default function AdminPage() {
   // Check if user is admin (using email for now)
   const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
 
-  // Fetch all users
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ["/api/admin/users"],
-    enabled: isAdmin,
-  });
-
-  // Fetch all credit applications
-  const { data: allCreditApplications = [] } = useQuery({
-    queryKey: ["/api/admin/credit-applications"],
-    enabled: isAdmin,
-  });
-
-  // Fetch all imports
-  const { data: allImports = [] } = useQuery({
-    queryKey: ["/api/admin/imports"],
-    enabled: isAdmin,
-  });
+  const { metrics, users: allUsers, creditApplications: allCreditApplications, imports: allImports } = useMetrics(isAdmin);
 
   // Update credit application status
   const updateCreditMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      return await apiRequest(`/api/admin/credit-applications/${id}/status`, {
-        method: "PUT",
-        body: JSON.stringify({ status }),
-        headers: { "Content-Type": "application/json" },
-      });
+      return await apiRequest(`/api/admin/credit-applications/${id}/status`, "PUT", { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
@@ -91,14 +75,6 @@ export default function AdminPage() {
       currency: 'BRL',
     }).format(amount);
   };
-
-  const totalCreditRequested = allCreditApplications.reduce(
-    (sum, app) => sum + (app.requestedAmount || 0), 0
-  );
-
-  const totalCreditApproved = allCreditApplications
-    .filter(app => app.status === 'approved')
-    .reduce((sum, app) => sum + (app.approvedAmount || 0), 0);
 
   return (
     <div className="container mx-auto p-6">
