@@ -61,7 +61,7 @@ export default function ImportsPage() {
   // Create import mutation
   const createImportMutation = useMutation({
     mutationFn: async (data: InsertImport) => {
-      return await apiRequest("/api/imports", "POST", data);
+      return await apiRequest("POST", "/api/imports", data);
     },
     onSuccess: () => {
       toast({

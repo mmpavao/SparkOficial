@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserForm) => {
-      return await apiRequest("/api/admin/users", "POST", data);
+      return await apiRequest("POST", "/api/admin/users", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -68,7 +68,7 @@ export default function AdminUsersPage() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
-      return await apiRequest(`/api/admin/users/${userId}/role`, "PUT", { role });
+      return await apiRequest("PUT", `/api/admin/users/${userId}/role`, { role });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
 
   const deactivateUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return await apiRequest(`/api/admin/users/${userId}`, "DELETE");
+      return await apiRequest("DELETE", `/api/admin/users/${userId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });

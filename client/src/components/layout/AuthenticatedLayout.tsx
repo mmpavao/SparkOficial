@@ -39,7 +39,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const logoutMutation = useMutation({
     mutationFn: async () => {
       try {
-        return await apiRequest("/api/auth/logout", "POST");
+        return await apiRequest("POST", "/api/auth/logout");
       } catch (error) {
         console.error("Logout API error:", error);
         // Even if API fails, proceed with client-side cleanup
