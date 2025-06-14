@@ -38,9 +38,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/auth/logout", {
-        method: "POST",
-      });
+      return await apiRequest("/api/auth/logout", "POST");
     },
     onSuccess: () => {
       queryClient.clear();

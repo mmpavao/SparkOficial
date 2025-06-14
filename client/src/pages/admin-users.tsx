@@ -383,7 +383,7 @@ export default function AdminUsersPage() {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={users}
+            data={users as User[]}
             columns={columns}
             actions={actions}
             emptyMessage="Nenhum usuário encontrado"
