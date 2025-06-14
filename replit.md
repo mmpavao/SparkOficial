@@ -178,6 +178,13 @@ Changelog:
   * Added preferences tab in settings for language selection and regional formats
   * Created comprehensive internationalization guide (INTERNATIONALIZATION_GUIDE.md)
   * System ready for easy expansion to additional languages
+- June 14, 2025. Chinese (Simplified Mandarin) language support added:
+  * Implemented complete Chinese translation set with 200+ localized strings
+  * Added Chinese language option to language selector with 🇨🇳 flag
+  * Extended type system to support 'zh' language code
+  * Applied Chinese translations to all major interface components
+  * Updated documentation to reflect tri-language support (PT/EN/ZH)
+  * Maintained backward compatibility with existing functionality
 ```
 
 ## User Preferences

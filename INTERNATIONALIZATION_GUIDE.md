@@ -243,6 +243,6 @@ import LanguageSelector from "@/components/ui/language-selector";
 
 ## Conclusão
 
-Sistema de internacionalização robusto e completo, pronto para uso em produção com suporte inicial para Português e Inglês. Arquitetura extensível permite fácil adição de novos idiomas e funcionalidades localizadas.
+Sistema de internacionalização robusto e completo, pronto para uso em produção com suporte para Português, Inglês e Chinês Simplificado. Arquitetura extensível permite fácil adição de novos idiomas e funcionalidades localizadas.
 
 A implementação segue as melhores práticas de desenvolvimento React com TypeScript, garantindo type safety, performance e manutenibilidade a longo prazo.
