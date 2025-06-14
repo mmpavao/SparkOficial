@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 // Interface for storage operations
 export interface IStorage {
@@ -174,6 +175,41 @@ export class DatabaseStorage implements IStorage {
 
   async getAllImports(): Promise<Import[]> {
     return await db.select().from(imports).orderBy(desc(imports.createdAt));
+  }
+
+  // User management operations
+  async createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User> {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        password: hashedPassword,
+      })
+      .returning();
+    return user;
+  }
+
+  async updateUserRole(userId: number, role: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async deactivateUser(userId: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role: "inactive", updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role));
   }
 }
 

@@ -167,6 +167,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // User management routes (Admin area)
+  app.post("/api/admin/users", requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Verificar se é super admin
+      if (currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado - apenas super admin" });
+      }
+
+      const userData = req.body;
+      const { confirmPassword, ...userDataWithoutConfirm } = userData;
+      
+      const newUser = await storage.createUserByAdmin(userDataWithoutConfirm, currentUser.id);
+      res.json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/admin/users/:id/role", requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Verificar se é super admin ou admin
+      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const { id } = req.params;
+      const { role } = req.body;
+      
+      const updatedUser = await storage.updateUserRole(parseInt(id), role);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Verificar se é super admin
+      if (currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado - apenas super admin" });
+      }
+
+      const { id } = req.params;
+      const deactivatedUser = await storage.deactivateUser(parseInt(id));
+      res.json(deactivatedUser);
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Credit application routes
   app.post('/api/credit/applications', requireAuth, async (req: any, res) => {
     try {
