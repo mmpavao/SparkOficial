@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
 import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import { getGreeting, getFirstName, getRoleDisplayName } from "@/utils/roleUtils";
 import { 
   Plus,
   FileText,
@@ -19,22 +20,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { metrics, creditApplications, imports } = useMetrics();
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Bom dia";
-    if (hour < 18) return "Boa tarde";
-    return "Boa noite";
-  };
 
-  const getRoleDisplay = (role: string) => {
-    const roleMap: Record<string, string> = {
-      importer: "Importador",
-      admin: "Administrador",
-      analyst: "Analista",
-      manager: "Gerente"
-    };
-    return roleMap[role] || "Usuário";
-  };
 
 
 
