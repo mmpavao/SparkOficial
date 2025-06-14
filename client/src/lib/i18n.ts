@@ -300,6 +300,16 @@ export interface Translations {
     title: string;
     message: string;
   };
+  
+  // AI Insights
+  insights: {
+    title: string;
+    opportunities: string;
+    urgentActions: string;
+    noInsights: string;
+    checkBackLater: string;
+    lastUpdated: string;
+  };
 }
 
 // Portuguese translations (default)
@@ -868,6 +878,15 @@ export const enTranslations: Translations = {
     title: '404 - Page Not Found',
     message: 'The page you are looking for does not exist or has been moved.',
   },
+  
+  insights: {
+    title: 'AI Insights',
+    opportunities: 'Opportunities',
+    urgentActions: 'Urgent',
+    noInsights: 'No insights available',
+    checkBackLater: 'Check back later for AI recommendations',
+    lastUpdated: 'Last updated'
+  }
 };
 
 // Chinese translations (Simplified Mandarin)
