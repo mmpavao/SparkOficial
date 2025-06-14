@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/contexts/I18nContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
+import LanguageSelector from "@/components/ui/language-selector";
 import { 
   User, 
   Building, 
@@ -28,6 +31,7 @@ import {
 export default function SettingsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { user } = useAuth();
@@ -102,15 +106,16 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.settings.title}</h1>
         <p className="text-gray-600">Gerencie sua conta e preferências</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="notifications">Notificações</TabsTrigger>
-          <TabsTrigger value="security">Segurança</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="profile">{t.settings.profile}</TabsTrigger>
+          <TabsTrigger value="preferences">{t.settings.preferences}</TabsTrigger>
+          <TabsTrigger value="notifications">{t.settings.notifications}</TabsTrigger>
+          <TabsTrigger value="security">{t.settings.security}</TabsTrigger>
           <TabsTrigger value="billing">Faturamento</TabsTrigger>
         </TabsList>
 

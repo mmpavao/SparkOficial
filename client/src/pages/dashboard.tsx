@@ -19,6 +19,7 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { metrics, creditApplications, imports } = useMetrics();
 
 
@@ -38,7 +39,7 @@ export default function Dashboard() {
               {getRoleDisplayName(user?.role as any)} na {user?.companyName}
             </p>
             <p className="opacity-75 text-sm">
-              Gerencie seus créditos e importações da China de forma simples e eficiente.
+              {t.dashboard.manageCreditsAndImports}
             </p>
           </div>
           <div className="hidden md:block">
@@ -54,28 +55,28 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricsCard
-          title="Crédito Aprovado"
+          title={t.dashboard.availableCredit}
           value={`R$ ${metrics.totalCreditApproved.toLocaleString('pt-BR')}`}
           icon={CreditCard}
           iconColor="text-green-600"
         />
 
         <MetricsCard
-          title="Importações Ativas"
+          title={t.dashboard.activeImports}
           value={metrics.activeImports}
           icon={Truck}
           iconColor="text-blue-600"
         />
 
         <MetricsCard
-          title="Total Importado"
+          title={t.dashboard.totalImports}
           value={`R$ ${metrics.totalImportValue.toLocaleString('pt-BR')}`}
           icon={BarChart3}
           iconColor="text-purple-600"
         />
 
         <MetricsCard
-          title="Total de Importações"
+          title={t.dashboard.totalImports}
           value={metrics.totalImports}
           icon={Package}
           iconColor="text-spark-600"
@@ -86,7 +87,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle>Importações Recentes</CardTitle>
+            <CardTitle>{t.dashboard.recentImports}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -121,13 +122,13 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Ações Rápidas</CardTitle>
+            <CardTitle>{t.common.actions}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button className="w-full justify-between bg-spark-50 hover:bg-spark-100 text-gray-900 border border-spark-200">
               <div className="flex items-center">
                 <Plus className="w-4 h-4 text-spark-600 mr-3" />
-                <span className="font-medium">Nova Importação</span>
+                <span className="font-medium">{t.imports.newImport}</span>
               </div>
               <span className="text-gray-400">→</span>
             </Button>
@@ -138,7 +139,7 @@ export default function Dashboard() {
             >
               <div className="flex items-center">
                 <CreditCard className="w-4 h-4 text-gray-600 mr-3" />
-                <span className="font-medium">Solicitar Crédito</span>
+                <span className="font-medium">{t.credit.requestCredit}</span>
               </div>
               <span className="text-gray-400">→</span>
             </Button>
@@ -149,7 +150,7 @@ export default function Dashboard() {
             >
               <div className="flex items-center">
                 <FileText className="w-4 h-4 text-gray-600 mr-3" />
-                <span className="font-medium">Gerar Relatório</span>
+                <span className="font-medium">{t.reports.generateReport}</span>
               </div>
               <span className="text-gray-400">→</span>
             </Button>
