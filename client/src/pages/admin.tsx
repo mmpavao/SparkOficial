@@ -104,7 +104,7 @@ export default function AdminPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(totalCreditRequested)}
+                  {formatCurrency(metrics.totalCreditRequested)}
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function AdminPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(totalCreditApproved)}
+                  {formatCurrency(metrics.totalCreditApproved)}
                 </p>
               </div>
             </div>
