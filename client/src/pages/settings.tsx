@@ -229,6 +229,74 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* Preferences Tab */}
+        <TabsContent value="preferences" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <User className="w-5 h-5" />
+                <CardTitle>{t.settings.preferences}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium mb-4">{t.settings.language}</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Idioma da Interface</p>
+                    <p className="text-sm text-gray-600">Escolha o idioma para a interface do sistema</p>
+                  </div>
+                  <div className="min-w-[200px]">
+                    <LanguageSelector />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h3 className="text-lg font-medium mb-4">Formato Regional</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Formato de Moeda</p>
+                      <p className="text-sm text-gray-600">Como valores monetários são exibidos</p>
+                    </div>
+                    <Select defaultValue="BRL">
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
+                        <SelectItem value="USD">Dólar Americano ($)</SelectItem>
+                        <SelectItem value="EUR">Euro (€)</SelectItem>
+                        <SelectItem value="CNY">Yuan Chinês (¥)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Formato de Data</p>
+                      <p className="text-sm text-gray-600">Como datas são exibidas no sistema</p>
+                    </div>
+                    <Select defaultValue="dd/mm/yyyy">
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="dd/mm/yyyy">DD/MM/AAAA</SelectItem>
+                        <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
+                        <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
