@@ -192,13 +192,29 @@ export interface Translations {
     deactivateUser: string;
     activateUser: string;
     changeRole: string;
-    totalUsers: string;
     systemMetrics: string;
     recentActivity: string;
     creditStatusUpdated: string;
     creditStatusError: string;
     accessDenied: string;
     noPermission: string;
+    manageUsersCreditsImports: string;
+    totalUsers: string;
+    requestedCredit: string;
+    approvedCredit: string;
+    totalImports: string;
+    viewDetails: string;
+    approve: string;
+    reject: string;
+    underReview: string;
+    cancel: string;
+    recent: string;
+    company: string;
+    requestDate: string;
+    overview: string;
+    applications: string;
+    users: string;
+    imports: string;
   };
   
   // Reports
@@ -453,13 +469,29 @@ export const ptTranslations: Translations = {
     deactivateUser: 'Desativar Usuário',
     activateUser: 'Ativar Usuário',
     changeRole: 'Alterar Função',
-    totalUsers: 'Total de Usuários',
     systemMetrics: 'Métricas do Sistema',
     recentActivity: 'Atividade Recente',
     creditStatusUpdated: 'Status da solicitação de crédito foi atualizado com sucesso',
     creditStatusError: 'Erro ao atualizar status da solicitação',
     accessDenied: 'Acesso Negado',
     noPermission: 'Você não tem permissão para acessar esta área',
+    manageUsersCreditsImports: 'Gerencie usuários, créditos e importações',
+    totalUsers: 'Total de Usuários',
+    requestedCredit: 'Crédito Solicitado',
+    approvedCredit: 'Crédito Aprovado',
+    totalImports: 'Total de Importações',
+    viewDetails: 'Ver Detalhes',
+    approve: 'Aprovar',
+    reject: 'Rejeitar',
+    underReview: 'Em Análise',
+    cancel: 'Cancelar',
+    recent: 'Recente',
+    company: 'Empresa',
+    requestDate: 'Data da Solicitação',
+    overview: 'Visão Geral',
+    applications: 'Solicitações',
+    users: 'Usuários',
+    imports: 'Importações',
   },
   
   reports: {
@@ -709,13 +741,29 @@ export const enTranslations: Translations = {
     deactivateUser: 'Deactivate User',
     activateUser: 'Activate User',
     changeRole: 'Change Role',
-    totalUsers: 'Total Users',
     systemMetrics: 'System Metrics',
     recentActivity: 'Recent Activity',
     creditStatusUpdated: 'Credit application status updated successfully',
     creditStatusError: 'Error updating application status',
     accessDenied: 'Access Denied',
     noPermission: 'You do not have permission to access this area',
+    manageUsersCreditsImports: 'Manage users, credits and imports',
+    totalUsers: 'Total Users',
+    requestedCredit: 'Requested Credit',
+    approvedCredit: 'Approved Credit',
+    totalImports: 'Total Imports',
+    viewDetails: 'View Details',
+    approve: 'Approve',
+    reject: 'Reject',
+    underReview: 'Under Review',
+    cancel: 'Cancel',
+    recent: 'Recent',
+    company: 'Company',
+    requestDate: 'Request Date',
+    overview: 'Overview',
+    applications: 'Applications',
+    users: 'Users',
+    imports: 'Imports',
   },
   
   reports: {
@@ -965,13 +1013,29 @@ export const zhTranslations: Translations = {
     deactivateUser: '停用用户',
     activateUser: '激活用户',
     changeRole: '更改角色',
-    totalUsers: '总用户数',
     systemMetrics: '系统指标',
     recentActivity: '最近活动',
     creditStatusUpdated: '信贷申请状态更新成功',
     creditStatusError: '更新申请状态时出错',
     accessDenied: '访问被拒绝',
     noPermission: '您没有权限访问此区域',
+    manageUsersCreditsImports: '管理用户、信贷和进口',
+    totalUsers: '总用户数',
+    requestedCredit: '申请信贷',
+    approvedCredit: '批准信贷',
+    totalImports: '总进口数',
+    viewDetails: '查看详情',
+    approve: '批准',
+    reject: '拒绝',
+    underReview: '审核中',
+    cancel: '取消',
+    recent: '最近',
+    company: '公司',
+    requestDate: '申请日期',
+    overview: '概览',
+    applications: '申请',
+    users: '用户',
+    imports: '进口',
   },
   
   reports: {
@@ -1221,13 +1285,29 @@ export const esTranslations: Translations = {
     deactivateUser: 'Desactivar Usuario',
     activateUser: 'Activar Usuario',
     changeRole: 'Cambiar Rol',
-    totalUsers: 'Total de Usuarios',
     systemMetrics: 'Métricas del Sistema',
     recentActivity: 'Actividad Reciente',
     creditStatusUpdated: 'Estado de solicitud de crédito actualizado exitosamente',
     creditStatusError: 'Error al actualizar estado de la solicitud',
     accessDenied: 'Acceso Denegado',
     noPermission: 'No tiene permiso para acceder a esta área',
+    manageUsersCreditsImports: 'Administrar usuarios, créditos e importaciones',
+    totalUsers: 'Total de Usuarios',
+    requestedCredit: 'Crédito Solicitado',
+    approvedCredit: 'Crédito Aprobado',
+    totalImports: 'Total de Importaciones',
+    viewDetails: 'Ver Detalles',
+    approve: 'Aprobar',
+    reject: 'Rechazar',
+    underReview: 'En Revisión',
+    cancel: 'Cancelar',
+    recent: 'Reciente',
+    company: 'Empresa',
+    requestDate: 'Fecha de Solicitud',
+    overview: 'Resumen',
+    applications: 'Solicitudes',
+    users: 'Usuarios',
+    imports: 'Importaciones',
   },
   
   reports: {
