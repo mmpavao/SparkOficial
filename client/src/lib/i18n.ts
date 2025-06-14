@@ -333,6 +333,12 @@ export const ptTranslations: Translations = {
       cancelled: 'Cancelado',
     },
     applicationSuccess: 'Solicitação de crédito enviada com sucesso!',
+    applicationSent: 'Sua solicitação de crédito foi enviada para análise.',
+    applicationError: 'Erro ao enviar solicitação',
+    purpose: 'Finalidade',
+    notes: 'Observações',
+    newApplication: 'Nova Solicitação',
+    cancel: 'Cancelar',
   },
   
   imports: {
@@ -558,6 +564,12 @@ export const enTranslations: Translations = {
       cancelled: 'Cancelled',
     },
     applicationSuccess: 'Credit application submitted successfully!',
+    applicationSent: 'Your credit application has been sent for review.',
+    applicationError: 'Error submitting application',
+    purpose: 'Purpose',
+    notes: 'Notes',
+    newApplication: 'New Application',
+    cancel: 'Cancel',
   },
   
   imports: {
@@ -783,6 +795,12 @@ export const zhTranslations: Translations = {
       cancelled: '已取消',
     },
     applicationSuccess: '信贷申请提交成功！',
+    applicationSent: '您的信贷申请已发送审核。',
+    applicationError: '提交申请时出错',
+    purpose: '用途',
+    notes: '备注',
+    newApplication: '新申请',
+    cancel: '取消',
   },
   
   imports: {
@@ -1008,6 +1026,12 @@ export const esTranslations: Translations = {
       cancelled: 'Cancelado',
     },
     applicationSuccess: '¡Solicitud de crédito enviada exitosamente!',
+    applicationSent: 'Su solicitud de crédito ha sido enviada para revisión.',
+    applicationError: 'Error al enviar solicitud',
+    purpose: 'Propósito',
+    notes: 'Notas',
+    newApplication: 'Nueva Solicitud',
+    cancel: 'Cancelar',
   },
   
   imports: {

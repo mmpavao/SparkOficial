@@ -98,7 +98,7 @@ export default function CreditPage() {
       pending: { label: t.credit.status.pending, variant: "secondary" as const, icon: Clock },
       under_review: { label: t.credit.status.under_review, variant: "default" as const, icon: FileText },
       approved: { label: t.credit.status.approved, variant: "default" as const, icon: CheckCircle },
-      rejected: { label: "Rejeitado", variant: "destructive" as const, icon: XCircle },
+      rejected: { label: t.credit.status.rejected, variant: "destructive" as const, icon: XCircle },
     };
     
     const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
@@ -117,9 +117,9 @@ export default function CreditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Crédito</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.credit.title}</h1>
           <p className="text-gray-600">
-            Solicite e acompanhe suas linhas de crédito para importação
+            {t.credit.requestCredit}
           </p>
         </div>
         <Button 
@@ -127,7 +127,7 @@ export default function CreditPage() {
           className="bg-spark-600 hover:bg-spark-700"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Nova Solicitação
+          {t.credit.newApplication}
         </Button>
       </div>
 
@@ -137,7 +137,7 @@ export default function CreditPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              Nova Solicitação de Crédito
+              {t.credit.newApplication}
             </CardTitle>
             <Button
               variant="ghost"
