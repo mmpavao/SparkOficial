@@ -154,6 +154,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Logout error:", err);
         return res.status(500).json({ message: "Erro ao fazer logout" });
       }
+      // Clear the session cookie
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict'
+      });
       res.json({ message: "Logout realizado com sucesso" });
     });
   });
