@@ -31,6 +31,11 @@ export interface IStorage {
   getImportsByUser(userId: number): Promise<Import[]>;
   getImport(id: number): Promise<Import | undefined>;
   updateImportStatus(id: number, status: string, updateData?: any): Promise<Import>;
+  
+  // Admin operations
+  getAllUsers(): Promise<User[]>;
+  getAllCreditApplications(): Promise<CreditApplication[]>;
+  getAllImports(): Promise<Import[]>;
 }
 
 export class DatabaseStorage implements IStorage {

@@ -149,6 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Logout endpoint
   app.post("/api/auth/logout", (req: any, res) => {
+    const sessionId = req.sessionID;
     req.session.destroy((err: any) => {
       if (err) {
         console.error("Logout error:", err);
@@ -158,9 +159,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.clearCookie('connect.sid', {
         path: '/',
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict'
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
       });
+      console.log("User logged out, session destroyed:", sessionId);
       res.json({ message: "Logout realizado com sucesso" });
     });
   });
@@ -274,6 +276,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating import status:", error);
       res.status(500).json({ message: "Erro ao atualizar status da importação" });
+    }
+  });
+
+  // Admin middleware
+  const requireAdmin = async (req: any, res: any, next: any) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Check if user is admin (using email for now)
+      if (user.email !== "pavaosmart@gmail.com" && user.role !== "admin") {
+        return res.status(403).json({ message: "Acesso negado - privilégios de administrador necessários" });
+      }
+      
+      next();
+    } catch (error) {
+      console.error("Admin check error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  };
+
+  // Get all users (admin only)
+  app.get('/api/admin/users', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Remove passwords from response
+      const sanitizedUsers = users.map(({ password, ...user }) => user);
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error("Get all users error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all credit applications (admin only)
+  app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const applications = await storage.getAllCreditApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Get all credit applications error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all imports (admin only)
+  app.get('/api/admin/imports', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const imports = await storage.getAllImports();
+      res.json(imports);
+    } catch (error) {
+      console.error("Get all imports error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update credit application status (admin only)
+  app.put('/api/admin/credit-applications/:id/status', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!['pending', 'approved', 'rejected', 'under_review'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        parseInt(id), 
+        status, 
+        { reviewedBy: req.session.userId, reviewedAt: new Date() }
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Update credit status error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
