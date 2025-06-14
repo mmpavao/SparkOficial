@@ -81,6 +81,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     { path: "/imports", icon: Truck, label: "Importações" },
     { path: "/reports", icon: BarChart3, label: "Relatórios" },
     { path: "/settings", icon: Settings, label: "Configurações" },
+    ...(user?.email === "pavaosmart@gmail.com" ? [{ path: "/admin", icon: Shield, label: "Administração" }] : []),
   ];
 
   const isActiveRoute = (path: string) => {
