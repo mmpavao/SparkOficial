@@ -85,12 +85,36 @@ export default function ImportsPage() {
         description: "Sua nova importação foi registrada com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
       setShowNewImportForm(false);
       form.reset();
     },
     onError: (error) => {
       toast({
         title: "Erro ao criar importação",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Admin update status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status, data }: { id: number; status: string; data?: any }) => {
+      const endpoint = isAdmin ? `/api/admin/imports/${id}/status` : `/api/imports/${id}/status`;
+      return await apiRequest("PATCH", endpoint, { status, ...data });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado!",
+        description: "O status da importação foi atualizado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar status",
         description: error.message,
         variant: "destructive",
       });
@@ -206,6 +230,23 @@ export default function ImportsPage() {
 
   const onSubmit = (data: InsertImport) => {
     createImportMutation.mutate(data);
+  };
+
+  // Handle admin actions
+  const handleMarkAsDelivered = (importId: number) => {
+    updateStatusMutation.mutate({
+      id: importId,
+      status: 'delivered',
+      data: { deliveredAt: new Date() }
+    });
+  };
+
+  const handleCancelImport = (importId: number) => {
+    updateStatusMutation.mutate({
+      id: importId,
+      status: 'cancelled',
+      data: { cancelledAt: new Date() }
+    });
   };
 
   return (
@@ -347,7 +388,9 @@ export default function ImportsPage() {
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4 mb-2">
-                      <h3 className="font-semibold text-lg">IMP-{String(importItem.id).padStart(3, '0')}</h3>
+                      <h3 className="font-semibold text-lg">
+                        {isAdmin ? `${importItem.companyName || 'Empresa'} - IMP-${String(importItem.id).padStart(3, '0')}` : `IMP-${String(importItem.id).padStart(3, '0')}`}
+                      </h3>
                       {getStatusBadge(importItem.status)}
                     </div>
                     <p className="text-gray-600 mb-2">{importItem.productDescription}</p>
@@ -389,11 +432,65 @@ export default function ImportsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm">
                       <Eye className="w-4 h-4 mr-2" />
                       Detalhes
                     </Button>
+                    
+                    {/* Dropdown Menu with Actions */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {isAdmin ? (
+                          // Admin actions
+                          <>
+                            <DropdownMenuItem>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleMarkAsDelivered(importItem.id)}>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Marcar como Entregue
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Clock className="w-4 h-4 mr-2" />
+                              Atualizar Status
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => handleCancelImport(importItem.id)}
+                            >
+                              <AlertCircle className="w-4 h-4 mr-2" />
+                              Cancelar Importação
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          // Importer actions
+                          <>
+                            <DropdownMenuItem>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-600">
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Cancelar
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardContent>
