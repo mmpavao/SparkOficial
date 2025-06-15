@@ -92,8 +92,7 @@ export default function ImportEditPage() {
         estimatedArrival: new Date(data.estimatedArrival).toISOString(),
       };
       
-      const response = await apiRequest("PUT", `/api/imports/${importId}`, payload);
-      return response.json();
+      return apiRequest("PUT", `/api/imports/${importId}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });

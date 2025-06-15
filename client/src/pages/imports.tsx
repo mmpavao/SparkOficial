@@ -235,9 +235,7 @@ export default function ImportsPage() {
   // Handle import actions
   const cancelImportMutation = useMutation({
     mutationFn: async (importId: number) => {
-      return apiRequest(`/api/imports/${importId}`, {
-        method: 'DELETE'
-      });
+      return apiRequest('DELETE', `/api/imports/${importId}`);
     },
     onSuccess: () => {
       toast({
