@@ -301,15 +301,7 @@ export interface Translations {
     message: string;
   };
   
-  // AI Insights
-  insights: {
-    title: string;
-    opportunities: string;
-    urgentActions: string;
-    noInsights: string;
-    checkBackLater: string;
-    lastUpdated: string;
-  };
+
 }
 
 // Portuguese translations (default)
