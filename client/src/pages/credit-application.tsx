@@ -133,6 +133,7 @@ export default function CreditApplicationPage() {
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
   const [productTags, setProductTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState("");
+  const [, setLocation] = useLocation();
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -197,6 +198,8 @@ export default function CreditApplicationPage() {
     },
   });
 
+
+
   // Submit application mutation
   const submitApplicationMutation = useMutation({
     mutationFn: async (data: Partial<InsertCreditApplication>) => {
@@ -209,6 +212,10 @@ export default function CreditApplicationPage() {
         title: "Sucesso!",
         description: "Solicitação de crédito enviada com sucesso.",
       });
+      // Redirect to credit management page after successful submission
+      setTimeout(() => {
+        setLocation('/credit');
+      }, 1500);
     },
     onError: (error: any) => {
       toast({
@@ -1050,12 +1057,21 @@ export default function CreditApplicationPage() {
                       <FormLabel>Motivo do Crédito *</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Explique brevemente o motivo da solicitação de crédito..."
-                          rows={3}
+                          placeholder="Ex: Preciso de capital para aumentar volume de compras e conseguir melhores preços dos fornecedores chineses. Com maior volume, posso reduzir custos e melhorar margem de lucro..."
+                          rows={4}
                           {...field}
                         />
                       </FormControl>
-                      <div className="flex justify-between text-xs text-gray-500">
+                      <div className="text-xs text-gray-600 mt-2 space-y-1">
+                        <p><strong>Exemplos:</strong></p>
+                        <ul className="list-disc list-inside space-y-1 text-xs">
+                          <li>"Aumentar volume de compras para conseguir melhores preços"</li>
+                          <li>"Aproveitar oportunidade sazonal (Black Friday, Natal)"</li>
+                          <li>"Diversificar produtos e expandir para novos mercados"</li>
+                          <li>"Melhorar prazo de pagamento com fornecedores"</li>
+                        </ul>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500 mt-2">
                         <span>Mínimo 20 caracteres</span>
                         <span>{field.value?.length || 0}/500</span>
                       </div>
