@@ -199,6 +199,13 @@ Changelog:
   * Closed language scope at 4 languages: Portuguese, English, Chinese, Spanish
   * Created enforcement rules prohibiting hardcoded text in future development
   * Established checklist system ensuring all new components follow i18n standards
+- June 14, 2025. AI insights feature implementation and removal:
+  * Implemented complete AI-powered insights sidebar with recommended actions
+  * Created backend API endpoint generating intelligent recommendations based on user data
+  * Added real-time insights including credit opportunities, utilization warnings, import efficiency tips
+  * Completed multilingual support for insights feature across all 4 languages
+  * User requested removal of AI insights component - feature completely removed from codebase
+  * Cleaned up all related files, API endpoints, and translation references
 ```
 
 ## User Preferences

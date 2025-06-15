@@ -585,15 +585,6 @@ export const ptTranslations: Translations = {
   notFound: {
     title: '404 - Página Não Encontrada',
     message: 'A página que você está procurando não existe ou foi movida.',
-  },
-  
-  insights: {
-    title: 'Insights de IA',
-    opportunities: 'Oportunidades',
-    urgentActions: 'Urgentes',
-    noInsights: 'Nenhum insight disponível',
-    checkBackLater: 'Verifique novamente mais tarde para recomendações de IA',
-    lastUpdated: 'Última atualização'
   }
 };
 
@@ -878,15 +869,6 @@ export const enTranslations: Translations = {
   notFound: {
     title: '404 - Page Not Found',
     message: 'The page you are looking for does not exist or has been moved.',
-  },
-  
-  insights: {
-    title: 'AI Insights',
-    opportunities: 'Opportunities',
-    urgentActions: 'Urgent',
-    noInsights: 'No insights available',
-    checkBackLater: 'Check back later for AI recommendations',
-    lastUpdated: 'Last updated'
   }
 };
 
@@ -1171,15 +1153,6 @@ export const zhTranslations: Translations = {
   notFound: {
     title: '404 - 页面未找到',
     message: '您正在查找的页面不存在或已被移动。',
-  },
-  
-  insights: {
-    title: 'AI 洞察',
-    opportunities: '机会',
-    urgentActions: '紧急',
-    noInsights: '暂无洞察可用',
-    checkBackLater: '稍后查看 AI 建议',
-    lastUpdated: '最后更新'
   }
 };
 
@@ -1464,15 +1437,6 @@ export const esTranslations: Translations = {
   notFound: {
     title: '404 - Página No Encontrada',
     message: 'La página que busca no existe o ha sido movida.',
-  },
-  
-  insights: {
-    title: 'Insights de IA',
-    opportunities: 'Oportunidades',
-    urgentActions: 'Urgentes',
-    noInsights: 'No hay insights disponibles',
-    checkBackLater: 'Revise más tarde para recomendaciones de IA',
-    lastUpdated: 'Última actualización'
   }
 };
 
