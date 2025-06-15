@@ -355,8 +355,9 @@ export default function CreditApplicationPage() {
                commercialData.mainImportedProducts && commercialData.mainOriginMarkets;
       case 3:
         const creditData = creditForm.getValues();
-        return creditData.requestedAmount && creditData.purpose && 
-               creditData.productsToImport && creditData.justification;
+        return creditData.requestedAmount && 
+               creditData.productsToImport && creditData.productsToImport.length > 0 &&
+               creditData.monthlyImportVolume && creditData.justification;
       case 4:
         return false; // Documents step requires actual document uploads
       default:
@@ -959,66 +960,105 @@ export default function CreditApplicationPage() {
 
 
                 
-                {/* Products to Import */}
+                {/* Products to Import - Tag System */}
+                <div className="space-y-4">
+                  <FormLabel className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    Produtos a Importar *
+                  </FormLabel>
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      value={currentProduct}
+                      onChange={(e) => setCurrentProduct(e.target.value)}
+                      onKeyPress={handleProductKeyPress}
+                      placeholder="Digite um produto e pressione Enter"
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={addProductTag}
+                      disabled={!currentProduct.trim()}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+
+                  {/* Product Tags Display */}
+                  {productTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      {productTags.map((tag, index) => (
+                        <span 
+                          key={index}
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => removeProductTag(tag)}
+                            className="text-blue-600 hover:text-blue-800 ml-1"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {productTags.length === 0 && (
+                    <p className="text-sm text-gray-500">Adicione pelo menos um produto</p>
+                  )}
+                </div>
+
+                {/* Monthly Import Volume */}
                 <FormField
                   control={creditForm.control}
-                  name="productsToImport"
+                  name="monthlyImportVolume"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        Produtos a Importar *
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                        Volume Mensal de Importação *
                       </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Descreva detalhadamente os produtos que pretende importar da China, incluindo especificações técnicas, quantidades estimadas e fornecedores..."
-                          rows={4}
-                          {...field}
-                        />
-                      </FormControl>
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Descrição detalhada dos produtos</span>
-                        <span>{field.value?.length || 0}/1000</span>
-                      </div>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o volume mensal" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ate_50k">Até USD $50.000</SelectItem>
+                          <SelectItem value="50k_100k">USD $50.000 - $100.000</SelectItem>
+                          <SelectItem value="100k_250k">USD $100.000 - $250.000</SelectItem>
+                          <SelectItem value="250k_500k">USD $250.000 - $500.000</SelectItem>
+                          <SelectItem value="500k_1m">USD $500.000 - $1.000.000</SelectItem>
+                          <SelectItem value="acima_1m">Acima de USD $1.000.000</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                {/* Justification - Simplified for China Import */}
+                {/* Justification */}
                 <FormField
                   control={creditForm.control}
                   name="justification"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Objetivo da Importação *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o objetivo principal" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="melhorar_negociacao_volume">
-                            Melhorar negociação comprando maior quantidade
-                          </SelectItem>
-                          <SelectItem value="escalar_vendas_giro">
-                            Escalar vendas melhorando o giro de produtos
-                          </SelectItem>
-                          <SelectItem value="diversificar_portfolio">
-                            Diversificar portfólio de produtos importados
-                          </SelectItem>
-                          <SelectItem value="reduzir_custos_volume">
-                            Reduzir custos unitários com compras em maior volume
-                          </SelectItem>
-                          <SelectItem value="aproveitar_oportunidades">
-                            Aproveitar oportunidades sazonais do mercado chinês
-                          </SelectItem>
-                          <SelectItem value="expandir_mercados">
-                            Expandir para novos mercados e segmentos
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Motivo do Crédito *</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Explique brevemente o motivo da solicitação de crédito..."
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Mínimo 20 caracteres</span>
+                        <span>{field.value?.length || 0}/500</span>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
