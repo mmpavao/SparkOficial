@@ -55,14 +55,14 @@ export default function AdminUsersPage() {
       setCreateDialogOpen(false);
       form.reset();
       toast({
-        title: t.common.success,
-        description: t.common.usuariocriadocomsuce,
+        title: "Sucesso",
+        description: "Usuário criado com sucesso",
       });
     },
     onError: (error) => {
       toast({
-        title: t.common.erro,
-        description: t.common.erroaocriarusuario,
+        title: "Erro",
+        description: "Erro ao criar usuário",
         variant: "destructive",
       });
     },
@@ -76,13 +76,13 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
         title: t.common.success,
-        description: t.common.roledousuarioatualiz,
+        description: "Role do usuário atualizada com sucesso",
       });
     },
     onError: (error) => {
       toast({
         title: t.common.error,
-        description: t.common.erroaoatualizarroled,
+        description: "Erro ao atualizar role do usuário",
         variant: "destructive",
       });
     },
@@ -95,14 +95,14 @@ export default function AdminUsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: t.common.sucesso,
-        description: t.common.usuariodesativadocom,
+        title: "Sucesso",
+        description: "Usuário desativado com sucesso",
       });
     },
     onError: (error) => {
       toast({
-        title: t.common.erro,
-        description: t.common.erroaodesativarusuar,
+        title: "Erro",
+        description: "Erro ao desativar usuário",
         variant: "destructive",
       });
     },
@@ -196,19 +196,27 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-6 h-6 text-spark-600" />{t.user.gestaodeusuarios}</h1>
-          <p className="text-gray-600 mt-1">{t.user.gerencieusuariosdosi}</p>
+            <Users className="w-6 h-6 text-spark-600" />
+            Gestão de Usuários
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Gerencie usuários do sistema e suas permissões
+          </p>
         </div>
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-spark-600 hover:bg-spark-700">
-              <UserPlus className="w-4 h-4 mr-2" />{t.user.criarusuario}</Button>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Criar Usuário
+            </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t.user.criarnovousuario}</DialogTitle>
-              <DialogDescription>{t.reports.preenchaosdadosparac}</DialogDescription>
+              <DialogTitle>Criar Novo Usuário</DialogTitle>
+              <DialogDescription>
+                Preencha os dados para criar um novo usuário no sistema
+              </DialogDescription>
             </DialogHeader>
 
             <Form {...form}>
@@ -218,9 +226,9 @@ export default function AdminUsersPage() {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.common.nomecompleto}</FormLabel>
+                      <FormLabel>Nome Completo</FormLabel>
                       <FormControl>
-                        <Input placeholder={t.common.digiteonomecompleto} {...field} />
+                        <Input placeholder="Digite o nome completo" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -232,7 +240,7 @@ export default function AdminUsersPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.common.email}</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="email@exemplo.com" {...field} />
                       </FormControl>
@@ -247,7 +255,7 @@ export default function AdminUsersPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.common.senha}</FormLabel>
+                        <FormLabel>Senha</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
@@ -261,7 +269,7 @@ export default function AdminUsersPage() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.common.confirmarsenha}</FormLabel>
+                        <FormLabel>Confirmar Senha</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
@@ -276,9 +284,9 @@ export default function AdminUsersPage() {
                   name="companyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.common.nomedaempresa}</FormLabel>
+                      <FormLabel>Nome da Empresa</FormLabel>
                       <FormControl>
-                        <Input placeholder={t.common.digiteonomedaempresa} {...field} />
+                        <Input placeholder="Digite o nome da empresa" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -309,7 +317,7 @@ export default function AdminUsersPage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.common.telefone}</FormLabel>
+                        <FormLabel>Telefone</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="(00) 00000-0000" 
@@ -328,16 +336,16 @@ export default function AdminUsersPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.user.tipodeusuario}</FormLabel>
+                      <FormLabel>Tipo de Usuário</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t.common.selecioneotipo} />
+                            <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="importer">{t.common.importador}</SelectItem>
-                          <SelectItem value="admin">{t.common.administrador}</SelectItem>
+                          <SelectItem value="importer">Importador</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -350,7 +358,9 @@ export default function AdminUsersPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setCreateDialogOpen(false)}
-                  >{t.common.cancelar}</Button>
+                  >
+                    Cancelar
+                  </Button>
                   <Button
                     type="submit"
                     disabled={createUserMutation.isPending}
@@ -368,8 +378,10 @@ export default function AdminUsersPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>{t.user.usuariosdosistema}</CardTitle>
-          <CardDescription>{t.user.listadetodososusuari}</CardDescription>
+          <CardTitle>Usuários do Sistema</CardTitle>
+          <CardDescription>
+            Lista de todos os usuários cadastrados no sistema
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable

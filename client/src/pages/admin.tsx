@@ -185,18 +185,18 @@ export default function AdminPage() {
         <TabsContent value="credit">
           <Card>
             <CardHeader>
-              <CardTitle>{t.common.solicitacoesdecredit}</CardTitle>
+              <CardTitle>Solicitações de Crédito</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.common.empresa}</TableHead>
-                    <TableHead>{t.common.valorsolicitado}</TableHead>
-                    <TableHead>{t.common.proposito}</TableHead>
-                    <TableHead>{t.common.status}</TableHead>
-                    <TableHead>{t.common.data}</TableHead>
-                    <TableHead>{t.common.acoes}</TableHead>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Valor Solicitado</TableHead>
+                    <TableHead>Propósito</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -225,7 +225,9 @@ export default function AdminPage() {
                                   status: 'approved'
                                 })}
                                 disabled={updateCreditMutation.isPending}
-                              >{t.common.aprovar}</Button>
+                              >
+                                Aprovar
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
@@ -234,7 +236,9 @@ export default function AdminPage() {
                                   status: 'rejected'
                                 })}
                                 disabled={updateCreditMutation.isPending}
-                              >{t.common.rejeitar}</Button>
+                              >
+                                Rejeitar
+                              </Button>
                             </>
                           )}
                         </div>
@@ -250,17 +254,17 @@ export default function AdminPage() {
         <TabsContent value="imports">
           <Card>
             <CardHeader>
-              <CardTitle>{t.common.importacoes}</CardTitle>
+              <CardTitle>Importações</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.common.produto}</TableHead>
-                    <TableHead>{t.common.fornecedor}</TableHead>
-                    <TableHead>{t.common.valor}</TableHead>
-                    <TableHead>{t.common.status}</TableHead>
-                    <TableHead>{t.common.dataestimada}</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Fornecedor</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data Estimada</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

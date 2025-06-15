@@ -52,7 +52,7 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: t.auth.loginSuccess,
-        description: t.common.bemvindodevoltaaspar,
+        description: "Bem-vindo de volta à Spark Comex.",
       });
     },
     onError: (error: any) => {
@@ -73,7 +73,7 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: t.auth.registerSuccess,
-        description: t.common.bemvindoasparkcomex,
+        description: "Bem-vindo à Spark Comex.",
       });
     },
     onError: (error: any) => {
@@ -101,7 +101,7 @@ export default function AuthPage() {
           <div className="mb-8">
             <img 
               src="/spark-logo.png" 
-              alt={t.common.sparkcomex} 
+              alt="Spark Comex" 
               className="h-20 w-auto mx-auto mb-4"
             />
           </div>
@@ -132,7 +132,7 @@ export default function AuthPage() {
           <div className="lg:hidden text-center mb-8">
             <img 
               src="/spark-logo.png" 
-              alt={t.common.sparkcomex} 
+              alt="Spark Comex" 
               className="h-12 w-auto mx-auto"
             />
           </div>
@@ -234,7 +234,7 @@ export default function AuthPage() {
                           <FormLabel>{t.auth.companyName}</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder={t.common.suaempresaltda} 
+                              placeholder="Sua Empresa Ltda" 
                               {...field}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
@@ -275,7 +275,7 @@ export default function AuthPage() {
                         <FormLabel>{t.auth.fullName}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder={t.common.seunomecompleto} 
+                            placeholder="Seu nome completo" 
                             {...field}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />

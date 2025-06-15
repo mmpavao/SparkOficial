@@ -98,11 +98,11 @@ export default function Dashboard() {
                     <Package className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium">{t.common.smartphonessamsung}</p>
-                    <p className="text-sm text-gray-600">{t.common.shenzhensantos}</p>
+                    <p className="font-medium">Smartphones Samsung</p>
+                    <p className="text-sm text-gray-600">Shenzhen → Santos</p>
                   </div>
                 </div>
-                <span className="text-sm text-green-600 font-medium">{t.common.emtransito}</span>
+                <span className="text-sm text-green-600 font-medium">Em trânsito</span>
               </div>
               
               <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -111,11 +111,11 @@ export default function Dashboard() {
                     <Package className="w-5 h-5 text-yellow-600" />
                   </div>
                   <div>
-                    <p className="font-medium">{t.common.componenteseletronic}</p>
-                    <p className="text-sm text-gray-600">{t.common.beijingsaopaulo}</p>
+                    <p className="font-medium">Componentes Eletrônicos</p>
+                    <p className="text-sm text-gray-600">Beijing → São Paulo</p>
                   </div>
                 </div>
-                <span className="text-sm text-yellow-600 font-medium">{t.common.alfandega}</span>
+                <span className="text-sm text-yellow-600 font-medium">Alfândega</span>
               </div>
             </div>
           </CardContent>

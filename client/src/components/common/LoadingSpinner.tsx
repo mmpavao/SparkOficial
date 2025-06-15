@@ -1,4 +1,3 @@
-import { useTranslation } from '@/contexts/I18nContext';
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   text?: string;
@@ -21,7 +20,7 @@ export default function LoadingSpinner({
       <div 
         className={`${sizeClasses[size]} border-4 border-spark-600 border-t-transparent rounded-full animate-spin`}
         role="status"
-        aria-label={t.common.carregando}
+        aria-label="Carregando"
       />
       {text && (
         <p className="text-gray-600 text-sm">{text}</p>

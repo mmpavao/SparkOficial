@@ -16,17 +16,15 @@ import AdminUsersPage from "@/pages/admin-users";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
-import { useTranslation } from '@/contexts/I18nContext';
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-spark-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">{t.common.carregando}</p>
+          <p className="text-gray-600">Carregando...</p>
         </div>
       </div>
     );
