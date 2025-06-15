@@ -4,13 +4,15 @@ import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
+import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
+import { ValidationResult } from "@/lib/documentValidation";
 import { 
   ArrowLeft, 
   FileText, 
@@ -325,13 +327,19 @@ export default function CreditDetailsPage() {
                 <h4 className="font-medium text-gray-900 mb-3">Documentos Obrigatórios</h4>
                 <div className="space-y-3">
                   {mandatoryDocuments.map((doc) => (
-                    <DocumentUploadRow
+                    <DocumentUploadSection
                       key={doc.key}
                       documentInfo={doc}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
                       uploadedDocuments={application.documents || {}}
+                      onValidation={(result) => {
+                        setValidationResults(prev => ({
+                          ...prev,
+                          [doc.key]: result
+                        }));
+                      }}
                     />
                   ))}
                 </div>
@@ -342,13 +350,19 @@ export default function CreditDetailsPage() {
                 <h4 className="font-medium text-gray-900 mb-3">Documentos Opcionais</h4>
                 <div className="space-y-3">
                   {optionalDocuments.map((doc) => (
-                    <DocumentUploadRow
+                    <DocumentUploadSection
                       key={doc.key}
                       documentInfo={doc}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
                       uploadedDocuments={application.documents || {}}
+                      onValidation={(result) => {
+                        setValidationResults(prev => ({
+                          ...prev,
+                          [doc.key]: result
+                        }));
+                      }}
                     />
                   ))}
                 </div>
@@ -441,75 +455,33 @@ export default function CreditDetailsPage() {
   );
 }
 
-// Document Upload Row Component
-function DocumentUploadRow({ 
+// Smart Document Upload Component Integration
+function DocumentUploadSection({ 
   documentInfo, 
   applicationId, 
   isUploading, 
   onUpload, 
-  uploadedDocuments 
+  uploadedDocuments,
+  onValidation
 }: {
   documentInfo: { key: string; label: string; required: boolean };
   applicationId: number;
   isUploading: boolean;
   onUpload: (file: File) => void;
   uploadedDocuments: Record<string, any>;
+  onValidation?: (result: ValidationResult) => void;
 }) {
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onUpload(file);
-    }
-  };
-
   const isUploaded = uploadedDocuments[documentInfo.key];
 
   return (
-    <div className="flex items-center justify-between p-3 border rounded-lg">
-      <div className="flex items-center gap-3">
-        <div className={`w-3 h-3 rounded-full ${
-          isUploaded ? 'bg-green-500' : documentInfo.required ? 'bg-red-500' : 'bg-gray-300'
-        }`} />
-        <div>
-          <p className="text-sm font-medium">{documentInfo.label}</p>
-          <p className="text-xs text-gray-500">
-            {documentInfo.required ? 'Obrigatório' : 'Opcional'}
-          </p>
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        {isUploaded ? (
-          <Badge variant="default" className="text-xs">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Enviado
-          </Badge>
-        ) : (
-          <div>
-            <Input
-              type="file"
-              onChange={handleFileChange}
-              disabled={isUploading}
-              className="hidden"
-              id={`file-${documentInfo.key}`}
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => document.getElementById(`file-${documentInfo.key}`)?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-900" />
-              ) : (
-                <Upload className="w-3 h-3" />
-              )}
-              {isUploading ? ' Enviando...' : ' Enviar'}
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
+    <SmartDocumentUpload
+      documentKey={documentInfo.key}
+      documentLabel={documentInfo.label}
+      isRequired={documentInfo.required}
+      isUploaded={isUploaded}
+      isUploading={isUploading}
+      onUpload={onUpload}
+      onValidation={onValidation}
+    />
   );
 }
