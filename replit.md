@@ -255,6 +255,7 @@ Changelog:
   * Added status column to user database schema with proper default values
   * Simplified user management to display only essential information (name, email, phone, role, status)
   * Enhanced AdminAnalysisPanel with professional confirmation dialogs for approve/reject actions
+  * Fixed logout redirect from /auth to root URL (/) for proper navigation flow
 ```
 
 ## User Preferences

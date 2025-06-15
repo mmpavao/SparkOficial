@@ -57,8 +57,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       localStorage.clear();
       sessionStorage.clear();
       
-      // Redirect to auth page
-      window.location.href = "/auth";
+      // Redirect to home page
+      window.location.href = "/";
     },
     onError: (error) => {
       console.error("Logout error:", error);
@@ -77,7 +77,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       
       // Force redirect after 1 second
       setTimeout(() => {
-        window.location.href = "/auth";
+        window.location.href = "/";
       }, 1000);
     },
   });
