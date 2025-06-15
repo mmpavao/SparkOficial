@@ -6,6 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -21,6 +31,18 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     notes: application.analysisNotes || "",
     requestedDocuments: "",
     observations: ""
+  });
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    action: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    action: () => {}
   });
 
   const { toast } = useToast();
@@ -55,28 +77,45 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     },
   });
 
+  const handleConfirmAction = (title: string, description: string, action: () => void) => {
+    setConfirmDialog({
+      open: true,
+      title,
+      description,
+      action
+    });
+  };
+
   const handleApprove = () => {
-    if (confirm("Tem certeza que deseja aprovar esta solicitação de crédito?")) {
-      updateStatusMutation.mutate({
-        status: 'approved',
-        data: {
-          reason: analysisData.notes || 'Aprovado após análise administrativa',
-          riskLevel: analysisData.riskLevel
-        }
-      });
-    }
+    handleConfirmAction(
+      "Aprovar Solicitação",
+      "Tem certeza que deseja aprovar esta solicitação de crédito?",
+      () => {
+        updateStatusMutation.mutate({
+          status: 'approved',
+          data: {
+            reason: analysisData.notes || 'Aprovado após análise administrativa',
+            riskLevel: analysisData.riskLevel
+          }
+        });
+      }
+    );
   };
 
   const handleReject = () => {
-    if (confirm("Tem certeza que deseja rejeitar esta solicitação de crédito?")) {
-      updateStatusMutation.mutate({
-        status: 'rejected',
-        data: {
-          reason: analysisData.notes || 'Rejeitado após análise administrativa',
-          riskLevel: analysisData.riskLevel
-        }
-      });
-    }
+    handleConfirmAction(
+      "Rejeitar Solicitação",
+      "Tem certeza que deseja rejeitar esta solicitação de crédito?",
+      () => {
+        updateStatusMutation.mutate({
+          status: 'rejected',
+          data: {
+            reason: analysisData.notes || 'Rejeitado após análise administrativa',
+            riskLevel: analysisData.riskLevel
+          }
+        });
+      }
+    );
   };
 
   const handleRequestDocuments = () => {
@@ -154,6 +193,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   };
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -273,5 +313,34 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         </div>
       </CardContent>
     </Card>
+
+    {/* Confirmation Dialog */}
+    <AlertDialog 
+      open={confirmDialog.open} 
+      onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {confirmDialog.description}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={() => {
+              confirmDialog.action();
+              setConfirmDialog(prev => ({ ...prev, open: false }));
+            }}
+          >
+            Confirmar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
