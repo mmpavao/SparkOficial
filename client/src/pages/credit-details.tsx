@@ -43,8 +43,12 @@ export default function CreditDetailsPage() {
   // Fetch credit application details
   const { data: application, isLoading } = useQuery({
     queryKey: ["/api/credit/applications", applicationId],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/credit/applications/${applicationId}`);
+      return response.json();
+    },
     enabled: !!applicationId,
-  });
+  }) as { data: any, isLoading: boolean };
 
   // Upload document mutation
   const uploadDocumentMutation = useMutation({

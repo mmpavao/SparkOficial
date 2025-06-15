@@ -71,8 +71,12 @@ export default function CreditEditPage() {
   // Fetch credit application details
   const { data: application, isLoading } = useQuery({
     queryKey: ["/api/credit/applications", applicationId],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/credit/applications/${applicationId}`);
+      return response.json();
+    },
     enabled: !!applicationId,
-  });
+  }) as { data: any, isLoading: boolean };
 
   const form = useForm<EditCreditApplicationForm>({
     resolver: zodResolver(editCreditApplicationSchema),
@@ -102,31 +106,32 @@ export default function CreditEditPage() {
   // Load application data into form when available
   useEffect(() => {
     if (application) {
+      const appData = application;
       form.reset({
-        legalCompanyName: application.legalCompanyName || "",
-        tradingName: application.tradingName || "",
-        cnpj: application.cnpj || "",
-        stateRegistration: application.stateRegistration || "",
-        municipalRegistration: application.municipalRegistration || "",
-        address: application.address || "",
-        city: application.city || "",
-        state: application.state || "",
-        zipCode: application.zipCode || "",
-        phone: application.phone || "",
-        email: application.email || "",
-        website: application.website || "",
-        businessSector: application.businessSector || "",
-        annualRevenue: application.annualRevenue || "",
-        mainImportedProducts: application.mainImportedProducts || "",
-        mainOriginMarkets: application.mainOriginMarkets || "",
-        requestedAmount: application.requestedAmount || "",
-        monthlyImportVolume: application.monthlyImportVolume || "",
-        justification: application.justification || "",
+        legalCompanyName: appData.legalCompanyName || "",
+        tradingName: appData.tradingName || "",
+        cnpj: appData.cnpj || "",
+        stateRegistration: appData.stateRegistration || "",
+        municipalRegistration: appData.municipalRegistration || "",
+        address: appData.address || "",
+        city: appData.city || "",
+        state: appData.state || "",
+        zipCode: appData.zipCode || "",
+        phone: appData.phone || "",
+        email: appData.email || "",
+        website: appData.website || "",
+        businessSector: appData.businessSector || "",
+        annualRevenue: appData.annualRevenue || "",
+        mainImportedProducts: appData.mainImportedProducts || "",
+        mainOriginMarkets: appData.mainOriginMarkets || "",
+        requestedAmount: appData.requestedAmount || "",
+        monthlyImportVolume: appData.monthlyImportVolume || "",
+        justification: appData.justification || "",
       });
 
       // Load product tags
-      if (application.productsToImport && Array.isArray(application.productsToImport)) {
-        setProductTags(application.productsToImport);
+      if (appData.productsToImport && Array.isArray(appData.productsToImport)) {
+        setProductTags(appData.productsToImport);
       }
     }
   }, [application, form]);
