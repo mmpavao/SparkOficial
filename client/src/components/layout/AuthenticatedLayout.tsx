@@ -243,7 +243,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
           <div className={`flex items-center mb-3 ${sidebarCollapsed ? "lg:justify-center" : ""}`}>
-            <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium text-center ml-[0px] mr-[0px] pl-[9px] pr-[9px]">
+            <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
               {user?.fullName && getInitials(user.fullName)}
             </div>
             <div className={`ml-3 min-w-0 flex-1 transition-opacity duration-300 ${
