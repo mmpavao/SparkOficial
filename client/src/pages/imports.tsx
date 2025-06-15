@@ -76,7 +76,7 @@ export default function ImportsPage() {
     },
     onError: (error) => {
       toast({
-        title: "Erro ao criar importação",
+        title: t.common.erroaocriarimportaca,
         description: error.message,
         variant: "destructive",
       });

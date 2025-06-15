@@ -62,14 +62,14 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
+        description: t.common.suasinformacoesforam,
       });
       setIsEditing(false);
     },
     onError: (error: any) => {
       toast({
         title: "Erro ao salvar",
-        description: error.message || "Erro ao atualizar perfil.",
+        description: error.message || t.common.erroaoatualizarperfi,
         variant: "destructive",
       });
     },
@@ -90,7 +90,7 @@ export default function SettingsPage() {
     setNotifications(prev => ({ ...prev, [key]: value }));
     toast({
       title: "Preferência salva",
-      description: "Sua preferência de notificação foi atualizada.",
+      description: t.common.suapreferenciadenoti,
     });
   };
 
