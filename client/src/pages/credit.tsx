@@ -11,6 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
@@ -27,7 +33,10 @@ import {
   Calendar,
   Percent,
   Eye,
-  X
+  X,
+  MoreVertical,
+  Edit,
+  Trash2
 } from "lucide-react";
 
 const createCreditApplicationSchema = (t: any) => z.object({
@@ -98,6 +107,34 @@ export default function CreditPage() {
 
   const onSubmit = (data: CreditApplicationForm) => {
     createApplicationMutation.mutate(data);
+  };
+
+  // Cancel application mutation
+  const cancelApplicationMutation = useMutation({
+    mutationFn: async (applicationId: number) => {
+      const response = await apiRequest("DELETE", `/api/credit/applications/${applicationId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação de crédito cancelada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar a solicitação. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancelApplication = (applicationId: number) => {
+    if (confirm("Tem certeza que deseja cancelar esta solicitação de crédito?")) {
+      cancelApplicationMutation.mutate(applicationId);
+    }
   };
 
   const formatCurrency = (value: string) => {
@@ -411,9 +448,30 @@ export default function CreditPage() {
                       Criado em: {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setLocation(`/credit/details/${application.id}`)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/credit/edit/${application.id}`)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleCancelApplication(application.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Cancelar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))}
             </div>
