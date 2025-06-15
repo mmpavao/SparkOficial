@@ -5,9 +5,9 @@
     "zh": "[TRANSLATE] Erro",
     "es": "[TRANSLATE] Erro",
     "files": [
-      "client/src/hooks/useErrorHandler.ts"
+      "client/src/pages/admin-users.tsx"
     ],
-    "line": 28
+    "line": 103
   },
   "queryfunction": {
     "pt": "QueryFunction",
@@ -19,131 +19,71 @@
     ],
     "line": 34
   },
-  "roledousuarioatualiz": {
-    "pt": "Role do usuário atualizada com sucesso",
-    "en": "[TRANSLATE] Role do usuário atualizada com sucesso",
-    "zh": "[TRANSLATE] Role do usuário atualizada com sucesso",
-    "es": "[TRANSLATE] Role do usuário atualizada com sucesso",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 77
-  },
-  "erroaoatualizarroled": {
-    "pt": "Erro ao atualizar role do usuário",
-    "en": "[TRANSLATE] Erro ao atualizar role do usuário",
-    "zh": "[TRANSLATE] Erro ao atualizar role do usuário",
-    "es": "[TRANSLATE] Erro ao atualizar role do usuário",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 83
-  },
-  "usuariodesativadocom": {
-    "pt": "Usuário desativado com sucesso",
-    "en": "[TRANSLATE] Usuário desativado com sucesso",
-    "zh": "[TRANSLATE] Usuário desativado com sucesso",
-    "es": "[TRANSLATE] Usuário desativado com sucesso",
+  "sucesso": {
+    "pt": "Sucesso",
+    "en": "[TRANSLATE] Sucesso",
+    "zh": "[TRANSLATE] Sucesso",
+    "es": "[TRANSLATE] Sucesso",
     "files": [
       "client/src/pages/admin-users.tsx"
     ],
     "line": 97
   },
-  "erroaodesativarusuar": {
-    "pt": "Erro ao desativar usuário",
-    "en": "[TRANSLATE] Erro ao desativar usuário",
-    "zh": "[TRANSLATE] Erro ao desativar usuário",
-    "es": "[TRANSLATE] Erro ao desativar usuário",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 103
-  },
-  "bemvindodevoltaaspar": {
-    "pt": "Bem-vindo de volta à Spark Comex.",
-    "en": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
-    "zh": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
-    "es": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
-    "files": [
-      "client/src/pages/auth.tsx"
-    ],
-    "line": 53
-  },
-  "bemvindoasparkcomex": {
-    "pt": "Bem-vindo à Spark Comex.",
-    "en": "[TRANSLATE] Bem-vindo à Spark Comex.",
-    "zh": "[TRANSLATE] Bem-vindo à Spark Comex.",
-    "es": "[TRANSLATE] Bem-vindo à Spark Comex.",
-    "files": [
-      "client/src/pages/auth.tsx"
-    ],
-    "line": 74
-  },
-  "suanovaimportacaofoi": {
-    "pt": "Sua nova importação foi registrada com sucesso.",
-    "en": "[TRANSLATE] Sua nova importação foi registrada com sucesso.",
-    "zh": "[TRANSLATE] Sua nova importação foi registrada com sucesso.",
-    "es": "[TRANSLATE] Sua nova importação foi registrada com sucesso.",
+  "importacaocriada": {
+    "pt": "Importação criada!",
+    "en": "[TRANSLATE] Importação criada!",
+    "zh": "[TRANSLATE] Importação criada!",
+    "es": "[TRANSLATE] Importação criada!",
     "files": [
       "client/src/pages/imports.tsx"
     ],
     "line": 69
   },
-  "erroaocriarimportaca": {
-    "pt": "Erro ao criar importação",
-    "en": "[TRANSLATE] Erro ao criar importação",
-    "zh": "[TRANSLATE] Erro ao criar importação",
-    "es": "[TRANSLATE] Erro ao criar importação",
-    "files": [
-      "client/src/pages/imports.tsx"
-    ],
-    "line": 78
-  },
-  "orelatoriofoigeradoe": {
-    "pt": "O relatório foi gerado e está sendo baixado.",
-    "en": "[TRANSLATE] O relatório foi gerado e está sendo baixado.",
-    "zh": "[TRANSLATE] O relatório foi gerado e está sendo baixado.",
-    "es": "[TRANSLATE] O relatório foi gerado e está sendo baixado.",
+  "relatoriogerado": {
+    "pt": "Relatório gerado!",
+    "en": "[TRANSLATE] Relatório gerado!",
+    "zh": "[TRANSLATE] Relatório gerado!",
+    "es": "[TRANSLATE] Relatório gerado!",
     "files": [
       "client/src/pages/reports.tsx"
     ],
     "line": 134
   },
-  "suasinformacoesforam": {
-    "pt": "Suas informações foram salvas com sucesso.",
-    "en": "[TRANSLATE] Suas informações foram salvas com sucesso.",
-    "zh": "[TRANSLATE] Suas informações foram salvas com sucesso.",
-    "es": "[TRANSLATE] Suas informações foram salvas com sucesso.",
+  "perfilatualizado": {
+    "pt": "Perfil atualizado!",
+    "en": "[TRANSLATE] Perfil atualizado!",
+    "zh": "[TRANSLATE] Perfil atualizado!",
+    "es": "[TRANSLATE] Perfil atualizado!",
     "files": [
       "client/src/pages/settings.tsx"
     ],
     "line": 63
   },
-  "erroaoatualizarperfi": {
-    "pt": "Erro ao atualizar perfil.",
-    "en": "[TRANSLATE] Erro ao atualizar perfil.",
-    "zh": "[TRANSLATE] Erro ao atualizar perfil.",
-    "es": "[TRANSLATE] Erro ao atualizar perfil.",
+  "erroaosalvar": {
+    "pt": "Erro ao salvar",
+    "en": "[TRANSLATE] Erro ao salvar",
+    "zh": "[TRANSLATE] Erro ao salvar",
+    "es": "[TRANSLATE] Erro ao salvar",
     "files": [
       "client/src/pages/settings.tsx"
     ],
     "line": 70
   },
-  "suapreferenciadenoti": {
-    "pt": "Sua preferência de notificação foi atualizada.",
-    "en": "[TRANSLATE] Sua preferência de notificação foi atualizada.",
-    "zh": "[TRANSLATE] Sua preferência de notificação foi atualizada.",
-    "es": "[TRANSLATE] Sua preferência de notificação foi atualizada.",
+  "preferenciasalva": {
+    "pt": "Preferência salva",
+    "en": "[TRANSLATE] Preferência salva",
+    "zh": "[TRANSLATE] Preferência salva",
+    "es": "[TRANSLATE] Preferência salva",
     "files": [
       "client/src/pages/settings.tsx"
     ],
     "line": 91
   },
-  "suaconfiguracaodeseg": {
-    "pt": "Sua configuração de segurança foi salva.",
-    "en": "[TRANSLATE] Sua configuração de segurança foi salva.",
-    "zh": "[TRANSLATE] Sua configuração de segurança foi salva.",
-    "es": "[TRANSLATE] Sua configuração de segurança foi salva.",
+  "configuracaoatualiza": {
+    "pt": "Configuração atualizada",
+    "en": "[TRANSLATE] Configuração atualizada",
+    "zh": "[TRANSLATE] Configuração atualizada",
+    "es": "[TRANSLATE] Configuração atualizada",
     "files": [
       "client/src/pages/settings.tsx"
     ],

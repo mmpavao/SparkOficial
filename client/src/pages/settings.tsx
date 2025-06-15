@@ -98,7 +98,7 @@ export default function SettingsPage() {
     setSecurity(prev => ({ ...prev, [key]: value }));
     toast({
       title: "Configuração atualizada",
-      description: "Sua configuração de segurança foi salva.",
+      description: t.common.suaconfiguracaodeseg,
     });
   };
 

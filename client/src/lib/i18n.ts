@@ -70,6 +70,13 @@ export interface Translations {
     erroaoatualizarperfi: string;
     suapreferenciadenoti: string;
     suaconfiguracaodeseg: string;
+    sucesso: string;
+    importacaocriada: string;
+    relatoriogerado: string;
+    perfilatualizado: string;
+    erroaosalvar: string;
+    preferenciasalva: string;
+    configuracaoatualiza: string;
   };
   dashboard: {
     title: string;
@@ -252,6 +259,13 @@ const ptTranslations: Translations = {
     erroaoatualizarperfi: 'Erro ao atualizar perfil.',
     suapreferenciadenoti: 'Sua preferência de notificação foi atualizada.',
     suaconfiguracaodeseg: 'Sua configuração de segurança foi salva.',
+    sucesso: 'Sucesso',
+    importacaocriada: 'Importação criada!',
+    relatoriogerado: 'Relatório gerado!',
+    perfilatualizado: 'Perfil atualizado!',
+    erroaosalvar: 'Erro ao salvar',
+    preferenciasalva: 'Preferência salva',
+    configuracaoatualiza: 'Configuração atualizada',
   },
   dashboard: {
     title: 'Dashboard',
