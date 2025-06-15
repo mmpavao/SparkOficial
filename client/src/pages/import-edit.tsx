@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +41,7 @@ type EditImportForm = z.infer<typeof editImportSchema>;
 
 export default function ImportEditPage() {
   const [match, params] = useRoute("/import/edit/:id");
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -102,7 +103,7 @@ export default function ImportEditPage() {
         description: "Importação atualizada com sucesso.",
       });
       setTimeout(() => {
-        window.location.href = `/import/details/${importId}`;
+        setLocation(`/import/details/${importId}`);
       }, 1500);
     },
     onError: (error: any) => {

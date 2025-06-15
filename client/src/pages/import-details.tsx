@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import {
 
 export default function ImportDetailsPage() {
   const [match, params] = useRoute("/import/details/:id");
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
