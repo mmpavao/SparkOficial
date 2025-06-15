@@ -128,8 +128,9 @@ const optionalDocuments = [
 export default function CreditApplicationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<InsertCreditApplication>>({});
-  const [showPreparationModal, setShowPreparationModal] = useState(true);
+  const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
   const { t } = useTranslation();
@@ -228,6 +229,46 @@ export default function CreditApplicationPage() {
     }
   };
 
+  // Document upload handler
+  const handleDocumentUpload = (documentKey: string, file: File) => {
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast({
+        title: "Erro",
+        description: "Arquivo muito grande. Máximo 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Erro",
+        description: "Tipo de arquivo não suportado. Use PDF, JPG ou PNG.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadedDocuments(prev => ({
+      ...prev,
+      [documentKey]: file
+    }));
+
+    toast({
+      title: "Sucesso",
+      description: `Documento "${file.name}" anexado com sucesso.`,
+    });
+  };
+
+  const removeDocument = (documentKey: string) => {
+    setUploadedDocuments(prev => {
+      const newDocs = { ...prev };
+      delete newDocs[documentKey];
+      return newDocs;
+    });
+  };
+
   // Step navigation with flexible movement
   const goToStep = (step: number) => {
     if (step >= 1 && step <= 4) {
@@ -278,13 +319,20 @@ export default function CreditApplicationPage() {
   const getStepStatus = (step: number) => {
     switch (step) {
       case 1:
-        return companyForm.formState.isValid && Object.keys(companyForm.formState.errors).length === 0;
+        const companyData = companyForm.getValues();
+        return companyData.legalCompanyName && companyData.cnpj && companyData.address && 
+               companyData.city && companyData.state && companyData.zipCode && 
+               companyData.phone && companyData.email && companyData.shareholders.length > 0;
       case 2:
-        return commercialForm.formState.isValid && Object.keys(commercialForm.formState.errors).length === 0;
+        const commercialData = commercialForm.getValues();
+        return commercialData.businessSector && commercialData.annualRevenue && 
+               commercialData.mainImportedProducts && commercialData.mainOriginMarkets;
       case 3:
-        return creditForm.formState.isValid && Object.keys(creditForm.formState.errors).length === 0;
+        const creditData = creditForm.getValues();
+        return creditData.requestedAmount && creditData.purpose && 
+               creditData.productsToImport && creditData.justification;
       case 4:
-        return true; // Documents step is always accessible
+        return false; // Documents step requires actual document uploads
       default:
         return false;
     }
@@ -986,14 +1034,49 @@ export default function CreditApplicationPage() {
               {requiredDocuments.map((doc) => (
                 <div key={doc.key} className="border border-red-200 rounded-lg p-4 bg-red-50">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium text-red-900">{doc.name}</h4>
                       <p className="text-sm text-red-700">{doc.description}</p>
+                      {uploadedDocuments[doc.key] && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-green-700 font-medium">
+                            {uploadedDocuments[doc.key].name}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDocument(doc.key)}
+                            className="text-red-600 hover:text-red-700 p-1"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-100">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Anexar
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="file"
+                        id={`required-${doc.key}`}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleDocumentUpload(doc.key, file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById(`required-${doc.key}`)?.click()}
+                        className="border-red-300 text-red-700 hover:bg-red-100"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploadedDocuments[doc.key] ? 'Substituir' : 'Anexar'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1010,14 +1093,48 @@ export default function CreditApplicationPage() {
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {optionalDocuments.map((doc) => (
-                  <div key={doc.key} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                {optionalDocuments.map((doc, index) => (
+                  <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-blue-900">{doc.name}</h4>
-                      <p className="text-xs text-blue-700">{doc.description}</p>
-                      <Button variant="outline" size="sm" className="w-full border-blue-300 text-blue-700 hover:bg-blue-100">
+                      <h4 className="font-medium text-blue-900">{doc}</h4>
+                      
+                      {uploadedDocuments[`optional_${index}`] && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-xs text-green-700 font-medium truncate">
+                            {uploadedDocuments[`optional_${index}`].name}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDocument(`optional_${index}`)}
+                            className="text-red-600 hover:text-red-700 p-1"
+                          >
+                            <XCircle className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      
+                      <input
+                        type="file"
+                        id={`optional-${index}`}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleDocumentUpload(`optional_${index}`, file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById(`optional-${index}`)?.click()}
+                        className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
                         <Upload className="w-4 h-4 mr-2" />
-                        Anexar
+                        {uploadedDocuments[`optional_${index}`] ? 'Substituir' : 'Anexar'}
                       </Button>
                     </div>
                   </div>
