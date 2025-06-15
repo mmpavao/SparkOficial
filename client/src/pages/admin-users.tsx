@@ -517,7 +517,7 @@ export default function AdminUsersPage() {
                       </div>
                       <div className="col-span-2">
                         <span className="text-gray-500">Status:</span>
-                        <div className="mt-1">{getStatusBadge(user.status || 'active')}</div>
+                        <div className="mt-1">{getStatusBadge((user as any).status)}</div>
                       </div>
                     </div>
                   </div>
