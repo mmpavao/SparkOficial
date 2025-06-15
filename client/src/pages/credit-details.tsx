@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
 import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
@@ -38,6 +40,7 @@ export default function CreditDetailsPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const permissions = useUserPermissions();
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
 
@@ -425,31 +428,35 @@ export default function CreditDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.location.href = `/credit/edit/${application.id}`}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Editar Solicitação
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.print()}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Imprimir Detalhes
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Ações Adaptáveis baseadas no tipo de usuário */}
+          {permissions.canManageApplications ? (
+            <AdminAnalysisPanel application={application} />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Ações Rápidas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => window.location.href = `/credit/edit/${application.id}`}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Editar Solicitação
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => window.print()}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Imprimir Detalhes
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -563,10 +563,6 @@ export default function CreditPage() {
                       {/* Ações Administrativas */}
                       {permissions.canManageApplications && (
                         <>
-                          <DropdownMenuItem onClick={() => setLocation(`/credit/details/${application.id}`)}>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Fazer Pré-Análise
-                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleApproveApplication(application.id)}
                             className="text-green-600 hover:text-green-700"

@@ -473,6 +473,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Administrative analysis update endpoint
+  app.put('/api/admin/credit/applications/:id/update-analysis', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(userId);
+      
+      // Only admins can update analysis
+      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+      
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const { status, data } = req.body;
+      
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId, 
+        status,
+        {
+          ...data,
+          analyzedBy: userId,
+          analyzedAt: new Date(),
+        }
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {
