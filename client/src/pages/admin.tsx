@@ -211,16 +211,24 @@ export default function AdminPage() {
                     let optionalDocs = [];
                     
                     try {
-                      if (application.requiredDocuments && typeof application.requiredDocuments === 'string') {
-                        requiredDocs = Object.keys(JSON.parse(application.requiredDocuments));
+                      if (application.requiredDocuments) {
+                        if (typeof application.requiredDocuments === 'string') {
+                          requiredDocs = Object.keys(JSON.parse(application.requiredDocuments));
+                        } else if (typeof application.requiredDocuments === 'object') {
+                          requiredDocs = Object.keys(application.requiredDocuments);
+                        }
                       }
                     } catch (e) {
                       // Handle invalid JSON for required documents
                     }
                     
                     try {
-                      if (application.optionalDocuments && typeof application.optionalDocuments === 'string') {
-                        optionalDocs = Object.keys(JSON.parse(application.optionalDocuments));
+                      if (application.optionalDocuments) {
+                        if (typeof application.optionalDocuments === 'string') {
+                          optionalDocs = Object.keys(JSON.parse(application.optionalDocuments));
+                        } else if (typeof application.optionalDocuments === 'object') {
+                          optionalDocs = Object.keys(application.optionalDocuments);
+                        }
                       }
                     } catch (e) {
                       // Handle invalid JSON for optional documents
@@ -232,8 +240,12 @@ export default function AdminPage() {
                     // Parse review data if available
                     let reviewData = {};
                     try {
-                      if (application.reviewNotes && typeof application.reviewNotes === 'string') {
-                        reviewData = JSON.parse(application.reviewNotes);
+                      if (application.reviewNotes) {
+                        if (typeof application.reviewNotes === 'string') {
+                          reviewData = JSON.parse(application.reviewNotes);
+                        } else if (typeof application.reviewNotes === 'object') {
+                          reviewData = application.reviewNotes;
+                        }
                       }
                     } catch (e) {
                       // Handle invalid JSON for review notes
@@ -344,13 +356,13 @@ export default function AdminPage() {
                 <TableBody>
                   {allImports.map((importItem: Import) => (
                     <TableRow key={importItem.id}>
-                      <TableCell className="font-medium">{importItem.supplier}</TableCell>
-                      <TableCell>{importItem.product}</TableCell>
+                      <TableCell className="font-medium">{importItem.supplierName}</TableCell>
+                      <TableCell>{importItem.productDescription}</TableCell>
                       <TableCell>{formatCurrency(Number(importItem.totalValue))}</TableCell>
                       <TableCell>
                         <Badge>{importItem.status}</Badge>
                       </TableCell>
-                      <TableCell>{formatDate(importItem.expectedDelivery)}</TableCell>
+                      <TableCell>{formatDate(importItem.estimatedDelivery)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
