@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
@@ -64,6 +65,7 @@ export default function CreditPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const permissions = useUserPermissions();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -76,9 +78,11 @@ export default function CreditPage() {
     },
   });
 
-  // Fetch credit applications
+  // Fetch credit applications - adaptável baseado no tipo de usuário
   const { data: applications = [], isLoading } = useQuery({
-    queryKey: ["/api/credit/applications"],
+    queryKey: permissions.canViewAllApplications 
+      ? ["/api/admin/credit-applications"] 
+      : ["/api/credit/applications"],
   });
 
   // Create credit application mutation
