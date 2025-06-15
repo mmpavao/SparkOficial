@@ -1,145 +1,56 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "@/contexts/I18nContext";
-import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency } from "@/lib/formatters";
-import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
-import { ValidationResult } from "@/lib/documentValidation";
-import { 
-  ArrowLeft, 
-  Building2, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  DollarSign, 
-  Calendar, 
-  FileText,
-  Shield,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  MessageSquare,
-  Edit,
-  Save,
-  Eye,
-  TrendingUp,
-  Users,
-  Briefcase
-} from "lucide-react";
-
-interface AdminCreditAnalysisData {
-  id: number;
-  userId: number;
-  legalCompanyName?: string;
-  companyAddress?: string;
-  requestedAmount?: number;
-  purpose?: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  companyInfo?: any;
-  commercialInfo?: any;
-  creditInfo?: any;
-  documents?: any;
-  adminNotes?: string;
-  documentsValidation?: Record<string, ValidationResult>;
-  preAnalysisStatus?: 'pending' | 'pre_approved' | 'needs_documents' | 'needs_clarification' | 'rejected';
-  adminRecommendation?: string;
-  riskAssessment?: 'low' | 'medium' | 'high';
-}
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import type { CreditApplication } from "@shared/schema";
 
 export default function AdminCreditAnalysisPage() {
-  const [match, params] = useRoute('/admin/credit-analysis/:id');
-  const applicationId = params?.id ? parseInt(params.id) : null;
-  const [editMode, setEditMode] = useState(false);
-  const [adminNotes, setAdminNotes] = useState("");
-  const [preAnalysisStatus, setPreAnalysisStatus] = useState<string>("");
-  const [adminRecommendation, setAdminRecommendation] = useState("");
-  const [riskAssessment, setRiskAssessment] = useState<string>("");
-  const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
-  
-  const { toast } = useToast();
+  const { id } = useParams();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { t } = useTranslation();
-  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const [preAnalysisStatus, setPreAnalysisStatus] = useState<string>("");
+  const [riskAssessment, setRiskAssessment] = useState<string>("");
+  const [adminRecommendation, setAdminRecommendation] = useState<string>("");
 
   // Check if user is admin
   const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
 
-  // Fetch credit application details with admin data
+  // Fetch credit application details
   const { data: application, isLoading } = useQuery({
-    queryKey: ["/api/admin/credit-applications", applicationId],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/admin/credit-applications/${applicationId}`);
-      return response.json();
-    },
-    enabled: !!applicationId && isAdmin,
-  }) as { data: AdminCreditAnalysisData, isLoading: boolean };
+    queryKey: [`/api/credit/applications/${id}`],
+    enabled: !!id && isAdmin,
+  }) as { data: CreditApplication | undefined; isLoading: boolean };
 
-  // Initialize admin fields when data loads
-  useEffect(() => {
-    if (application) {
-      setAdminNotes(application.adminNotes || "");
-      setPreAnalysisStatus(application.preAnalysisStatus || "pending");
-      setAdminRecommendation(application.adminRecommendation || "");
-      setRiskAssessment(application.riskAssessment || "medium");
-    }
-  }, [application]);
-
-  // Save admin analysis
-  const saveAnalysisMutation = useMutation({
-    mutationFn: async (analysisData: {
-      adminNotes: string;
-      preAnalysisStatus: string;
-      adminRecommendation: string;
-      riskAssessment: string;
-    }) => {
-      return await apiRequest("PUT", `/api/admin/credit-applications/${applicationId}/analysis`, analysisData);
+  // Update pre-analysis mutation
+  const updatePreAnalysisMutation = useMutation({
+    mutationFn: async (data: { preAnalysisStatus: string; riskAssessment: string; adminRecommendation: string }) => {
+      return await apiRequest("PUT", `/api/admin/credit-applications/${id}/pre-analysis`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
-      setEditMode(false);
+      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
       toast({
-        title: "Análise Salva",
-        description: "Pré-análise administrativa salva com sucesso",
+        title: "Sucesso",
+        description: "Pré-análise atualizada com sucesso",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Falha ao salvar análise",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Submit to financial institution
-  const submitToFinancialMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", `/api/admin/credit-applications/${applicationId}/submit-financial`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
-      toast({
-        title: "Enviado à Financeira",
-        description: "Solicitação enviada para análise final da financeira",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Falha ao enviar para financeira",
+        description: "Erro ao atualizar pré-análise",
         variant: "destructive",
       });
     },
@@ -147,12 +58,12 @@ export default function AdminCreditAnalysisPage() {
 
   if (!isAdmin) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container max-w-4xl mx-auto py-8">
         <Card>
-          <CardContent className="p-6 text-center">
-            <Shield className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+          <CardContent className="text-center py-8">
+            <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Acesso Negado</h2>
-            <p className="text-gray-600">Você não tem permissão para acessar esta área.</p>
+            <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
           </CardContent>
         </Card>
       </div>
@@ -161,8 +72,8 @@ export default function AdminCreditAnalysisPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-6">
+      <div className="container max-w-4xl mx-auto py-8">
+        <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/3"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
@@ -172,424 +83,381 @@ export default function AdminCreditAnalysisPage() {
 
   if (!application) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container max-w-4xl mx-auto py-8">
         <Card>
-          <CardContent className="p-6 text-center">
+          <CardContent className="text-center py-8">
+            <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Solicitação não encontrada</h2>
-            <Link href="/admin">
-              <Button variant="outline">Voltar para Admin</Button>
-            </Link>
+            <p className="text-gray-600">A solicitação de crédito não foi encontrada.</p>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/admin")}
+              className="mt-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para Admin
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", icon: AlertTriangle },
-      pre_approved: { color: "bg-green-100 text-green-800", icon: CheckCircle },
-      needs_documents: { color: "bg-blue-100 text-blue-800", icon: FileText },
-      needs_clarification: { color: "bg-orange-100 text-orange-800", icon: MessageSquare },
-      rejected: { color: "bg-red-100 text-red-800", icon: XCircle },
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    const Icon = config.icon;
-    
-    return (
-      <Badge className={config.color}>
-        <Icon className="w-3 h-3 mr-1" />
-        {status === 'pending' && 'Pendente'}
-        {status === 'pre_approved' && 'Pré-Aprovado'}
-        {status === 'needs_documents' && 'Precisa Documentos'}
-        {status === 'needs_clarification' && 'Precisa Esclarecimentos'}
-        {status === 'rejected' && 'Rejeitado'}
-      </Badge>
-    );
-  };
+  // Parse documents and review data
+  let requiredDocs = {};
+  let optionalDocs = {};
+  let reviewData = {};
 
-  const getRiskBadge = (risk: string) => {
-    const riskConfig = {
-      low: { color: "bg-green-100 text-green-800", label: "Baixo Risco" },
-      medium: { color: "bg-yellow-100 text-yellow-800", label: "Médio Risco" },
-      high: { color: "bg-red-100 text-red-800", label: "Alto Risco" },
-    };
-    
-    const config = riskConfig[risk as keyof typeof riskConfig] || riskConfig.medium;
-    
-    return <Badge className={config.color}>{config.label}</Badge>;
-  };
+  try {
+    if (application.requiredDocuments) {
+      if (typeof application.requiredDocuments === 'string') {
+        requiredDocs = JSON.parse(application.requiredDocuments);
+      } else {
+        requiredDocs = application.requiredDocuments;
+      }
+    }
+  } catch (e) {
+    // Handle invalid JSON
+  }
 
-  const handleSaveAnalysis = () => {
-    saveAnalysisMutation.mutate({
-      adminNotes,
+  try {
+    if (application.optionalDocuments) {
+      if (typeof application.optionalDocuments === 'string') {
+        optionalDocs = JSON.parse(application.optionalDocuments);
+      } else {
+        optionalDocs = application.optionalDocuments;
+      }
+    }
+  } catch (e) {
+    // Handle invalid JSON
+  }
+
+  try {
+    if (application.reviewNotes) {
+      if (typeof application.reviewNotes === 'string') {
+        reviewData = JSON.parse(application.reviewNotes);
+      } else {
+        reviewData = application.reviewNotes;
+      }
+    }
+  } catch (e) {
+    // Handle invalid JSON
+  }
+
+  const totalDocs = Object.keys(requiredDocs).length + Object.keys(optionalDocs).length;
+  const completionScore = Math.round((totalDocs / 18) * 100);
+
+  const handleSubmitPreAnalysis = () => {
+    if (!preAnalysisStatus || !riskAssessment || !adminRecommendation.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos antes de submeter a análise",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updatePreAnalysisMutation.mutate({
       preAnalysisStatus,
-      adminRecommendation,
       riskAssessment,
+      adminRecommendation,
     });
   };
 
-  // Calculate completion percentage
-  const calculateCompletionScore = () => {
-    const documents = application.documents || {};
-    const totalDocuments = 18; // Total expected documents
-    const uploadedDocuments = Object.keys(documents).length;
-    const documentScore = (uploadedDocuments / totalDocuments) * 40;
-    
-    const dataCompleteness = [
-      application.legalCompanyName,
-      application.companyAddress,
-      application.requestedAmount,
-      application.purpose,
-      application.companyInfo?.businessSector,
-      application.commercialInfo?.yearsInBusiness,
-    ].filter(Boolean).length / 6 * 30;
-    
-    const validationScore = Object.values(validationResults).length > 0 
-      ? Object.values(validationResults).reduce((acc, r) => acc + r.score, 0) / Object.values(validationResults).length / 100 * 30
-      : 0;
-    
-    return Math.round(documentScore + dataCompleteness + validationScore);
-  };
-
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar para Admin
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Pré-Análise: {application.legalCompanyName}
-            </h1>
-            <p className="text-gray-600">
-              Análise administrativa completa da solicitação de crédito
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {getStatusBadge(preAnalysisStatus)}
-          {getRiskBadge(riskAssessment)}
+    <div className="container max-w-6xl mx-auto py-8">
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="outline"
+          onClick={() => setLocation("/admin")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Admin
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold">Análise de Crédito - {application.legalCompanyName}</h1>
+          <p className="text-gray-600">Pré-análise administrativa completa</p>
         </div>
       </div>
 
-      {/* Analysis Summary */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-900">
-            <TrendingUp className="w-5 h-5" />
-            Resumo da Análise
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {calculateCompletionScore()}%
-              </div>
-              <div className="text-sm text-gray-600">Completude</div>
-            </div>
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
-                {Object.keys(application.documents || {}).length}
-              </div>
-              <div className="text-sm text-gray-600">Documentos</div>
-            </div>
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">
-                {formatCurrency(application.requestedAmount || 0).replace('R$', 'US$')}
-              </div>
-              <div className="text-sm text-gray-600">Valor Solicitado</div>
-            </div>
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">
-                {application.commercialInfo?.yearsInBusiness || 0}
-              </div>
-              <div className="text-sm text-gray-600">Anos de Atividade</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="application" className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="application">Dados da Aplicação</TabsTrigger>
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
           <TabsTrigger value="analysis">Pré-Análise</TabsTrigger>
-          <TabsTrigger value="actions">Ações</TabsTrigger>
         </TabsList>
 
-        {/* Application Data Tab */}
-        <TabsContent value="application" className="space-y-6">
-          {/* Company Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Informações da Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Razão Social</Label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    {application.legalCompanyName}
-                  </div>
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Valor Solicitado</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {formatCurrency(Number(application.requestedAmount), application.currency)}
                 </div>
-                <div>
-                  <Label>CNPJ</Label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    {application.companyInfo?.cnpj}
-                  </div>
-                </div>
-                <div>
-                  <Label>Setor Empresarial</Label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    {application.companyInfo?.businessSector}
-                  </div>
-                </div>
-                <div>
-                  <Label>Anos de Atividade</Label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    {application.commercialInfo?.yearsInBusiness} anos
-                  </div>
-                </div>
-              </div>
-              <div>
-                <Label>Endereço Completo</Label>
-                <div className="p-2 bg-gray-50 rounded border">
-                  {application.companyAddress}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Credit Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Informações de Crédito
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Completude de Documentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {completionScore}%
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${completionScore}%` }}
+                  ></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Status Atual</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge className={
+                  application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                  application.status === 'under_review' ? 'bg-blue-100 text-blue-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }>
+                  {application.status === 'pending' && 'Pendente'}
+                  {application.status === 'under_review' && 'Em Análise'}
+                  {application.status === 'approved' && 'Aprovado'}
+                  {application.status === 'rejected' && 'Rejeitado'}
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Company Data Tab */}
+        <TabsContent value="company" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Básicas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <Label>Valor Solicitado</Label>
-                  <div className="p-2 bg-gray-50 rounded border text-lg font-semibold">
-                    {formatCurrency(application.requestedAmount || 0).replace('R$', 'US$')}
-                  </div>
+                  <Label className="text-sm font-medium text-gray-600">Razão Social</Label>
+                  <p className="mt-1">{application.legalCompanyName}</p>
                 </div>
                 <div>
-                  <Label>Prazo Desejado</Label>
-                  <div className="p-2 bg-gray-50 rounded border">
-                    {application.creditInfo?.desiredTerm} meses
-                  </div>
+                  <Label className="text-sm font-medium text-gray-600">Nome Fantasia</Label>
+                  <p className="mt-1">{application.tradingName}</p>
                 </div>
-              </div>
-              <div>
-                <Label>Finalidade do Crédito</Label>
-                <div className="p-2 bg-gray-50 rounded border">
-                  {application.purpose}
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
+                  <p className="mt-1">{application.cnpj}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Setor de Atuação</Label>
+                  <p className="mt-1">{application.businessSector}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Comerciais</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Faturamento Anual</Label>
+                  <p className="mt-1">{application.annualRevenue}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Volume de Importação Mensal</Label>
+                  <p className="mt-1">{application.monthlyImportVolume}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Principais Produtos Importados</Label>
+                  <p className="mt-1">{application.mainImportedProducts}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Principais Mercados de Origem</Label>
+                  <p className="mt-1">{application.mainOriginMarkets}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Documentos Enviados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(application.documents || {}).map(([key, value]) => (
-                  <div key={key} className="p-3 border rounded-lg">
-                    <div className="flex items-center justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Documentos Obrigatórios ({Object.keys(requiredDocs).length}/10)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(requiredDocs).map(([key, doc]: [string, any]) => (
+                    <div key={key} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                       <div>
-                        <p className="font-medium">{key.replace(/_/g, ' ').toUpperCase()}</p>
-                        <p className="text-sm text-gray-500">Enviado</p>
+                        <p className="font-medium">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                        <p className="text-sm text-gray-600">{doc.filename}</p>
                       </div>
-                      <Badge variant="default">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        OK
-                      </Badge>
+                      <Badge className="bg-green-100 text-green-800">Enviado</Badge>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  Documentos Opcionais ({Object.keys(optionalDocs).length}/8)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(optionalDocs).map(([key, doc]: [string, any]) => (
+                    <div key={key} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                        <p className="text-sm text-gray-600">{doc.filename}</p>
+                      </div>
+                      <Badge className="bg-blue-100 text-blue-800">Enviado</Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        {/* Analysis Tab */}
+        {/* Pre-Analysis Tab */}
         <TabsContent value="analysis" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Pré-Análise Administrativa
-                </div>
-                <Button
-                  variant={editMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setEditMode(!editMode)}
-                >
-                  {editMode ? <Save className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
-                  {editMode ? 'Salvar' : 'Editar'}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Status da Pré-Análise</Label>
-                  {editMode ? (
-                    <Select value={preAnalysisStatus} onValueChange={setPreAnalysisStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="pre_approved">Pré-Aprovado</SelectItem>
-                        <SelectItem value="needs_documents">Precisa Documentos</SelectItem>
-                        <SelectItem value="needs_clarification">Precisa Esclarecimentos</SelectItem>
-                        <SelectItem value="rejected">Rejeitado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="p-2">
-                      {getStatusBadge(preAnalysisStatus)}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label>Avaliação de Risco</Label>
-                  {editMode ? (
-                    <Select value={riskAssessment} onValueChange={setRiskAssessment}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baixo Risco</SelectItem>
-                        <SelectItem value="medium">Médio Risco</SelectItem>
-                        <SelectItem value="high">Alto Risco</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="p-2">
-                      {getRiskBadge(riskAssessment)}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <Label>Recomendação do Analista</Label>
-                {editMode ? (
-                  <Textarea
-                    value={adminRecommendation}
-                    onChange={(e) => setAdminRecommendation(e.target.value)}
-                    placeholder="Digite sua recomendação para a financeira..."
-                    className="min-h-[100px]"
-                  />
-                ) : (
-                  <div className="p-2 bg-gray-50 rounded border min-h-[100px]">
-                    {adminRecommendation || "Nenhuma recomendação fornecida"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label>Observações Administrativas</Label>
-                {editMode ? (
-                  <Textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    placeholder="Digite observações internas sobre a análise..."
-                    className="min-h-[120px]"
-                  />
-                ) : (
-                  <div className="p-2 bg-gray-50 rounded border min-h-[120px]">
-                    {adminNotes || "Nenhuma observação registrada"}
-                  </div>
-                )}
-              </div>
-
-              {editMode && (
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setEditMode(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleSaveAnalysis} disabled={saveAnalysisMutation.isPending}>
-                    {saveAnalysisMutation.isPending ? "Salvando..." : "Salvar Análise"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Actions Tab */}
-        <TabsContent value="actions" className="space-y-6">
-          <Card>
-            <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5" />
-                Ações Administrativas
+                <Clock className="h-5 w-5 text-orange-600" />
+                Pré-Análise Administrativa
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button
-                  onClick={() => submitToFinancialMutation.mutate()}
-                  disabled={preAnalysisStatus !== 'pre_approved' || submitToFinancialMutation.isPending}
-                  className="h-16 flex-col gap-2"
-                >
-                  <CheckCircle className="w-6 h-6" />
-                  {submitToFinancialMutation.isPending ? "Enviando..." : "Enviar à Financeira"}
-                </Button>
-                
-                <Button variant="outline" className="h-16 flex-col gap-2">
-                  <MessageSquare className="w-6 h-6" />
-                  Solicitar Esclarecimentos
-                </Button>
-                
-                <Button variant="outline" className="h-16 flex-col gap-2">
-                  <FileText className="w-6 h-6" />
-                  Solicitar Documentos
-                </Button>
-                
-                <Button variant="destructive" className="h-16 flex-col gap-2">
-                  <XCircle className="w-6 h-6" />
-                  Rejeitar Aplicação
-                </Button>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="preAnalysisStatus" className="text-sm font-medium">
+                    Status da Pré-Análise
+                  </Label>
+                  <Select value={preAnalysisStatus} onValueChange={setPreAnalysisStatus}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pre_approved">Pré-Aprovado</SelectItem>
+                      <SelectItem value="needs_documents">Precisa de Documentos</SelectItem>
+                      <SelectItem value="needs_clarification">Precisa de Esclarecimentos</SelectItem>
+                      <SelectItem value="rejected">Rejeitado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="riskAssessment" className="text-sm font-medium">
+                    Avaliação de Risco
+                  </Label>
+                  <Select value={riskAssessment} onValueChange={setRiskAssessment}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Selecione o nível de risco" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixo</SelectItem>
+                      <SelectItem value="medium">Médio</SelectItem>
+                      <SelectItem value="high">Alto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-medium text-blue-900 mb-2">Próximos Passos</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Complete a pré-análise preenchendo todos os campos</li>
-                  <li>• Revise todos os documentos enviados</li>
-                  <li>• Defina o status apropriado (pré-aprovado, pendente, etc.)</li>
-                  <li>• Envie para a financeira se pré-aprovado</li>
-                </ul>
+
+              <div>
+                <Label htmlFor="adminRecommendation" className="text-sm font-medium">
+                  Recomendação Administrativa
+                </Label>
+                <Textarea
+                  id="adminRecommendation"
+                  value={adminRecommendation}
+                  onChange={(e) => setAdminRecommendation(e.target.value)}
+                  placeholder="Digite sua análise e recomendação detalhada..."
+                  className="mt-2 min-h-[120px]"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleSubmitPreAnalysis}
+                  disabled={updatePreAnalysisMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {updatePreAnalysisMutation.isPending ? "Salvando..." : "Salvar Pré-Análise"}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setLocation("/admin")}
+                >
+                  Cancelar
+                </Button>
               </div>
             </CardContent>
           </Card>
+
+          {/* Current Analysis Display */}
+          {(reviewData as any)?.preAnalysisStatus && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Análise Atual</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Status</Label>
+                    <Badge className="mt-1">
+                      {(reviewData as any).preAnalysisStatus}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Risco</Label>
+                    <Badge className="mt-1">
+                      {(reviewData as any).riskAssessment}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Analisado em</Label>
+                    <p className="text-sm mt-1">
+                      {formatDate((reviewData as any).analyzedAt)}
+                    </p>
+                  </div>
+                </div>
+                
+                {(reviewData as any).adminRecommendation && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Recomendação</Label>
+                    <p className="mt-1 p-3 bg-gray-50 rounded-lg">
+                      {(reviewData as any).adminRecommendation}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

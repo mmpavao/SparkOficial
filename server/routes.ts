@@ -533,6 +533,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
       
+      const application = await storage.updateCreditApplicationStatus(
+        parseInt(id), 
+        status, 
+        { updatedBy: req.session.userId, updatedAt: new Date() }
+      );
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating credit application status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update credit application pre-analysis (admin only)
+  app.put('/api/admin/credit-applications/:id/pre-analysis', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { preAnalysisStatus, riskAssessment, adminRecommendation } = req.body;
+      
+      const reviewData = {
+        preAnalysisStatus,
+        riskAssessment,
+        adminRecommendation,
+        analyzedBy: req.session.userId,
+        analyzedAt: new Date().toISOString()
+      };
+      
+      const application = await storage.updateCreditApplicationStatus(
+        parseInt(id), 
+        'under_review', 
+        reviewData
+      );
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating pre-analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update credit application status (admin only)
+  app.put('/api/admin/credit-applications/:id/status', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
       if (!['pending', 'approved', 'rejected', 'under_review'].includes(status)) {
         return res.status(400).json({ message: "Status inválido" });
       }
