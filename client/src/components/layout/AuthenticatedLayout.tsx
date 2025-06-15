@@ -98,8 +98,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       .slice(0, 2);
   };
 
-  // Navegação da Área do Importador (disponível para todos)
-  const importerNavigation = [
+  // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
+  const navigation = [
     { path: "/", icon: Home, label: t.nav.dashboard },
     { path: "/credit", icon: CreditCard, label: t.nav.credit },
     { path: "/imports", icon: Truck, label: t.nav.imports },
@@ -107,14 +107,13 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     { path: "/settings", icon: Settings, label: t.nav.settings },
   ];
 
-  // Navegação da Área Admin (apenas para super admin e admins)
-  const adminNavigation = [
-    { path: "/admin", icon: Shield, label: t.nav.adminArea },
-    { path: "/admin/users", icon: Users, label: t.nav.users },
+  // Navegação adicional apenas para admins
+  const adminOnlyNavigation = [
+    { path: "/users", icon: Users, label: "Gerenciar Usuários" },
   ];
 
-  // Verificar se o usuário tem acesso à área admin
-  const hasAdminAccess = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
+  // Verificar se o usuário tem acesso administrativo
+  const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
 
   const isActiveRoute = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -165,15 +164,15 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         </div>
 
         <nav className="p-4 space-y-4">
-          {/* Área do Importador */}
+          {/* Navegação Principal */}
           <div>
             <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                {t.nav.importerArea}
+                SPARK COMEX
               </h3>
             </div>
             <div className="space-y-1">
-              {importerNavigation.map((item) => {
+              {navigation.map((item) => {
                 const Icon = item.icon;
                 const active = isActiveRoute(item.path);
                 
@@ -202,16 +201,16 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             </div>
           </div>
 
-          {/* Área Admin - apenas para super admin e admins */}
-          {hasAdminAccess && (
+          {/* Navegação Administrativa */}
+          {isAdmin && (
             <div>
               <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                  {t.nav.adminArea}
+                  ADMINISTRAÇÃO
                 </h3>
               </div>
               <div className="space-y-1">
-                {adminNavigation.map((item) => {
+                {adminOnlyNavigation.map((item) => {
                   const Icon = item.icon;
                   const active = isActiveRoute(item.path);
                   
