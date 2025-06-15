@@ -206,6 +206,12 @@ Changelog:
   * Completed multilingual support for insights feature across all 4 languages
   * User requested removal of AI insights component - feature completely removed from codebase
   * Cleaned up all related files, API endpoints, and translation references
+- June 15, 2025. Complete AI Insights system removal:
+  * Deleted entire `/client/src/components/ai-insights/` directory structure
+  * Removed AIInsightsButton import and component from AuthenticatedLayout
+  * Eliminated floating button that appeared in bottom-right corner
+  * Cleaned up all remaining code references and imports
+  * System now completely free of AI Insights functionality
 - June 15, 2025. Complete credit application system refactoring:
   * Rebuilt credit application as professional 4-step multi-form process
   * Implemented Brazilian business standards: CNPJ validation, shareholder structure, business sectors
