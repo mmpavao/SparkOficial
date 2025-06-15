@@ -506,7 +506,7 @@ const esTranslations: Translations = {
 };
 
 // Available translations
-const translations = {
+export const translations = {
   pt: ptTranslations,
   en: enTranslations,
   zh: zhTranslations,
@@ -532,23 +532,5 @@ export const setLanguage = (lang: Language): void => {
   localStorage.setItem('spark-comex-language', lang);
 };
 
-// Create context
-export const I18nContext = createContext<{
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: Translations;
-}>({
-  language: 'pt',
-  setLanguage: () => {},
-  t: ptTranslations,
-});
 
-export const useI18n = () => {
-  const context = useContext(I18nContext);
-  if (!context) {
-    throw new Error('useI18n must be used within an I18nProvider');
-  }
-  return context;
-};
 
-export { translations };
