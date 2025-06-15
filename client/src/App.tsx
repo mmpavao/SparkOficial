@@ -15,7 +15,6 @@ import ImportsPage from "@/pages/imports";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminUsersPage from "@/pages/admin-users";
-import DocumentValidationPage from "@/pages/document-validation";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
@@ -47,7 +46,6 @@ function Router() {
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />
-            <Route path="/document-validation" component={DocumentValidationPage} />
             <Route component={NotFound} />
           </Switch>
         </AuthenticatedLayout>
