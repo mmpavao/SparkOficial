@@ -43,8 +43,7 @@ export default function ImportsPage() {
 
   // Fetch imports data
   const { data: imports = [], isLoading } = useQuery({
-    queryKey: ["/api/imports"],
-    queryFn: () => apiRequest('GET', '/api/imports')
+    queryKey: ["/api/imports"]
   });
 
   // Filter imports
