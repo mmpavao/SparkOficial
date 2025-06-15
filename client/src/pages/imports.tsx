@@ -874,57 +874,36 @@ export default function ImportsPage() {
                       Informações de Preço
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="unitPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preço Unitário *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="50.00" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="fobPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preço FOB</FormLabel>
-                            <FormControl>
-                              <Input placeholder="45000.00" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="cifPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preço CIF</FormLabel>
-                            <FormControl>
-                              <Input placeholder="48000.00" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="incoterms"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Preço *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value || "FOB"}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o tipo de preço" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="FOB">FOB - Free On Board (sem frete/seguro)</SelectItem>
+                                <SelectItem value="CIF">CIF - Cost, Insurance and Freight (com frete/seguro)</SelectItem>
+                                <SelectItem value="EXW">EXW - Ex Works (retirada na fábrica)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
                       <FormField
                         control={form.control}
                         name="totalValue"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Valor Total *</FormLabel>
+                            <FormLabel>Valor Total (USD) *</FormLabel>
                             <FormControl>
                               <Input placeholder="50000.00" {...field} />
                             </FormControl>
@@ -932,23 +911,40 @@ export default function ImportsPage() {
                           </FormItem>
                         )}
                       />
-                      
-                      <FormField
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Moeda</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    </div>
+                    
+                    {form.watch("cargoType") !== "LCL" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="unitPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Preço Unitário (USD) *</FormLabel>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione a moeda" />
-                                </SelectTrigger>
+                                <Input placeholder="50.00" {...field} />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                                <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="currency"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Moeda</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value || "USD"}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione a moeda" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                                  <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                                  <SelectItem value="EUR">EUR - Euro</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -956,25 +952,50 @@ export default function ImportsPage() {
                         )}
                       />
                     </div>
+                    )}
                   </div>
 
-                  {/* Informações do Fornecedor */}
+                  {/* Informações de Transporte */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      Fornecedor
+                      <Ship className="w-5 h-5" />
+                      Transporte
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
-                        name="supplierName"
+                        name="shippingMethod"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nome do Fornecedor *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Shenzhen Electronics Co." {...field} />
-                            </FormControl>
+                            <FormLabel>Método de Envio</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="sea">
+                                  <div className="flex items-center gap-2">
+                                    <Ship className="w-4 h-4" />
+                                    Marítimo
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="air">
+                                  <div className="flex items-center gap-2">
+                                    <Plane className="w-4 h-4" />
+                                    Aéreo
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="land">
+                                  <div className="flex items-center gap-2">
+                                    <Truck className="w-4 h-4" />
+                                    Terrestre
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
