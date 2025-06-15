@@ -61,6 +61,101 @@ type CreditApplicationForm = {
   notes?: string;
 };
 
+// Componente para calcular e exibir dados reais de crédito
+function CreditSummaryCards({ applications, permissions }: { applications: any[], permissions: any }) {
+  // Calcular métricas reais baseadas nas aplicações
+  const metrics = applications?.reduce((acc, app) => {
+    const amount = parseFloat(app.requestedAmount || '0');
+    
+    if (app.status === 'approved') {
+      acc.totalApproved += amount;
+    } else if (app.status === 'pending') {
+      acc.totalPending += amount;
+    } else if (app.status === 'under_review') {
+      acc.totalUnderReview += amount;
+    }
+    
+    acc.totalRequested += amount;
+    return acc;
+  }, {
+    totalApproved: 0,
+    totalPending: 0,
+    totalUnderReview: 0,
+    totalRequested: 0
+  }) || { totalApproved: 0, totalPending: 0, totalUnderReview: 0, totalRequested: 0 };
+
+  const approvedApplications = applications?.filter(app => app.status === 'approved') || [];
+  const pendingApplications = applications?.filter(app => app.status === 'pending') || [];
+  const underReviewApplications = applications?.filter(app => app.status === 'under_review') || [];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">
+                {permissions.canViewAllApplications ? "Total Aprovado" : "Crédito Aprovado"}
+              </p>
+              <p className="text-2xl font-bold text-green-600">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalApproved)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {approvedApplications.length} {approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">
+                {permissions.canViewAllApplications ? "Em Análise" : "Aguardando Análise"}
+              </p>
+              <p className="text-2xl font-bold text-blue-600">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {underReviewApplications.length} {underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">
+                {permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes"}
+              </p>
+              <p className="text-2xl font-bold text-orange-600">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {pendingApplications.length} {pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function CreditPage() {
   const [showForm, setShowForm] = useState(false);
   const [filters, setFilters] = useState({});
@@ -429,53 +524,8 @@ export default function CreditPage() {
         </Card>
       )}
 
-      {/* Credit Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t.dashboard.availableCredit}</p>
-                <p className="text-2xl font-bold text-green-600">R$ 25.000</p>
-                <p className="text-xs text-gray-500 mt-1">{t.common.approved}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Crédito Utilizado</p>
-                <p className="text-2xl font-bold text-blue-600">R$ 15.000</p>
-                <p className="text-xs text-gray-500 mt-1">60% do limite</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Percent className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t.credit.nextDue}</p>
-                <p className="text-2xl font-bold text-orange-600">15 dias</p>
-                <p className="text-xs text-gray-500 mt-1">R$ 5.000</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Credit Summary Cards - Dados Reais */}
+      <CreditSummaryCards applications={applications} permissions={permissions} />
 
       {/* Applications List */}
       <Card>

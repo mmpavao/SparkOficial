@@ -45,6 +45,7 @@ function Router() {
             <Route path="/imports" component={ImportsPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
+            <Route path="/users" component={AdminUsersPage} />
             <Route component={NotFound} />
           </Switch>
         </AuthenticatedLayout>
