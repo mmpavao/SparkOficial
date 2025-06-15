@@ -78,6 +78,14 @@ export interface Translations {
     preferenciasalva: string;
     configuracaoatualiza: string;
   };
+  validation: {
+    required: string;
+    minLength: string;
+    maxLength: string;
+    email: string;
+    cnpj: string;
+    phone: string;
+  };
   dashboard: {
     title: string;
     welcome: string;
@@ -267,6 +275,14 @@ const ptTranslations: Translations = {
     preferenciasalva: 'Preferência salva',
     configuracaoatualiza: 'Configuração atualizada',
   },
+  validation: {
+    required: 'Este campo é obrigatório',
+    minLength: 'Mínimo de {0} caracteres',
+    maxLength: 'Máximo de {0} caracteres',
+    email: 'Email inválido',
+    cnpj: 'CNPJ inválido',
+    phone: 'Telefone inválido',
+  },
   dashboard: {
     title: 'Dashboard',
     welcome: 'Bem-vindo',
@@ -381,6 +397,14 @@ const ptTranslations: Translations = {
 // English translations
 const enTranslations: Translations = {
   ...ptTranslations,
+  validation: {
+    required: 'This field is required',
+    minLength: 'Minimum {0} characters',
+    maxLength: 'Maximum {0} characters',
+    email: 'Invalid email',
+    cnpj: 'Invalid CNPJ',
+    phone: 'Invalid phone',
+  },
   common: {
     ...ptTranslations.common,
     sparkcomex: 'Spark Comex',
@@ -410,6 +434,14 @@ const enTranslations: Translations = {
 // Chinese translations
 const zhTranslations: Translations = {
   ...ptTranslations,
+  validation: {
+    required: '此字段是必需的',
+    minLength: '最少{0}个字符',
+    maxLength: '最多{0}个字符',
+    email: '无效的电子邮件',
+    cnpj: '无效的CNPJ',
+    phone: '无效的电话号码',
+  },
   common: {
     ...ptTranslations.common,
     sparkcomex: 'Spark Comex',
@@ -439,6 +471,14 @@ const zhTranslations: Translations = {
 // Spanish translations
 const esTranslations: Translations = {
   ...ptTranslations,
+  validation: {
+    required: 'Este campo es requerido',
+    minLength: 'Mínimo {0} caracteres',
+    maxLength: 'Máximo {0} caracteres',
+    email: 'Email inválido',
+    cnpj: 'CNPJ inválido',
+    phone: 'Teléfono inválido',
+  },
   common: {
     ...ptTranslations.common,
     sparkcomex: 'Spark Comex',
