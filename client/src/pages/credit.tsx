@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
+import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
 import { 
   Plus, 
   CreditCard, 
@@ -143,13 +144,35 @@ export default function CreditPage() {
         </Button>
       </div>
 
+      {/* Application Guidelines */}
+      {showForm && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-2">Critérios para Aprovação de Crédito</h3>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Valores entre USD $100 e USD $1.000.000</li>
+                  <li>• Descrição detalhada do propósito de importação da China</li>
+                  <li>• Empresa com CNPJ ativo e documentação em dia</li>
+                  <li>• Análise de capacidade de pagamento e histórico comercial</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* New Credit Application Form */}
       {showForm && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              {t.credit.newApplication}
+              Nova Solicitação de Crédito
             </CardTitle>
             <Button
               variant="ghost"
@@ -166,19 +189,58 @@ export default function CreditPage() {
                   <FormField
                     control={form.control}
                     name="requestedAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.credit.requestedAmount}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="50000"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const currentValue = parseUSDInput(field.value || '0');
+                      const validation = validateUSDRange(currentValue);
+                      const isValid = validation.isValid && currentValue > 0;
+                      
+                      return (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            Valor Solicitado (USD)
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                placeholder="$50,000"
+                                value={field.value ? formatUSDInput(field.value) : ''}
+                                onChange={(e) => {
+                                  const numValue = parseUSDInput(e.target.value);
+                                  field.onChange(numValue.toString());
+                                }}
+                                className={`pl-8 pr-10 text-lg font-medium ${
+                                  field.value && currentValue > 0
+                                    ? isValid 
+                                      ? 'border-green-300 focus:border-green-500' 
+                                      : 'border-red-300 focus:border-red-500'
+                                    : ''
+                                }`}
+                              />
+                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              {field.value && currentValue > 0 && (
+                                <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
+                                  {isValid ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500">{getUSDRangeDescription()}</span>
+                            {field.value && currentValue > 0 && (
+                              <span className={`font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
+                                {isValid ? '✓ Valor válido' : validation.message}
+                              </span>
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                   
                   <div className="space-y-2">
@@ -196,13 +258,22 @@ export default function CreditPage() {
                   name="purpose"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.credit.purpose}</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-600" />
+                        Propósito da Importação
+                      </FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder={t.credit.businessPlan}
+                          placeholder="Descreva detalhadamente o propósito da importação, incluindo: tipo de produtos, fornecedores na China, cronograma de entrega, e como o crédito será utilizado no processo de importação..."
+                          rows={4}
                           {...field}
+                          className="resize-none"
                         />
                       </FormControl>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Mínimo 10 caracteres para uma descrição adequada</span>
+                        <span>{field.value?.length || 0}/500</span>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
