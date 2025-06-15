@@ -42,7 +42,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -63,52 +62,48 @@ export default function ImportsPage() {
   const { isAdmin } = useUserPermissions();
   const [, setLocation] = useLocation();
 
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-  });
-
-  // Fetch imports data based on user type
-  const { data: imports = [], isLoading } = useQuery({
-    queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"],
-  });
-
-  // Form setup
   const form = useForm<InsertImport>({
     resolver: zodResolver(insertImportSchema),
     defaultValues: {
+      importName: "",
+      cargoType: "FCL",
+      supplierName: "",
+      supplierLocation: "",
       productName: "",
       productDescription: "",
       quantity: 1,
       unitPrice: "",
       totalValue: "",
-      supplierName: "",
-      supplierLocation: "",
       currency: "USD",
-      shippingMethod: "sea",
-      containerType: "20ft",
-      fobPrice: "",
-      cifPrice: "",
-      weight: "",
-      volume: "",
       incoterms: "FOB",
-      notes: "",
+      shippingMethod: "sea",
+      containerType: "",
+      containerNumber: "",
+      sealNumber: "",
+      status: "planning",
+      currentStage: "estimativa"
     },
   });
 
-  // Create import mutation
+  // API queries and mutations
+  const { data: imports, isLoading } = useQuery({
+    queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"],
+  });
+
   const createImportMutation = useMutation({
     mutationFn: async (data: InsertImport) => {
-      return await apiRequest("POST", "/api/imports", data);
+      return apiRequest('POST', '/api/imports', data);
     },
     onSuccess: () => {
       toast({
         title: "Importação criada!",
-        description: "Sua nova importação foi registrada com sucesso.",
+        description: "A nova importação foi criada com sucesso.",
       });
+      form.reset();
+      setProducts([{ name: "", description: "", hsCode: "", quantity: 1, unitPrice: "", totalValue: "" }]);
+      setShowNewImportForm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
-      setShowNewImportForm(false);
-      form.reset();
     },
     onError: (error) => {
       toast({
@@ -119,11 +114,9 @@ export default function ImportsPage() {
     },
   });
 
-  // Admin update status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, data }: { id: number; status: string; data?: any }) => {
-      const endpoint = isAdmin ? `/api/admin/imports/${id}/status` : `/api/imports/${id}/status`;
-      return await apiRequest("PATCH", endpoint, { status, ...data });
+  const updateImportStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return apiRequest('PATCH', `/api/imports/${id}`, { status });
     },
     onSuccess: () => {
       toast({
@@ -159,9 +152,7 @@ export default function ImportsPage() {
     const activeImports = importsArray.filter(imp => 
       ['ordered', 'shipped', 'customs'].includes(imp.status)
     ).length;
-    const completedImports = importsArray.filter(imp => 
-      ['completed', 'delivered'].includes(imp.status)
-    ).length;
+    const completedImports = importsArray.filter(imp => imp.status === 'delivered').length;
     const totalValue = importsArray.reduce((sum, imp) => sum + parseFloat(imp.totalValue || 0), 0);
 
     return {
@@ -205,16 +196,9 @@ export default function ImportsPage() {
     }
   };
 
-  // Apply filters based on user type
   const applyFilters = (importsArray: any[]) => {
-    let filtered = importsArray;
-
-    // Status filter (both admin and importer)
-    if (filterStatus !== "all") {
-      filtered = filtered.filter(imp => imp.status === filterStatus);
-    }
-
-    // Admin-specific filters
+    let filtered = [...importsArray];
+    
     if (isAdmin && adminFilters) {
       const { search, status, supplier, minValue, maxValue } = adminFilters as any;
       
@@ -250,7 +234,7 @@ export default function ImportsPage() {
   const filteredImports = applyFilters(importData.imports);
 
   const onSubmit = (data: InsertImport) => {
-    // Calculate total value from all products
+    // Calculate total value from all products for LCL
     const totalProductValue = products.reduce((sum, product) => {
       return sum + (parseFloat(product.totalValue) || 0);
     }, 0);
@@ -261,7 +245,7 @@ export default function ImportsPage() {
       products: form.watch("cargoType") === "LCL" ? products : [{
         name: data.productName,
         description: data.productDescription,
-        hsCode: data.hsCode || "",
+        hsCode: "",
         quantity: data.quantity,
         unitPrice: data.unitPrice,
         totalValue: data.totalValue
@@ -282,40 +266,100 @@ export default function ImportsPage() {
         title: "Importação cancelada",
         description: "A importação foi cancelada com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Erro ao cancelar importação",
-        description: error.message || "Erro desconhecido",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
 
-  const handleCancelImport = (importId: number) => {
-    cancelImportMutation.mutate(importId);
+  const handleViewDetails = (importId: number) => {
+    setLocation(`/import-details/${importId}`);
   };
 
+  const handleEditImport = (importId: number) => {
+    setLocation(`/import-edit/${importId}`);
+  };
+
+  const handleCancelImport = (importId: number) => {
+    if (confirm("Tem certeza que deseja cancelar esta importação?")) {
+      cancelImportMutation.mutate(importId);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center">Carregando importações...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t.imports.title}</h1>
-          <p className="text-gray-600">
-            {isAdmin ? "Gerencie todas as importações do sistema" : "Gerencie suas importações da China"}
-          </p>
+          <h1 className="text-3xl font-bold">{t.imports.title}</h1>
+          <p className="text-gray-600 mt-1">{t.imports.subtitle}</p>
         </div>
-        {!isAdmin && (
-          <Button 
-            onClick={() => setShowNewImportForm(true)}
-            className="bg-spark-600 hover:bg-spark-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {t.imports.newImport}
-          </Button>
-        )}
+        <Button
+          onClick={() => setShowNewImportForm(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t.imports.newImport}
+        </Button>
+      </div>
+
+      {/* Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Importações</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{importData.totalImports}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Importações Ativas</CardTitle>
+            <Ship className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{importData.activeImports}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{importData.completedImports}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${importData.totalValue.toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Admin Filters */}
@@ -323,531 +367,326 @@ export default function ImportsPage() {
         <AdminImportFilters onFiltersChange={setAdminFilters} />
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* New Import Form */}
+      {showNewImportForm && (
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t.dashboard.totalImports}</p>
-                <p className="text-2xl font-bold text-gray-900">{importData.totalImports}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t.dashboard.activeImports}</p>
-                <p className="text-2xl font-bold text-gray-900">{importData.activeImports}</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Truck className="w-6 h-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Concluídas</p>
-                <p className="text-2xl font-bold text-gray-900">{importData.completedImports}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Valor Total</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  R$ {importData.totalValue.toLocaleString()}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-spark-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-spark-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder={t.common.search + "..."} className="pl-10" />
-              </div>
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder={t.common.filter} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.common.all}</SelectItem>
-                <SelectItem value="planning">{t.imports.status.planning}</SelectItem>
-                <SelectItem value="ordered">{t.imports.status.ordered}</SelectItem>
-                <SelectItem value="in_transit">{t.imports.status.in_transit}</SelectItem>
-                <SelectItem value="customs">{t.imports.status.customs}</SelectItem>
-                <SelectItem value="delivered">{t.imports.status.delivered}</SelectItem>
-                <SelectItem value="cancelled">{t.imports.status.cancelled}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Imports List */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">{t.common.loading}...</p>
-          </div>
-        ) : filteredImports.length === 0 ? (
-          <div className="text-center py-8">
-            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">{t.dashboard.noData}</p>
-            <p className="text-sm text-gray-400">
-              {filterStatus === "all" 
-                ? t.imports.clickNewImport
-                : t.imports.tryChangeFilter}
-            </p>
-          </div>
-        ) : (
-          filteredImports.map((importItem: any) => (
-            <Card key={importItem.id}>
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-2">
-                      <h3 className="font-semibold text-lg">
-                        {isAdmin ? `${importItem.companyName || 'Empresa'} - IMP-${String(importItem.id).padStart(3, '0')}` : `IMP-${String(importItem.id).padStart(3, '0')}`}
-                      </h3>
-                      {getStatusBadge(importItem.status)}
-                    </div>
-                    <p className="text-gray-600 mb-2">{importItem.productDescription}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Fornecedor:</span>
-                        <span className="ml-1">{importItem.supplierName}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Local:</span>
-                        <span className="ml-1">{importItem.supplierLocation}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Valor:</span>
-                        <span className="ml-1">{importItem.currency} {parseFloat(importItem.totalValue).toLocaleString()}</span>
-                      </div>
-                      {importItem.estimatedDelivery && (
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          <span className="font-medium">Previsão:</span>
-                          <span className="ml-1">{new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR')}</span>
-                        </div>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Nova Importação
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNewImportForm(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Informações Básicas */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Informações Básicas
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="importName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome/Código da Importação *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: IMP-2025-001 ou Eletrônicos Janeiro" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                      {importItem.trackingNumber && (
-                        <div className="flex items-center">
-                          <Package className="w-4 h-4 mr-2" />
-                          <span className="font-medium">Rastreamento:</span>
-                          <span className="ml-1">{importItem.trackingNumber}</span>
-                        </div>
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="cargoType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Carga *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || "FCL"}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo de carga" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="FCL">FCL - Contêiner Inteiro</SelectItem>
+                              <SelectItem value="LCL">LCL - Carga Fracionada</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                      {importItem.notes && (
-                        <div className="flex items-center md:col-span-2">
-                          <span className="font-medium">Observações:</span>
-                          <span className="ml-1">{importItem.notes}</span>
-                        </div>
-                      )}
-                    </div>
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {/* Dropdown Menu with Actions - Following exact credit pattern */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocation(`/import/details/${(importItem as any).id}`)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        
-                        {/* Editar - disponível para importações em planejamento e permissões corretas */}
-                        {(importItem.status?.toLowerCase() === 'planning' && (isAdmin || (importItem as any).userId === user?.id)) ? (
-                          <DropdownMenuItem onClick={() => setLocation(`/import/edit/${(importItem as any).id}`)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem disabled>
-                            <Edit className="w-4 h-4 mr-2 opacity-50" />
-                            Editar
-                          </DropdownMenuItem>
+                  
+                  {/* Container Info - Only for FCL */}
+                  {form.watch("cargoType") === "FCL" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                      <FormField
+                        control={form.control}
+                        name="containerNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número do Contêiner</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: TCLU1234567" {...field} value={field.value || ""} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                        
-                        {/* Cancelar - disponível para importações não finalizadas e permissões corretas */}
-                        {(importItem.status?.toLowerCase() !== 'canceled' && importItem.status?.toLowerCase() !== 'completed' && (isAdmin || (importItem as any).userId === user?.id)) ? (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleCancelImport((importItem as any).id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Cancelar
-                            </DropdownMenuItem>
-                          </>
-                        ) : (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem disabled>
-                              <Trash2 className="w-4 h-4 mr-2 opacity-50" />
-                              Cancelar
-                            </DropdownMenuItem>
-                          </>
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="sealNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número do Lacre</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: 123456" {...field} value={field.value || ""} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Informações do Fornecedor */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Building className="w-5 h-5" />
+                    Informações do Fornecedor
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="supplierName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome do Fornecedor *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Shanghai Manufacturing Co." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="supplierLocation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Localização do Fornecedor *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Shanghai, China" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
 
-      {/* New Import Form Modal */}
-      {showNewImportForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Nova Importação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Informações Básicas */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Package className="w-5 h-5" />
-                      Informações Básicas
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="importName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome/Código da Importação *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: IMP-2025-001 ou Eletrônicos Janeiro" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="cargoType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo de Carga *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value || "FCL"}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo de carga" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="FCL">FCL - Contêiner Inteiro</SelectItem>
-                                <SelectItem value="LCL">LCL - Carga Fracionada</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    {/* Informações do Contêiner - apenas para FCL */}
-                    {form.watch("cargoType") === "FCL" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
-                        <FormField
-                          control={form.control}
-                          name="containerNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número do Contêiner</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: TCLU1234567" {...field} value={field.value || ""} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="sealNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número do Lacre</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: 123456" {...field} value={field.value || ""} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Informações do Fornecedor */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Building className="w-5 h-5" />
-                      Informações do Fornecedor
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="supplierName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome do Fornecedor *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Shanghai Manufacturing Co." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="supplierLocation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Localização do Fornecedor *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Shanghai, China" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Informações dos Produtos */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Box className="w-5 h-5" />
-                      {form.watch("cargoType") === "LCL" ? "Produtos da Carga" : "Produto Principal"}
-                    </h3>
-                    
-                    {form.watch("cargoType") === "LCL" ? (
-                      <div className="space-y-4">
-                        <div className="p-4 bg-yellow-50 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <p className="text-sm text-yellow-800">
-                              <strong>Carga Fracionada (LCL):</strong> Adicione múltiplos produtos que compartilharão o mesmo contêiner.
-                            </p>
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setProducts([...products, { name: "", description: "", hsCode: "", quantity: 1, unitPrice: "", totalValue: "" }])}
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Adicionar Produto
-                            </Button>
-                          </div>
+                {/* Products Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Box className="w-5 h-5" />
+                    {form.watch("cargoType") === "LCL" ? "Produtos da Carga" : "Produto Principal"}
+                  </h3>
+                  
+                  {form.watch("cargoType") === "LCL" ? (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-yellow-50 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-yellow-800">
+                            <strong>Carga Fracionada (LCL):</strong> Adicione múltiplos produtos que compartilharão o mesmo contêiner.
+                          </p>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setProducts([...products, { name: "", description: "", hsCode: "", quantity: 1, unitPrice: "", totalValue: "" }])}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Adicionar Produto
+                          </Button>
                         </div>
-                        
-                        {products.map((product, index) => (
-                          <div key={index} className="border rounded-lg p-4 space-y-4">
-                            <div className="flex justify-between items-center">
-                              <h4 className="font-semibold">Produto {index + 1}</h4>
-                              {products.length > 1 && (
-                                <Button 
-                                  type="button" 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => setProducts(products.filter((_, i) => i !== index))}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>Nome do Produto *</Label>
-                                <Input 
-                                  placeholder="Ex: Smartphone Galaxy A54" 
-                                  value={product.name}
-                                  onChange={(e) => {
-                                    const newProducts = [...products];
-                                    newProducts[index].name = e.target.value;
-                                    setProducts(newProducts);
-                                  }}
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label>Código HS</Label>
-                                <Input 
-                                  placeholder="Ex: 8517.12.00" 
-                                  value={product.hsCode}
-                                  onChange={(e) => {
-                                    const newProducts = [...products];
-                                    newProducts[index].hsCode = e.target.value;
-                                    setProducts(newProducts);
-                                  }}
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label>Quantidade *</Label>
-                                <Input 
-                                  type="number" 
-                                  placeholder="1000" 
-                                  value={product.quantity}
-                                  onChange={(e) => {
-                                    const newProducts = [...products];
-                                    newProducts[index].quantity = parseInt(e.target.value) || 1;
-                                    setProducts(newProducts);
-                                  }}
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label>Preço Unitário (USD) *</Label>
-                                <Input 
-                                  placeholder="50.00" 
-                                  value={product.unitPrice}
-                                  onChange={(e) => {
-                                    const newProducts = [...products];
-                                    newProducts[index].unitPrice = e.target.value;
-                                    // Auto-calculate total value
-                                    const total = (parseFloat(e.target.value) || 0) * product.quantity;
-                                    newProducts[index].totalValue = total.toFixed(2);
-                                    setProducts(newProducts);
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            
+                      </div>
+                      
+                      {products.map((product, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-semibold">Produto {index + 1}</h4>
+                            {products.length > 1 && (
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setProducts(products.filter((_, i) => i !== index))}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label>Descrição Detalhada *</Label>
-                              <Textarea 
-                                placeholder="Descrição completa do produto, especificações técnicas, modelo, etc."
-                                className="min-h-[60px]"
-                                value={product.description}
+                              <Label>Nome do Produto *</Label>
+                              <Input 
+                                placeholder="Ex: Smartphone Galaxy A54" 
+                                value={product.name}
                                 onChange={(e) => {
                                   const newProducts = [...products];
-                                  newProducts[index].description = e.target.value;
+                                  newProducts[index].name = e.target.value;
                                   setProducts(newProducts);
                                 }}
                               />
                             </div>
                             
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600">
-                                <strong>Valor Total: USD ${product.totalValue || "0.00"}</strong>
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {product.quantity} × ${product.unitPrice || "0.00"}
-                              </span>
+                            <div>
+                              <Label>Código HS</Label>
+                              <Input 
+                                placeholder="Ex: 8517.12.00" 
+                                value={product.hsCode}
+                                onChange={(e) => {
+                                  const newProducts = [...products];
+                                  newProducts[index].hsCode = e.target.value;
+                                  setProducts(newProducts);
+                                }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label>Quantidade *</Label>
+                              <Input 
+                                type="number" 
+                                placeholder="1000" 
+                                value={product.quantity}
+                                onChange={(e) => {
+                                  const newProducts = [...products];
+                                  newProducts[index].quantity = parseInt(e.target.value) || 1;
+                                  setProducts(newProducts);
+                                }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label>Preço Unitário (USD) *</Label>
+                              <Input 
+                                placeholder="50.00" 
+                                value={product.unitPrice}
+                                onChange={(e) => {
+                                  const newProducts = [...products];
+                                  newProducts[index].unitPrice = e.target.value;
+                                  // Auto-calculate total value
+                                  const total = (parseFloat(e.target.value) || 0) * product.quantity;
+                                  newProducts[index].totalValue = total.toFixed(2);
+                                  setProducts(newProducts);
+                                }}
+                              />
                             </div>
                           </div>
-                        ))}
-                        
-                        {products.length > 0 && (
-                          <div className="border-t pt-4 mt-4">
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <h4 className="font-semibold text-blue-900">Resumo da Carga LCL</h4>
-                                  <p className="text-sm text-blue-700">
-                                    {products.length} produto{products.length > 1 ? 's' : ''} • Total: {products.reduce((sum, p) => sum + p.quantity, 0)} unidades
-                                  </p>
+                          
+                          <div>
+                            <Label>Descrição Detalhada *</Label>
+                            <Textarea 
+                              placeholder="Descrição completa do produto, especificações técnicas, modelo, etc."
+                              className="min-h-[60px]"
+                              value={product.description}
+                              onChange={(e) => {
+                                const newProducts = [...products];
+                                newProducts[index].description = e.target.value;
+                                setProducts(newProducts);
+                              }}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">
+                              <strong>Valor Total: USD ${product.totalValue || "0.00"}</strong>
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {product.quantity} × ${product.unitPrice || "0.00"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {products.length > 0 && (
+                        <div className="border-t pt-4 mt-4">
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-semibold text-blue-900">Resumo da Carga LCL</h4>
+                                <p className="text-sm text-blue-700">
+                                  {products.length} produto{products.length > 1 ? 's' : ''} • Total: {products.reduce((sum, p) => sum + p.quantity, 0)} unidades
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-blue-900">
+                                  USD ${products.reduce((sum, product) => sum + (parseFloat(product.totalValue) || 0), 0).toFixed(2)}
                                 </div>
-                                <div className="text-right">
-                                  <div className="text-2xl font-bold text-blue-900">
-                                    USD ${products.reduce((sum, product) => sum + (parseFloat(product.totalValue) || 0), 0).toFixed(2)}
-                                  </div>
-                                  <div className="text-sm text-blue-600">Valor Total da Importação</div>
-                                </div>
+                                <div className="text-sm text-blue-600">Valor Total da Importação</div>
                               </div>
                             </div>
                           </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="productName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Produto *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Smartphone Galaxy A54" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="productName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome do Produto *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: Smartphone Galaxy A54" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="quantity"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Quantidade *</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  placeholder="1000" 
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                    
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Quantidade *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="1000" 
+                                {...field}
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Product Description for FCL */}
+                  {form.watch("cargoType") !== "LCL" && (
                     <FormField
                       control={form.control}
                       name="productDescription"
@@ -865,262 +704,65 @@ export default function ImportsPage() {
                         </FormItem>
                       )}
                     />
-                  </div>
+                  )}
+                </div>
 
-                  {/* Informações de Preço */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
-                      Informações de Preço
-                    </h3>
+                {/* Pricing Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <DollarSign className="w-5 h-5" />
+                    Informações de Preço
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="incoterms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Preço *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || "FOB"}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo de preço" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="FOB">FOB - Free On Board (sem frete/seguro)</SelectItem>
+                              <SelectItem value="CIF">CIF - Cost, Insurance and Freight (com frete/seguro)</SelectItem>
+                              <SelectItem value="EXW">EXW - Ex Works (retirada na fábrica)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
+                    <FormField
+                      control={form.control}
+                      name="totalValue"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valor Total (USD) *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="50000.00" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {form.watch("cargoType") !== "LCL" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="incoterms"
+                        name="unitPrice"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tipo de Preço *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value || "FOB"}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo de preço" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="FOB">FOB - Free On Board (sem frete/seguro)</SelectItem>
-                                <SelectItem value="CIF">CIF - Cost, Insurance and Freight (com frete/seguro)</SelectItem>
-                                <SelectItem value="EXW">EXW - Ex Works (retirada na fábrica)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="totalValue"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Valor Total (USD) *</FormLabel>
+                            <FormLabel>Preço Unitário (USD) *</FormLabel>
                             <FormControl>
-                              <Input placeholder="50000.00" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    {form.watch("cargoType") !== "LCL" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="unitPrice"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Preço Unitário (USD) *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="50.00" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="currency"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Moeda</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value || "USD"}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione a moeda" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                                  <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                                  <SelectItem value="EUR">EUR - Euro</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    )}
-                  </div>
-
-                  {/* Informações de Transporte */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Ship className="w-5 h-5" />
-                      Transporte
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="shippingMethod"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Método de Envio</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="sea">
-                                  <div className="flex items-center gap-2">
-                                    <Ship className="w-4 h-4" />
-                                    Marítimo
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="air">
-                                  <div className="flex items-center gap-2">
-                                    <Plane className="w-4 h-4" />
-                                    Aéreo
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="land">
-                                  <div className="flex items-center gap-2">
-                                    <Truck className="w-4 h-4" />
-                                    Terrestre
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="supplierLocation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Localização *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Shenzhen, China" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Informações de Transporte */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Ship className="w-5 h-5" />
-                      Transporte
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="shippingMethod"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Método de Envio</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="sea">
-                                  <div className="flex items-center gap-2">
-                                    <Ship className="w-4 h-4" />
-                                    Marítimo
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="air">
-                                  <div className="flex items-center gap-2">
-                                    <Plane className="w-4 h-4" />
-                                    Aéreo
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="land">
-                                  <div className="flex items-center gap-2">
-                                    <Truck className="w-4 h-4" />
-                                    Terrestre
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="containerType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo de Container</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="20ft">Container 20ft</SelectItem>
-                                <SelectItem value="40ft">Container 40ft</SelectItem>
-                                <SelectItem value="40ft-hc">Container 40ft HC</SelectItem>
-                                <SelectItem value="lcl">LCL (Carga Fracionada)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="incoterms"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Incoterms</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="FOB">FOB - Free on Board</SelectItem>
-                                <SelectItem value="CIF">CIF - Cost, Insurance, Freight</SelectItem>
-                                <SelectItem value="EXW">EXW - Ex Works</SelectItem>
-                                <SelectItem value="FCA">FCA - Free Carrier</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="weight"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Peso Total (kg)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="1500" {...field} />
+                              <Input placeholder="50.00" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1129,62 +771,234 @@ export default function ImportsPage() {
                       
                       <FormField
                         control={form.control}
-                        name="volume"
+                        name="currency"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Volume (m³)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="25.5" {...field} />
-                            </FormControl>
+                            <FormLabel>Moeda</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value || "USD"}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a moeda" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                                <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Informações adicionais sobre a importação..."
-                            className="min-h-[80px]"
-                            {...field} 
-                            value={field.value || ""} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                {/* Shipping Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Ship className="w-5 h-5" />
+                    Transporte
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="shippingMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Método de Envio</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="sea">
+                                <div className="flex items-center gap-2">
+                                  <Ship className="w-4 h-4" />
+                                  Marítimo
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="air">
+                                <div className="flex items-center gap-2">
+                                  <Plane className="w-4 h-4" />
+                                  Aéreo
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="land">
+                                <div className="flex items-center gap-2">
+                                  <Truck className="w-4 h-4" />
+                                  Terrestre
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="containerType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Container</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="20ft">20ft Standard</SelectItem>
+                              <SelectItem value="40ft">40ft Standard</SelectItem>
+                              <SelectItem value="40ft-hc">40ft High Cube</SelectItem>
+                              <SelectItem value="lcl">LCL - Carga Fracionada</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <div className="flex space-x-3 mt-6">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowNewImportForm(false)}
-                      className="flex-1"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={createImportMutation.isPending}
-                      className="flex-1 bg-spark-600 hover:bg-spark-700"
-                    >
-                      {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
-                    </Button>
+                    <FormField
+                      control={form.control}
+                      name="estimatedDelivery"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Entrega Estimada</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="date" 
+                              {...field} 
+                              value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
+                              onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex justify-end gap-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowNewImportForm(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createImportMutation.isPending}
+                    className="min-w-[120px]"
+                  >
+                    {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Imports List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Lista de Importações</span>
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-500">
+                {filteredImports.length} importação{filteredImports.length !== 1 ? 'ões' : ''}
+              </span>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredImports.length === 0 ? (
+            <div className="text-center py-8">
+              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Nenhuma importação encontrada</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setShowNewImportForm(true)}
+              >
+                Criar primeira importação
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredImports.map((importItem: any) => (
+                <div key={importItem.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold">
+                          {isAdmin ? importItem.companyName || "Empresa não identificada" : importItem.importName || `Importação #${importItem.id}`}
+                        </h3>
+                        {getStatusBadge(importItem.status)}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Fornecedor:</span>
+                          <p className="font-medium">{importItem.supplierName}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Valor:</span>
+                          <p className="font-medium">${parseFloat(importItem.totalValue || 0).toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Tipo:</span>
+                          <p className="font-medium">{importItem.cargoType || "FCL"}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleViewDetails(importItem.id)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        {(!isAdmin || importItem.status === 'planning') && (
+                          <DropdownMenuItem onClick={() => handleEditImport(importItem.id)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
+                        {importItem.status !== 'delivered' && importItem.status !== 'cancelled' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleCancelImport(importItem.id)}
+                            className="text-red-600"
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Cancelar
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
