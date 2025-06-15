@@ -1,6 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useMetrics } from "@/hooks/useMetrics";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, CreditCard, Package, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import MetricsCard from "@/components/common/MetricsCard";
-import StatusBadge from "@/components/common/StatusBadge";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import type { User, CreditApplication, Import } from "@shared/schema";
 
@@ -25,7 +22,21 @@ export default function AdminPage() {
   // Check if user is admin (using email for now)
   const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
 
-  const { metrics, users: allUsers, creditApplications: allCreditApplications, imports: allImports } = useMetrics(isAdmin);
+  // Admin queries - fetch ALL data for administrative purposes
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["/api/admin/users"],
+    enabled: isAdmin,
+  }) as { data: User[] };
+
+  const { data: allCreditApplications = [] } = useQuery({
+    queryKey: ["/api/admin/credit-applications"],
+    enabled: isAdmin,
+  }) as { data: CreditApplication[] };
+
+  const { data: allImports = [] } = useQuery({
+    queryKey: ["/api/admin/imports"],
+    enabled: isAdmin,
+  }) as { data: Import[] };
 
   // Update credit application status
   const updateCreditMutation = useMutation({
@@ -64,28 +75,15 @@ export default function AdminPage() {
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-      under_review: "bg-blue-100 text-blue-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(amount);
-  };
+  // Calculate metrics
+  const totalCreditRequested = allCreditApplications.reduce((sum: number, app: CreditApplication) => sum + Number(app.requestedAmount || 0), 0);
+  const totalCreditApproved = allCreditApplications.filter((app: CreditApplication) => app.status === 'approved').reduce((sum: number, app: CreditApplication) => sum + Number(app.requestedAmount || 0), 0);
 
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.admin.title}</h1>
-        <p className="text-gray-600">{t.admin.manageUsersCreditsImports}</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Painel Administrativo</h1>
+        <p className="text-gray-600">Gerencie usuários, créditos e importações</p>
       </div>
 
       {/* Statistics Cards */}
@@ -95,7 +93,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t.admin.totalUsers}</p>
+                <p className="text-sm font-medium text-gray-600">Total de Usuários</p>
                 <p className="text-2xl font-bold text-gray-900">{allUsers.length}</p>
               </div>
             </div>
@@ -107,9 +105,9 @@ export default function AdminPage() {
             <div className="flex items-center">
               <CreditCard className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t.admin.requestedCredit}</p>
+                <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(metrics.totalCreditRequested)}
+                  {formatCurrency(totalCreditRequested).replace('R$', 'US$')}
                 </p>
               </div>
             </div>
@@ -121,9 +119,9 @@ export default function AdminPage() {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t.admin.approvedCredit}</p>
+                <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(metrics.totalCreditApproved)}
+                  {formatCurrency(totalCreditApproved).replace('R$', 'US$')}
                 </p>
               </div>
             </div>
@@ -135,7 +133,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <Package className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t.admin.totalImports}</p>
+                <p className="text-sm font-medium text-gray-600">Total de Importações</p>
                 <p className="text-2xl font-bold text-gray-900">{allImports.length}</p>
               </div>
             </div>
@@ -143,43 +141,46 @@ export default function AdminPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-4">
+      <Tabs defaultValue="credit" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="users">{t.admin.users}</TabsTrigger>
-          <TabsTrigger value="credit">{t.admin.applications}</TabsTrigger>
-          <TabsTrigger value="imports">{t.admin.imports}</TabsTrigger>
+          <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="credit">Solicitações</TabsTrigger>
+          <TabsTrigger value="imports">Importações</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle>{t.admin.users}</CardTitle>
+              <CardTitle>Usuários</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.admin.name}</TableHead>
-                    <TableHead>{t.admin.company}</TableHead>
-                    <TableHead>{t.auth.email}</TableHead>
-                    <TableHead>{t.auth.cnpj}</TableHead>
-                    <TableHead>{t.admin.requestDate}</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>CNPJ</TableHead>
+                    <TableHead>Data da Solicitação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allUsers.map((user) => (
+                  {allUsers.map((user: User) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.fullName}</TableCell>
                       <TableCell>{user.companyName}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.cnpj}</TableCell>
-                      <TableCell>
-                        {formatDate(user.createdAt)}
-                      </TableCell>
+                      <TableCell>{formatDate(user.createdAt)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              {allUsers.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhum usuário encontrado
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -187,13 +188,8 @@ export default function AdminPage() {
         <TabsContent value="credit">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Pré-Análise de Solicitações de Crédito
-              </CardTitle>
-              <p className="text-sm text-gray-600 mt-2">
-                Análise administrativa completa antes do envio à financeira
-              </p>
+              <CardTitle>Pré-Análise de Solicitações de Crédito</CardTitle>
+              <p className="text-sm text-gray-600">Análise administrativa completa antes do envio à financeira</p>
             </CardHeader>
             <CardContent>
               <Table>
@@ -209,21 +205,38 @@ export default function AdminPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allCreditApplications.map((application) => {
+                  {allCreditApplications.map((application: CreditApplication) => {
                     // Calculate completion score based on available documents
-                    const requiredDocs = application.requiredDocuments ? Object.keys(JSON.parse(application.requiredDocuments as string)) : [];
-                    const optionalDocs = application.optionalDocuments ? Object.keys(JSON.parse(application.optionalDocuments as string)) : [];
+                    let requiredDocs = [];
+                    let optionalDocs = [];
+                    
+                    try {
+                      if (application.requiredDocuments && typeof application.requiredDocuments === 'string') {
+                        requiredDocs = Object.keys(JSON.parse(application.requiredDocuments));
+                      }
+                    } catch (e) {
+                      // Handle invalid JSON for required documents
+                    }
+                    
+                    try {
+                      if (application.optionalDocuments && typeof application.optionalDocuments === 'string') {
+                        optionalDocs = Object.keys(JSON.parse(application.optionalDocuments));
+                      }
+                    } catch (e) {
+                      // Handle invalid JSON for optional documents
+                    }
+                    
                     const totalDocs = requiredDocs.length + optionalDocs.length;
                     const completionScore = Math.round((totalDocs / 18) * 100);
                     
                     // Parse review data if available
                     let reviewData = {};
                     try {
-                      if (application.reviewNotes) {
+                      if (application.reviewNotes && typeof application.reviewNotes === 'string') {
                         reviewData = JSON.parse(application.reviewNotes);
                       }
                     } catch (e) {
-                      // Handle invalid JSON
+                      // Handle invalid JSON for review notes
                     }
                     
                     const preAnalysisStatus = (reviewData as any)?.preAnalysisStatus || 'pending';
@@ -303,6 +316,11 @@ export default function AdminPage() {
                   })}
                 </TableBody>
               </Table>
+              {allCreditApplications.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhuma solicitação de crédito encontrada
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -316,29 +334,32 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Produto</TableHead>
                     <TableHead>Fornecedor</TableHead>
+                    <TableHead>Produto</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Data Estimada</TableHead>
+                    <TableHead>Data de Entrega</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allImports.map((importItem) => (
+                  {allImports.map((importItem: Import) => (
                     <TableRow key={importItem.id}>
-                      <TableCell className="font-medium">{importItem.productDescription}</TableCell>
-                      <TableCell>{importItem.supplierName}</TableCell>
+                      <TableCell className="font-medium">{importItem.supplier}</TableCell>
+                      <TableCell>{importItem.product}</TableCell>
                       <TableCell>{formatCurrency(Number(importItem.totalValue))}</TableCell>
                       <TableCell>
-                        <StatusBadge status={importItem.status} type="import" />
+                        <Badge>{importItem.status}</Badge>
                       </TableCell>
-                      <TableCell>
-                        {formatDate(importItem.estimatedDelivery)}
-                      </TableCell>
+                      <TableCell>{formatDate(importItem.expectedDelivery)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              {allImports.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhuma importação encontrada
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
