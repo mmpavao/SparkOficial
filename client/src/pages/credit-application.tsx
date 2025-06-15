@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -133,7 +134,6 @@ export default function CreditApplicationPage() {
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
   const [productTags, setProductTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState("");
-  const [, setLocation] = useLocation();
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -214,7 +214,7 @@ export default function CreditApplicationPage() {
       });
       // Redirect to credit management page after successful submission
       setTimeout(() => {
-        setLocation('/credit');
+        window.location.href = '/credit';
       }, 1500);
     },
     onError: (error: any) => {
