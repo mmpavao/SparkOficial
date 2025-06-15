@@ -235,9 +235,14 @@ export default function PipelineTracker({
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {PIPELINE_STAGES.find(s => s.id === expandedStage)?.icon && (
-                  <PIPELINE_STAGES.find(s => s.id === expandedStage)!.icon className="w-5 h-5" />
-                )}
+                {(() => {
+                  const stage = PIPELINE_STAGES.find(s => s.id === expandedStage);
+                  if (stage?.icon) {
+                    const IconComponent = stage.icon;
+                    return <IconComponent className="w-5 h-5" />;
+                  }
+                  return null;
+                })()}
                 {PIPELINE_STAGES.find(s => s.id === expandedStage)?.name}
               </div>
               {getStatusBadge(getStageStatus(expandedStage))}

@@ -460,14 +460,14 @@ export default function ImportsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocation(`/import/details/${importItem.id}`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/import/details/${(importItem as any).id}`)}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalhes
                         </DropdownMenuItem>
                         
                         {/* Editar - disponível para importações em planejamento e permissões corretas */}
-                        {(importItem.status?.toLowerCase() === 'planning' && (isAdmin || importItem.userId === user?.id)) ? (
-                          <DropdownMenuItem onClick={() => setLocation(`/import/edit/${importItem.id}`)}>
+                        {(importItem.status?.toLowerCase() === 'planning' && (isAdmin || (importItem as any).userId === user?.id)) ? (
+                          <DropdownMenuItem onClick={() => setLocation(`/import/edit/${(importItem as any).id}`)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
@@ -479,11 +479,11 @@ export default function ImportsPage() {
                         )}
                         
                         {/* Cancelar - disponível para importações não finalizadas e permissões corretas */}
-                        {(importItem.status?.toLowerCase() !== 'canceled' && importItem.status?.toLowerCase() !== 'completed' && (isAdmin || importItem.userId === user?.id)) ? (
+                        {(importItem.status?.toLowerCase() !== 'canceled' && importItem.status?.toLowerCase() !== 'completed' && (isAdmin || (importItem as any).userId === user?.id)) ? (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
-                              onClick={() => handleCancelImport(importItem.id)}
+                              onClick={() => handleCancelImport((importItem as any).id)}
                               className="text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -609,7 +609,7 @@ export default function ImportsPage() {
                           <FormItem>
                             <FormLabel>Preço FOB</FormLabel>
                             <FormControl>
-                              <Input placeholder="45000.00" {...field} />
+                              <Input placeholder="45000.00" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
