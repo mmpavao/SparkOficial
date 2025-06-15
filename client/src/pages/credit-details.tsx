@@ -39,6 +39,7 @@ export default function CreditDetailsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
+  const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
 
   const applicationId = params?.id ? parseInt(params.id) : null;
 
