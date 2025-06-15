@@ -240,6 +240,14 @@ Changelog:
   * Created admin-specific endpoints for analysis updates and financial institution submission
   * Integrated tabbed interface for application data, documents, analysis, and administrative actions
   * Established role-based access control ensuring only admins can perform pre-analysis
+- June 15, 2025. Unified adaptive credit management system completed:
+  * Restructured from separate admin areas to single unified interface adapting to user type
+  * Implemented AdminFilters component appearing only for administrators with status, company, amount, and risk filters
+  * Created adaptive cards showing company names for admins vs application numbers for importers
+  * Built role-based dropdown menus with approve/reject actions for admins, edit/cancel for importers
+  * Added administrative API endpoints for approval and rejection with proper authentication
+  * Fixed SelectItem validation errors by replacing empty string values with "all" options
+  * Established unified query system fetching appropriate data based on user permissions
 ```
 
 ## User Preferences

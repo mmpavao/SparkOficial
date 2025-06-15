@@ -13,12 +13,12 @@ interface AdminFiltersProps {
 
 export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
   const [filters, setFilters] = useState({
-    status: "",
+    status: "all",
     company: "",
     minAmount: "",
     maxAmount: "",
-    riskLevel: "",
-    preAnalysisStatus: "",
+    riskLevel: "all",
+    preAnalysisStatus: "all",
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -31,20 +31,23 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
 
   const clearFilters = () => {
     const emptyFilters = {
-      status: "",
+      status: "all",
       company: "",
       minAmount: "",
       maxAmount: "",
-      riskLevel: "",
-      preAnalysisStatus: "",
+      riskLevel: "all",
+      preAnalysisStatus: "all",
     };
     setFilters(emptyFilters);
     onFiltersChange(emptyFilters);
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => 
-    value !== "" && value !== undefined
-  );
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === 'status' || key === 'riskLevel' || key === 'preAnalysisStatus') {
+      return value !== "all" && value !== "";
+    }
+    return value !== "" && value !== undefined;
+  });
 
   return (
     <Card className="mb-6">
@@ -96,7 +99,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="under_review">Em Análise</SelectItem>
                   <SelectItem value="approved">Aprovado</SelectItem>
@@ -138,7 +141,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
                   <SelectValue placeholder="Todos os níveis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os níveis</SelectItem>
+                  <SelectItem value="all">Todos os níveis</SelectItem>
                   <SelectItem value="low">Baixo</SelectItem>
                   <SelectItem value="medium">Médio</SelectItem>
                   <SelectItem value="high">Alto</SelectItem>
@@ -157,7 +160,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="pre_approved">Pré-Aprovado</SelectItem>
                   <SelectItem value="needs_documents">Precisa Documentos</SelectItem>
