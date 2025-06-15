@@ -243,7 +243,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
           <div className={`flex items-center mb-3 ${sidebarCollapsed ? "lg:justify-center" : ""}`}>
-            <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+            <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium text-center ml-[0px] mr-[0px] pl-[9px] pr-[9px]">
               {user?.fullName && getInitials(user.fullName)}
             </div>
             <div className={`ml-3 min-w-0 flex-1 transition-opacity duration-300 ${
@@ -275,7 +275,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           </Button>
         </div>
       </div>
-
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
@@ -283,7 +282,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           onClick={toggleSidebar}
         />
       )}
-
       {/* Main Content */}
       <div className={`transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
