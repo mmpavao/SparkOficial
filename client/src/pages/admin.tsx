@@ -207,51 +207,83 @@ export default function AdminPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allCreditApplications.map((application) => (
-                    <TableRow key={application.id}>
-                      <TableCell className="font-medium">
-                        {(allUsers.find((u: User) => u.id === application.userId)?.companyName) || 'N/A'}
-                      </TableCell>
-                      <TableCell>{formatCurrency(Number(application.requestedAmount))}</TableCell>
-                      <TableCell>{application.purpose}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={application.status} type="credit" />
-                      </TableCell>
-                      <TableCell>
-                        {formatDate(application.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {application.status === 'pending' && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateCreditMutation.mutate({
-                                  id: application.id,
-                                  status: 'approved'
-                                })}
-                                disabled={updateCreditMutation.isPending}
-                              >
-                                Aprovar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => updateCreditMutation.mutate({
-                                  id: application.id,
-                                  status: 'rejected'
-                                })}
-                                disabled={updateCreditMutation.isPending}
-                              >
-                                Rejeitar
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {allCreditApplications.map((application) => {
+                    const completionScore = Math.round((Object.keys(application.documents || {}).length / 18) * 100);
+                    const preAnalysisStatus = application.reviewData?.preAnalysisStatus || 'pending';
+                    const riskLevel = application.reviewData?.riskAssessment || 'medium';
+                    
+                    return (
+                      <TableRow key={application.id}>
+                        <TableCell className="font-medium">{application.legalCompanyName}</TableCell>
+                        <TableCell>{formatCurrency(application.requestedAmount || 0).replace('R$', 'US$')}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2 max-w-[60px]">
+                              <div 
+                                className={`h-2 rounded-full ${
+                                  completionScore >= 80 ? 'bg-green-500' : 
+                                  completionScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${completionScore}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium">{completionScore}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={
+                            preAnalysisStatus === 'pre_approved' ? 'bg-green-100 text-green-800' :
+                            preAnalysisStatus === 'needs_documents' ? 'bg-blue-100 text-blue-800' :
+                            preAnalysisStatus === 'needs_clarification' ? 'bg-orange-100 text-orange-800' :
+                            preAnalysisStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }>
+                            {preAnalysisStatus === 'pending' && 'Pendente'}
+                            {preAnalysisStatus === 'pre_approved' && 'Pré-Aprovado'}
+                            {preAnalysisStatus === 'needs_documents' && 'Precisa Docs'}
+                            {preAnalysisStatus === 'needs_clarification' && 'Precisa Info'}
+                            {preAnalysisStatus === 'rejected' && 'Rejeitado'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={
+                            riskLevel === 'low' ? 'bg-green-100 text-green-800' :
+                            riskLevel === 'high' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }>
+                            {riskLevel === 'low' && 'Baixo'}
+                            {riskLevel === 'medium' && 'Médio'}
+                            {riskLevel === 'high' && 'Alto'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(application.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setLocation(`/admin/credit-analysis/${application.id}`)}
+                            >
+                              Analisar
+                            </Button>
+                            <Button
+                              variant={application.status === 'pending' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCreditMutation.mutate({ 
+                                id: application.id, 
+                                status: application.status === 'pending' ? 'approved' : 'pending' 
+                              })}
+                              disabled={updateCreditMutation.isPending}
+                            >
+                              {application.status === 'pending' ? 'Aprovar' : 'Pendente'}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>

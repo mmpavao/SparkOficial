@@ -312,7 +312,7 @@ export const ptTranslations: Translations = {
     imports: 'Importações',
     reports: 'Relatórios',
     settings: 'Configurações',
-    adminArea: 'Área Admin',
+    adminArea: 'SPARK COMEX ADMIN',
     importerArea: 'Área do Importador',
     users: 'Usuários',
     logout: 'Sair',
