@@ -64,7 +64,7 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
   });
 
@@ -159,8 +159,9 @@ export default function AdminUsersPage() {
     createUserMutation.mutate(data);
   };
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' ? (
+  const getStatusBadge = (status: string | undefined) => {
+    const userStatus = status || 'active';
+    return userStatus === 'active' ? (
       <Badge className="bg-green-100 text-green-800">Ativo</Badge>
     ) : (
       <Badge variant="destructive">Inativo</Badge>
@@ -357,84 +358,172 @@ export default function AdminUsersPage() {
               <p className="text-gray-500">Nenhum usuário encontrado</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {users.map((user: User) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex-1 grid grid-cols-5 gap-4">
-                    <div>
-                      <p className="font-medium text-gray-900">{user.fullName}</p>
-                      <p className="text-sm text-gray-500">Nome</p>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-4 font-medium text-gray-700">Nome</th>
+                        <th className="text-left p-4 font-medium text-gray-700">Email</th>
+                        <th className="text-left p-4 font-medium text-gray-700">Telefone</th>
+                        <th className="text-left p-4 font-medium text-gray-700">Role</th>
+                        <th className="text-left p-4 font-medium text-gray-700">Status</th>
+                        <th className="text-center p-4 font-medium text-gray-700">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user: User) => (
+                        <tr key={user.id} className="border-b hover:bg-gray-50 transition-colors">
+                          <td className="p-4">
+                            <div className="font-medium text-gray-900">{user.fullName}</div>
+                          </td>
+                          <td className="p-4">
+                            <div className="text-gray-900">{user.email}</div>
+                          </td>
+                          <td className="p-4">
+                            <div className="text-gray-900">{formatPhone(user.phone || '')}</div>
+                          </td>
+                          <td className="p-4">
+                            {getRoleBadge(user.role || 'importer')}
+                          </td>
+                          <td className="p-4">
+                            {getStatusBadge((user as any).status)}
+                          </td>
+                          <td className="p-4 text-center">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  onClick={() => handleConfirmAction(
+                                    "Alterar Role",
+                                    `Deseja alterar a role do usuário ${user.fullName}?`,
+                                    () => updateRoleMutation.mutate({ 
+                                      userId: user.id, 
+                                      role: user.role === 'admin' ? 'importer' : 'admin'
+                                    })
+                                  )}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Alterar Role
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem 
+                                  onClick={() => handleConfirmAction(
+                                    "Ativar Usuário",
+                                    `Deseja ativar o usuário ${user.fullName}?`,
+                                    () => console.log('Ativar usuário', user.id)
+                                  )}
+                                  className="text-green-600"
+                                >
+                                  <UserCheck className="w-4 h-4 mr-2" />
+                                  Ativar
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem 
+                                  onClick={() => handleConfirmAction(
+                                    "Desativar Usuário",
+                                    `Deseja desativar o usuário ${user.fullName}? Esta ação pode ser revertida.`,
+                                    () => deactivateUserMutation.mutate(user.id)
+                                  )}
+                                  className="text-red-600"
+                                >
+                                  <UserX className="w-4 h-4 mr-2" />
+                                  Desativar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {users.map((user: User) => (
+                  <div
+                    key={user.id}
+                    className="bg-white border rounded-lg p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{user.fullName}</h3>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={() => handleConfirmAction(
+                              "Alterar Role",
+                              `Deseja alterar a role do usuário ${user.fullName}?`,
+                              () => updateRoleMutation.mutate({ 
+                                userId: user.id, 
+                                role: user.role === 'admin' ? 'importer' : 'admin'
+                              })
+                            )}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Alterar Role
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem 
+                            onClick={() => handleConfirmAction(
+                              "Ativar Usuário",
+                              `Deseja ativar o usuário ${user.fullName}?`,
+                              () => console.log('Ativar usuário', user.id)
+                            )}
+                            className="text-green-600"
+                          >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Ativar
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem 
+                            onClick={() => handleConfirmAction(
+                              "Desativar Usuário",
+                              `Deseja desativar o usuário ${user.fullName}? Esta ação pode ser revertida.`,
+                              () => deactivateUserMutation.mutate(user.id)
+                            )}
+                            className="text-red-600"
+                          >
+                            <UserX className="w-4 h-4 mr-2" />
+                            Desativar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                    <div>
-                      <p className="text-gray-900">{user.email}</p>
-                      <p className="text-sm text-gray-500">Email</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-900">{formatPhone(user.phone || '')}</p>
-                      <p className="text-sm text-gray-500">Telefone</p>
-                    </div>
-                    <div>
-                      {getRoleBadge(user.role || 'importer')}
-                      <p className="text-sm text-gray-500 mt-1">Role</p>
-                    </div>
-                    <div>
-                      {getStatusBadge(user.status || 'active')}
-                      <p className="text-sm text-gray-500 mt-1">Status</p>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-gray-500">Telefone:</span>
+                        <div className="font-medium">{formatPhone(user.phone || '')}</div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Role:</span>
+                        <div className="mt-1">{getRoleBadge(user.role || 'importer')}</div>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-gray-500">Status:</span>
+                        <div className="mt-1">{getStatusBadge(user.status || 'active')}</div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        onClick={() => handleConfirmAction(
-                          "Alterar Role",
-                          `Deseja alterar a role do usuário ${user.fullName}?`,
-                          () => updateRoleMutation.mutate({ 
-                            userId: user.id, 
-                            role: user.role === 'admin' ? 'importer' : 'admin'
-                          })
-                        )}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Alterar Role
-                      </DropdownMenuItem>
-                      
-                      <DropdownMenuItem 
-                        onClick={() => handleConfirmAction(
-                          "Ativar Usuário",
-                          `Deseja ativar o usuário ${user.fullName}?`,
-                          () => console.log('Ativar usuário', user.id) // TODO: Implementar ativação
-                        )}
-                        className="text-green-600"
-                      >
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Ativar
-                      </DropdownMenuItem>
-                      
-                      <DropdownMenuItem 
-                        onClick={() => handleConfirmAction(
-                          "Desativar Usuário",
-                          `Deseja desativar o usuário ${user.fullName}? Esta ação pode ser revertida.`,
-                          () => deactivateUserMutation.mutate(user.id)
-                        )}
-                        className="text-red-600"
-                      >
-                        <UserX className="w-4 h-4 mr-2" />
-                        Desativar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
