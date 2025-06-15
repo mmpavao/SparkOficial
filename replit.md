@@ -248,6 +248,13 @@ Changelog:
   * Added administrative API endpoints for approval and rejection with proper authentication
   * Fixed SelectItem validation errors by replacing empty string values with "all" options
   * Established unified query system fetching appropriate data based on user permissions
+- June 15, 2025. Administrative access and interface improvements:
+  * Fixed critical endpoint permissions allowing administrators to view any credit application details
+  * Replaced browser confirmation dialogs with custom AlertDialog components throughout the system
+  * Implemented responsive user management interface with desktop table and mobile card layouts
+  * Added status column to user database schema with proper default values
+  * Simplified user management to display only essential information (name, email, phone, role, status)
+  * Enhanced AdminAnalysisPanel with professional confirmation dialogs for approve/reject actions
 ```
 
 ## User Preferences
