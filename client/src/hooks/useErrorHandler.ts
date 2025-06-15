@@ -1,6 +1,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { useCallback } from "react";
 
+import { useTranslation } from '@/contexts/I18nContext';
 export function useErrorHandler() {
   const { toast } = useToast();
 

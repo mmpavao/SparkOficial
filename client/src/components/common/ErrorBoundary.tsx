@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
+import { useTranslation } from '@/contexts/I18nContext';
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
@@ -42,17 +43,13 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         <Card className="max-w-lg mx-auto mt-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Erro no Sistema
-            </CardTitle>
+              <AlertTriangle className="h-5 w-5" />{t.errors.erronosistema}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">
-              Ocorreu um erro inesperado. Tente recarregar a página ou entre em contato com o suporte.
-            </p>
+            <p className="text-gray-600">{t.errors.ocorreuumerroinesper}</p>
             {this.state.error && (
               <details className="text-sm text-gray-500">
-                <summary className="cursor-pointer">Detalhes técnicos</summary>
+                <summary className="cursor-pointer">{t.common.detalhestecnicos}</summary>
                 <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
                   {this.state.error.message}
                 </pre>
@@ -60,12 +57,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             )}
             <div className="flex gap-2">
               <Button onClick={this.resetError} variant="outline" className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Tentar Novamente
-              </Button>
-              <Button onClick={() => window.location.reload()}>
-                Recarregar Página
-              </Button>
+                <RefreshCw className="h-4 w-4" />{t.common.tentarnovamente}</Button>
+              <Button onClick={() => window.location.reload()}>{t.navigation.recarregarpagina}</Button>
             </div>
           </CardContent>
         </Card>

@@ -101,7 +101,7 @@ export default function AuthPage() {
           <div className="mb-8">
             <img 
               src="/spark-logo.png" 
-              alt="Spark Comex" 
+              alt={t.common.sparkcomex} 
               className="h-20 w-auto mx-auto mb-4"
             />
           </div>
@@ -132,7 +132,7 @@ export default function AuthPage() {
           <div className="lg:hidden text-center mb-8">
             <img 
               src="/spark-logo.png" 
-              alt="Spark Comex" 
+              alt={t.common.sparkcomex} 
               className="h-12 w-auto mx-auto"
             />
           </div>
@@ -234,7 +234,7 @@ export default function AuthPage() {
                           <FormLabel>{t.auth.companyName}</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Sua Empresa Ltda" 
+                              placeholder={t.common.suaempresaltda} 
                               {...field}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
@@ -275,7 +275,7 @@ export default function AuthPage() {
                         <FormLabel>{t.auth.fullName}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Seu nome completo" 
+                            placeholder={t.common.seunomecompleto} 
                             {...field}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />

@@ -1,0 +1,312 @@
+{
+  "carregando": {
+    "pt": "Carregando...",
+    "en": "[TRANSLATE] Carregando...",
+    "zh": "[TRANSLATE] Carregando...",
+    "es": "[TRANSLATE] Carregando...",
+    "files": [
+      "client/src/App.tsx"
+    ],
+    "line": 27
+  },
+  "acoes": {
+    "pt": "Ações",
+    "en": "[TRANSLATE] Ações",
+    "zh": "[TRANSLATE] Ações",
+    "es": "[TRANSLATE] Ações",
+    "files": [
+      "client/src/components/common/DataTable.tsx"
+    ],
+    "line": 50
+  },
+  "sparkcomex": {
+    "pt": "Spark Comex",
+    "en": "[TRANSLATE] Spark Comex",
+    "zh": "[TRANSLATE] Spark Comex",
+    "es": "[TRANSLATE] Spark Comex",
+    "files": [
+      "client/src/components/layout/AuthenticatedLayout.tsx"
+    ],
+    "line": 304
+  },
+  "close": {
+    "pt": "Close",
+    "en": "[TRANSLATE] Close",
+    "zh": "[TRANSLATE] Close",
+    "es": "[TRANSLATE] Close",
+    "files": [
+      "client/src/components/ui/dialog.tsx"
+    ],
+    "line": 49
+  },
+  "erro": {
+    "pt": "Erro",
+    "en": "[TRANSLATE] Erro",
+    "zh": "[TRANSLATE] Erro",
+    "es": "[TRANSLATE] Erro",
+    "files": [
+      "client/src/hooks/useErrorHandler.ts"
+    ],
+    "line": 28
+  },
+  "nomecompleto": {
+    "pt": "Nome Completo",
+    "en": "[TRANSLATE] Nome Completo",
+    "zh": "[TRANSLATE] Nome Completo",
+    "es": "[TRANSLATE] Nome Completo",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 221
+  },
+  "email": {
+    "pt": "Email",
+    "en": "[TRANSLATE] Email",
+    "zh": "[TRANSLATE] Email",
+    "es": "[TRANSLATE] Email",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 235
+  },
+  "nomedaempresa": {
+    "pt": "Nome da Empresa",
+    "en": "[TRANSLATE] Nome da Empresa",
+    "zh": "[TRANSLATE] Nome da Empresa",
+    "es": "[TRANSLATE] Nome da Empresa",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 279
+  },
+  "telefone": {
+    "pt": "Telefone",
+    "en": "[TRANSLATE] Telefone",
+    "zh": "[TRANSLATE] Telefone",
+    "es": "[TRANSLATE] Telefone",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 312
+  },
+  "cancelar": {
+    "pt": "Cancelar",
+    "en": "[TRANSLATE] Cancelar",
+    "zh": "[TRANSLATE] Cancelar",
+    "es": "[TRANSLATE] Cancelar",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 353
+  },
+  "usuariocriadocomsuce": {
+    "pt": "Usuário criado com sucesso",
+    "en": "[TRANSLATE] Usuário criado com sucesso",
+    "zh": "[TRANSLATE] Usuário criado com sucesso",
+    "es": "[TRANSLATE] Usuário criado com sucesso",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 57
+  },
+  "erroaocriarusuario": {
+    "pt": "Erro ao criar usuário",
+    "en": "[TRANSLATE] Erro ao criar usuário",
+    "zh": "[TRANSLATE] Erro ao criar usuário",
+    "es": "[TRANSLATE] Erro ao criar usuário",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 63
+  },
+  "roledousuarioatualiz": {
+    "pt": "Role do usuário atualizada com sucesso",
+    "en": "[TRANSLATE] Role do usuário atualizada com sucesso",
+    "zh": "[TRANSLATE] Role do usuário atualizada com sucesso",
+    "es": "[TRANSLATE] Role do usuário atualizada com sucesso",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 77
+  },
+  "erroaoatualizarroled": {
+    "pt": "Erro ao atualizar role do usuário",
+    "en": "[TRANSLATE] Erro ao atualizar role do usuário",
+    "zh": "[TRANSLATE] Erro ao atualizar role do usuário",
+    "es": "[TRANSLATE] Erro ao atualizar role do usuário",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 83
+  },
+  "usuariodesativadocom": {
+    "pt": "Usuário desativado com sucesso",
+    "en": "[TRANSLATE] Usuário desativado com sucesso",
+    "zh": "[TRANSLATE] Usuário desativado com sucesso",
+    "es": "[TRANSLATE] Usuário desativado com sucesso",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 97
+  },
+  "erroaodesativarusuar": {
+    "pt": "Erro ao desativar usuário",
+    "en": "[TRANSLATE] Erro ao desativar usuário",
+    "zh": "[TRANSLATE] Erro ao desativar usuário",
+    "es": "[TRANSLATE] Erro ao desativar usuário",
+    "files": [
+      "client/src/pages/admin-users.tsx"
+    ],
+    "line": 103
+  },
+  "fornecedor": {
+    "pt": "Fornecedor",
+    "en": "[TRANSLATE] Fornecedor",
+    "zh": "[TRANSLATE] Fornecedor",
+    "es": "[TRANSLATE] Fornecedor",
+    "files": [
+      "client/src/pages/admin.tsx"
+    ],
+    "line": 260
+  },
+  "valor": {
+    "pt": "Valor",
+    "en": "[TRANSLATE] Valor",
+    "zh": "[TRANSLATE] Valor",
+    "es": "[TRANSLATE] Valor",
+    "files": [
+      "client/src/pages/admin.tsx"
+    ],
+    "line": 261
+  },
+  "bemvindodevoltaaspar": {
+    "pt": "Bem-vindo de volta à Spark Comex.",
+    "en": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
+    "zh": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
+    "es": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
+    "files": [
+      "client/src/pages/auth.tsx"
+    ],
+    "line": 53
+  },
+  "bemvindoasparkcomex": {
+    "pt": "Bem-vindo à Spark Comex.",
+    "en": "[TRANSLATE] Bem-vindo à Spark Comex.",
+    "zh": "[TRANSLATE] Bem-vindo à Spark Comex.",
+    "es": "[TRANSLATE] Bem-vindo à Spark Comex.",
+    "files": [
+      "client/src/pages/auth.tsx"
+    ],
+    "line": 74
+  },
+  "creditoutilizado": {
+    "pt": "Crédito Utilizado",
+    "en": "[TRANSLATE] Crédito Utilizado",
+    "zh": "[TRANSLATE] Crédito Utilizado",
+    "es": "[TRANSLATE] Crédito Utilizado",
+    "files": [
+      "client/src/pages/credit.tsx"
+    ],
+    "line": 263
+  },
+  "pendente": {
+    "pt": "Pendente",
+    "en": "[TRANSLATE] Pendente",
+    "zh": "[TRANSLATE] Pendente",
+    "es": "[TRANSLATE] Pendente",
+    "files": [
+      "client/src/pages/imports.tsx"
+    ],
+    "line": 141
+  },
+  "nomedofornecedor": {
+    "pt": "Nome do Fornecedor",
+    "en": "[TRANSLATE] Nome do Fornecedor",
+    "zh": "[TRANSLATE] Nome do Fornecedor",
+    "es": "[TRANSLATE] Nome do Fornecedor",
+    "files": [
+      "client/src/pages/imports.tsx"
+    ],
+    "line": 369
+  },
+  "observacoes": {
+    "pt": "Observações",
+    "en": "[TRANSLATE] Observações",
+    "zh": "[TRANSLATE] Observações",
+    "es": "[TRANSLATE] Observações",
+    "files": [
+      "client/src/pages/imports.tsx"
+    ],
+    "line": 436
+  },
+  "suanovaimportacaofoi": {
+    "pt": "Sua nova importação foi registrada com sucesso.",
+    "en": "[TRANSLATE] Sua nova importação foi registrada com sucesso.",
+    "zh": "[TRANSLATE] Sua nova importação foi registrada com sucesso.",
+    "es": "[TRANSLATE] Sua nova importação foi registrada com sucesso.",
+    "files": [
+      "client/src/pages/imports.tsx"
+    ],
+    "line": 69
+  },
+  "erroaocriarimportaca": {
+    "pt": "Erro ao criar importação",
+    "en": "[TRANSLATE] Erro ao criar importação",
+    "zh": "[TRANSLATE] Erro ao criar importação",
+    "es": "[TRANSLATE] Erro ao criar importação",
+    "files": [
+      "client/src/pages/imports.tsx"
+    ],
+    "line": 78
+  },
+  "orelatoriofoigeradoe": {
+    "pt": "O relatório foi gerado e está sendo baixado.",
+    "en": "[TRANSLATE] O relatório foi gerado e está sendo baixado.",
+    "zh": "[TRANSLATE] O relatório foi gerado e está sendo baixado.",
+    "es": "[TRANSLATE] O relatório foi gerado e está sendo baixado.",
+    "files": [
+      "client/src/pages/reports.tsx"
+    ],
+    "line": 134
+  },
+  "suasinformacoesforam": {
+    "pt": "Suas informações foram salvas com sucesso.",
+    "en": "[TRANSLATE] Suas informações foram salvas com sucesso.",
+    "zh": "[TRANSLATE] Suas informações foram salvas com sucesso.",
+    "es": "[TRANSLATE] Suas informações foram salvas com sucesso.",
+    "files": [
+      "client/src/pages/settings.tsx"
+    ],
+    "line": 63
+  },
+  "erroaoatualizarperfi": {
+    "pt": "Erro ao atualizar perfil.",
+    "en": "[TRANSLATE] Erro ao atualizar perfil.",
+    "zh": "[TRANSLATE] Erro ao atualizar perfil.",
+    "es": "[TRANSLATE] Erro ao atualizar perfil.",
+    "files": [
+      "client/src/pages/settings.tsx"
+    ],
+    "line": 70
+  },
+  "suapreferenciadenoti": {
+    "pt": "Sua preferência de notificação foi atualizada.",
+    "en": "[TRANSLATE] Sua preferência de notificação foi atualizada.",
+    "zh": "[TRANSLATE] Sua preferência de notificação foi atualizada.",
+    "es": "[TRANSLATE] Sua preferência de notificação foi atualizada.",
+    "files": [
+      "client/src/pages/settings.tsx"
+    ],
+    "line": 91
+  },
+  "suaconfiguracaodeseg": {
+    "pt": "Sua configuração de segurança foi salva.",
+    "en": "[TRANSLATE] Sua configuração de segurança foi salva.",
+    "zh": "[TRANSLATE] Sua configuração de segurança foi salva.",
+    "es": "[TRANSLATE] Sua configuração de segurança foi salva.",
+    "files": [
+      "client/src/pages/settings.tsx"
+    ],
+    "line": 99
+  }
+}

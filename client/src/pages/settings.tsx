@@ -107,7 +107,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">{t.settings.title}</h1>
-        <p className="text-gray-600">Gerencie sua conta e preferências</p>
+        <p className="text-gray-600">{t.user.gerenciesuacontaepre}</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
@@ -116,7 +116,7 @@ export default function SettingsPage() {
           <TabsTrigger value="preferences">{t.settings.preferences}</TabsTrigger>
           <TabsTrigger value="notifications">{t.settings.notifications}</TabsTrigger>
           <TabsTrigger value="security">{t.settings.security}</TabsTrigger>
-          <TabsTrigger value="billing">Faturamento</TabsTrigger>
+          <TabsTrigger value="billing">{t.common.faturamento}</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -126,7 +126,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5" />
-                  <CardTitle>Informações Pessoais</CardTitle>
+                  <CardTitle>{t.common.informacoespessoais}</CardTitle>
                 </div>
                 <Button
                   variant="outline"
@@ -145,7 +145,7 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="fullName">Nome Completo</Label>
+                      <Label htmlFor="fullName">{t.common.nomecompleto}</Label>
                       <Input
                         id="fullName"
                         name="fullName"
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">{t.common.email}</Label>
                       <Input
                         id="email"
                         name="email"
@@ -169,7 +169,7 @@ export default function SettingsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="phone">Telefone</Label>
+                      <Label htmlFor="phone">{t.common.telefone}</Label>
                       <Input
                         id="phone"
                         name="phone"
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="companyName">Nome da Empresa</Label>
+                    <Label htmlFor="companyName">{t.common.nomedaempresa}</Label>
                     <Input
                       id="companyName"
                       name="companyName"
@@ -243,8 +243,8 @@ export default function SettingsPage() {
                 <h3 className="text-lg font-medium mb-4">{t.settings.language}</h3>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Idioma da Interface</p>
-                    <p className="text-sm text-gray-600">Escolha o idioma para a interface do sistema</p>
+                    <p className="font-medium">{t.common.idiomadainterface}</p>
+                    <p className="text-sm text-gray-600">{t.common.escolhaoidiomaparaai}</p>
                   </div>
                   <div className="min-w-[200px]">
                     <LanguageSelector />
@@ -255,12 +255,12 @@ export default function SettingsPage() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-medium mb-4">Formato Regional</h3>
+                <h3 className="text-lg font-medium mb-4">{t.common.formatoregional}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Formato de Moeda</p>
-                      <p className="text-sm text-gray-600">Como valores monetários são exibidos</p>
+                      <p className="font-medium">{t.common.formatodemoeda}</p>
+                      <p className="text-sm text-gray-600">{t.common.comovaloresmonetario}</p>
                     </div>
                     <Select defaultValue="BRL">
                       <SelectTrigger className="w-[180px]">
@@ -277,17 +277,17 @@ export default function SettingsPage() {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Formato de Data</p>
-                      <p className="text-sm text-gray-600">Como datas são exibidas no sistema</p>
+                      <p className="font-medium">{t.common.formatodedata}</p>
+                      <p className="text-sm text-gray-600">{t.common.comodatassaoexibidas}</p>
                     </div>
                     <Select defaultValue="dd/mm/yyyy">
                       <SelectTrigger className="w-[180px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="dd/mm/yyyy">DD/MM/AAAA</SelectItem>
-                        <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
+                        <SelectItem value="dd/mm/yyyy">{t.common.ddmmaaaa}</SelectItem>
+                        <SelectItem value="mm/dd/yyyy">{t.common.mmddyyyy}</SelectItem>
+                        <SelectItem value="yyyy-mm-dd">{t.common.yyyymmdd}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -303,17 +303,17 @@ export default function SettingsPage() {
             <CardHeader>
               <div className="flex items-center space-x-2">
                 <Bell className="w-5 h-5" />
-                <CardTitle>Preferências de Notificação</CardTitle>
+                <CardTitle>{t.common.preferenciasdenotifi}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium mb-4">Email</h3>
+                <h3 className="text-lg font-medium mb-4">{t.common.email}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Atualizações de Importação</p>
-                      <p className="text-sm text-gray-600">Receba emails sobre o status das suas importações</p>
+                      <p className="font-medium">{t.common.atualizacoesdeimport}</p>
+                      <p className="text-sm text-gray-600">{t.common.recebaemailssobreost}</p>
                     </div>
                     <Switch
                       checked={notifications.emailImports}
@@ -322,8 +322,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Notificações de Crédito</p>
-                      <p className="text-sm text-gray-600">Alertas sobre limite de crédito e aprovações</p>
+                      <p className="font-medium">{t.common.notificacoesdecredit}</p>
+                      <p className="text-sm text-gray-600">{t.common.alertassobrelimitede}</p>
                     </div>
                     <Switch
                       checked={notifications.emailCredit}
@@ -332,8 +332,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Relatórios Semanais</p>
-                      <p className="text-sm text-gray-600">Resumo semanal das suas operações</p>
+                      <p className="font-medium">{t.reports.relatoriossemanais}</p>
+                      <p className="text-sm text-gray-600">{t.common.resumosemanaldassuas}</p>
                     </div>
                     <Switch
                       checked={notifications.emailReports}
@@ -350,8 +350,8 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Importações Urgentes</p>
-                      <p className="text-sm text-gray-600">SMS para importações que precisam de atenção</p>
+                      <p className="font-medium">{t.common.importacoesurgentes}</p>
+                      <p className="text-sm text-gray-600">{t.common.smsparaimportacoesqu}</p>
                     </div>
                     <Switch
                       checked={notifications.smsImports}
@@ -360,8 +360,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Alertas de Crédito</p>
-                      <p className="text-sm text-gray-600">SMS quando crédito estiver baixo</p>
+                      <p className="font-medium">{t.common.alertasdecredito}</p>
+                      <p className="text-sm text-gray-600">{t.common.smsquandocreditoesti}</p>
                     </div>
                     <Switch
                       checked={notifications.smsCredit}
@@ -374,11 +374,11 @@ export default function SettingsPage() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-medium mb-4">Push</h3>
+                <h3 className="text-lg font-medium mb-4">{t.common.push}</h3>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Notificações Push</p>
-                    <p className="text-sm text-gray-600">Receba notificações no navegador</p>
+                    <p className="font-medium">{t.common.notificacoespush}</p>
+                    <p className="text-sm text-gray-600">{t.common.recebanotificacoesno}</p>
                   </div>
                   <Switch
                     checked={notifications.pushNotifications}
@@ -396,14 +396,14 @@ export default function SettingsPage() {
             <CardHeader>
               <div className="flex items-center space-x-2">
                 <Shield className="w-5 h-5" />
-                <CardTitle>Segurança da Conta</CardTitle>
+                <CardTitle>{t.user.segurancadaconta}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Autenticação de Dois Fatores</p>
-                  <p className="text-sm text-gray-600">Adicione uma camada extra de segurança</p>
+                  <p className="font-medium">{t.common.autenticacaodedoisfa}</p>
+                  <p className="text-sm text-gray-600">{t.common.adicioneumacamadaext}</p>
                 </div>
                 <Switch
                   checked={security.twoFactorAuth}
@@ -416,7 +416,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Notificações de Login</p>
-                  <p className="text-sm text-gray-600">Seja notificado sobre novos acessos</p>
+                  <p className="text-sm text-gray-600">{t.common.sejanotificadosobren}</p>
                 </div>
                 <Switch
                   checked={security.loginNotifications}
@@ -427,7 +427,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div>
-                <Label htmlFor="sessionTimeout">Timeout da Sessão (minutos)</Label>
+                <Label htmlFor="sessionTimeout">{t.common.timeoutdasessaominut}</Label>
                 <Input
                   id="sessionTimeout"
                   type="number"
@@ -437,22 +437,16 @@ export default function SettingsPage() {
                   min="5"
                   max="120"
                 />
-                <p className="text-sm text-gray-600 mt-1">
-                  Sua sessão expirará após este período de inatividade
-                </p>
+                <p className="text-sm text-gray-600 mt-1">{t.common.suasessaoexpiraraapo}</p>
               </div>
 
               <Separator />
 
               <div className="space-y-4">
                 <Button variant="outline" className="w-full justify-start">
-                  <Key className="w-4 h-4 mr-2" />
-                  Alterar Senha
-                </Button>
+                  <Key className="w-4 h-4 mr-2" />{t.common.alterarsenha}</Button>
                 <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir Conta
-                </Button>
+                  <Trash2 className="w-4 h-4 mr-2" />{t.user.excluirconta}</Button>
               </div>
             </CardContent>
           </Card>
@@ -464,21 +458,15 @@ export default function SettingsPage() {
             <CardHeader>
               <div className="flex items-center space-x-2">
                 <CreditCard className="w-5 h-5" />
-                <CardTitle>Informações de Faturamento</CardTitle>
+                <CardTitle>{t.common.informacoesdefaturam}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
                 <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Faturamento e Pagamentos
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Gerencie seus métodos de pagamento e histórico de faturas.
-                </p>
-                <Button variant="outline">
-                  Configurar Faturamento
-                </Button>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t.common.faturamentoepagament}</h3>
+                <p className="text-gray-600 mb-4">{t.common.gerencieseusmetodosd}</p>
+                <Button variant="outline">{t.common.configurarfaturament}</Button>
               </div>
             </CardContent>
           </Card>

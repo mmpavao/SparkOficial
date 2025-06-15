@@ -196,27 +196,19 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-6 h-6 text-spark-600" />
-            Gestão de Usuários
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Gerencie usuários do sistema e suas permissões
-          </p>
+            <Users className="w-6 h-6 text-spark-600" />{t.user.gestaodeusuarios}</h1>
+          <p className="text-gray-600 mt-1">{t.user.gerencieusuariosdosi}</p>
         </div>
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-spark-600 hover:bg-spark-700">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Criar Usuário
-            </Button>
+              <UserPlus className="w-4 h-4 mr-2" />{t.user.criarusuario}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Criar Novo Usuário</DialogTitle>
-              <DialogDescription>
-                Preencha os dados para criar um novo usuário no sistema
-              </DialogDescription>
+              <DialogTitle>{t.user.criarnovousuario}</DialogTitle>
+              <DialogDescription>{t.reports.preenchaosdadosparac}</DialogDescription>
             </DialogHeader>
 
             <Form {...form}>
@@ -228,7 +220,7 @@ export default function AdminUsersPage() {
                     <FormItem>
                       <FormLabel>Nome Completo</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite o nome completo" {...field} />
+                        <Input placeholder={t.common.digiteonomecompleto} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -255,7 +247,7 @@ export default function AdminUsersPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Senha</FormLabel>
+                        <FormLabel>{t.common.senha}</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
@@ -269,7 +261,7 @@ export default function AdminUsersPage() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirmar Senha</FormLabel>
+                        <FormLabel>{t.common.confirmarsenha}</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
@@ -286,7 +278,7 @@ export default function AdminUsersPage() {
                     <FormItem>
                       <FormLabel>Nome da Empresa</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite o nome da empresa" {...field} />
+                        <Input placeholder={t.common.digiteonomedaempresa} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -336,16 +328,16 @@ export default function AdminUsersPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Usuário</FormLabel>
+                      <FormLabel>{t.user.tipodeusuario}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder={t.common.selecioneotipo} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="importer">Importador</SelectItem>
-                          <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="importer">{t.common.importador}</SelectItem>
+                          <SelectItem value="admin">{t.common.administrador}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -378,10 +370,8 @@ export default function AdminUsersPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Usuários do Sistema</CardTitle>
-          <CardDescription>
-            Lista de todos os usuários cadastrados no sistema
-          </CardDescription>
+          <CardTitle>{t.user.usuariosdosistema}</CardTitle>
+          <CardDescription>{t.user.listadetodososusuari}</CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable

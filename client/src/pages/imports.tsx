@@ -136,11 +136,11 @@ export default function ImportsPage() {
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Pago</Badge>;
+        return <Badge variant="secondary" className="bg-green-100 text-green-800">{t.common.pago}</Badge>;
       case "pending":
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
       case "overdue":
-        return <Badge variant="secondary" className="bg-red-100 text-red-800">Vencido</Badge>;
+        return <Badge variant="secondary" className="bg-red-100 text-red-800">{t.common.vencido}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -160,7 +160,7 @@ export default function ImportsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t.imports.title}</h1>
-          <p className="text-gray-600">Gerencie suas importações da China</p>
+          <p className="text-gray-600">{t.common.gerenciesuasimportac}</p>
         </div>
         <Button 
           onClick={() => setShowNewImportForm(true)}
@@ -205,7 +205,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Concluídas</p>
+                <p className="text-sm text-gray-600">{t.common.concluidas}</p>
                 <p className="text-2xl font-bold text-gray-900">{importData.completedImports}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -219,7 +219,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Valor Total</p>
+                <p className="text-sm text-gray-600">{t.common.valortotal}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   R$ {importData.totalValue.toLocaleString()}
                 </p>
@@ -291,36 +291,36 @@ export default function ImportsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Fornecedor:</span>
+                        <span className="font-medium">{t.common.fornecedor}</span>
                         <span className="ml-1">{importItem.supplierName}</span>
                       </div>
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Local:</span>
+                        <span className="font-medium">{t.common.local}</span>
                         <span className="ml-1">{importItem.supplierLocation}</span>
                       </div>
                       <div className="flex items-center">
                         <DollarSign className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Valor:</span>
+                        <span className="font-medium">{t.common.valor}</span>
                         <span className="ml-1">{importItem.currency} {parseFloat(importItem.totalValue).toLocaleString()}</span>
                       </div>
                       {importItem.estimatedDelivery && (
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-2" />
-                          <span className="font-medium">Previsão:</span>
+                          <span className="font-medium">{t.common.previsao}</span>
                           <span className="ml-1">{new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR')}</span>
                         </div>
                       )}
                       {importItem.trackingNumber && (
                         <div className="flex items-center">
                           <Package className="w-4 h-4 mr-2" />
-                          <span className="font-medium">Rastreamento:</span>
+                          <span className="font-medium">{t.common.rastreamento}</span>
                           <span className="ml-1">{importItem.trackingNumber}</span>
                         </div>
                       )}
                       {importItem.notes && (
                         <div className="flex items-center md:col-span-2">
-                          <span className="font-medium">Observações:</span>
+                          <span className="font-medium">{t.common.observacoes}</span>
                           <span className="ml-1">{importItem.notes}</span>
                         </div>
                       )}
@@ -328,9 +328,7 @@ export default function ImportsPage() {
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Detalhes
-                    </Button>
+                      <Eye className="w-4 h-4 mr-2" />{t.common.detalhes}</Button>
                   </div>
                 </div>
               </CardContent>
@@ -344,7 +342,7 @@ export default function ImportsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
-              <CardTitle>Nova Importação</CardTitle>
+              <CardTitle>{t.common.novaimportacao}</CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -355,9 +353,9 @@ export default function ImportsPage() {
                       name="productDescription"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descrição dos Produtos</FormLabel>
+                          <FormLabel>{t.common.descricaodosprodutos}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Smartphones Samsung" {...field} />
+                            <Input placeholder={t.common.exsmartphonessamsung} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -370,7 +368,7 @@ export default function ImportsPage() {
                         <FormItem>
                           <FormLabel>Nome do Fornecedor</FormLabel>
                           <FormControl>
-                            <Input placeholder="Nome do fornecedor" {...field} />
+                            <Input placeholder={t.common.nomedofornecedor} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -384,9 +382,9 @@ export default function ImportsPage() {
                       name="totalValue"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Valor Total (USD)</FormLabel>
+                          <FormLabel>{t.common.valortotalusd}</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="Ex: 50000" {...field} />
+                            <Input type="number" placeholder={t.common.ex50000} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -397,9 +395,9 @@ export default function ImportsPage() {
                       name="supplierLocation"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Localização do Fornecedor</FormLabel>
+                          <FormLabel>{t.common.localizacaodofornece}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Shenzhen, China" {...field} />
+                            <Input placeholder={t.common.exshenzhenchina} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -412,17 +410,17 @@ export default function ImportsPage() {
                     name="currency"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Moeda</FormLabel>
+                        <FormLabel>{t.common.moeda}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione a moeda" />
+                              <SelectValue placeholder={t.common.selecioneamoeda} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                            <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                            <SelectItem value="EUR">EUR - Euro</SelectItem>
+                            <SelectItem value="USD">{t.common.usddolaramericano}</SelectItem>
+                            <SelectItem value="CNY">{t.common.cnyyuanchines}</SelectItem>
+                            <SelectItem value="EUR">{t.common.eureuro}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -437,7 +435,7 @@ export default function ImportsPage() {
                       <FormItem>
                         <FormLabel>Observações</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Informações adicionais..." {...field} value={field.value || ""} />
+                          <Textarea placeholder={t.common.informacoesadicionai} {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -450,9 +448,7 @@ export default function ImportsPage() {
                       variant="outline"
                       onClick={() => setShowNewImportForm(false)}
                       className="flex-1"
-                    >
-                      Cancelar
-                    </Button>
+                    >{t.common.cancelar}</Button>
                     <Button
                       type="submit"
                       disabled={createImportMutation.isPending}

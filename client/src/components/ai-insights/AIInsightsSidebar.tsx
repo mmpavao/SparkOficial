@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Minimize2, AlertTriangle, TrendingUp, Target, Lightbulb } from "lucide-react";
 
+import { useTranslation } from '@/contexts/I18nContext';
 interface Insight {
   id: string;
   type: 'recommendation' | 'warning' | 'opportunity' | 'trend';
@@ -216,7 +217,7 @@ export default function AIInsightsSidebar({ isOpen, onClose, onMinimize }: AIIns
   return (
     <div className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-lg z-50">
       <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-lg font-semibold text-gray-900">AI Insights</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t.common.aiinsights}</h2>
         <div className="flex gap-2">
           <Button
             variant="ghost"

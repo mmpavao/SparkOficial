@@ -246,7 +246,7 @@ export default function CreditPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{t.dashboard.availableCredit}</p>
-                <p className="text-2xl font-bold text-green-600">R$ 25.000</p>
+                <p className="text-2xl font-bold text-green-600">{t.common.r25000}</p>
                 <p className="text-xs text-gray-500 mt-1">{t.common.approved}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -261,7 +261,7 @@ export default function CreditPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Crédito Utilizado</p>
-                <p className="text-2xl font-bold text-blue-600">R$ 15.000</p>
+                <p className="text-2xl font-bold text-blue-600">{t.common.r15000}</p>
                 <p className="text-xs text-gray-500 mt-1">60% do limite</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -277,7 +277,7 @@ export default function CreditPage() {
               <div>
                 <p className="text-sm text-gray-600">{t.credit.nextDue}</p>
                 <p className="text-2xl font-bold text-orange-600">15 dias</p>
-                <p className="text-xs text-gray-500 mt-1">R$ 5.000</p>
+                <p className="text-xs text-gray-500 mt-1">{t.common.r5000}</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-orange-600" />
@@ -302,9 +302,7 @@ export default function CreditPage() {
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-2">{t.dashboard.noData}</p>
-              <p className="text-sm text-gray-400">
-                Suas solicitações de crédito aparecerão aqui.
-              </p>
+              <p className="text-sm text-gray-400">{t.common.suassolicitacoesdecr}</p>
             </div>
           ) : (
             <div className="space-y-4">

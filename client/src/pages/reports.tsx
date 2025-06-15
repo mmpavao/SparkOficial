@@ -143,7 +143,7 @@ export default function ReportsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t.reports.title}</h1>
-          <p className="text-gray-600">Análise e insights das suas operações</p>
+          <p className="text-gray-600">{t.common.analiseeinsightsdass}</p>
         </div>
         <Button 
           onClick={generateReport}
@@ -162,7 +162,7 @@ export default function ReportsPage() {
               <Select value={selectedReport} onValueChange={setSelectedReport}>
                 <SelectTrigger>
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Tipo de relatório" />
+                  <SelectValue placeholder={t.reports.tipoderelatorio} />
                 </SelectTrigger>
                 <SelectContent>
                   {reportTypes.map((type) => (
@@ -177,7 +177,7 @@ export default function ReportsPage() {
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                 <SelectTrigger>
                   <Calendar className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Período" />
+                  <SelectValue placeholder={t.common.periodo} />
                 </SelectTrigger>
                 <SelectContent>
                   {periods.map((period) => (
@@ -201,7 +201,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Importado</p>
+                    <p className="text-sm text-gray-600">{t.common.totalimportado}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       R$ {reportData.overview.totalImported.toLocaleString()}
                     </p>
@@ -221,7 +221,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total de Importações</p>
+                    <p className="text-sm text-gray-600">{t.common.totaldeimportacoes}</p>
                     <p className="text-2xl font-bold text-gray-900">{reportData.overview.totalImports}</p>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -235,7 +235,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Valor Médio</p>
+                    <p className="text-sm text-gray-600">{t.common.valormedio}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       R$ {reportData.overview.avgImportValue.toLocaleString()}
                     </p>
@@ -251,7 +251,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Crédito Utilizado</p>
+                    <p className="text-sm text-gray-600">{t.common.creditoutilizado}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       R$ {reportData.overview.creditUsed.toLocaleString()}
                     </p>
@@ -267,7 +267,7 @@ export default function ReportsPage() {
           {/* Top Suppliers */}
           <Card>
             <CardHeader>
-              <CardTitle>Principais Fornecedores</CardTitle>
+              <CardTitle>{t.common.principaisfornecedor}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -294,7 +294,7 @@ export default function ReportsPage() {
           {/* Monthly Performance */}
           <Card>
             <CardHeader>
-              <CardTitle>Performance Mensal</CardTitle>
+              <CardTitle>{t.common.performancemensal}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -323,7 +323,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Pago</p>
+                    <p className="text-sm text-gray-600">{t.common.totalpago}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       R$ {reportData.financial.totalPaid.toLocaleString()}
                     </p>
@@ -339,7 +339,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Pendente</p>
+                    <p className="text-sm text-gray-600">{t.common.pendente}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       R$ {reportData.financial.pending.toLocaleString()}
                     </p>
@@ -355,7 +355,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Limite de Crédito</p>
+                    <p className="text-sm text-gray-600">{t.common.limitedecredito}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       R$ {reportData.financial.creditLimit.toLocaleString()}
                     </p>
@@ -371,7 +371,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Tempo Médio Pagamento</p>
+                    <p className="text-sm text-gray-600">{t.common.tempomediopagamento}</p>
                     <p className="text-2xl font-bold text-gray-900">{reportData.financial.avgPaymentTime} dias</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -385,7 +385,7 @@ export default function ReportsPage() {
           {/* Payment Methods */}
           <Card>
             <CardHeader>
-              <CardTitle>Métodos de Pagamento</CardTitle>
+              <CardTitle>{t.common.metodosdepagamento}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -419,13 +419,9 @@ export default function ReportsPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               Relatório {reportTypes.find(t => t.value === selectedReport)?.label}
             </h3>
-            <p className="text-gray-600 mb-4">
-              Este relatório está sendo desenvolvido e estará disponível em breve.
-            </p>
+            <p className="text-gray-600 mb-4">{t.reports.esterelatorioestasen}</p>
             <Button variant="outline">
-              <Eye className="w-4 h-4 mr-2" />
-              Visualizar Prévia
-            </Button>
+              <Eye className="w-4 h-4 mr-2" />{t.common.visualizarprevia}</Button>
           </CardContent>
         </Card>
       )}
