@@ -153,9 +153,15 @@ export class DatabaseStorage implements IStorage {
 
   // Import operations
   async createImport(importData: InsertImport): Promise<Import> {
+    const data = {
+      ...importData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
     const [importRecord] = await db
       .insert(imports)
-      .values(importData)
+      .values(data)
       .returning();
     return importRecord;
   }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -12,27 +12,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Package, Truck } from "lucide-react";
+import { ArrowLeft, Package, Truck, Plus, Trash2 } from "lucide-react";
 
-// Simplified schema for import creation
-const importSchema = z.object({
-  importName: z.string().min(3, "Nome da importação é obrigatório"),
-  supplierName: z.string().min(2, "Nome do fornecedor é obrigatório"),
-  supplierLocation: z.string().min(2, "Localização do fornecedor é obrigatória"),
-  productName: z.string().min(2, "Nome do produto é obrigatório"),
-  productDescription: z.string().min(10, "Descrição do produto é obrigatória"),
+// Product schema for multiple products
+const productSchema = z.object({
+  name: z.string().min(1, "Nome do produto é obrigatório"),
+  description: z.string().min(5, "Descrição é obrigatória"),
   quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
   unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  totalValue: z.string().min(1, "Valor total é obrigatório"),
+  supplierId: z.number().min(1, "Fornecedor é obrigatório"),
+  hsCode: z.string().optional(),
+});
+
+// Complete import schema with FCL/LCL support
+const importSchema = z.object({
+  importName: z.string().min(3, "Nome da importação é obrigatório"),
+  cargoType: z.enum(["FCL", "LCL"]).default("FCL"),
+  supplierName: z.string().optional(), // For FCL compatibility
+  supplierLocation: z.string().optional(), // For FCL compatibility
+  products: z.array(productSchema).min(1, "Pelo menos um produto é obrigatório"),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   currency: z.string().default("USD"),
   incoterms: z.string().default("FOB"),
   shippingMethod: z.string().default("sea"),
   containerType: z.string().default("20ft"),
-  cargoType: z.string().default("FCL"),
+  containerNumber: z.string().optional(),
+  sealNumber: z.string().optional(),
   estimatedDelivery: z.string().optional(),
 });
 
 type ImportFormData = z.infer<typeof importSchema>;
+type ProductFormData = z.infer<typeof productSchema>;
 
 export default function ImportNewSimple() {
   const [, setLocation] = useLocation();
