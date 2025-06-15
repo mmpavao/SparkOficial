@@ -49,6 +49,7 @@ function Router() {
             <Route path="/settings" component={SettingsPage} />
             <Route path="/admin" component={AdminPage} />
             <Route path="/admin/users" component={AdminUsersPage} />
+            <Route path="/admin/credit-analysis/:id" component={AdminCreditAnalysisPage} />
             <Route component={NotFound} />
           </Switch>
         </AuthenticatedLayout>

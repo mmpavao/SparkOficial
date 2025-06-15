@@ -552,6 +552,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Admin routes for credit analysis
+  app.get("/api/admin/credit-applications/:id", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching admin credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/admin/credit-applications/:id/analysis", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { adminNotes, preAnalysisStatus, adminRecommendation, riskAssessment } = req.body;
+
+      // Update the application with admin analysis data
+      const analysisData = {
+        adminNotes,
+        preAnalysisStatus, 
+        adminRecommendation,
+        riskAssessment,
+        analyzedBy: req.session.userId,
+        analyzedAt: new Date().toISOString()
+      };
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, { reviewData: analysisData });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating credit analysis:", error);
+      res.status(500).json({ message: "Erro ao salvar análise" });
+    }
+  });
+
+  app.post("/api/admin/credit-applications/:id/submit-financial", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      
+      const updatedApplication = await storage.updateCreditApplicationStatus(applicationId, 'submitted_to_financial', {
+        submittedBy: req.session.userId,
+        submittedAt: new Date().toISOString()
+      });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error submitting to financial:", error);
+      res.status(500).json({ message: "Erro ao enviar para financeira" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
