@@ -327,7 +327,7 @@ export default function CreditDetailsPage() {
                   {mandatoryDocuments.map((doc) => (
                     <DocumentUploadRow
                       key={doc.key}
-                      document={doc}
+                      documentInfo={doc}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
@@ -344,7 +344,7 @@ export default function CreditDetailsPage() {
                   {optionalDocuments.map((doc) => (
                     <DocumentUploadRow
                       key={doc.key}
-                      document={doc}
+                      documentInfo={doc}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
@@ -443,13 +443,13 @@ export default function CreditDetailsPage() {
 
 // Document Upload Row Component
 function DocumentUploadRow({ 
-  document, 
+  documentInfo, 
   applicationId, 
   isUploading, 
   onUpload, 
   uploadedDocuments 
 }: {
-  document: { key: string; label: string; required: boolean };
+  documentInfo: { key: string; label: string; required: boolean };
   applicationId: number;
   isUploading: boolean;
   onUpload: (file: File) => void;
@@ -462,18 +462,18 @@ function DocumentUploadRow({
     }
   };
 
-  const isUploaded = uploadedDocuments[document.key];
+  const isUploaded = uploadedDocuments[documentInfo.key];
 
   return (
     <div className="flex items-center justify-between p-3 border rounded-lg">
       <div className="flex items-center gap-3">
         <div className={`w-3 h-3 rounded-full ${
-          isUploaded ? 'bg-green-500' : document.required ? 'bg-red-500' : 'bg-gray-300'
+          isUploaded ? 'bg-green-500' : documentInfo.required ? 'bg-red-500' : 'bg-gray-300'
         }`} />
         <div>
-          <p className="text-sm font-medium">{document.label}</p>
+          <p className="text-sm font-medium">{documentInfo.label}</p>
           <p className="text-xs text-gray-500">
-            {document.required ? 'Obrigatório' : 'Opcional'}
+            {documentInfo.required ? 'Obrigatório' : 'Opcional'}
           </p>
         </div>
       </div>
@@ -491,13 +491,13 @@ function DocumentUploadRow({
               onChange={handleFileChange}
               disabled={isUploading}
               className="hidden"
-              id={`file-${document.key}`}
+              id={`file-${documentInfo.key}`}
               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
             />
             <Button
               variant="outline"
               size="sm"
-              onClick={() => document.getElementById(`file-${document.key}`)?.click()}
+              onClick={() => document.getElementById(`file-${documentInfo.key}`)?.click()}
               disabled={isUploading}
             >
               {isUploading ? (

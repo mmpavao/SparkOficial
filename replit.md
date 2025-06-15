@@ -217,6 +217,15 @@ Changelog:
   * Migrated database schema to support all new multi-step form fields with JSONB for complex data
   * Added step-by-step navigation with visual progress indicators and form validation
   * Established separate route (/credit/new) for new comprehensive application process
+- June 15, 2025. Comprehensive credit management system with actions menu:
+  * Implemented dropdown actions menu in credit application cards (View Details, Edit, Cancel)
+  * Created complete credit details page with all application data and 18-document upload system
+  * Built comprehensive credit edit page with form pre-population and validation
+  * Added backend endpoints for DELETE (cancel) and PUT (update) credit applications
+  * Implemented document upload functionality directly in details page without editing requirement
+  * Fixed smooth SPA navigation using wouter instead of window.location.href
+  * Organized documents into 10 mandatory + 8 optional categories with visual status indicators
+  * Established role-based permissions (only pending applications can be edited/cancelled)
 ```
 
 ## User Preferences
