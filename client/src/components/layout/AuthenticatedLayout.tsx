@@ -22,7 +22,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
-  UserCog
+  UserCog,
+  FileCheck
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -102,6 +103,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     { path: "/", icon: Home, label: t.nav.dashboard },
     { path: "/credit", icon: CreditCard, label: t.nav.credit },
     { path: "/imports", icon: Truck, label: t.nav.imports },
+    { path: "/document-validation", icon: FileCheck, label: "Validação de Documentos" },
     { path: "/reports", icon: BarChart3, label: t.nav.reports },
     { path: "/settings", icon: Settings, label: t.nav.settings },
   ];
