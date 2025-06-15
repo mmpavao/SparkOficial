@@ -507,7 +507,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           ...data,
           analyzedBy: userId,
-          analyzedAt: new Date(),
         }
       );
       

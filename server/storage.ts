@@ -106,8 +106,17 @@ export class DatabaseStorage implements IStorage {
       if (reviewData.approvedAmount) updateData.approvedAmount = reviewData.approvedAmount;
       if (reviewData.interestRate) updateData.interestRate = reviewData.interestRate;
       if (reviewData.paymentTerms) updateData.paymentTerms = reviewData.paymentTerms;
-      if (reviewData.notes) updateData.notes = reviewData.notes;
+      if (reviewData.notes) updateData.reviewNotes = reviewData.notes;
       updateData.reviewedAt = new Date();
+
+      // Administrative analysis fields
+      if (reviewData.preAnalysisStatus) updateData.preAnalysisStatus = reviewData.preAnalysisStatus;
+      if (reviewData.riskLevel) updateData.riskLevel = reviewData.riskLevel;
+      if (reviewData.analysisNotes) updateData.analysisNotes = reviewData.analysisNotes;
+      if (reviewData.requestedDocuments) updateData.requestedDocuments = reviewData.requestedDocuments;
+      if (reviewData.adminObservations) updateData.adminObservations = reviewData.adminObservations;
+      if (reviewData.analyzedBy) updateData.analyzedBy = reviewData.analyzedBy;
+      if (reviewData.analyzedBy) updateData.analyzedAt = new Date();
     }
 
     const [application] = await db

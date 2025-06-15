@@ -29,8 +29,8 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     status: application.preAnalysisStatus || "pending",
     riskLevel: application.riskLevel || "medium",
     notes: application.analysisNotes || "",
-    requestedDocuments: "",
-    observations: ""
+    requestedDocuments: application.requestedDocuments || "",
+    observations: application.adminObservations || ""
   });
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -95,7 +95,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           status: 'approved',
           data: {
             reason: analysisData.notes || 'Aprovado após análise administrativa',
-            riskLevel: analysisData.riskLevel
+            riskLevel: analysisData.riskLevel,
+            analysisNotes: analysisData.notes,
+            preAnalysisStatus: 'pre_approved'
           }
         });
       }
@@ -111,7 +113,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           status: 'rejected',
           data: {
             reason: analysisData.notes || 'Rejeitado após análise administrativa',
-            riskLevel: analysisData.riskLevel
+            riskLevel: analysisData.riskLevel,
+            analysisNotes: analysisData.notes,
+            preAnalysisStatus: 'rejected'
           }
         });
       }
@@ -132,8 +136,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       status: 'needs_documents',
       data: {
         requestedDocuments: analysisData.requestedDocuments,
-        notes: analysisData.notes,
-        riskLevel: analysisData.riskLevel
+        analysisNotes: analysisData.notes,
+        riskLevel: analysisData.riskLevel,
+        preAnalysisStatus: 'needs_documents'
       }
     });
   };
@@ -151,9 +156,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     updateStatusMutation.mutate({
       status: 'needs_clarification',
       data: {
-        observations: analysisData.observations,
-        notes: analysisData.notes,
-        riskLevel: analysisData.riskLevel
+        adminObservations: analysisData.observations,
+        analysisNotes: analysisData.notes,
+        riskLevel: analysisData.riskLevel,
+        preAnalysisStatus: 'needs_clarification'
       }
     });
   };
