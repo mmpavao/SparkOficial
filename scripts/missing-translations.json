@@ -9,16 +9,6 @@
     ],
     "line": 103
   },
-  "queryfunction": {
-    "pt": "QueryFunction",
-    "en": "[TRANSLATE] QueryFunction",
-    "zh": "[TRANSLATE] QueryFunction",
-    "es": "[TRANSLATE] QueryFunction",
-    "files": [
-      "client/src/lib/queryClient.ts"
-    ],
-    "line": 34
-  },
   "sucesso": {
     "pt": "Sucesso",
     "en": "[TRANSLATE] Sucesso",

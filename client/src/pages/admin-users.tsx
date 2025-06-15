@@ -95,13 +95,13 @@ export default function AdminUsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: "Sucesso",
+        title: t.common.sucesso,
         description: t.common.usuariodesativadocom,
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: t.common.erro,
         description: t.common.erroaodesativarusuar,
         variant: "destructive",
       });

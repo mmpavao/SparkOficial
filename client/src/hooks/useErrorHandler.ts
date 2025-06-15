@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useTranslation } from '@/contexts/I18nContext';
 export function useErrorHandler() {
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleError = useCallback((error: any, customMessage?: string) => {
     console.error('Error occurred:', error);
@@ -26,7 +27,7 @@ export function useErrorHandler() {
     }
 
     toast({
-      title: "Erro",
+      title: t.common.erro,
       description: message,
       variant: "destructive",
     });
