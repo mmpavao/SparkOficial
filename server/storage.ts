@@ -2,12 +2,15 @@ import {
   users, 
   creditApplications, 
   imports,
+  suppliers,
   type User, 
   type InsertUser,
   type CreditApplication,
   type InsertCreditApplication,
   type Import,
   type InsertImport,
+  type Supplier,
+  type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -33,6 +36,13 @@ export interface IStorage {
   getImportsByUser(userId: number): Promise<Import[]>;
   getImport(id: number): Promise<Import | undefined>;
   updateImportStatus(id: number, status: string, updateData?: any): Promise<Import>;
+  
+  // Supplier operations
+  createSupplier(supplierData: InsertSupplier): Promise<Supplier>;
+  getSuppliersByUser(userId: number): Promise<Supplier[]>;
+  getSupplier(id: number): Promise<Supplier | undefined>;
+  updateSupplier(id: number, data: Partial<InsertSupplier>): Promise<Supplier>;
+  deleteSupplier(id: number): Promise<void>;
   
   // Admin operations
   getAllUsers(): Promise<User[]>;
@@ -186,6 +196,51 @@ export class DatabaseStorage implements IStorage {
       .where(eq(imports.id, id))
       .returning();
     return importRecord;
+  }
+
+  // Supplier operations
+  async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
+    const [supplier] = await db
+      .insert(suppliers)
+      .values(supplierData)
+      .returning();
+    return supplier;
+  }
+
+  async getSuppliersByUser(userId: number): Promise<Supplier[]> {
+    return await db
+      .select()
+      .from(suppliers)
+      .where(eq(suppliers.userId, userId))
+      .orderBy(desc(suppliers.createdAt));
+  }
+
+  async getSupplier(id: number): Promise<Supplier | undefined> {
+    const [supplier] = await db
+      .select()
+      .from(suppliers)
+      .where(eq(suppliers.id, id));
+    return supplier || undefined;
+  }
+
+  async updateSupplier(id: number, data: Partial<InsertSupplier>): Promise<Supplier> {
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+
+    const [supplier] = await db
+      .update(suppliers)
+      .set(updateData)
+      .where(eq(suppliers.id, id))
+      .returning();
+    return supplier;
+  }
+
+  async deleteSupplier(id: number): Promise<void> {
+    await db
+      .delete(suppliers)
+      .where(eq(suppliers.id, id));
   }
 
   // Admin operations

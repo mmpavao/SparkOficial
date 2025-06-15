@@ -102,7 +102,15 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const navigation = [
     { path: "/", icon: Home, label: t.nav.dashboard },
     { path: "/credit", icon: CreditCard, label: t.nav.credit },
-    { path: "/imports", icon: Truck, label: t.nav.imports },
+    { 
+      path: "/imports", 
+      icon: Truck, 
+      label: t.nav.imports,
+      submenu: [
+        { path: "/imports", label: "Minhas Importações" },
+        { path: "/suppliers", label: "Fornecedores" },
+      ]
+    },
     { path: "/reports", icon: BarChart3, label: t.nav.reports },
     { path: "/settings", icon: Settings, label: t.nav.settings },
   ];
@@ -177,25 +185,47 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 const active = isActiveRoute(item.path);
                 
                 return (
-                  <Button
-                    key={item.path}
-                    variant="ghost"
-                    className={`w-full transition-colors ${
-                      sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
-                    } ${
-                      active 
-                        ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
-                        : "hover:bg-gray-50"
-                    }`}
-                    onClick={() => setLocation(item.path)}
-                  >
-                    <Icon className="w-4 h-4 lg:mr-0 mr-3" />
-                    <span className={`transition-opacity duration-300 ${
-                      sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
-                    }`}>
-                      {item.label}
-                    </span>
-                  </Button>
+                  <div key={item.path}>
+                    <Button
+                      variant="ghost"
+                      className={`w-full transition-colors ${
+                        sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                      } ${
+                        active 
+                          ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => setLocation(item.path)}
+                    >
+                      <Icon className="w-4 h-4 lg:mr-0 mr-3" />
+                      <span className={`transition-opacity duration-300 ${
+                        sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                      }`}>
+                        {item.label}
+                      </span>
+                    </Button>
+                    
+                    {/* Submenu */}
+                    {item.submenu && !sidebarCollapsed && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {item.submenu.map((subItem) => (
+                          <Button
+                            key={subItem.path}
+                            variant="ghost"
+                            size="sm"
+                            className={`w-full justify-start text-sm ${
+                              isActiveRoute(subItem.path)
+                                ? "text-spark-600 bg-spark-50 hover:bg-spark-100"
+                                : "text-gray-600 hover:bg-gray-50"
+                            }`}
+                            onClick={() => setLocation(subItem.path)}
+                          >
+                            {subItem.label}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

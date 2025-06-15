@@ -123,22 +123,139 @@ export const creditApplications = pgTable("credit_applications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Import tracking table
+// Suppliers table
+export const suppliers = pgTable("suppliers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Basic Information
+  companyName: text("company_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  
+  // Location Information
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state"),
+  country: text("country").notNull(),
+  zipCode: text("zip_code"),
+  
+  // Business Information
+  businessRegistration: text("business_registration"),
+  taxId: text("tax_id"),
+  bankName: text("bank_name"),
+  bankAccount: text("bank_account"),
+  swiftCode: text("swift_code"),
+  
+  // Categories and Specialization
+  productCategories: text("product_categories").array(),
+  specialization: text("specialization"),
+  certifications: text("certifications").array(),
+  
+  // Trading Terms
+  preferredPaymentTerms: text("preferred_payment_terms"),
+  minimumOrderValue: text("minimum_order_value"),
+  leadTime: text("lead_time"),
+  
+  // Quality and Compliance
+  qualityStandards: text("quality_standards").array(),
+  exportLicenses: text("export_licenses").array(),
+  
+  // Relationship Status
+  status: text("status").notNull().default("active"), // active, inactive, blacklisted
+  rating: integer("rating").default(5), // 1-5 star rating
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Import tracking table with enhanced pipeline tracking
 export const imports = pgTable("imports", {
   id: serial("id").primaryKey(),
   userId: serial("user_id").references(() => users.id).notNull(),
   creditApplicationId: serial("credit_application_id").references(() => creditApplications.id),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  
+  // Basic Import Information
+  importNumber: text("import_number").unique(),
   supplierName: text("supplier_name").notNull(),
   supplierLocation: text("supplier_location").notNull(),
+  
+  // Product Details
+  productName: text("product_name").notNull(),
   productDescription: text("product_description").notNull(),
+  hsCode: text("hs_code"),
+  quantity: integer("quantity").notNull(),
+  unitPrice: text("unit_price").notNull(),
   totalValue: text("total_value").notNull(),
   currency: text("currency").notNull().default("USD"),
-  status: text("status").notNull().default("planning"), // planning, ordered, shipped, customs, delivered, completed
+  
+  // Pricing Information
+  fobPrice: text("fob_price"),
+  cifPrice: text("cif_price"),
+  freightCost: text("freight_cost"),
+  insuranceCost: text("insurance_cost"),
+  
+  // Physical Specifications
+  weight: text("weight"), // in kg
+  volume: text("volume"), // in m³
+  dimensions: text("dimensions"), // LxWxH in cm
+  
+  // Shipping Information
+  shippingMethod: text("shipping_method"), // sea, air, land
+  containerType: text("container_type"), // 20ft, 40ft, 40ft-hc, lcl
+  incoterms: text("incoterms").default("FOB"), // FOB, CIF, EXW, etc.
+  
+  // Pipeline Status and Tracking
+  currentStage: text("current_stage").notNull().default("estimativa"), // estimativa, invoice, producao, embarque, transporte, atracacao, desembaraco, transporte_terrestre, entrega
+  status: text("status").notNull().default("planning"), // planning, active, completed, cancelled
+  
+  // Pipeline Stages with Timestamps
+  stageEstimativa: jsonb("stage_estimativa"), // { status, startDate, endDate, notes, documents }
+  stageInvoice: jsonb("stage_invoice"),
+  stageProducao: jsonb("stage_producao"),
+  stageEmbarque: jsonb("stage_embarque"),
+  stageTransporte: jsonb("stage_transporte"),
+  stageAtracacao: jsonb("stage_atracacao"),
+  stageDesembaraco: jsonb("stage_desembaraco"),
+  stageTransporteTerrestre: jsonb("stage_transporte_terrestre"),
+  stageEntrega: jsonb("stage_entrega"),
+  
+  // Dates
   estimatedDelivery: timestamp("estimated_delivery"),
+  actualDelivery: timestamp("actual_delivery"),
+  invoiceDate: timestamp("invoice_date"),
+  productionStartDate: timestamp("production_start_date"),
+  shippingDate: timestamp("shipping_date"),
+  
+  // Tracking and Documentation
   trackingNumber: text("tracking_number"),
+  bl_number: text("bl_number"), // Bill of Lading
+  invoiceNumber: text("invoice_number"),
+  customsDeclarationNumber: text("customs_declaration_number"),
+  
+  // Port Information
+  portOfLoading: text("port_of_loading"),
+  portOfDischarge: text("port_of_discharge"),
+  finalDestination: text("final_destination"),
+  
+  // Customs and Compliance
   customsStatus: text("customs_status"),
+  importLicense: text("import_license"),
+  dutyRate: text("duty_rate"),
+  taxesAmount: text("taxes_amount"),
+  
+  // Documents and Files
   documents: text("documents").array(),
+  requiredDocuments: jsonb("required_documents"),
+  
+  // Additional Information
   notes: text("notes"),
+  internalNotes: text("internal_notes"), // Only visible to admins
+  riskLevel: text("risk_level").default("low"), // low, medium, high
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -198,10 +315,52 @@ export const insertCreditApplicationSchema = companyInfoSchema
     currency: z.string().default("USD"),
   });
 
+// Supplier validation schema
+export const insertSupplierSchema = createInsertSchema(suppliers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  companyName: z.string().min(2, "Nome da empresa é obrigatório"),
+  contactName: z.string().min(2, "Nome do contato é obrigatório"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(10, "Telefone é obrigatório"),
+  address: z.string().min(5, "Endereço é obrigatório"),
+  city: z.string().min(2, "Cidade é obrigatória"),
+  country: z.string().min(2, "País é obrigatório"),
+  productCategories: z.array(z.string()).min(1, "Selecione pelo menos uma categoria"),
+});
+
+// Enhanced import validation schema
 export const insertImportSchema = createInsertSchema(imports).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  productName: z.string().min(2, "Nome do produto é obrigatório"),
+  productDescription: z.string().min(10, "Descrição detalhada é obrigatória"),
+  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
+  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  totalValue: z.string().min(1, "Valor total é obrigatório"),
+  supplierName: z.string().min(2, "Nome do fornecedor é obrigatório"),
+  supplierLocation: z.string().min(2, "Localização do fornecedor é obrigatória"),
+  shippingMethod: z.enum(["sea", "air", "land"]).default("sea"),
+  containerType: z.enum(["20ft", "40ft", "40ft-hc", "lcl"]).optional(),
+  weight: z.string().optional(),
+  volume: z.string().optional(),
+});
+
+// Pipeline stage schema
+export const pipelineStageSchema = z.object({
+  status: z.enum(["pending", "in_progress", "completed", "delayed", "cancelled"]).default("pending"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  estimatedDate: z.string().optional(),
+  actualDate: z.string().optional(),
+  notes: z.string().optional(),
+  documents: z.array(z.string()).optional(),
+  responsiblePerson: z.string().optional(),
+  location: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -211,3 +370,6 @@ export type CreditApplication = typeof creditApplications.$inferSelect;
 export type InsertCreditApplication = z.infer<typeof insertCreditApplicationSchema>;
 export type Import = typeof imports.$inferSelect;
 export type InsertImport = z.infer<typeof insertImportSchema>;
+export type Supplier = typeof suppliers.$inferSelect;
+export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+export type PipelineStage = z.infer<typeof pipelineStageSchema>;

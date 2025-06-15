@@ -66,12 +66,21 @@ export default function ImportsPage() {
   const form = useForm<InsertImport>({
     resolver: zodResolver(insertImportSchema),
     defaultValues: {
+      productName: "",
+      productDescription: "",
+      quantity: 1,
+      unitPrice: "",
+      totalValue: "",
       supplierName: "",
       supplierLocation: "",
-      productDescription: "",
-      totalValue: "",
       currency: "USD",
-      status: "planning",
+      shippingMethod: "sea",
+      containerType: "20ft",
+      fobPrice: "",
+      cifPrice: "",
+      weight: "",
+      volume: "",
+      incoterms: "FOB",
       notes: "",
     },
   });
@@ -509,58 +518,61 @@ export default function ImportsPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Informações do Produto */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Informações do Produto
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="productName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Produto *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Smartphone Galaxy A54" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Quantidade *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="1000" 
+                                {...field}
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
                     <FormField
                       control={form.control}
                       name="productDescription"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descrição dos Produtos</FormLabel>
+                          <FormLabel>Descrição Detalhada *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Smartphones Samsung" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="supplierName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome do Fornecedor</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Nome do fornecedor" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="totalValue"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Valor Total (USD)</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="Ex: 50000" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="supplierLocation"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Localização do Fornecedor</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: Shenzhen, China" {...field} />
+                            <Textarea 
+                              placeholder="Descrição completa do produto, especificações técnicas, modelo, etc."
+                              className="min-h-[80px]"
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -568,28 +580,260 @@ export default function ImportsPage() {
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="currency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Moeda</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a moeda" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                            <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                            <SelectItem value="EUR">EUR - Euro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Informações de Preço */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <DollarSign className="w-5 h-5" />
+                      Informações de Preço
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="unitPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preço Unitário *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="50.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="fobPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preço FOB</FormLabel>
+                            <FormControl>
+                              <Input placeholder="45000.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="cifPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preço CIF</FormLabel>
+                            <FormControl>
+                              <Input placeholder="48000.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="totalValue"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Valor Total *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="50000.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Moeda</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a moeda" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                                <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Informações do Fornecedor */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <MapPin className="w-5 h-5" />
+                      Fornecedor
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="supplierName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Fornecedor *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Shenzhen Electronics Co." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="supplierLocation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Localização *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Shenzhen, China" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Informações de Transporte */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Ship className="w-5 h-5" />
+                      Transporte
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="shippingMethod"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Método de Envio</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="sea">
+                                  <div className="flex items-center gap-2">
+                                    <Ship className="w-4 h-4" />
+                                    Marítimo
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="air">
+                                  <div className="flex items-center gap-2">
+                                    <Plane className="w-4 h-4" />
+                                    Aéreo
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="land">
+                                  <div className="flex items-center gap-2">
+                                    <Truck className="w-4 h-4" />
+                                    Terrestre
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="containerType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Container</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="20ft">Container 20ft</SelectItem>
+                                <SelectItem value="40ft">Container 40ft</SelectItem>
+                                <SelectItem value="40ft-hc">Container 40ft HC</SelectItem>
+                                <SelectItem value="lcl">LCL (Carga Fracionada)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="incoterms"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Incoterms</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="FOB">FOB - Free on Board</SelectItem>
+                                <SelectItem value="CIF">CIF - Cost, Insurance, Freight</SelectItem>
+                                <SelectItem value="EXW">EXW - Ex Works</SelectItem>
+                                <SelectItem value="FCA">FCA - Free Carrier</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="weight"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Peso Total (kg)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="1500" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="volume"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Volume (m³)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="25.5" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
 
                   <FormField
                     control={form.control}
@@ -598,7 +842,12 @@ export default function ImportsPage() {
                       <FormItem>
                         <FormLabel>Observações</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Informações adicionais..." {...field} value={field.value || ""} />
+                          <Textarea 
+                            placeholder="Informações adicionais sobre a importação..."
+                            className="min-h-[80px]"
+                            {...field} 
+                            value={field.value || ""} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

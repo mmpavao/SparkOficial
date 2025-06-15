@@ -655,6 +655,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Pipeline update route
+  app.put('/api/imports/:id/pipeline', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { stage, data, currentStage } = req.body;
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+      
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Update the specific stage data and current stage
+      const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
+      const updateData = {
+        [stageKey]: data,
+        currentStage: currentStage,
+        updatedAt: new Date()
+      };
+      
+      const updatedImport = await storage.updateImportStatus(id, importRecord.status, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import pipeline:", error);
+      res.status(500).json({ message: "Erro ao atualizar pipeline da importação" });
+    }
+  });
+
   // Admin import routes
   app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
     try {
@@ -823,6 +858,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+
+  // Supplier routes
+  app.post('/api/suppliers', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const supplierData = { ...req.body, userId };
+      
+      const supplier = await storage.createSupplier(supplierData);
+      res.status(201).json(supplier);
+    } catch (error) {
+      console.error("Error creating supplier:", error);
+      res.status(500).json({ message: "Erro ao criar fornecedor" });
+    }
+  });
+
+  app.get('/api/suppliers', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const suppliers = await storage.getSuppliersByUser(userId);
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ message: "Erro ao buscar fornecedores" });
+    }
+  });
+
+  app.get('/api/suppliers/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const supplier = await storage.getSupplier(id);
+      
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+      
+      if (supplier.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error fetching supplier:", error);
+      res.status(500).json({ message: "Erro ao buscar fornecedor" });
+    }
+  });
+
+  app.put('/api/suppliers/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const supplier = await storage.getSupplier(id);
+      
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+      
+      if (supplier.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      const updatedSupplier = await storage.updateSupplier(id, req.body);
+      res.json(updatedSupplier);
+    } catch (error) {
+      console.error("Error updating supplier:", error);
+      res.status(500).json({ message: "Erro ao atualizar fornecedor" });
+    }
+  });
+
+  app.delete('/api/suppliers/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const supplier = await storage.getSupplier(id);
+      
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+      
+      if (supplier.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      await storage.deleteSupplier(id);
+      res.json({ message: "Fornecedor removido com sucesso" });
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      res.status(500).json({ message: "Erro ao remover fornecedor" });
+    }
+  });
 
   // Admin routes for credit analysis
   app.get("/api/admin/credit-applications/:id", requireAuth, requireAdmin, async (req: any, res) => {

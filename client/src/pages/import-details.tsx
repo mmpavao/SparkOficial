@@ -1,33 +1,34 @@
-import { useState } from "react";
-import { useRoute, useLocation } from "wouter";
+
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "@/contexts/I18nContext";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency } from "@/lib/formatters";
+import PipelineTracker from "@/components/PipelineTracker";
 import { 
-  ArrowLeft,
-  Truck,
+  ArrowLeft, 
+  Edit, 
+  Trash2, 
+  Package,
   MapPin,
   DollarSign,
   Calendar,
-  User,
-  Building2,
+  Truck,
+  Ship,
+  Plane,
   FileText,
-  Edit,
-  Trash2,
   CheckCircle,
   Clock,
-  AlertTriangle,
-  Eye,
-  Download
+  AlertCircle,
+  Building2,
+  Weight,
+  Box,
+  Scale
 } from "lucide-react";
 
 export default function ImportDetailsPage() {
@@ -35,9 +36,8 @@ export default function ImportDetailsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { isAdmin } = useUserPermissions();
   const queryClient = useQueryClient();
-  const permissions = useUserPermissions();
 
   const importId = params?.id ? parseInt(params.id) : null;
 
@@ -49,81 +49,97 @@ export default function ImportDetailsPage() {
       return response.json();
     },
     enabled: !!importId,
-  }) as { data: any, isLoading: boolean };
+  });
 
-  // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("DELETE", `/api/imports/${importId}`);
+  // Pipeline update mutation
+  const updatePipelineMutation = useMutation({
+    mutationFn: async ({ stage, data }: { stage: string; data: any }) => {
+      const response = await apiRequest("PUT", `/api/imports/${importId}/pipeline`, {
+        stage,
+        data,
+        currentStage: stage
+      });
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
       toast({
-        title: "Importação cancelada",
-        description: "A importação foi cancelada com sucesso.",
+        title: "Pipeline atualizado!",
+        description: "A etapa foi atualizada com sucesso.",
       });
-      window.location.href = '/imports';
+      queryClient.invalidateQueries({ queryKey: ["/api/imports", importId] });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível cancelar a importação.",
+        title: "Erro ao atualizar pipeline",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
+  const handlePipelineUpdate = (stage: string, data: any) => {
+    updatePipelineMutation.mutate({ stage, data });
+  };
+
+  if (!match || !importId) {
+    return <div>Importação não encontrada</div>;
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-spark-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando detalhes...</p>
-        </div>
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!importData) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Importação não encontrada</h2>
-        <p className="text-gray-600 mb-4">A importação solicitada não existe ou você não tem permissão para visualizá-la.</p>
-        <Button onClick={() => window.location.href = '/imports'}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar para Importações
-        </Button>
-      </div>
-    );
+    return <div>Importação não encontrada</div>;
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      planejamento: { label: "Planejamento", variant: "secondary" as const, icon: Clock },
-      em_andamento: { label: "Em Andamento", variant: "default" as const, icon: Truck },
-      concluida: { label: "Concluída", variant: "outline" as const, icon: CheckCircle },
-      cancelada: { label: "Cancelada", variant: "destructive" as const, icon: AlertTriangle },
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.planejamento;
-    const Icon = config.icon;
-    
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="w-3 h-3" />
-        {config.label}
-      </Badge>
-    );
+    switch (status) {
+      case "completed":
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Concluída</Badge>;
+      case "active":
+        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Em Andamento</Badge>;
+      case "planning":
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Planejamento</Badge>;
+      case "cancelled":
+        return <Badge className="bg-red-100 text-red-800"><AlertCircle className="w-3 h-3 mr-1" />Cancelada</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  const getShippingIcon = (method: string) => {
+    switch (method) {
+      case "sea":
+        return <Ship className="w-4 h-4" />;
+      case "air":
+        return <Plane className="w-4 h-4" />;
+      case "land":
+        return <Truck className="w-4 h-4" />;
+      default:
+        return <Package className="w-4 h-4" />;
+    }
   };
 
-  const canEdit = importData.status === 'planejamento' && 
-                 (permissions.isAdmin || importData.userId === user?.id);
-  const canCancel = importData.status !== 'cancelada' && importData.status !== 'concluida' &&
-                   (permissions.isAdmin || importData.userId === user?.id);
+  const getShippingLabel = (method: string) => {
+    switch (method) {
+      case "sea":
+        return "Marítimo";
+      case "air":
+        return "Aéreo";
+      case "land":
+        return "Terrestre";
+      default:
+        return method;
+    }
+  };
+
+  const canEdit = importData.status === 'planning' && (isAdmin || importData.userId === user?.id);
+  const canCancel = !['cancelled', 'completed'].includes(importData.status) && (isAdmin || importData.userId === user?.id);
 
   return (
     <div className="space-y-6">
@@ -132,7 +148,7 @@ export default function ImportDetailsPage() {
         <div className="flex items-center gap-4">
           <Button 
             variant="outline" 
-            onClick={() => setLocation('/imports')}
+            onClick={() => setLocation("/imports")}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -140,51 +156,59 @@ export default function ImportDetailsPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {importData.importNumber || `IMP-${importData.id.toString().padStart(3, '0')}`}
+              {importData.productName || "Detalhes da Importação"}
             </h1>
-            <p className="text-gray-600">Detalhes da Importação</p>
+            <p className="text-gray-600">
+              {importData.importNumber || `IMP-${importData.id.toString().padStart(3, '0')}`}
+            </p>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {getStatusBadge(importData.status)}
+          {canEdit && (
+            <Button 
+              variant="outline"
+              onClick={() => setLocation(`/import/edit/${importId}`)}
+              className="flex items-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              Editar
+            </Button>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
+          {/* Product Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Truck className="w-5 h-5" />
-                Informações Básicas
+                <Package className="w-5 h-5" />
+                Informações do Produto
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="text-sm font-medium text-gray-600">Nome do Produto</label>
+                  <p className="text-sm text-gray-900">{importData.productName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Quantidade</label>
+                  <p className="text-sm text-gray-900">{importData.quantity?.toLocaleString() || 'N/A'}</p>
+                </div>
+                <div className="md:col-span-2">
                   <label className="text-sm font-medium text-gray-600">Descrição</label>
-                  <p className="text-sm text-gray-900">{importData.description}</p>
+                  <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{importData.productDescription}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
-                  <div className="mt-1">
-                    {getStatusBadge(importData.status)}
+                {importData.hsCode && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Código HS</label>
+                    <p className="text-sm text-gray-900">{importData.hsCode}</p>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Fornecedor</label>
-                  <p className="text-sm text-gray-900">{importData.supplierName}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Local de Origem</label>
-                  <div className="flex items-center gap-1 text-sm text-gray-900">
-                    <MapPin className="w-3 h-3" />
-                    {importData.supplierLocation}
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -198,136 +222,275 @@ export default function ImportDetailsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                  <p className="text-lg font-semibold text-green-600">
-                    {formatCurrency(importData.totalValue, 'USD')}
+                  <label className="text-sm font-medium text-gray-600">Preço Unitário</label>
+                  <p className="text-sm text-gray-900">
+                    {importData.currency} {parseFloat(importData.unitPrice || 0).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Data Estimada</label>
-                  <div className="flex items-center gap-1 text-sm text-gray-900">
-                    <Calendar className="w-3 h-3" />
-                    {formatDate(importData.estimatedArrival)}
-                  </div>
+                  <label className="text-sm font-medium text-gray-600">Valor Total</label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {importData.currency} {parseFloat(importData.totalValue).toLocaleString()}
+                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Additional Information */}
-          {importData.observations && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Observações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {importData.observations}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Company Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Importador</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-medium">{importData.user?.companyName || 'N/A'}</span>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Criado em</label>
-                  <p className="text-sm text-gray-900">{formatDate(importData.createdAt)}</p>
+                  <label className="text-sm font-medium text-gray-600">Moeda</label>
+                  <p className="text-sm text-gray-900">{importData.currency}</p>
                 </div>
-                {importData.updatedAt && importData.updatedAt !== importData.createdAt && (
+                {importData.fobPrice && (
                   <div>
-                    <label className="text-xs font-medium text-gray-500">Atualizado em</label>
-                    <p className="text-sm text-gray-900">{formatDate(importData.updatedAt)}</p>
+                    <label className="text-sm font-medium text-gray-600">Preço FOB</label>
+                    <p className="text-sm text-gray-900">
+                      {importData.currency} {parseFloat(importData.fobPrice).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {importData.cifPrice && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Preço CIF</label>
+                    <p className="text-sm text-gray-900">
+                      {importData.currency} {parseFloat(importData.cifPrice).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {importData.incoterms && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Incoterms</label>
+                    <p className="text-sm text-gray-900">{importData.incoterms}</p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Actions */}
+          {/* Supplier Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Ações</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                Informações do Fornecedor
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Nome do Fornecedor</label>
+                  <p className="text-sm text-gray-900">{importData.supplierName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Localização</label>
+                  <p className="text-sm text-gray-900 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {importData.supplierLocation}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Shipping Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="w-5 h-5" />
+                Informações de Transporte
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Método de Envio</label>
+                  <p className="text-sm text-gray-900 flex items-center gap-2">
+                    {getShippingIcon(importData.shippingMethod)}
+                    {getShippingLabel(importData.shippingMethod)}
+                  </p>
+                </div>
+                {importData.containerType && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Tipo de Container</label>
+                    <p className="text-sm text-gray-900">{importData.containerType}</p>
+                  </div>
+                )}
+                {importData.weight && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Peso Total</label>
+                    <p className="text-sm text-gray-900 flex items-center gap-1">
+                      <Weight className="w-3 h-3" />
+                      {importData.weight} kg
+                    </p>
+                  </div>
+                )}
+                {importData.volume && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Volume</label>
+                    <p className="text-sm text-gray-900 flex items-center gap-1">
+                      <Box className="w-3 h-3" />
+                      {importData.volume} m³
+                    </p>
+                  </div>
+                )}
+                {importData.portOfLoading && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Porto de Embarque</label>
+                    <p className="text-sm text-gray-900">{importData.portOfLoading}</p>
+                  </div>
+                )}
+                {importData.portOfDischarge && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Porto de Desembarque</label>
+                    <p className="text-sm text-gray-900">{importData.portOfDischarge}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pipeline Tracker */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pipeline de Importação</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PipelineTracker
+                importId={importId}
+                currentStage={importData.currentStage || "estimativa"}
+                stages={{
+                  stageEstimativa: importData.stageEstimativa,
+                  stageInvoice: importData.stageInvoice,
+                  stageProducao: importData.stageProducao,
+                  stageEmbarque: importData.stageEmbarque,
+                  stageTransporte: importData.stageTransporte,
+                  stageAtracacao: importData.stageAtracacao,
+                  stageDesembaraco: importData.stageDesembaraco,
+                  stageTransporteTerrestre: importData.stageTransporteTerrestre,
+                  stageEntrega: importData.stageEntrega,
+                }}
+                onUpdateStage={handlePipelineUpdate}
+                readOnly={!isAdmin && importData.userId !== user?.id}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ações Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.print()}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Imprimir Detalhes
-              </Button>
-              
               {canEdit && (
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => window.location.href = `/import/edit/${importData.id}`}
+                  onClick={() => setLocation(`/import/edit/${importId}`)}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Editar Importação
                 </Button>
               )}
               
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => window.print()}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Imprimir Relatório
+              </Button>
+              
               {canCancel && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Cancelar Importação
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Manter</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => deleteMutation.mutate()}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Cancelar Importação
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-red-600 hover:text-red-700"
+                  onClick={() => {
+                    if (confirm("Tem certeza que deseja cancelar esta importação?")) {
+                      // Handle cancellation
+                    }
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Cancelar Importação
+                </Button>
               )}
             </CardContent>
           </Card>
+
+          {/* Timeline Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Resumo de Datas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Criado em</span>
+                <span className="font-medium">
+                  {new Date(importData.createdAt).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+              
+              {importData.estimatedDelivery && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Entrega Estimada</span>
+                  <span className="font-medium">
+                    {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              )}
+              
+              {importData.actualDelivery && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Entrega Real</span>
+                  <span className="font-medium text-green-600">
+                    {new Date(importData.actualDelivery).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              )}
+              
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Última Atualização</span>
+                <span className="font-medium">
+                  {new Date(importData.updatedAt).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          {importData.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Observações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
+                  {importData.notes}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Documents */}
+          {importData.documents && importData.documents.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Documentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {importData.documents.map((doc: string, index: number) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">{doc}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
