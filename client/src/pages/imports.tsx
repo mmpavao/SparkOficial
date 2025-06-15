@@ -519,12 +519,137 @@ export default function ImportsPage() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Informações do Produto */}
+                  {/* Informações Básicas */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                       <Package className="w-5 h-5" />
-                      Informações do Produto
+                      Informações Básicas
                     </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="importName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome/Código da Importação *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: IMP-2025-001 ou Eletrônicos Janeiro" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="cargoType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Carga *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value || "FCL"}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o tipo de carga" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="FCL">FCL - Contêiner Inteiro</SelectItem>
+                                <SelectItem value="LCL">LCL - Carga Fracionada</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    {/* Informações do Contêiner - apenas para FCL */}
+                    {form.watch("cargoType") === "FCL" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                        <FormField
+                          control={form.control}
+                          name="containerNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Número do Contêiner</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: TCLU1234567" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="sealNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Número do Lacre</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: 123456" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Informações do Fornecedor */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Building className="w-5 h-5" />
+                      Informações do Fornecedor
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="supplierName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Fornecedor *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Shanghai Manufacturing Co." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="supplierLocation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Localização do Fornecedor *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Shanghai, China" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Informações dos Produtos */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Box className="w-5 h-5" />
+                      {form.watch("cargoType") === "LCL" ? "Produtos da Carga" : "Produto Principal"}
+                    </h3>
+                    
+                    {form.watch("cargoType") === "LCL" && (
+                      <div className="p-4 bg-yellow-50 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Carga Fracionada (LCL):</strong> Você pode adicionar múltiplos produtos que compartilharão o mesmo contêiner.
+                        </p>
+                      </div>
+                    )}
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
