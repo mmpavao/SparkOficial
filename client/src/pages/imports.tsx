@@ -457,7 +457,7 @@ export default function ImportsPage() {
                         </DropdownMenuItem>
                         
                         {/* Editar - disponível para importações em planejamento e permissões corretas */}
-                        {(importItem.status === 'planejamento' && (isAdmin || importItem.userId === user?.id)) ? (
+                        {(importItem.status.toLowerCase() === 'planejamento' && (isAdmin || importItem.userId === user?.id)) ? (
                           <DropdownMenuItem onClick={() => setLocation(`/import/edit/${importItem.id}`)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
@@ -470,7 +470,7 @@ export default function ImportsPage() {
                         )}
                         
                         {/* Cancelar - disponível para importações não finalizadas e permissões corretas */}
-                        {(importItem.status !== 'cancelada' && importItem.status !== 'concluida' && (isAdmin || importItem.userId === user?.id)) ? (
+                        {(importItem.status.toLowerCase() !== 'cancelada' && importItem.status.toLowerCase() !== 'concluida' && (isAdmin || importItem.userId === user?.id)) ? (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
