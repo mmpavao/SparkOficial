@@ -52,7 +52,7 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: t.auth.loginSuccess,
-        description: "Bem-vindo de volta à Spark Comex.",
+        description: t.common.bemvindodevoltaaspar,
       });
     },
     onError: (error: any) => {
@@ -73,7 +73,7 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: t.auth.registerSuccess,
-        description: "Bem-vindo à Spark Comex.",
+        description: t.common.bemvindoasparkcomex,
       });
     },
     onError: (error: any) => {

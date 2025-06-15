@@ -19,26 +19,6 @@
     ],
     "line": 34
   },
-  "usuariocriadocomsuce": {
-    "pt": "Usuário criado com sucesso",
-    "en": "[TRANSLATE] Usuário criado com sucesso",
-    "zh": "[TRANSLATE] Usuário criado com sucesso",
-    "es": "[TRANSLATE] Usuário criado com sucesso",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 57
-  },
-  "erroaocriarusuario": {
-    "pt": "Erro ao criar usuário",
-    "en": "[TRANSLATE] Erro ao criar usuário",
-    "zh": "[TRANSLATE] Erro ao criar usuário",
-    "es": "[TRANSLATE] Erro ao criar usuário",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 63
-  },
   "roledousuarioatualiz": {
     "pt": "Role do usuário atualizada com sucesso",
     "en": "[TRANSLATE] Role do usuário atualizada com sucesso",

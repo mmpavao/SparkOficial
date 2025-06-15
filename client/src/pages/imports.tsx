@@ -68,7 +68,7 @@ export default function ImportsPage() {
     onSuccess: () => {
       toast({
         title: "Importação criada!",
-        description: "Sua nova importação foi registrada com sucesso.",
+        description: t.common.suanovaimportacaofoi,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
       setShowNewImportForm(false);

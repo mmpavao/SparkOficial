@@ -76,13 +76,13 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
         title: t.common.success,
-        description: "Role do usuário atualizada com sucesso",
+        description: t.common.roledousuarioatualiz,
       });
     },
     onError: (error) => {
       toast({
         title: t.common.error,
-        description: "Erro ao atualizar role do usuário",
+        description: t.common.erroaoatualizarroled,
         variant: "destructive",
       });
     },
@@ -96,13 +96,13 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
         title: "Sucesso",
-        description: "Usuário desativado com sucesso",
+        description: t.common.usuariodesativadocom,
       });
     },
     onError: (error) => {
       toast({
         title: "Erro",
-        description: "Erro ao desativar usuário",
+        description: t.common.erroaodesativarusuar,
         variant: "destructive",
       });
     },
