@@ -433,12 +433,7 @@ export default function ImportsPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Detalhes
-                    </Button>
-                    
-                    {/* Dropdown Menu with Actions */}
+                    {/* Dropdown Menu with Actions - Following credit pattern */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -446,44 +441,28 @@ export default function ImportsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {isAdmin ? (
-                          // Admin actions
+                        {/* Ver Detalhes - Available for all users */}
+                        <DropdownMenuItem onClick={() => window.location.href = `/import/details/${importItem.id}`}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        
+                        {/* Conditional actions based on user type and status */}
+                        {(importItem.status === 'planejamento' && (isAdmin || importItem.userId === user?.id)) && (
+                          <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {/* Separator before destructive actions */}
+                        {((importItem.status !== 'cancelada' && importItem.status !== 'concluida') && (isAdmin || importItem.userId === user?.id)) && (
                           <>
-                            <DropdownMenuItem>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleMarkAsDelivered(importItem.id)}>
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Marcar como Entregue
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Clock className="w-4 h-4 mr-2" />
-                              Atualizar Status
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-red-600"
                               onClick={() => handleCancelImport(importItem.id)}
                             >
-                              <AlertCircle className="w-4 h-4 mr-2" />
-                              Cancelar Importação
-                            </DropdownMenuItem>
-                          </>
-                        ) : (
-                          // Importer actions
-                          <>
-                            <DropdownMenuItem>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
                               <Trash2 className="w-4 h-4 mr-2" />
                               Cancelar
                             </DropdownMenuItem>

@@ -12,6 +12,8 @@ import CreditApplicationPage from "@/pages/credit-application";
 import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
+import ImportDetailsPage from "@/pages/import-details";
+import ImportEditPage from "@/pages/import-edit";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminUsersPage from "@/pages/admin-users";
@@ -43,6 +45,8 @@ function Router() {
             <Route path="/credit/details/:id" component={CreditDetailsPage} />
             <Route path="/credit/edit/:id" component={CreditEditPage} />
             <Route path="/imports" component={ImportsPage} />
+            <Route path="/import/details/:id" component={ImportDetailsPage} />
+            <Route path="/import/edit/:id" component={ImportEditPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />
