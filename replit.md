@@ -267,6 +267,15 @@ Changelog:
   * Created administrative communications section in credit details page visible to importers
   * Built real-time system for admin notes, document requests, and importer observations with proper data persistence
   * Enhanced AdminAnalysisPanel with field clearing after submissions and comprehensive cache invalidation
+- June 15, 2025. Complete import management system implementation:
+  * Implemented comprehensive import details and edit pages matching credit module functionality
+  * Created standardized dropdown actions menu in import cards (Ver Detalhes, Editar, Cancelar)
+  * Built backend endpoints for individual import operations (GET /api/imports/:id, PUT /api/imports/:id, DELETE /api/imports/:id)
+  * Added role-based permissions ensuring users can only edit/cancel their own imports (admins can manage all)
+  * Integrated proper API calls using apiRequest format throughout import management system
+  * Established consistent navigation patterns between import details, edit, and list pages
+  * Implemented status-based action availability (edit only in 'planejamento', cancel for non-finished imports)
+  * Created unified user experience across credit and import modules with identical interaction patterns
 ```
 
 ## User Preferences

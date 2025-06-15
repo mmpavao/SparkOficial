@@ -441,7 +441,7 @@ export default function ImportsPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {/* Dropdown Menu with Actions - Following credit pattern */}
+                    {/* Dropdown Menu with Actions - Following exact credit pattern */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -449,13 +449,13 @@ export default function ImportsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {/* Ver Detalhes - Available for all users */}
+                        {/* Ver Detalhes - Always first option */}
                         <DropdownMenuItem onClick={() => window.location.href = `/import/details/${importItem.id}`}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalhes
                         </DropdownMenuItem>
                         
-                        {/* Conditional actions based on user type and status */}
+                        {/* Editar - Only for planning status and correct permissions */}
                         {(importItem.status === 'planejamento' && (isAdmin || importItem.userId === user?.id)) && (
                           <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
                             <Edit className="w-4 h-4 mr-2" />
@@ -463,8 +463,8 @@ export default function ImportsPage() {
                           </DropdownMenuItem>
                         )}
                         
-                        {/* Separator before destructive actions */}
-                        {((importItem.status !== 'cancelada' && importItem.status !== 'concluida') && (isAdmin || importItem.userId === user?.id)) && (
+                        {/* Cancelar - Only for non-finished imports with correct permissions */}
+                        {(importItem.status !== 'cancelada' && importItem.status !== 'concluida' && (isAdmin || importItem.userId === user?.id)) && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
