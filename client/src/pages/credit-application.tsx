@@ -932,28 +932,22 @@ export default function CreditApplicationPage() {
                   }}
                 />
 
-                {/* Purpose */}
+                {/* Purpose - Fixed for China Import */}
                 <FormField
                   control={creditForm.control}
                   name="purpose"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Finalidade do Crédito *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a finalidade" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="importacao_mercadorias">Importação de Mercadorias</SelectItem>
-                          <SelectItem value="capital_giro">Capital de Giro para Importação</SelectItem>
-                          <SelectItem value="financiamento_supplier">Financiamento de Supplier Credit</SelectItem>
-                          <SelectItem value="pre_financiamento">Pré-financiamento de Exportação</SelectItem>
-                          <SelectItem value="outros">Outros</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-800 font-medium">
+                          ✓ Financiamento para Importação da China
+                        </p>
+                        <p className="text-xs text-green-600 mt-1">
+                          Crédito específico para compras a prazo de fornecedores chineses
+                        </p>
+                      </div>
+                      <input type="hidden" {...field} value="importacao_china" />
                     </FormItem>
                   )}
                 />
@@ -984,24 +978,40 @@ export default function CreditApplicationPage() {
                   )}
                 />
                 
-                {/* Justification */}
+                {/* Justification - Simplified for China Import */}
                 <FormField
                   control={creditForm.control}
                   name="justification"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Justificativa da Operação *</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Descreva o motivo da solicitação de crédito, quais fornecedores pretende utilizar, e como isso impactará suas operações. Inclua informações sobre cronograma, estratégia comercial e benefícios esperados..."
-                          rows={5}
-                          {...field}
-                        />
-                      </FormControl>
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Mínimo 50 caracteres para justificativa adequada</span>
-                        <span>{field.value?.length || 0}/2000</span>
-                      </div>
+                      <FormLabel>Objetivo da Importação *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o objetivo principal" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="melhorar_negociacao_volume">
+                            Melhorar negociação comprando maior quantidade
+                          </SelectItem>
+                          <SelectItem value="escalar_vendas_giro">
+                            Escalar vendas melhorando o giro de produtos
+                          </SelectItem>
+                          <SelectItem value="diversificar_portfolio">
+                            Diversificar portfólio de produtos importados
+                          </SelectItem>
+                          <SelectItem value="reduzir_custos_volume">
+                            Reduzir custos unitários com compras em maior volume
+                          </SelectItem>
+                          <SelectItem value="aproveitar_oportunidades">
+                            Aproveitar oportunidades sazonais do mercado chinês
+                          </SelectItem>
+                          <SelectItem value="expandir_mercados">
+                            Expandir para novos mercados e segmentos
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -1097,7 +1107,8 @@ export default function CreditApplicationPage() {
                 {optionalDocuments.map((doc, index) => (
                   <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-blue-900">{doc}</h4>
+                      <h4 className="font-medium text-blue-900">{doc.name}</h4>
+                      <p className="text-xs text-blue-600">{doc.description}</p>
                       
                       {uploadedDocuments[`optional_${index}`] && (
                         <div className="flex items-center gap-2 mt-2">

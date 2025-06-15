@@ -167,9 +167,16 @@ export const creditInfoSchema = z.object({
     .refine((val) => val >= 100000, { message: "Valor mínimo é USD $100.000" })
     .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
     .transform((val) => val.toString()),
-  purpose: z.string().min(1, "Finalidade é obrigatória"),
+  purpose: z.string().default("importacao_china"), // Fixed purpose for China imports
   productsToImport: z.string().min(10, "Descrição dos produtos a importar é obrigatória"),
-  justification: z.string().min(50, "Justificativa deve ter pelo menos 50 caracteres"),
+  justification: z.enum([
+    "melhorar_negociacao_volume",
+    "escalar_vendas_giro", 
+    "diversificar_portfolio",
+    "reduzir_custos_volume",
+    "aproveitar_oportunidades",
+    "expandir_mercados"
+  ], { message: "Selecione um objetivo válido" }),
 });
 
 export const documentsSchema = z.object({
