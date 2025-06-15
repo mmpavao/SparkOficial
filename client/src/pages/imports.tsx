@@ -12,8 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertImportSchema, type InsertImport } from "@shared/schema";
+import AdminImportFilters from "@/components/AdminImportFilters";
 import { 
   Truck, 
   Package, 
@@ -28,22 +30,34 @@ import {
   Eye,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  MoreVertical,
+  Edit,
+  Trash2
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ImportsPage() {
   const [showNewImportForm, setShowNewImportForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [adminFilters, setAdminFilters] = useState({});
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { isAdmin } = useUserPermissions();
 
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],
   });
 
-  // Fetch real imports data
+  // Fetch imports data based on user type
   const { data: imports = [], isLoading } = useQuery({
-    queryKey: ["/api/imports"],
+    queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"],
   });
 
   // Form setup
@@ -146,9 +160,49 @@ export default function ImportsPage() {
     }
   };
 
-  const filteredImports = filterStatus === "all" 
-    ? importData.imports 
-    : importData.imports.filter(imp => imp.status === filterStatus);
+  // Apply filters based on user type
+  const applyFilters = (importsArray: any[]) => {
+    let filtered = importsArray;
+
+    // Status filter (both admin and importer)
+    if (filterStatus !== "all") {
+      filtered = filtered.filter(imp => imp.status === filterStatus);
+    }
+
+    // Admin-specific filters
+    if (isAdmin && adminFilters) {
+      const { search, status, supplier, minValue, maxValue } = adminFilters as any;
+      
+      if (search) {
+        filtered = filtered.filter(imp => 
+          imp.supplierName?.toLowerCase().includes(search.toLowerCase()) ||
+          imp.productDescription?.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      
+      if (status && status !== "all") {
+        filtered = filtered.filter(imp => imp.status === status);
+      }
+      
+      if (supplier) {
+        filtered = filtered.filter(imp => 
+          imp.supplierName?.toLowerCase().includes(supplier.toLowerCase())
+        );
+      }
+      
+      if (minValue) {
+        filtered = filtered.filter(imp => parseFloat(imp.totalValue || 0) >= parseFloat(minValue));
+      }
+      
+      if (maxValue) {
+        filtered = filtered.filter(imp => parseFloat(imp.totalValue || 0) <= parseFloat(maxValue));
+      }
+    }
+
+    return filtered;
+  };
+
+  const filteredImports = applyFilters(importData.imports);
 
   const onSubmit = (data: InsertImport) => {
     createImportMutation.mutate(data);
@@ -160,16 +214,25 @@ export default function ImportsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t.imports.title}</h1>
-          <p className="text-gray-600">Gerencie suas importações da China</p>
+          <p className="text-gray-600">
+            {isAdmin ? "Gerencie todas as importações do sistema" : "Gerencie suas importações da China"}
+          </p>
         </div>
-        <Button 
-          onClick={() => setShowNewImportForm(true)}
-          className="bg-spark-600 hover:bg-spark-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          {t.imports.newImport}
-        </Button>
+        {!isAdmin && (
+          <Button 
+            onClick={() => setShowNewImportForm(true)}
+            className="bg-spark-600 hover:bg-spark-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {t.imports.newImport}
+          </Button>
+        )}
       </div>
+
+      {/* Admin Filters */}
+      {isAdmin && (
+        <AdminImportFilters onFiltersChange={setAdminFilters} />
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

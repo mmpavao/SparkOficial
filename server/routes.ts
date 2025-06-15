@@ -584,6 +584,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin import routes
+  app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Verificar se é admin ou super admin
+      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const imports = await storage.getAllImports();
+      res.json(imports);
+    } catch (error) {
+      console.error("Error fetching all imports:", error);
+      res.status(500).json({ message: "Erro ao buscar importações" });
+    }
+  });
+
+  app.patch('/api/admin/imports/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Verificar se é admin ou super admin
+      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const id = parseInt(req.params.id);
+      const { status, ...updateData } = req.body;
+      
+      const updatedImport = await storage.updateImportStatus(id, status, {
+        ...updateData,
+        updatedBy: req.session.userId,
+        updatedAt: new Date()
+      });
+      
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status da importação" });
+    }
+  });
+
   // Admin middleware
   const requireAdmin = async (req: any, res: any, next: any) => {
     try {
