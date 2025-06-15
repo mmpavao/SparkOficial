@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ export default function CreditPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const form = useForm<CreditApplicationForm>({
     resolver: zodResolver(createCreditApplicationSchema(t)),
@@ -136,7 +138,7 @@ export default function CreditPage() {
           </p>
         </div>
         <Button 
-          onClick={() => window.location.href = '/credit/new'}
+          onClick={() => setLocation('/credit/new')}
           className="bg-spark-600 hover:bg-spark-700"
         >
           <Plus className="w-4 h-4 mr-2" />
