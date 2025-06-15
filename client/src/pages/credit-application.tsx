@@ -73,8 +73,8 @@ type CommercialInfoForm = {
 
 type CreditInfoForm = {
   requestedAmount: string;
-  purpose: string;
-  productsToImport: string;
+  productsToImport: string[];
+  monthlyImportVolume: string;
   justification: string;
 };
 
@@ -131,6 +131,8 @@ export default function CreditApplicationPage() {
   const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
+  const [productTags, setProductTags] = useState<string[]>([]);
+  const [currentProduct, setCurrentProduct] = useState("");
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -189,8 +191,8 @@ export default function CreditApplicationPage() {
     resolver: zodResolver(creditInfoSchema),
     defaultValues: {
       requestedAmount: "",
-      purpose: "",
-      productsToImport: "",
+      productsToImport: [],
+      monthlyImportVolume: "",
       justification: "",
     },
   });
@@ -227,6 +229,29 @@ export default function CreditApplicationPage() {
     const current = companyForm.getValues("shareholders");
     if (current.length > 1) {
       companyForm.setValue("shareholders", current.filter((_, i) => i !== index));
+    }
+  };
+
+  // Product tags functions
+  const addProductTag = () => {
+    if (currentProduct.trim() && !productTags.includes(currentProduct.trim())) {
+      const newTags = [...productTags, currentProduct.trim()];
+      setProductTags(newTags);
+      setCurrentProduct("");
+      creditForm.setValue("productsToImport", newTags);
+    }
+  };
+
+  const removeProductTag = (tagToRemove: string) => {
+    const newTags = productTags.filter(tag => tag !== tagToRemove);
+    setProductTags(newTags);
+    creditForm.setValue("productsToImport", newTags);
+  };
+
+  const handleProductKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addProductTag();
     }
   };
 
@@ -932,25 +957,7 @@ export default function CreditApplicationPage() {
                   }}
                 />
 
-                {/* Purpose - Fixed for China Import */}
-                <FormField
-                  control={creditForm.control}
-                  name="purpose"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Finalidade do Crédito *</FormLabel>
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                        <p className="text-sm text-green-800 font-medium">
-                          ✓ Financiamento para Importação da China
-                        </p>
-                        <p className="text-xs text-green-600 mt-1">
-                          Crédito específico para compras a prazo de fornecedores chineses
-                        </p>
-                      </div>
-                      <input type="hidden" {...field} value="importacao_china" />
-                    </FormItem>
-                  )}
-                />
+
                 
                 {/* Products to Import */}
                 <FormField

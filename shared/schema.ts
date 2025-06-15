@@ -88,8 +88,8 @@ export const creditApplications = pgTable("credit_applications", {
   // Credit Information
   requestedAmount: text("requested_amount").notNull(), // USD amount
   currency: text("currency").notNull().default("USD"),
-  purpose: text("purpose").notNull(),
-  productsToImport: text("products_to_import").notNull(),
+  productsToImport: text("products_to_import").array().notNull(),
+  monthlyImportVolume: text("monthly_import_volume").notNull(),
   justification: text("justification").notNull(),
   
   // Documents
@@ -167,16 +167,9 @@ export const creditInfoSchema = z.object({
     .refine((val) => val >= 100000, { message: "Valor mínimo é USD $100.000" })
     .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
     .transform((val) => val.toString()),
-  purpose: z.string().default("importacao_china"), // Fixed purpose for China imports
-  productsToImport: z.string().min(10, "Descrição dos produtos a importar é obrigatória"),
-  justification: z.enum([
-    "melhorar_negociacao_volume",
-    "escalar_vendas_giro", 
-    "diversificar_portfolio",
-    "reduzir_custos_volume",
-    "aproveitar_oportunidades",
-    "expandir_mercados"
-  ], { message: "Selecione um objetivo válido" }),
+  productsToImport: z.array(z.string()).min(1, "Adicione pelo menos um produto"),
+  monthlyImportVolume: z.string().min(1, "Volume mensal é obrigatório"),
+  justification: z.string().min(20, "Justificativa deve ter pelo menos 20 caracteres"),
 });
 
 export const documentsSchema = z.object({
