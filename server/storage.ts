@@ -26,6 +26,7 @@ export interface IStorage {
   getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]>;
   getCreditApplication(id: number): Promise<CreditApplication | undefined>;
   updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication>;
+  updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication>;
   
   // Import operations
   createImport(importData: InsertImport): Promise<Import>;

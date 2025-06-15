@@ -337,6 +337,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete credit application
+  app.delete('/api/credit/applications/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(id);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      if (application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Only allow cancellation of pending applications
+      if (application.status !== 'pending') {
+        return res.status(400).json({ 
+          message: "Apenas solicitações pendentes podem ser canceladas" 
+        });
+      }
+      
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        id, 
+        'cancelled', 
+        { cancelledAt: new Date(), cancelledBy: req.session.userId }
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error cancelling credit application:", error);
+      res.status(500).json({ message: "Erro ao cancelar solicitação de crédito" });
+    }
+  });
+
+  // Update credit application
+  app.put('/api/credit/applications/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(id);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      if (application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Only allow editing of pending applications
+      if (application.status !== 'pending') {
+        return res.status(400).json({ 
+          message: "Apenas solicitações pendentes podem ser editadas" 
+        });
+      }
+      
+      const updatedData = {
+        ...req.body,
+        updatedAt: new Date(),
+      };
+      
+      const updatedApplication = await storage.updateCreditApplication(id, updatedData);
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating credit application:", error);
+      res.status(500).json({ message: "Erro ao atualizar solicitação de crédito" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {
