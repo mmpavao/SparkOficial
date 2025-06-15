@@ -36,7 +36,8 @@ import {
   MoreVertical,
   Edit,
   Building,
-  Box
+  Box,
+  X
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -306,7 +307,7 @@ export default function ImportsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t.imports.title}</h1>
-          <p className="text-gray-600 mt-1">{t.imports.subtitle}</p>
+          <p className="text-gray-600 mt-1">Gerencie suas importações da China</p>
         </div>
         <Button
           onClick={() => setShowNewImportForm(true)}

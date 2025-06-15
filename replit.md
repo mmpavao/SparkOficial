@@ -276,6 +276,16 @@ Changelog:
   * Established consistent navigation patterns between import details, edit, and list pages
   * Implemented status-based action availability (edit only in 'planejamento', cancel for non-finished imports)
   * Created unified user experience across credit and import modules with identical interaction patterns
+- June 15, 2025. Enhanced import system with cargo tracking and pricing improvements:
+  * Added import name/code tracking for better organization and identification
+  * Implemented FCL vs LCL cargo type selection with adaptive interface
+  * Built complete multiple products system for LCL cargo with dynamic product management
+  * Created automatic value calculation based on quantity × unit price for multiple products
+  * Simplified pricing system with single FOB/CIF/EXW selector instead of duplicate price fields
+  * Removed supplier information duplications for cleaner, more intuitive form structure
+  * Added container information section (number and seal) visible only for FCL shipments
+  * Integrated real-time product summary showing total quantities and values for LCL cargo
+  * Enhanced form validation and user experience with visual product management interface
 ```
 
 ## User Preferences
