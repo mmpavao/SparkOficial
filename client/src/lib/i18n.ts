@@ -55,6 +55,21 @@ export interface Translations {
     close: string;
     erro: string;
     queryfunction: string;
+    usuariocriadocomsuce: string;
+    erroaocriarusuario: string;
+    roledousuarioatualiz: string;
+    erroaoatualizarroled: string;
+    usuariodesativadocom: string;
+    erroaodesativarusuar: string;
+    bemvindodevoltaaspar: string;
+    bemvindoasparkcomex: string;
+    suanovaimportacaofoi: string;
+    erroaocriarimportaca: string;
+    orelatoriofoigeradoe: string;
+    suasinformacoesforam: string;
+    erroaoatualizarperfi: string;
+    suapreferenciadenoti: string;
+    suaconfiguracaodeseg: string;
   };
   dashboard: {
     title: string;
@@ -222,6 +237,21 @@ const ptTranslations: Translations = {
     close: 'Fechar',
     erro: 'Erro',
     queryfunction: 'QueryFunction',
+    usuariocriadocomsuce: 'Usuário criado com sucesso',
+    erroaocriarusuario: 'Erro ao criar usuário',
+    roledousuarioatualiz: 'Role do usuário atualizada com sucesso',
+    erroaoatualizarroled: 'Erro ao atualizar role do usuário',
+    usuariodesativadocom: 'Usuário desativado com sucesso',
+    erroaodesativarusuar: 'Erro ao desativar usuário',
+    bemvindodevoltaaspar: 'Bem-vindo de volta à Spark Comex.',
+    bemvindoasparkcomex: 'Bem-vindo à Spark Comex.',
+    suanovaimportacaofoi: 'Sua nova importação foi registrada com sucesso.',
+    erroaocriarimportaca: 'Erro ao criar importação',
+    orelatoriofoigeradoe: 'O relatório foi gerado e está sendo baixado.',
+    suasinformacoesforam: 'Suas informações foram salvas com sucesso.',
+    erroaoatualizarperfi: 'Erro ao atualizar perfil.',
+    suapreferenciadenoti: 'Sua preferência de notificação foi atualizada.',
+    suaconfiguracaodeseg: 'Sua configuração de segurança foi salva.',
   },
   dashboard: {
     title: 'Dashboard',
@@ -345,6 +375,21 @@ const enTranslations: Translations = {
     close: 'Close',
     erro: 'Error',
     queryfunction: 'QueryFunction',
+    usuariocriadocomsuce: 'User created successfully',
+    erroaocriarusuario: 'Error creating user',
+    roledousuarioatualiz: 'User role updated successfully',
+    erroaoatualizarroled: 'Error updating user role',
+    usuariodesativadocom: 'User deactivated successfully',
+    erroaodesativarusuar: 'Error deactivating user',
+    bemvindodevoltaaspar: 'Welcome back to Spark Comex.',
+    bemvindoasparkcomex: 'Welcome to Spark Comex.',
+    suanovaimportacaofoi: 'Your new import has been registered successfully.',
+    erroaocriarimportaca: 'Error creating import',
+    orelatoriofoigeradoe: 'The report has been generated and is being downloaded.',
+    suasinformacoesforam: 'Your information has been saved successfully.',
+    erroaoatualizarperfi: 'Error updating profile.',
+    suapreferenciadenoti: 'Your notification preference has been updated.',
+    suaconfiguracaodeseg: 'Your security configuration has been saved.',
   }
 };
 
@@ -359,6 +404,21 @@ const zhTranslations: Translations = {
     close: '关闭',
     erro: '错误',
     queryfunction: 'QueryFunction',
+    usuariocriadocomsuce: '用户创建成功',
+    erroaocriarusuario: '创建用户时出错',
+    roledousuarioatualiz: '用户角色更新成功',
+    erroaoatualizarroled: '更新用户角色时出错',
+    usuariodesativadocom: '用户停用成功',
+    erroaodesativarusuar: '停用用户时出错',
+    bemvindodevoltaaspar: '欢迎回到 Spark Comex。',
+    bemvindoasparkcomex: '欢迎来到 Spark Comex。',
+    suanovaimportacaofoi: '您的新进口已成功注册。',
+    erroaocriarimportaca: '创建进口时出错',
+    orelatoriofoigeradoe: '报告已生成并正在下载。',
+    suasinformacoesforam: '您的信息已成功保存。',
+    erroaoatualizarperfi: '更新个人资料时出错。',
+    suapreferenciadenoti: '您的通知偏好已更新。',
+    suaconfiguracaodeseg: '您的安全配置已保存。',
   }
 };
 
@@ -373,6 +433,21 @@ const esTranslations: Translations = {
     close: 'Cerrar',
     erro: 'Error',
     queryfunction: 'QueryFunction',
+    usuariocriadocomsuce: 'Usuario creado exitosamente',
+    erroaocriarusuario: 'Error al crear usuario',
+    roledousuarioatualiz: 'Rol de usuario actualizado exitosamente',
+    erroaoatualizarroled: 'Error al actualizar rol de usuario',
+    usuariodesativadocom: 'Usuario desactivado exitosamente',
+    erroaodesativarusuar: 'Error al desactivar usuario',
+    bemvindodevoltaaspar: 'Bienvenido de vuelta a Spark Comex.',
+    bemvindoasparkcomex: 'Bienvenido a Spark Comex.',
+    suanovaimportacaofoi: 'Su nueva importación ha sido registrada exitosamente.',
+    erroaocriarimportaca: 'Error al crear importación',
+    orelatoriofoigeradoe: 'El reporte ha sido generado y se está descargando.',
+    suasinformacoesforam: 'Su información ha sido guardada exitosamente.',
+    erroaoatualizarperfi: 'Error al actualizar perfil.',
+    suapreferenciadenoti: 'Su preferencia de notificación ha sido actualizada.',
+    suaconfiguracaodeseg: 'Su configuración de seguridad ha sido guardada.',
   }
 };
 

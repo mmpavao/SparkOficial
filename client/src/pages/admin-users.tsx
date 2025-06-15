@@ -55,14 +55,14 @@ export default function AdminUsersPage() {
       setCreateDialogOpen(false);
       form.reset();
       toast({
-        title: "Sucesso",
-        description: "Usuário criado com sucesso",
+        title: t.common.success,
+        description: t.common.usuariocriadocomsuce,
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: "Erro ao criar usuário",
+        title: t.common.erro,
+        description: t.common.erroaocriarusuario,
         variant: "destructive",
       });
     },
