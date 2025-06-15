@@ -19,10 +19,7 @@ import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
-  console.log("Router - isLoading:", isLoading, "isAuthenticated:", isAuthenticated, "user:", user);
-
   if (isLoading) {
-    console.log("Mostrando tela de loading");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -32,8 +29,6 @@ function Router() {
       </div>
     );
   }
-
-  console.log("Decidindo renderização - isAuthenticated:", isAuthenticated);
 
   return (
     <Switch>
@@ -51,10 +46,7 @@ function Router() {
           </Switch>
         </AuthenticatedLayout>
       ) : (
-        <>
-          {console.log("Renderizando AuthPage")}
-          <Route path="/" component={AuthPage} />
-        </>
+        <Route path="/" component={AuthPage} />
       )}
     </Switch>
   );

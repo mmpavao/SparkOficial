@@ -104,6 +104,15 @@ export const insertCreditApplicationSchema = createInsertSchema(creditApplicatio
   approvedAmount: true,
   interestRate: true,
   paymentTerms: true,
+}).extend({
+  requestedAmount: z.string()
+    .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
+    .refine((val) => val >= 100, { message: "Valor mínimo é USD $100" })
+    .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
+    .transform((val) => val.toString()),
+  purpose: z.string()
+    .min(10, "Descrição deve ter pelo menos 10 caracteres")
+    .max(500, "Descrição muito longa (máximo 500 caracteres)"),
 });
 
 export const insertImportSchema = createInsertSchema(imports).omit({

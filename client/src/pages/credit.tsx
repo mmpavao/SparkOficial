@@ -29,8 +29,16 @@ import {
 } from "lucide-react";
 
 const createCreditApplicationSchema = (t: any) => z.object({
-  requestedAmount: z.string().min(1, t.validation.required),
-  purpose: z.string().min(10, t.validation.minLength.replace('{0}', '10')),
+  requestedAmount: z.string()
+    .min(1, "Valor é obrigatório")
+    .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
+    .refine((val) => !isNaN(val), { message: "Valor deve ser um número válido" })
+    .refine((val) => val >= 100, { message: "Valor mínimo é USD $100" })
+    .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
+    .transform((val) => val.toString()),
+  purpose: z.string()
+    .min(10, "Descrição deve ter pelo menos 10 caracteres")
+    .max(500, "Descrição muito longa (máximo 500 caracteres)"),
   notes: z.string().optional(),
 });
 
