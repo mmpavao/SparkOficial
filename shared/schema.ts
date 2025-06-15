@@ -339,6 +339,10 @@ export const insertImportSchema = createInsertSchema(imports).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
+  importName: z.string().min(3, "Nome/código da importação é obrigatório"),
+  cargoType: z.enum(["FCL", "LCL"]).default("FCL"),
+  containerNumber: z.string().optional(),
+  sealNumber: z.string().optional(),
   productName: z.string().min(2, "Nome do produto é obrigatório"),
   productDescription: z.string().min(10, "Descrição detalhada é obrigatória"),
   quantity: z.number().min(1, "Quantidade deve ser maior que 0"),

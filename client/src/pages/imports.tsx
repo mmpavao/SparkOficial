@@ -34,7 +34,9 @@ import {
   AlertCircle,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Building,
+  Box
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -574,7 +576,7 @@ export default function ImportsPage() {
                             <FormItem>
                               <FormLabel>Número do Contêiner</FormLabel>
                               <FormControl>
-                                <Input placeholder="Ex: TCLU1234567" {...field} />
+                                <Input placeholder="Ex: TCLU1234567" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -588,7 +590,7 @@ export default function ImportsPage() {
                             <FormItem>
                               <FormLabel>Número do Lacre</FormLabel>
                               <FormControl>
-                                <Input placeholder="Ex: 123456" {...field} />
+                                <Input placeholder="Ex: 123456" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
