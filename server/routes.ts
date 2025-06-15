@@ -210,6 +210,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = req.body;
       const { confirmPassword, ...userDataWithoutConfirm } = userData;
       
+      // Verificar se já existe usuário com este email
+      const existingUserByEmail = await storage.getUserByEmail(userDataWithoutConfirm.email);
+      if (existingUserByEmail) {
+        return res.status(400).json({ 
+          message: "Já existe um usuário cadastrado com este email",
+          field: "email"
+        });
+      }
+
+      // Verificar se já existe usuário com este CNPJ
+      const existingUserByCnpj = await storage.getUserByCnpj(userDataWithoutConfirm.cnpj);
+      if (existingUserByCnpj) {
+        return res.status(400).json({ 
+          message: "Já existe um usuário cadastrado com este CNPJ",
+          field: "cnpj"
+        });
+      }
+      
       const newUser = await storage.createUserByAdmin(userDataWithoutConfirm, currentUser.id);
       res.json(newUser);
     } catch (error) {

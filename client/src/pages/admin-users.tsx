@@ -59,10 +59,20 @@ export default function AdminUsersPage() {
         description: "Usuário criado com sucesso",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      let errorMessage = "Erro ao criar usuário";
+      
+      if (error.message && error.message.includes("email")) {
+        errorMessage = "Já existe um usuário cadastrado com este email";
+      } else if (error.message && error.message.includes("CNPJ")) {
+        errorMessage = "Já existe um usuário cadastrado com este CNPJ";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       toast({
         title: "Erro",
-        description: "Erro ao criar usuário",
+        description: errorMessage,
         variant: "destructive",
       });
     },
