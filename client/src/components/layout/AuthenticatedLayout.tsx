@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/contexts/I18nContext";
-import AIInsightsButton from "@/components/ai-insights/AIInsightsButton";
+
 import LanguageSelector from "@/components/ui/language-selector";
 import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
 import { 
@@ -317,8 +317,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         </main>
       </div>
 
-      {/* AI Insights Button */}
-      <AIInsightsButton />
+
     </div>
   );
 }
