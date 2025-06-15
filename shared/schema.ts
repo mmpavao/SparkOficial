@@ -333,6 +333,16 @@ export const insertSupplierSchema = createInsertSchema(suppliers).omit({
   productCategories: z.array(z.string()).min(1, "Selecione pelo menos uma categoria"),
 });
 
+// Product schema for imports
+const productSchema = z.object({
+  name: z.string().min(1, "Nome do produto é obrigatório"),
+  description: z.string().min(1, "Descrição é obrigatória"),
+  hsCode: z.string().optional(),
+  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
+  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  totalValue: z.string().min(1, "Valor total é obrigatório"),
+});
+
 // Enhanced import validation schema
 export const insertImportSchema = createInsertSchema(imports).omit({
   id: true,
@@ -343,10 +353,11 @@ export const insertImportSchema = createInsertSchema(imports).omit({
   cargoType: z.enum(["FCL", "LCL"]).default("FCL"),
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
-  productName: z.string().min(2, "Nome do produto é obrigatório"),
-  productDescription: z.string().min(10, "Descrição detalhada é obrigatória"),
-  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
-  unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
+  products: z.array(productSchema).min(1, "Pelo menos um produto é obrigatório"),
+  productName: z.string().optional(), // For FCL compatibility
+  productDescription: z.string().optional(), // For FCL compatibility
+  quantity: z.number().optional(), // For FCL compatibility
+  unitPrice: z.string().optional(), // For FCL compatibility
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   supplierName: z.string().min(2, "Nome do fornecedor é obrigatório"),
   supplierLocation: z.string().min(2, "Localização do fornecedor é obrigatória"),

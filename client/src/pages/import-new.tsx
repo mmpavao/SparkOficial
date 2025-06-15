@@ -91,34 +91,56 @@ export default function NewImportPage() {
     console.log("Form values:", form.getValues());
     
     try {
-      // Check if form is valid
-      if (!form.formState.isValid) {
-        console.log("Form is not valid, errors:", form.formState.errors);
-        toast({
-          title: "Erro de validação",
-          description: "Por favor, preencha todos os campos obrigatórios.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Calculate total value from all products for LCL
-      const totalProductValue = products.reduce((sum, product) => {
-        return sum + (parseFloat(product.totalValue) || 0);
-      }, 0);
+      const cargoType = form.watch("cargoType");
       
-      // Prepare submission data
-      const submissionData = {
-        ...data,
-        products: form.watch("cargoType") === "LCL" ? products : [{
+      // Prepare products array based on cargo type
+      let productsArray;
+      let finalTotalValue;
+      
+      if (cargoType === "LCL") {
+        // For LCL, use the products array from state
+        if (products.length === 0) {
+          toast({
+            title: "Erro de validação",
+            description: "Adicione pelo menos um produto para carga LCL.",
+            variant: "destructive",
+          });
+          return;
+        }
+        productsArray = products;
+        finalTotalValue = products.reduce((sum, product) => {
+          return sum + (parseFloat(product.totalValue) || 0);
+        }, 0).toString();
+      } else {
+        // For FCL, create single product from form data
+        productsArray = [{
           name: data.productName || "",
           description: data.productDescription || "",
           hsCode: "",
           quantity: data.quantity || 1,
           unitPrice: data.unitPrice || "",
           totalValue: data.totalValue || ""
-        }],
-        totalValue: form.watch("cargoType") === "LCL" ? totalProductValue.toString() : data.totalValue
+        }];
+        finalTotalValue = data.totalValue || "";
+      }
+      
+      // Prepare final submission data
+      const submissionData = {
+        importName: data.importName,
+        cargoType: data.cargoType,
+        supplierName: data.supplierName,
+        supplierLocation: data.supplierLocation,
+        products: productsArray,
+        totalValue: finalTotalValue,
+        currency: data.currency || "USD",
+        incoterms: data.incoterms || "FOB",
+        shippingMethod: data.shippingMethod || "sea",
+        containerType: data.containerType,
+        containerNumber: data.containerNumber || "",
+        sealNumber: data.sealNumber || "",
+        estimatedDelivery: data.estimatedDelivery,
+        status: "planning",
+        currentStage: "estimativa"
       };
       
       console.log("Prepared submission data:", submissionData);
