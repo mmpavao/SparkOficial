@@ -256,6 +256,11 @@ Changelog:
   * Simplified user management to display only essential information (name, email, phone, role, status)
   * Enhanced AdminAnalysisPanel with professional confirmation dialogs for approve/reject actions
   * Fixed logout redirect from /auth to root URL (/) for proper navigation flow
+  * Implemented complete administrative observations system with database schema updates
+  * Added new database columns: pre_analysis_status, risk_level, analysis_notes, requested_documents, admin_observations, analyzed_by, analyzed_at
+  * Created administrative communications section in credit details page visible to importers
+  * Built real-time system for admin notes, document requests, and importer observations with proper data persistence
+  * Enhanced AdminAnalysisPanel with field clearing after submissions and comprehensive cache invalidation
 ```
 
 ## User Preferences

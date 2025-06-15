@@ -62,6 +62,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", application.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
       toast({
         title: "Sucesso!",
@@ -165,6 +166,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         preAnalysisStatus: 'needs_clarification'
       }
     });
+    
+    // Clear the field after sending
+    setAnalysisData(prev => ({ ...prev, observations: "" }));
   };
 
   const getStatusBadge = (status: string) => {
