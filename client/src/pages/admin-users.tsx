@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome Completo</FormLabel>
+                      <FormLabel>{t.common.nomecompleto}</FormLabel>
                       <FormControl>
                         <Input placeholder={t.common.digiteonomecompleto} {...field} />
                       </FormControl>
@@ -232,7 +232,7 @@ export default function AdminUsersPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t.common.email}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="email@exemplo.com" {...field} />
                       </FormControl>
@@ -276,7 +276,7 @@ export default function AdminUsersPage() {
                   name="companyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome da Empresa</FormLabel>
+                      <FormLabel>{t.common.nomedaempresa}</FormLabel>
                       <FormControl>
                         <Input placeholder={t.common.digiteonomedaempresa} {...field} />
                       </FormControl>
@@ -309,7 +309,7 @@ export default function AdminUsersPage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone</FormLabel>
+                        <FormLabel>{t.common.telefone}</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="(00) 00000-0000" 
@@ -350,9 +350,7 @@ export default function AdminUsersPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setCreateDialogOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
+                  >{t.common.cancelar}</Button>
                   <Button
                     type="submit"
                     disabled={createUserMutation.isPending}

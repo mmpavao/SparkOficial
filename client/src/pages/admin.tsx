@@ -257,8 +257,8 @@ export default function AdminPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t.common.produto}</TableHead>
-                    <TableHead>Fornecedor</TableHead>
-                    <TableHead>Valor</TableHead>
+                    <TableHead>{t.common.fornecedor}</TableHead>
+                    <TableHead>{t.common.valor}</TableHead>
                     <TableHead>{t.common.status}</TableHead>
                     <TableHead>{t.common.dataestimada}</TableHead>
                   </TableRow>

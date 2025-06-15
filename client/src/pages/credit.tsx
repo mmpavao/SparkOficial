@@ -260,7 +260,7 @@ export default function CreditPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Crédito Utilizado</p>
+                <p className="text-sm text-gray-600">{t.common.creditoutilizado}</p>
                 <p className="text-2xl font-bold text-blue-600">{t.common.r15000}</p>
                 <p className="text-xs text-gray-500 mt-1">60% do limite</p>
               </div>

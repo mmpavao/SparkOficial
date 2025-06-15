@@ -136,7 +136,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
             <img 
               src={sparkLogo} 
-              alt="Spark Comex" 
+              alt={t.common.sparkcomex} 
               className="h-8 w-auto"
             />
           </div>
@@ -301,9 +301,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Spark Comex
-              </h1>
+              <h1 className="text-xl font-semibold text-gray-900">{t.common.sparkcomex}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <LanguageSelector />

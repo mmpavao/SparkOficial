@@ -1,44 +1,4 @@
 {
-  "carregando": {
-    "pt": "Carregando...",
-    "en": "[TRANSLATE] Carregando...",
-    "zh": "[TRANSLATE] Carregando...",
-    "es": "[TRANSLATE] Carregando...",
-    "files": [
-      "client/src/App.tsx"
-    ],
-    "line": 27
-  },
-  "acoes": {
-    "pt": "Ações",
-    "en": "[TRANSLATE] Ações",
-    "zh": "[TRANSLATE] Ações",
-    "es": "[TRANSLATE] Ações",
-    "files": [
-      "client/src/components/common/DataTable.tsx"
-    ],
-    "line": 50
-  },
-  "sparkcomex": {
-    "pt": "Spark Comex",
-    "en": "[TRANSLATE] Spark Comex",
-    "zh": "[TRANSLATE] Spark Comex",
-    "es": "[TRANSLATE] Spark Comex",
-    "files": [
-      "client/src/components/layout/AuthenticatedLayout.tsx"
-    ],
-    "line": 304
-  },
-  "close": {
-    "pt": "Close",
-    "en": "[TRANSLATE] Close",
-    "zh": "[TRANSLATE] Close",
-    "es": "[TRANSLATE] Close",
-    "files": [
-      "client/src/components/ui/dialog.tsx"
-    ],
-    "line": 49
-  },
   "erro": {
     "pt": "Erro",
     "en": "[TRANSLATE] Erro",
@@ -48,56 +8,6 @@
       "client/src/hooks/useErrorHandler.ts"
     ],
     "line": 28
-  },
-  "nomecompleto": {
-    "pt": "Nome Completo",
-    "en": "[TRANSLATE] Nome Completo",
-    "zh": "[TRANSLATE] Nome Completo",
-    "es": "[TRANSLATE] Nome Completo",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 221
-  },
-  "email": {
-    "pt": "Email",
-    "en": "[TRANSLATE] Email",
-    "zh": "[TRANSLATE] Email",
-    "es": "[TRANSLATE] Email",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 235
-  },
-  "nomedaempresa": {
-    "pt": "Nome da Empresa",
-    "en": "[TRANSLATE] Nome da Empresa",
-    "zh": "[TRANSLATE] Nome da Empresa",
-    "es": "[TRANSLATE] Nome da Empresa",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 279
-  },
-  "telefone": {
-    "pt": "Telefone",
-    "en": "[TRANSLATE] Telefone",
-    "zh": "[TRANSLATE] Telefone",
-    "es": "[TRANSLATE] Telefone",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 312
-  },
-  "cancelar": {
-    "pt": "Cancelar",
-    "en": "[TRANSLATE] Cancelar",
-    "zh": "[TRANSLATE] Cancelar",
-    "es": "[TRANSLATE] Cancelar",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 353
   },
   "usuariocriadocomsuce": {
     "pt": "Usuário criado com sucesso",
@@ -159,26 +69,6 @@
     ],
     "line": 103
   },
-  "fornecedor": {
-    "pt": "Fornecedor",
-    "en": "[TRANSLATE] Fornecedor",
-    "zh": "[TRANSLATE] Fornecedor",
-    "es": "[TRANSLATE] Fornecedor",
-    "files": [
-      "client/src/pages/admin.tsx"
-    ],
-    "line": 260
-  },
-  "valor": {
-    "pt": "Valor",
-    "en": "[TRANSLATE] Valor",
-    "zh": "[TRANSLATE] Valor",
-    "es": "[TRANSLATE] Valor",
-    "files": [
-      "client/src/pages/admin.tsx"
-    ],
-    "line": 261
-  },
   "bemvindodevoltaaspar": {
     "pt": "Bem-vindo de volta à Spark Comex.",
     "en": "[TRANSLATE] Bem-vindo de volta à Spark Comex.",
@@ -198,46 +88,6 @@
       "client/src/pages/auth.tsx"
     ],
     "line": 74
-  },
-  "creditoutilizado": {
-    "pt": "Crédito Utilizado",
-    "en": "[TRANSLATE] Crédito Utilizado",
-    "zh": "[TRANSLATE] Crédito Utilizado",
-    "es": "[TRANSLATE] Crédito Utilizado",
-    "files": [
-      "client/src/pages/credit.tsx"
-    ],
-    "line": 263
-  },
-  "pendente": {
-    "pt": "Pendente",
-    "en": "[TRANSLATE] Pendente",
-    "zh": "[TRANSLATE] Pendente",
-    "es": "[TRANSLATE] Pendente",
-    "files": [
-      "client/src/pages/imports.tsx"
-    ],
-    "line": 141
-  },
-  "nomedofornecedor": {
-    "pt": "Nome do Fornecedor",
-    "en": "[TRANSLATE] Nome do Fornecedor",
-    "zh": "[TRANSLATE] Nome do Fornecedor",
-    "es": "[TRANSLATE] Nome do Fornecedor",
-    "files": [
-      "client/src/pages/imports.tsx"
-    ],
-    "line": 369
-  },
-  "observacoes": {
-    "pt": "Observações",
-    "en": "[TRANSLATE] Observações",
-    "zh": "[TRANSLATE] Observações",
-    "es": "[TRANSLATE] Observações",
-    "files": [
-      "client/src/pages/imports.tsx"
-    ],
-    "line": 436
   },
   "suanovaimportacaofoi": {
     "pt": "Sua nova importação foi registrada com sucesso.",

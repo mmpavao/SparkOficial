@@ -138,7 +138,7 @@ export default function ImportsPage() {
       case "paid":
         return <Badge variant="secondary" className="bg-green-100 text-green-800">{t.common.pago}</Badge>;
       case "pending":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{t.common.pendente}</Badge>;
       case "overdue":
         return <Badge variant="secondary" className="bg-red-100 text-red-800">{t.common.vencido}</Badge>;
       default:
@@ -366,7 +366,7 @@ export default function ImportsPage() {
                       name="supplierName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome do Fornecedor</FormLabel>
+                          <FormLabel>{t.common.nomedofornecedor}</FormLabel>
                           <FormControl>
                             <Input placeholder={t.common.nomedofornecedor} {...field} />
                           </FormControl>
@@ -433,7 +433,7 @@ export default function ImportsPage() {
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Observações</FormLabel>
+                        <FormLabel>{t.common.observacoes}</FormLabel>
                         <FormControl>
                           <Textarea placeholder={t.common.informacoesadicionai} {...field} value={field.value || ""} />
                         </FormControl>

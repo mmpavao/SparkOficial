@@ -49,6 +49,12 @@ export interface Translations {
     componenteseletronic: string;
     beijingsaopaulo: string;
     alfandega: string;
+    sparkcomex: string;
+    carregando: string;
+    acoes: string;
+    close: string;
+    erro: string;
+    queryfunction: string;
   };
   dashboard: {
     title: string;
@@ -210,6 +216,12 @@ const ptTranslations: Translations = {
     componenteseletronic: 'Componentes Eletrônicos',
     beijingsaopaulo: 'Beijing → São Paulo',
     alfandega: 'Alfândega',
+    sparkcomex: 'Spark Comex',
+    carregando: 'Carregando...',
+    acoes: 'Ações',
+    close: 'Fechar',
+    erro: 'Erro',
+    queryfunction: 'QueryFunction',
   },
   dashboard: {
     title: 'Dashboard',
@@ -322,10 +334,47 @@ const ptTranslations: Translations = {
   },
 };
 
-// Copy Portuguese for other languages temporarily to get app working
-const enTranslations: Translations = { ...ptTranslations };
-const zhTranslations: Translations = { ...ptTranslations };
-const esTranslations: Translations = { ...ptTranslations };
+// English translations
+const enTranslations: Translations = {
+  ...ptTranslations,
+  common: {
+    ...ptTranslations.common,
+    sparkcomex: 'Spark Comex',
+    carregando: 'Loading...',
+    acoes: 'Actions',
+    close: 'Close',
+    erro: 'Error',
+    queryfunction: 'QueryFunction',
+  }
+};
+
+// Chinese translations
+const zhTranslations: Translations = {
+  ...ptTranslations,
+  common: {
+    ...ptTranslations.common,
+    sparkcomex: 'Spark Comex',
+    carregando: '正在加载...',
+    acoes: '操作',
+    close: '关闭',
+    erro: '错误',
+    queryfunction: 'QueryFunction',
+  }
+};
+
+// Spanish translations
+const esTranslations: Translations = {
+  ...ptTranslations,
+  common: {
+    ...ptTranslations.common,
+    sparkcomex: 'Spark Comex',
+    carregando: 'Cargando...',
+    acoes: 'Acciones',
+    close: 'Cerrar',
+    erro: 'Error',
+    queryfunction: 'QueryFunction',
+  }
+};
 
 // Available translations
 const translations = {

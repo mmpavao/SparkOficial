@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "./StatusBadge";
 
+import { useTranslation } from '@/contexts/I18nContext';
 interface Column<T> {
   key: keyof T;
   label: string;
@@ -47,7 +48,7 @@ export default function DataTable<T extends Record<string, any>>({
               {column.label}
             </TableHead>
           ))}
-          {actions.length > 0 && <TableHead>Ações</TableHead>}
+          {actions.length > 0 && <TableHead>{t.common.acoes}</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
