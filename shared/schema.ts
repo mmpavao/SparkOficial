@@ -179,16 +179,18 @@ export const imports = pgTable("imports", {
   supplierId: integer("supplier_id").references(() => suppliers.id),
   
   // Basic Import Information
+  importName: text("import_name").notNull(), // Nome/código da importação para rastreamento
   importNumber: text("import_number").unique(),
   supplierName: text("supplier_name").notNull(),
   supplierLocation: text("supplier_location").notNull(),
   
-  // Product Details
-  productName: text("product_name").notNull(),
-  productDescription: text("product_description").notNull(),
-  hsCode: text("hs_code"),
-  quantity: integer("quantity").notNull(),
-  unitPrice: text("unit_price").notNull(),
+  // Cargo Type and Container Information
+  cargoType: text("cargo_type").notNull().default("FCL"), // FCL (Full Container Load) ou LCL (Less than Container Load)
+  containerNumber: text("container_number"), // Número do contêiner (se FCL)
+  sealNumber: text("seal_number"), // Número do lacre
+  
+  // Product Details - now supports multiple products for LCL
+  products: jsonb("products").notNull(), // Array de produtos: [{name, description, hsCode, quantity, unitPrice, totalValue}]
   totalValue: text("total_value").notNull(),
   currency: text("currency").notNull().default("USD"),
   
