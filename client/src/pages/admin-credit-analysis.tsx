@@ -88,7 +88,7 @@ export default function AdminCreditAnalysisPage() {
   }) as { data: AdminCreditAnalysisData, isLoading: boolean };
 
   // Initialize admin fields when data loads
-  useState(() => {
+  useEffect(() => {
     if (application) {
       setAdminNotes(application.adminNotes || "");
       setPreAnalysisStatus(application.preAnalysisStatus || "pending");

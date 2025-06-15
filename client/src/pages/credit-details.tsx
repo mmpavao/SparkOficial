@@ -298,7 +298,7 @@ export default function CreditDetailsPage() {
                 <div>
                   <Label className="text-sm font-medium text-gray-600 mb-2 block">Produtos para Importar</Label>
                   <div className="flex flex-wrap gap-2">
-                    {application.productsToImport.map((product, index) => (
+                    {application.productsToImport.map((product: string, index: number) => (
                       <Badge key={index} variant="outline">{product}</Badge>
                     ))}
                   </div>

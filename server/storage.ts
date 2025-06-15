@@ -118,7 +118,7 @@ export class DatabaseStorage implements IStorage {
     return application;
   }
 
-  async updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication> {
+  async updateCreditApplication(id: number, data: any): Promise<CreditApplication> {
     const updateData = {
       ...data,
       updatedAt: new Date()
