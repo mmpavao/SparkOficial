@@ -61,14 +61,14 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Perfil atualizado!",
+        title: t.common.perfilatualizado,
         description: t.common.suasinformacoesforam,
       });
       setIsEditing(false);
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao salvar",
+        title: t.common.erroaosalvar,
         description: error.message || t.common.erroaoatualizarperfi,
         variant: "destructive",
       });
@@ -89,7 +89,7 @@ export default function SettingsPage() {
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: value }));
     toast({
-      title: "Preferência salva",
+      title: t.common.preferenciasalva,
       description: t.common.suapreferenciadenoti,
     });
   };
@@ -97,7 +97,7 @@ export default function SettingsPage() {
   const handleSecurityChange = (key: string, value: boolean | number) => {
     setSecurity(prev => ({ ...prev, [key]: value }));
     toast({
-      title: "Configuração atualizada",
+      title: t.common.configuracaoatualiza,
       description: t.common.suaconfiguracaodeseg,
     });
   };

@@ -132,7 +132,7 @@ export default function ReportsPage() {
 
   const generateReport = () => {
     toast({
-      title: "Relatório gerado!",
+      title: t.common.relatoriogerado,
       description: t.common.orelatoriofoigeradoe,
     });
   };

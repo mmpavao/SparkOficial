@@ -67,7 +67,7 @@ export default function ImportsPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Importação criada!",
+        title: t.common.importacaocriada,
         description: t.common.suanovaimportacaofoi,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });

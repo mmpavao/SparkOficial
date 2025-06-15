@@ -1,82 +1,12 @@
 {
-  "erro": {
-    "pt": "Erro",
-    "en": "[TRANSLATE] Erro",
-    "zh": "[TRANSLATE] Erro",
-    "es": "[TRANSLATE] Erro",
+  "queryfunction": {
+    "pt": "QueryFunction",
+    "en": "[TRANSLATE] QueryFunction",
+    "zh": "[TRANSLATE] QueryFunction",
+    "es": "[TRANSLATE] QueryFunction",
     "files": [
-      "client/src/pages/admin-users.tsx"
+      "client/src/lib/queryClient.ts"
     ],
-    "line": 103
-  },
-  "sucesso": {
-    "pt": "Sucesso",
-    "en": "[TRANSLATE] Sucesso",
-    "zh": "[TRANSLATE] Sucesso",
-    "es": "[TRANSLATE] Sucesso",
-    "files": [
-      "client/src/pages/admin-users.tsx"
-    ],
-    "line": 97
-  },
-  "importacaocriada": {
-    "pt": "Importação criada!",
-    "en": "[TRANSLATE] Importação criada!",
-    "zh": "[TRANSLATE] Importação criada!",
-    "es": "[TRANSLATE] Importação criada!",
-    "files": [
-      "client/src/pages/imports.tsx"
-    ],
-    "line": 69
-  },
-  "relatoriogerado": {
-    "pt": "Relatório gerado!",
-    "en": "[TRANSLATE] Relatório gerado!",
-    "zh": "[TRANSLATE] Relatório gerado!",
-    "es": "[TRANSLATE] Relatório gerado!",
-    "files": [
-      "client/src/pages/reports.tsx"
-    ],
-    "line": 134
-  },
-  "perfilatualizado": {
-    "pt": "Perfil atualizado!",
-    "en": "[TRANSLATE] Perfil atualizado!",
-    "zh": "[TRANSLATE] Perfil atualizado!",
-    "es": "[TRANSLATE] Perfil atualizado!",
-    "files": [
-      "client/src/pages/settings.tsx"
-    ],
-    "line": 63
-  },
-  "erroaosalvar": {
-    "pt": "Erro ao salvar",
-    "en": "[TRANSLATE] Erro ao salvar",
-    "zh": "[TRANSLATE] Erro ao salvar",
-    "es": "[TRANSLATE] Erro ao salvar",
-    "files": [
-      "client/src/pages/settings.tsx"
-    ],
-    "line": 70
-  },
-  "preferenciasalva": {
-    "pt": "Preferência salva",
-    "en": "[TRANSLATE] Preferência salva",
-    "zh": "[TRANSLATE] Preferência salva",
-    "es": "[TRANSLATE] Preferência salva",
-    "files": [
-      "client/src/pages/settings.tsx"
-    ],
-    "line": 91
-  },
-  "configuracaoatualiza": {
-    "pt": "Configuração atualizada",
-    "en": "[TRANSLATE] Configuração atualizada",
-    "zh": "[TRANSLATE] Configuração atualizada",
-    "es": "[TRANSLATE] Configuração atualizada",
-    "files": [
-      "client/src/pages/settings.tsx"
-    ],
-    "line": 99
+    "line": 35
   }
 }
