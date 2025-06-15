@@ -271,7 +271,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             <span className={`transition-opacity duration-300 ${
               sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
             }`}>
-              {logoutMutation.isPending ? `${t.navigation.logout}...` : t.navigation.logout}
+              {logoutMutation.isPending ? "Saindo..." : t.navigation.logout}
             </span>
           </Button>
         </div>
