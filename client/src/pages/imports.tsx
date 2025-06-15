@@ -50,6 +50,14 @@ export default function ImportsPage() {
   const [showNewImportForm, setShowNewImportForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [adminFilters, setAdminFilters] = useState({});
+  const [products, setProducts] = useState([{
+    name: "",
+    description: "",
+    hsCode: "",
+    quantity: 1,
+    unitPrice: "",
+    totalValue: ""
+  }]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isAdmin } = useUserPermissions();
@@ -242,7 +250,26 @@ export default function ImportsPage() {
   const filteredImports = applyFilters(importData.imports);
 
   const onSubmit = (data: InsertImport) => {
-    createImportMutation.mutate(data);
+    // Calculate total value from all products
+    const totalProductValue = products.reduce((sum, product) => {
+      return sum + (parseFloat(product.totalValue) || 0);
+    }, 0);
+    
+    // Prepare submission data
+    const submissionData = {
+      ...data,
+      products: form.watch("cargoType") === "LCL" ? products : [{
+        name: data.productName,
+        description: data.productDescription,
+        hsCode: data.hsCode || "",
+        quantity: data.quantity,
+        unitPrice: data.unitPrice,
+        totalValue: data.totalValue
+      }],
+      totalValue: form.watch("cargoType") === "LCL" ? totalProductValue.toString() : data.totalValue
+    };
+    
+    createImportMutation.mutate(submissionData);
   };
 
   // Handle import actions
@@ -645,48 +672,155 @@ export default function ImportsPage() {
                       {form.watch("cargoType") === "LCL" ? "Produtos da Carga" : "Produto Principal"}
                     </h3>
                     
-                    {form.watch("cargoType") === "LCL" && (
-                      <div className="p-4 bg-yellow-50 rounded-lg">
-                        <p className="text-sm text-yellow-800">
-                          <strong>Carga Fracionada (LCL):</strong> Você pode adicionar múltiplos produtos que compartilharão o mesmo contêiner.
-                        </p>
+                    {form.watch("cargoType") === "LCL" ? (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-yellow-50 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <p className="text-sm text-yellow-800">
+                              <strong>Carga Fracionada (LCL):</strong> Adicione múltiplos produtos que compartilharão o mesmo contêiner.
+                            </p>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setProducts([...products, { name: "", description: "", hsCode: "", quantity: 1, unitPrice: "", totalValue: "" }])}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Adicionar Produto
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {products.map((product, index) => (
+                          <div key={index} className="border rounded-lg p-4 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-semibold">Produto {index + 1}</h4>
+                              {products.length > 1 && (
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setProducts(products.filter((_, i) => i !== index))}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label>Nome do Produto *</Label>
+                                <Input 
+                                  placeholder="Ex: Smartphone Galaxy A54" 
+                                  value={product.name}
+                                  onChange={(e) => {
+                                    const newProducts = [...products];
+                                    newProducts[index].name = e.target.value;
+                                    setProducts(newProducts);
+                                  }}
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label>Código HS</Label>
+                                <Input 
+                                  placeholder="Ex: 8517.12.00" 
+                                  value={product.hsCode}
+                                  onChange={(e) => {
+                                    const newProducts = [...products];
+                                    newProducts[index].hsCode = e.target.value;
+                                    setProducts(newProducts);
+                                  }}
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label>Quantidade *</Label>
+                                <Input 
+                                  type="number" 
+                                  placeholder="1000" 
+                                  value={product.quantity}
+                                  onChange={(e) => {
+                                    const newProducts = [...products];
+                                    newProducts[index].quantity = parseInt(e.target.value) || 1;
+                                    setProducts(newProducts);
+                                  }}
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label>Preço Unitário (USD) *</Label>
+                                <Input 
+                                  placeholder="50.00" 
+                                  value={product.unitPrice}
+                                  onChange={(e) => {
+                                    const newProducts = [...products];
+                                    newProducts[index].unitPrice = e.target.value;
+                                    // Auto-calculate total value
+                                    const total = (parseFloat(e.target.value) || 0) * product.quantity;
+                                    newProducts[index].totalValue = total.toFixed(2);
+                                    setProducts(newProducts);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label>Descrição Detalhada *</Label>
+                              <Textarea 
+                                placeholder="Descrição completa do produto, especificações técnicas, modelo, etc."
+                                className="min-h-[60px]"
+                                value={product.description}
+                                onChange={(e) => {
+                                  const newProducts = [...products];
+                                  newProducts[index].description = e.target.value;
+                                  setProducts(newProducts);
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="text-sm text-gray-600">
+                              <strong>Valor Total: USD ${product.totalValue || "0.00"}</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="productName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome do Produto *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Smartphone Galaxy A54" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantidade *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  placeholder="1000" 
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     )}
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="productName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome do Produto *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Smartphone Galaxy A54" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Quantidade *</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                placeholder="1000" 
-                                {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
                     
                     <FormField
                       control={form.control}
