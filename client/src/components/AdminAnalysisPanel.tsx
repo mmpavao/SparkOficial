@@ -141,6 +141,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         preAnalysisStatus: 'needs_documents'
       }
     });
+    
+    // Clear the field after sending
+    setAnalysisData(prev => ({ ...prev, requestedDocuments: "" }));
   };
 
   const handleAddObservation = () => {
