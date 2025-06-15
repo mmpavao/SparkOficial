@@ -136,11 +136,11 @@ export default function CreditPage() {
           </p>
         </div>
         <Button 
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => window.location.href = '/credit/new'}
           className="bg-spark-600 hover:bg-spark-700"
         >
           <Plus className="w-4 h-4 mr-2" />
-          {t.credit.newApplication}
+          Nova Solicitação de Crédito
         </Button>
       </div>
 

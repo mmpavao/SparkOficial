@@ -8,6 +8,7 @@ import { I18nProvider } from "@/contexts/I18nContext";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import CreditPage from "@/pages/credit";
+import CreditApplicationPage from "@/pages/credit-application";
 import ImportsPage from "@/pages/imports";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
@@ -37,6 +38,7 @@ function Router() {
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/credit" component={CreditPage} />
+            <Route path="/credit/new" component={CreditApplicationPage} />
             <Route path="/imports" component={ImportsPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />

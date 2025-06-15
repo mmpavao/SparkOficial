@@ -61,16 +61,54 @@ export const loginSchema = z.object({
 export const creditApplications = pgTable("credit_applications", {
   id: serial("id").primaryKey(),
   userId: serial("user_id").references(() => users.id).notNull(),
-  requestedAmount: text("requested_amount").notNull(), // Stored as string to handle large numbers
+  
+  // Company Information
+  legalCompanyName: text("legal_company_name").notNull(),
+  tradingName: text("trading_name"),
+  cnpj: text("cnpj").notNull(),
+  stateRegistration: text("state_registration"),
+  municipalRegistration: text("municipal_registration"),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zipCode: text("zip_code").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  website: text("website"),
+  
+  // Shareholders Information
+  shareholders: jsonb("shareholders").notNull(), // Array of {name, cpf, percentage}
+  
+  // Commercial Information
+  businessSector: text("business_sector").notNull(),
+  annualRevenue: text("annual_revenue").notNull(),
+  mainImportedProducts: text("main_imported_products").notNull(),
+  mainOriginMarkets: text("main_origin_markets").notNull(),
+  
+  // Credit Information
+  requestedAmount: text("requested_amount").notNull(), // USD amount
+  currency: text("currency").notNull().default("USD"),
   purpose: text("purpose").notNull(),
-  status: text("status").notNull().default("pending"), // pending, approved, rejected, under_review
-  documents: text("documents").array(),
-  notes: text("notes"),
+  productsToImport: text("products_to_import").notNull(),
+  justification: text("justification").notNull(),
+  
+  // Documents
+  requiredDocuments: jsonb("required_documents"), // Track uploaded required docs
+  optionalDocuments: jsonb("optional_documents"), // Track uploaded optional docs
+  documentsStatus: text("documents_status").notNull().default("pending"), // pending, partial, complete
+  
+  // Application Status
+  status: text("status").notNull().default("draft"), // draft, pending, under_review, approved, rejected
+  currentStep: integer("current_step").notNull().default(1), // 1-4 for form steps
+  
+  // Review Information
   reviewedBy: serial("reviewed_by").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
   approvedAmount: text("approved_amount"),
   interestRate: text("interest_rate"),
   paymentTerms: text("payment_terms"),
+  reviewNotes: text("review_notes"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -95,25 +133,60 @@ export const imports = pgTable("imports", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertCreditApplicationSchema = createInsertSchema(creditApplications).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  reviewedAt: true,
-  reviewedBy: true,
-  approvedAmount: true,
-  interestRate: true,
-  paymentTerms: true,
-}).extend({
+// Validation schemas for multi-step credit application
+export const companyInfoSchema = z.object({
+  legalCompanyName: z.string().min(2, "Razão social é obrigatória"),
+  tradingName: z.string().optional(),
+  cnpj: z.string().min(14, "CNPJ inválido"),
+  stateRegistration: z.string().optional(),
+  municipalRegistration: z.string().optional(),
+  address: z.string().min(5, "Endereço é obrigatório"),
+  city: z.string().min(2, "Cidade é obrigatória"),
+  state: z.string().min(2, "Estado é obrigatório"),
+  zipCode: z.string().min(8, "CEP inválido"),
+  phone: z.string().min(10, "Telefone é obrigatório"),
+  email: z.string().email("Email inválido"),
+  website: z.string().url("URL inválida").optional().or(z.literal("")),
+  shareholders: z.array(z.object({
+    name: z.string().min(2, "Nome do sócio é obrigatório"),
+    cpf: z.string().min(11, "CPF inválido"),
+    percentage: z.number().min(0).max(100, "Percentual deve estar entre 0 e 100"),
+  })).min(1, "Pelo menos um sócio é obrigatório"),
+});
+
+export const commercialInfoSchema = z.object({
+  businessSector: z.string().min(1, "Setor de atuação é obrigatório"),
+  annualRevenue: z.string().min(1, "Faturamento anual é obrigatório"),
+  mainImportedProducts: z.string().min(10, "Descrição dos produtos importados é obrigatória"),
+  mainOriginMarkets: z.string().min(5, "Principais mercados de origem são obrigatórios"),
+});
+
+export const creditInfoSchema = z.object({
   requestedAmount: z.string()
     .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
-    .refine((val) => val >= 100, { message: "Valor mínimo é USD $100" })
+    .refine((val) => val >= 100000, { message: "Valor mínimo é USD $100.000" })
     .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
     .transform((val) => val.toString()),
-  purpose: z.string()
-    .min(10, "Descrição deve ter pelo menos 10 caracteres")
-    .max(500, "Descrição muito longa (máximo 500 caracteres)"),
+  purpose: z.string().min(1, "Finalidade é obrigatória"),
+  productsToImport: z.string().min(10, "Descrição dos produtos a importar é obrigatória"),
+  justification: z.string().min(50, "Justificativa deve ter pelo menos 50 caracteres"),
 });
+
+export const documentsSchema = z.object({
+  requiredDocuments: z.record(z.boolean()).optional(),
+  optionalDocuments: z.record(z.boolean()).optional(),
+});
+
+export const insertCreditApplicationSchema = companyInfoSchema
+  .merge(commercialInfoSchema)
+  .merge(creditInfoSchema)
+  .extend({
+    userId: z.number().optional(),
+    status: z.string().default("draft"),
+    currentStep: z.number().default(1),
+    documentsStatus: z.string().default("pending"),
+    currency: z.string().default("USD"),
+  });
 
 export const insertImportSchema = createInsertSchema(imports).omit({
   id: true,
