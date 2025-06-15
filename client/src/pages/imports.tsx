@@ -449,30 +449,42 @@ export default function ImportsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {/* Ver Detalhes - Always first option */}
                         <DropdownMenuItem onClick={() => window.location.href = `/import/details/${importItem.id}`}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalhes
                         </DropdownMenuItem>
                         
-                        {/* Editar - Only for planning status and correct permissions */}
-                        {(importItem.status === 'planejamento' && (isAdmin || importItem.userId === user?.id)) && (
-                          <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {/* Cancelar - Only for non-finished imports with correct permissions */}
-                        {(importItem.status !== 'cancelada' && importItem.status !== 'concluida' && (isAdmin || importItem.userId === user?.id)) && (
+                        {/* Ações do Importador */}
+                        {!isAdmin && importItem.status === 'planejamento' && importItem.userId === user?.id && (
                           <>
-                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
                             <DropdownMenuItem 
-                              className="text-red-600"
                               onClick={() => handleCancelImport(importItem.id)}
+                              className="text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Cancelar
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        
+                        {/* Ações Administrativas */}
+                        {isAdmin && (
+                          <>
+                            <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleCancelImport(importItem.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Cancelar Importação
                             </DropdownMenuItem>
                           </>
                         )}
