@@ -16,6 +16,7 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminPage from "@/pages/admin";
 import AdminUsersPage from "@/pages/admin-users";
+import AdminCreditAnalysisPage from "@/pages/admin-credit-analysis";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 

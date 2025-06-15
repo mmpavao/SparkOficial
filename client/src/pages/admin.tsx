@@ -185,7 +185,13 @@ export default function AdminPage() {
         <TabsContent value="credit">
           <Card>
             <CardHeader>
-              <CardTitle>Solicitações de Crédito</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Pré-Análise de Solicitações de Crédito
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-2">
+                Análise administrativa completa antes do envio à financeira
+              </p>
             </CardHeader>
             <CardContent>
               <Table>
@@ -193,8 +199,9 @@ export default function AdminPage() {
                   <TableRow>
                     <TableHead>Empresa</TableHead>
                     <TableHead>Valor Solicitado</TableHead>
-                    <TableHead>Propósito</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Completude</TableHead>
+                    <TableHead>Pré-Análise</TableHead>
+                    <TableHead>Risco</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
