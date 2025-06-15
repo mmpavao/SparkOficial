@@ -457,7 +457,26 @@ export default function ImportsPage() {
                         </DropdownMenuItem>
                         
                         {/* Editar - disponível para importações em planejamento e permissões corretas */}
-                        {(importItem.status.toLowerCase() === 'planejamento' && (isAdmin || importItem.userId === user?.id)) ? (
+                        {(() => {
+                          const statusCheck = importItem.status?.toLowerCase() === 'planejamento';
+                          const permissionCheck = isAdmin || importItem.userId === user?.id;
+                          const canEdit = statusCheck && permissionCheck;
+                          
+                          // Debug logs para identificar o problema
+                          console.log('DEBUG EDIT BUTTON:', {
+                            importId: importItem.id,
+                            status: importItem.status,
+                            statusLower: importItem.status?.toLowerCase(),
+                            statusCheck,
+                            userId: importItem.userId,
+                            currentUserId: user?.id,
+                            isAdmin,
+                            permissionCheck,
+                            canEdit
+                          });
+                          
+                          return canEdit;
+                        })() ? (
                           <DropdownMenuItem onClick={() => setLocation(`/import/edit/${importItem.id}`)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
