@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ export default function AdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const [location, setLocation] = useLocation();
 
   // Check if user is admin (using email for now)
   const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
@@ -208,14 +210,29 @@ export default function AdminPage() {
                 </TableHeader>
                 <TableBody>
                   {allCreditApplications.map((application) => {
-                    const completionScore = Math.round((Object.keys(application.documents || {}).length / 18) * 100);
-                    const preAnalysisStatus = application.reviewData?.preAnalysisStatus || 'pending';
-                    const riskLevel = application.reviewData?.riskAssessment || 'medium';
+                    // Calculate completion score based on available documents
+                    const requiredDocs = application.requiredDocuments ? Object.keys(JSON.parse(application.requiredDocuments as string)) : [];
+                    const optionalDocs = application.optionalDocuments ? Object.keys(JSON.parse(application.optionalDocuments as string)) : [];
+                    const totalDocs = requiredDocs.length + optionalDocs.length;
+                    const completionScore = Math.round((totalDocs / 18) * 100);
+                    
+                    // Parse review data if available
+                    let reviewData = {};
+                    try {
+                      if (application.reviewNotes) {
+                        reviewData = JSON.parse(application.reviewNotes);
+                      }
+                    } catch (e) {
+                      // Handle invalid JSON
+                    }
+                    
+                    const preAnalysisStatus = (reviewData as any)?.preAnalysisStatus || 'pending';
+                    const riskLevel = (reviewData as any)?.riskAssessment || 'medium';
                     
                     return (
                       <TableRow key={application.id}>
                         <TableCell className="font-medium">{application.legalCompanyName}</TableCell>
-                        <TableCell>{formatCurrency(application.requestedAmount || 0).replace('R$', 'US$')}</TableCell>
+                        <TableCell>{formatCurrency(Number(application.requestedAmount || 0)).replace('R$', 'US$')}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="w-full bg-gray-200 rounded-full h-2 max-w-[60px]">

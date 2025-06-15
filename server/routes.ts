@@ -584,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         analyzedAt: new Date().toISOString()
       };
 
-      const updatedApplication = await storage.updateCreditApplication(applicationId, { reviewData: analysisData });
+      const updatedApplication = await storage.updateCreditApplication(applicationId, { reviewNotes: JSON.stringify(analysisData) });
 
       res.json(updatedApplication);
     } catch (error) {
