@@ -545,13 +545,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/imports/:id', requireAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      
       const importRecord = await storage.getImport(id);
       
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
       
-      if (importRecord.userId !== req.session.userId) {
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
@@ -559,6 +564,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching import:", error);
       res.status(500).json({ message: "Erro ao buscar importação" });
+    }
+  });
+
+  // Update import (for editing)
+  app.put('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+      
+      // Allow editing if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Only allow editing if status is 'planejamento'
+      if (importRecord.status !== 'planejamento') {
+        return res.status(400).json({ message: "Só é possível editar importações em planejamento" });
+      }
+      
+      const updatedImport = await storage.updateImportStatus(id, importRecord.status, req.body);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import:", error);
+      res.status(500).json({ message: "Erro ao atualizar importação" });
+    }
+  });
+
+  // Cancel import (soft delete)
+  app.delete('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+      
+      // Allow canceling if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Don't allow canceling already finished or cancelled imports
+      if (importRecord.status === 'cancelada' || importRecord.status === 'concluida') {
+        return res.status(400).json({ message: "Esta importação não pode ser cancelada" });
+      }
+      
+      const cancelledImport = await storage.updateImportStatus(id, 'cancelada', {
+        cancelledAt: new Date().toISOString(),
+        cancelledBy: userId
+      });
+      
+      res.json(cancelledImport);
+    } catch (error) {
+      console.error("Error cancelling import:", error);
+      res.status(500).json({ message: "Erro ao cancelar importação" });
     }
   });
 

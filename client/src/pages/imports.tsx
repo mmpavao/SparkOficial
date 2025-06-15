@@ -232,21 +232,31 @@ export default function ImportsPage() {
     createImportMutation.mutate(data);
   };
 
-  // Handle admin actions
-  const handleMarkAsDelivered = (importId: number) => {
-    updateStatusMutation.mutate({
-      id: importId,
-      status: 'delivered',
-      data: { deliveredAt: new Date() }
-    });
-  };
+  // Handle import actions
+  const cancelImportMutation = useMutation({
+    mutationFn: async (importId: number) => {
+      return apiRequest(`/api/imports/${importId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Importação cancelada",
+        description: "A importação foi cancelada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao cancelar importação",
+        description: error.message || "Erro desconhecido",
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleCancelImport = (importId: number) => {
-    updateStatusMutation.mutate({
-      id: importId,
-      status: 'cancelled',
-      data: { cancelledAt: new Date() }
-    });
+    cancelImportMutation.mutate(importId);
   };
 
   return (

@@ -51,10 +51,6 @@ export default function ImportEditPage() {
   // Fetch import details
   const { data: importData, isLoading } = useQuery({
     queryKey: ["/api/imports", importId],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/imports/${importId}`);
-      return response.json();
-    },
     enabled: !!importId,
   }) as { data: any, isLoading: boolean };
 
