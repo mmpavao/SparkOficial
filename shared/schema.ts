@@ -61,7 +61,7 @@ export const loginSchema = z.object({
 // Credit applications table
 export const creditApplications = pgTable("credit_applications", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
   
   // Company Information
   legalCompanyName: text("legal_company_name").notNull(),
@@ -103,12 +103,21 @@ export const creditApplications = pgTable("credit_applications", {
   currentStep: integer("current_step").notNull().default(1), // 1-4 for form steps
   
   // Review Information
-  reviewedBy: serial("reviewed_by").references(() => users.id),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
   approvedAmount: text("approved_amount"),
   interestRate: text("interest_rate"),
   paymentTerms: text("payment_terms"),
   reviewNotes: text("review_notes"),
+  
+  // Administrative Analysis
+  preAnalysisStatus: text("pre_analysis_status").default("pending"), // pending, under_review, pre_approved, needs_documents, needs_clarification
+  riskLevel: text("risk_level").default("medium"), // low, medium, high
+  analysisNotes: text("analysis_notes"), // Notas da análise administrativa
+  requestedDocuments: text("requested_documents"), // Documentos solicitados pelo admin
+  adminObservations: text("admin_observations"), // Observações para o importador
+  analyzedBy: integer("analyzed_by").references(() => users.id),
+  analyzedAt: timestamp("analyzed_at"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
