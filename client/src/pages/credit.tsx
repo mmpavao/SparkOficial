@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useTranslation } from "@/contexts/I18nContext";
+import AdminFilters from "@/components/AdminFilters";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
 import { 
@@ -62,6 +63,7 @@ type CreditApplicationForm = {
 
 export default function CreditPage() {
   const [showForm, setShowForm] = useState(false);
+  const [filters, setFilters] = useState({});
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -173,9 +175,13 @@ export default function CreditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.credit.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {permissions.canViewAllApplications ? "Gestão de Crédito - Área Administrativa" : t.credit.title}
+          </h1>
           <p className="text-gray-600">
-            {t.credit.requestCredit}
+            {permissions.canViewAllApplications 
+              ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
+              : t.credit.requestCredit}
           </p>
         </div>
         <Button 
@@ -186,6 +192,11 @@ export default function CreditPage() {
           Nova Solicitação de Crédito
         </Button>
       </div>
+
+      {/* Filtros Administrativos - apenas para admins */}
+      {permissions.canViewAdminFilters && (
+        <AdminFilters onFiltersChange={setFilters} />
+      )}
 
       {/* Application Guidelines */}
       {showForm && (
@@ -412,7 +423,11 @@ export default function CreditPage() {
       {/* Applications List */}
       <Card>
         <CardHeader>
-          <CardTitle>{t.credit.myApplications}</CardTitle>
+          <CardTitle>
+            {permissions.canViewAllApplications 
+              ? "Todas as Solicitações de Crédito" 
+              : t.credit.myApplications}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -438,15 +453,22 @@ export default function CreditPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-medium">
-                        Solicitação #{application.id}
+                        {permissions.canViewAllApplications 
+                          ? `${application.legalCompanyName || application.tradingName || `Empresa #${application.userId}`}`
+                          : `Solicitação #${application.id}`}
                       </h3>
                       {getStatusBadge(application.status)}
                     </div>
                     <p className="text-sm text-gray-600 mb-1">
-                      Valor: {formatCurrency(application.requestedAmount)}
+                      Valor: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
                     </p>
+                    {permissions.canViewAllApplications && (
+                      <p className="text-sm text-gray-500 mb-1">
+                        CNPJ: {application.cnpj || 'Não informado'}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500 line-clamp-2">
-                      {application.purpose}
+                      {application.purpose || application.justification || 'Sem descrição'}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
                       Criado em: {new Date(application.createdAt).toLocaleDateString('pt-BR')}
@@ -463,17 +485,53 @@ export default function CreditPage() {
                         <Eye className="w-4 h-4 mr-2" />
                         Ver Detalhes
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/credit/edit/${application.id}`)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleCancelApplication(application.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Cancelar
-                      </DropdownMenuItem>
+                      
+                      {/* Ações do Importador */}
+                      {!permissions.canManageApplications && application.status === 'pending' && (
+                        <>
+                          <DropdownMenuItem onClick={() => setLocation(`/credit/edit/${application.id}`)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleCancelApplication(application.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Cancelar
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
+                      {/* Ações Administrativas */}
+                      {permissions.canManageApplications && (
+                        <>
+                          <DropdownMenuItem onClick={() => setLocation(`/credit/details/${application.id}`)}>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Fazer Pré-Análise
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              // Implementar ação de aprovação rápida
+                              console.log('Aprovar aplicação:', application.id);
+                            }}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Aprovar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              // Implementar ação de rejeição
+                              console.log('Rejeitar aplicação:', application.id);
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Rejeitar
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
