@@ -87,8 +87,21 @@ export default function NewImportPage() {
 
   const onSubmit = (data: InsertImport) => {
     console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
+    console.log("Form values:", form.getValues());
     
     try {
+      // Check if form is valid
+      if (!form.formState.isValid) {
+        console.log("Form is not valid, errors:", form.formState.errors);
+        toast({
+          title: "Erro de validação",
+          description: "Por favor, preencha todos os campos obrigatórios.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Calculate total value from all products for LCL
       const totalProductValue = products.reduce((sum, product) => {
         return sum + (parseFloat(product.totalValue) || 0);
@@ -661,6 +674,12 @@ export default function NewImportPage() {
                   type="submit" 
                   disabled={createImportMutation.isPending}
                   className="min-w-[120px]"
+                  onClick={(e) => {
+                    console.log("Button clicked!");
+                    console.log("Form state:", form.formState);
+                    console.log("Form errors:", form.formState.errors);
+                    // Let the form handle submission naturally
+                  }}
                 >
                   {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
                 </Button>
