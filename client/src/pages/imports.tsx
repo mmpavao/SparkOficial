@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export default function ImportsPage() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isAdmin } = useUserPermissions();
+  const [, setLocation] = useLocation();
 
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],
@@ -449,18 +451,28 @@ export default function ImportsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => window.location.href = `/import/details/${importItem.id}`}>
+                        <DropdownMenuItem onClick={() => setLocation(`/import/details/${importItem.id}`)}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalhes
                         </DropdownMenuItem>
                         
-                        {/* Ações do Importador */}
-                        {!isAdmin && importItem.status === 'planejamento' && importItem.userId === user?.id && (
+                        {/* Editar - disponível para importações em planejamento e permissões corretas */}
+                        {(importItem.status === 'planejamento' && (isAdmin || importItem.userId === user?.id)) ? (
+                          <DropdownMenuItem onClick={() => setLocation(`/import/edit/${importItem.id}`)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem disabled>
+                            <Edit className="w-4 h-4 mr-2 opacity-50" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {/* Cancelar - disponível para importações não finalizadas e permissões corretas */}
+                        {(importItem.status !== 'cancelada' && importItem.status !== 'concluida' && (isAdmin || importItem.userId === user?.id)) ? (
                           <>
-                            <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               onClick={() => handleCancelImport(importItem.id)}
                               className="text-red-600 hover:text-red-700"
@@ -469,22 +481,12 @@ export default function ImportsPage() {
                               Cancelar
                             </DropdownMenuItem>
                           </>
-                        )}
-                        
-                        {/* Ações Administrativas */}
-                        {isAdmin && (
+                        ) : (
                           <>
-                            <DropdownMenuItem onClick={() => window.location.href = `/import/edit/${importItem.id}`}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleCancelImport(importItem.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Cancelar Importação
+                            <DropdownMenuItem disabled>
+                              <Trash2 className="w-4 h-4 mr-2 opacity-50" />
+                              Cancelar
                             </DropdownMenuItem>
                           </>
                         )}

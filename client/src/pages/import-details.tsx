@@ -131,7 +131,7 @@ export default function ImportDetailsPage() {
         <div className="flex items-center gap-4">
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = '/imports'}
+            onClick={() => setLocation('/imports')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
