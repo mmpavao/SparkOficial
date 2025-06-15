@@ -447,34 +447,32 @@ export default function CreditApplicationPage() {
         onContinue={() => setShowRequirementsModal(false)}
       />
 
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-4">
+      <div className="space-y-6">
+        {/* Header - Following standard pattern */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Solicitação de Crédito</h1>
-            <p className="text-gray-600">Preencha todas as informações para solicitar seu crédito de importação</p>
+            <h1 className="text-2xl font-bold text-gray-900">Solicitação de Crédito</h1>
+            <p className="text-gray-600 mt-1">Preencha todas as informações para solicitar seu crédito de importação</p>
           </div>
           
           {/* Requirements Button */}
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => setShowRequirementsModal(true)}
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Ver Todos os Requisitos
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowRequirementsModal(true)}
+            className="border-blue-600 text-blue-600 hover:bg-blue-50 shrink-0"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Ver Todos os Requisitos
+          </Button>
         </div>
 
         {/* Step Indicator */}
         <StepIndicator />
 
-      {/* Current Step Title */}
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-800">{stepTitles[currentStep - 1]}</h2>
-      </div>
+        {/* Current Step Title */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">{stepTitles[currentStep - 1]}</h2>
+        </div>
 
       {/* Step 1: Company Information */}
       {currentStep === 1 && (
