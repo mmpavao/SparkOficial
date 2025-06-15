@@ -143,6 +143,63 @@ export default function CreditPage() {
     }
   };
 
+  // Administrative mutations for approval/rejection
+  const approveApplicationMutation = useMutation({
+    mutationFn: async (applicationId: number) => {
+      const response = await apiRequest("PUT", `/api/admin/credit/applications/${applicationId}/approve`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação aprovada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível aprovar a solicitação. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectApplicationMutation = useMutation({
+    mutationFn: async (applicationId: number) => {
+      const response = await apiRequest("PUT", `/api/admin/credit/applications/${applicationId}/reject`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação rejeitada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível rejeitar a solicitação. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleApproveApplication = (applicationId: number) => {
+    if (confirm("Tem certeza que deseja aprovar esta solicitação de crédito?")) {
+      approveApplicationMutation.mutate(applicationId);
+    }
+  };
+
+  const handleRejectApplication = (applicationId: number) => {
+    if (confirm("Tem certeza que deseja rejeitar esta solicitação de crédito?")) {
+      rejectApplicationMutation.mutate(applicationId);
+    }
+  };
+
   const formatCurrency = (value: string) => {
     const num = parseFloat(value);
     return new Intl.NumberFormat('pt-BR', {
@@ -511,20 +568,14 @@ export default function CreditPage() {
                             Fazer Pré-Análise
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => {
-                              // Implementar ação de aprovação rápida
-                              console.log('Aprovar aplicação:', application.id);
-                            }}
+                            onClick={() => handleApproveApplication(application.id)}
                             className="text-green-600 hover:text-green-700"
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Aprovar
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => {
-                              // Implementar ação de rejeição
-                              console.log('Rejeitar aplicação:', application.id);
-                            }}
+                            onClick={() => handleRejectApplication(application.id)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <XCircle className="w-4 h-4 mr-2" />

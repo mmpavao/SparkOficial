@@ -405,6 +405,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Administrative approval endpoint
+  app.put('/api/admin/credit/applications/:id/approve', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(userId);
+      
+      // Only admins can approve
+      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+      
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId, 
+        'approved',
+        {
+          approvedBy: userId,
+          approvedAt: new Date(),
+          approvalReason: req.body.reason || 'Aprovado pela administração'
+        }
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error approving credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Administrative rejection endpoint
+  app.put('/api/admin/credit/applications/:id/reject', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(userId);
+      
+      // Only admins can reject
+      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+      
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId, 
+        'rejected',
+        {
+          rejectedBy: userId,
+          rejectedAt: new Date(),
+          rejectionReason: req.body.reason || 'Rejeitado pela administração'
+        }
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error rejecting credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {
