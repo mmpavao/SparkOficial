@@ -17,7 +17,7 @@
     "files": [
       "client/src/lib/queryClient.ts"
     ],
-    "line": 30
+    "line": 34
   },
   "usuariocriadocomsuce": {
     "pt": "Usuário criado com sucesso",
