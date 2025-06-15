@@ -9,6 +9,16 @@
     ],
     "line": 28
   },
+  "queryfunction": {
+    "pt": "QueryFunction",
+    "en": "[TRANSLATE] QueryFunction",
+    "zh": "[TRANSLATE] QueryFunction",
+    "es": "[TRANSLATE] QueryFunction",
+    "files": [
+      "client/src/lib/queryClient.ts"
+    ],
+    "line": 30
+  },
   "usuariocriadocomsuce": {
     "pt": "Usuário criado com sucesso",
     "en": "[TRANSLATE] Usuário criado com sucesso",

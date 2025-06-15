@@ -19,6 +19,7 @@ import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useTranslation } from '@/contexts/I18nContext';
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
