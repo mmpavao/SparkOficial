@@ -17,9 +17,59 @@ import { formatPhone } from "@/lib/phone";
 import { Shield, Clock, TrendingUp } from "lucide-react";
 
 export default function AuthPage() {
+  console.log("AuthPage renderizando...");
+  
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  
+  // Try-catch para capturar erros de tradução
+  let t;
+  try {
+    const translation = useTranslation();
+    t = translation.t;
+    console.log("Tradução carregada com sucesso");
+  } catch (error) {
+    console.error("Erro na tradução:", error);
+    // Fallback básico
+    t = {
+      auth: {
+        welcomeBack: "Bem-vindo de volta",
+        loginDescription: "Faça login na sua conta",
+        email: "E-mail",
+        password: "Senha",
+        signIn: "Entrar",
+        signingIn: "Entrando...",
+        rememberMe: "Lembrar de mim",
+        forgotPassword: "Esqueci a senha",
+        dontHaveAccount: "Não tem uma conta?",
+        registerButton: "Cadastre-se",
+        createAccount: "Criar conta",
+        createAccountDescription: "Crie sua conta empresarial",
+        companyName: "Nome da Empresa",
+        cnpj: "CNPJ",
+        fullName: "Nome Completo",
+        phone: "Telefone",
+        confirmPassword: "Confirmar Senha",
+        acceptTerms: "Aceito os",
+        termsOfUse: "Termos de Uso",
+        privacyPolicy: "Política de Privacidade",
+        creatingAccount: "Criando conta...",
+        haveAccount: "Já tem uma conta?",
+        signInNow: "Entre agora",
+        platformDescription: "Plataforma completa para importação do Brasil",
+        secure: "Seguro",
+        fast: "Rápido",
+        efficient: "Eficiente",
+        loginSuccess: "Login realizado com sucesso",
+        registerSuccess: "Cadastro realizado com sucesso"
+      },
+      errors: {
+        loginFailed: "Erro no login",
+        registrationFailed: "Erro no cadastro"
+      }
+    };
+  }
+  
   const queryClient = useQueryClient();
 
   const loginForm = useForm<LoginUser>({
