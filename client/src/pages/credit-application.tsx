@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
 import { formatPhone } from "@/lib/phone";
 import { formatUSDInput, parseUSDInput, validateUSDRange } from "@/lib/currency";
+import PreparationGuideModal from "@/components/credit/PreparationGuideModal";
 import { 
   companyInfoSchema, 
   commercialInfoSchema, 
@@ -37,7 +38,9 @@ import {
   XCircle,
   Plus,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Info,
+  Eye
 } from "lucide-react";
 
 // Multi-step form type definitions
@@ -125,6 +128,8 @@ const optionalDocuments = [
 export default function CreditApplicationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<InsertCreditApplication>>({});
+  const [showPreparationModal, setShowPreparationModal] = useState(true);
+  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
   const { t } = useTranslation();
@@ -223,7 +228,21 @@ export default function CreditApplicationPage() {
     }
   };
 
-  // Step navigation
+  // Step navigation with flexible movement
+  const goToStep = (step: number) => {
+    if (step >= 1 && step <= 4) {
+      // Save current form data before switching
+      if (currentStep === 1) {
+        setFormData(prev => ({ ...prev, ...companyForm.getValues() }));
+      } else if (currentStep === 2) {
+        setFormData(prev => ({ ...prev, ...commercialForm.getValues() }));
+      } else if (currentStep === 3) {
+        setFormData(prev => ({ ...prev, ...creditForm.getValues() }));
+      }
+      setCurrentStep(step);
+    }
+  };
+
   const nextStep = async () => {
     let isValid = false;
     
@@ -255,6 +274,22 @@ export default function CreditApplicationPage() {
     }
   };
 
+  // Check step completion status
+  const getStepStatus = (step: number) => {
+    switch (step) {
+      case 1:
+        return companyForm.formState.isValid && Object.keys(companyForm.formState.errors).length === 0;
+      case 2:
+        return commercialForm.formState.isValid && Object.keys(commercialForm.formState.errors).length === 0;
+      case 3:
+        return creditForm.formState.isValid && Object.keys(creditForm.formState.errors).length === 0;
+      case 4:
+        return true; // Documents step is always accessible
+      default:
+        return false;
+    }
+  };
+
   const submitApplication = () => {
     const finalData = {
       ...formData,
@@ -266,31 +301,44 @@ export default function CreditApplicationPage() {
     submitApplicationMutation.mutate(finalData);
   };
 
-  // Step indicator component
+  // Interactive step indicator component
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-8">
-      {[1, 2, 3, 4].map((step) => (
-        <div key={step} className="flex items-center">
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-            step === currentStep 
-              ? 'bg-spark-600 border-spark-600 text-white' 
-              : step < currentStep 
-                ? 'bg-green-500 border-green-500 text-white'
-                : 'border-gray-300 text-gray-400'
-          }`}>
-            {step < currentStep ? (
-              <CheckCircle className="w-5 h-5" />
-            ) : (
-              <span className="text-sm font-medium">{step}</span>
+      {[1, 2, 3, 4].map((step) => {
+        const isCompleted = getStepStatus(step) || step < currentStep;
+        const isCurrent = step === currentStep;
+        const isClickable = step <= currentStep || isCompleted;
+        
+        return (
+          <div key={step} className="flex items-center">
+            <button
+              onClick={() => isClickable && goToStep(step)}
+              disabled={!isClickable}
+              className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+                isCurrent 
+                  ? 'bg-spark-600 border-spark-600 text-white shadow-lg' 
+                  : isCompleted 
+                    ? 'bg-green-500 border-green-500 text-white hover:bg-green-600'
+                    : isClickable
+                      ? 'border-gray-400 text-gray-600 hover:border-spark-400 hover:text-spark-600'
+                      : 'border-gray-300 text-gray-400 cursor-not-allowed'
+              }`}
+              title={isClickable ? `Ir para ${stepTitles[step - 1]}` : 'Complete a etapa anterior primeiro'}
+            >
+              {isCompleted && !isCurrent ? (
+                <CheckCircle className="w-5 h-5" />
+              ) : (
+                <span className="text-sm font-medium">{step}</span>
+              )}
+            </button>
+            {step < 4 && (
+              <div className={`w-16 h-0.5 ${
+                step < currentStep ? 'bg-green-500' : 'bg-gray-300'
+              }`} />
             )}
           </div>
-          {step < 4 && (
-            <div className={`w-16 h-0.5 ${
-              step < currentStep ? 'bg-green-500' : 'bg-gray-300'
-            }`} />
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
@@ -302,15 +350,44 @@ export default function CreditApplicationPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Solicitação de Crédito</h1>
-        <p className="text-gray-600">Preencha todas as informações para solicitar seu crédito de importação</p>
-      </div>
+    <>
+      {/* Preparation Guide Modal */}
+      <PreparationGuideModal
+        isOpen={showPreparationModal}
+        onClose={() => setShowPreparationModal(false)}
+        onContinue={() => setShowPreparationModal(false)}
+      />
 
-      {/* Step Indicator */}
-      <StepIndicator />
+      {/* Requirements Modal */}
+      <PreparationGuideModal
+        isOpen={showRequirementsModal}
+        onClose={() => setShowRequirementsModal(false)}
+        onContinue={() => setShowRequirementsModal(false)}
+      />
+
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Solicitação de Crédito</h1>
+            <p className="text-gray-600">Preencha todas as informações para solicitar seu crédito de importação</p>
+          </div>
+          
+          {/* Requirements Button */}
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowRequirementsModal(true)}
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Ver Todos os Requisitos
+            </Button>
+          </div>
+        </div>
+
+        {/* Step Indicator */}
+        <StepIndicator />
 
       {/* Current Step Title */}
       <div className="text-center">
@@ -1004,6 +1081,7 @@ export default function CreditApplicationPage() {
           </Button>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
