@@ -118,6 +118,20 @@ export class DatabaseStorage implements IStorage {
     return application;
   }
 
+  async updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication> {
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+
+    const [application] = await db
+      .update(creditApplications)
+      .set(updateData)
+      .where(eq(creditApplications.id, id))
+      .returning();
+    return application;
+  }
+
   // Import operations
   async createImport(importData: InsertImport): Promise<Import> {
     const [importRecord] = await db
