@@ -138,7 +138,7 @@ export default function ImportsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{t.imports.title}</h1>
+          <h1 className="text-3xl font-bold">Importações</h1>
           <p className="text-gray-600 mt-1">Gerencie suas importações da China</p>
         </div>
         <Button
@@ -146,7 +146,7 @@ export default function ImportsPage() {
           className="flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          {t.imports.newImport}
+          Nova Importação
         </Button>
       </div>
 
@@ -193,7 +193,7 @@ export default function ImportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                <p className="text-2xl font-bold">{formatters.currency(totalValue)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-600" />
             </div>
@@ -275,7 +275,7 @@ export default function ImportsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4" />
-                          <span>Valor: <strong>{formatters.currency(parseFloat(importItem.totalValue))}</strong></span>
+                          <span>Valor: <strong>{formatCurrency(parseFloat(importItem.totalValue))}</strong></span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Box className="w-4 h-4" />
