@@ -623,7 +623,7 @@ export default function ImportsPage() {
                           <FormItem>
                             <FormLabel>Preço CIF</FormLabel>
                             <FormControl>
-                              <Input placeholder="48000.00" {...field} />
+                              <Input placeholder="48000.00" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
