@@ -326,7 +326,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
       
-      if (application.userId !== req.session.userId) {
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Allow access if:
+      // 1. User owns the application
+      // 2. User is admin or super admin
+      const isOwner = application.userId === req.session.userId;
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'pavaosmart@gmail.com';
+      
+      if (!isOwner && !isAdmin) {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
