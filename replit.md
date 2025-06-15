@@ -206,6 +206,17 @@ Changelog:
   * Completed multilingual support for insights feature across all 4 languages
   * User requested removal of AI insights component - feature completely removed from codebase
   * Cleaned up all related files, API endpoints, and translation references
+- June 15, 2025. Complete credit application system refactoring:
+  * Rebuilt credit application as professional 4-step multi-form process
+  * Implemented Brazilian business standards: CNPJ validation, shareholder structure, business sectors
+  * Created comprehensive company data collection (legal name, address, contact info, registration numbers)
+  * Added commercial information section with sector selection and revenue ranges
+  * Built USD credit amount system with $100K-$1M validation and real-time formatting
+  * Developed extensive document management system with mandatory/optional document categories
+  * Created 18 document types including business license, financial statements, legal documents
+  * Migrated database schema to support all new multi-step form fields with JSONB for complex data
+  * Added step-by-step navigation with visual progress indicators and form validation
+  * Established separate route (/credit/new) for new comprehensive application process
 ```
 
 ## User Preferences

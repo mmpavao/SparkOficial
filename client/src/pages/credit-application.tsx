@@ -126,9 +126,27 @@ export default function CreditApplicationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<InsertCreditApplication>>({});
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  // Redirect if not authenticated
+  if (!isLoading && !isAuthenticated) {
+    window.location.href = '/';
+    return null;
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-spark-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600">Carregando formulário...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Form instances for each step
   const companyForm = useForm<CompanyInfoForm>({

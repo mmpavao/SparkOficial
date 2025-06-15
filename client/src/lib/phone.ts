@@ -1,31 +1,18 @@
+/**
+ * Phone formatting utilities for Brazilian phone numbers
+ */
+
 export function formatPhone(value: string): string {
-  // Remove all non-numeric characters
-  const numericValue = value.replace(/\D/g, '');
+  const numbers = value.replace(/\D/g, '');
   
-  // Apply Brazilian phone formatting: (XX) XXXXX-XXXX or (XX) XXXX-XXXX
-  let formatted = numericValue;
+  if (numbers.length <= 2) return `(${numbers}`;
+  if (numbers.length <= 6) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  if (numbers.length <= 10) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
   
-  if (numericValue.length >= 2) {
-    formatted = numericValue.replace(/^(\d{2})(\d)/, '($1) $2');
-  }
-  
-  if (numericValue.length >= 7) {
-    // Check if it's a mobile number (11 digits) or landline (10 digits)
-    if (numericValue.length === 11) {
-      formatted = formatted.replace(/(\d{5})(\d)/, '$1-$2');
-    } else {
-      formatted = formatted.replace(/(\d{4})(\d)/, '$1-$2');
-    }
-  }
-  
-  // Limit to 15 characters: (XX) XXXXX-XXXX
-  return formatted.substring(0, 15);
+  return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
 }
 
 export function validatePhone(phone: string): boolean {
-  // Remove formatting
-  const cleanPhone = phone.replace(/\D/g, '');
-  
-  // Brazilian phone numbers should have 10 (landline) or 11 (mobile) digits
-  return cleanPhone.length === 10 || cleanPhone.length === 11;
+  const numbers = phone.replace(/\D/g, '');
+  return numbers.length >= 10 && numbers.length <= 11;
 }
