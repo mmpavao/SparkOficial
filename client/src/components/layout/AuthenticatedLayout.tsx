@@ -100,17 +100,17 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   // Navegação da Área do Importador (disponível para todos)
   const importerNavigation = [
-    { path: "/", icon: Home, label: t.nav.dashboard },
-    { path: "/credit", icon: CreditCard, label: t.nav.credit },
-    { path: "/imports", icon: Truck, label: t.nav.imports },
-    { path: "/reports", icon: BarChart3, label: t.nav.reports },
-    { path: "/settings", icon: Settings, label: t.nav.settings },
+    { path: "/", icon: Home, label: t.navigation.dashboard },
+    { path: "/credit", icon: CreditCard, label: t.navigation.credit },
+    { path: "/imports", icon: Truck, label: t.navigation.imports },
+    { path: "/reports", icon: BarChart3, label: t.navigation.reports },
+    { path: "/settings", icon: Settings, label: t.navigation.settings },
   ];
 
   // Navegação da Área Admin (apenas para super admin e admins)
   const adminNavigation = [
-    { path: "/admin", icon: Shield, label: t.nav.adminArea },
-    { path: "/admin/users", icon: Users, label: t.nav.users },
+    { path: "/admin", icon: Shield, label: t.navigation.adminArea },
+    { path: "/admin/users", icon: Users, label: t.navigation.users },
   ];
 
   // Verificar se o usuário tem acesso à área admin
@@ -169,7 +169,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           <div>
             <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                {t.nav.importerArea}
+                {t.navigation.importerArea}
               </h3>
             </div>
             <div className="space-y-1">
@@ -207,7 +207,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             <div>
               <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                  {t.nav.adminArea}
+                  {t.navigation.adminArea}
                 </h3>
               </div>
               <div className="space-y-1">
@@ -254,7 +254,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 {user?.fullName}
               </p>
               <p className="text-xs text-gray-500 truncate capitalize">
-                {user?.role === "admin" ? t.roles.admin : t.roles.importer}
+                {user?.role === "admin" ? "Administrador" : "Importador"}
               </p>
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             <span className={`transition-opacity duration-300 ${
               sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
             }`}>
-              {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
+              {logoutMutation.isPending ? `${t.navigation.logout}...` : t.navigation.logout}
             </span>
           </Button>
         </div>
