@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,6 +135,7 @@ export default function CreditApplicationPage() {
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
   const [productTags, setProductTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState("");
+  const [, setLocation] = useLocation();
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -212,9 +214,9 @@ export default function CreditApplicationPage() {
         title: "Sucesso!",
         description: "Solicitação de crédito enviada com sucesso.",
       });
-      // Redirect to credit management page after successful submission
+      // Navigate to credit management page with smooth transition
       setTimeout(() => {
-        window.location.href = '/credit';
+        setLocation('/credit');
       }, 1500);
     },
     onError: (error: any) => {
