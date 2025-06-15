@@ -779,11 +779,37 @@ export default function ImportsPage() {
                               />
                             </div>
                             
-                            <div className="text-sm text-gray-600">
-                              <strong>Valor Total: USD ${product.totalValue || "0.00"}</strong>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">
+                                <strong>Valor Total: USD ${product.totalValue || "0.00"}</strong>
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {product.quantity} × ${product.unitPrice || "0.00"}
+                              </span>
                             </div>
                           </div>
                         ))}
+                        
+                        {products.length > 0 && (
+                          <div className="border-t pt-4 mt-4">
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <h4 className="font-semibold text-blue-900">Resumo da Carga LCL</h4>
+                                  <p className="text-sm text-blue-700">
+                                    {products.length} produto{products.length > 1 ? 's' : ''} • Total: {products.reduce((sum, p) => sum + p.quantity, 0)} unidades
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-blue-900">
+                                    USD ${products.reduce((sum, product) => sum + (parseFloat(product.totalValue) || 0), 0).toFixed(2)}
+                                  </div>
+                                  <div className="text-sm text-blue-600">Valor Total da Importação</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
