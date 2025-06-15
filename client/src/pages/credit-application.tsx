@@ -131,6 +131,7 @@ export default function CreditApplicationPage() {
   const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
+
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
   const { t } = useTranslation();
