@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 export default function ImportDetailsPage() {
-  const [match, params] = useRoute("/import/details/:id");
+  const [match, params] = useRoute("/imports/details/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();

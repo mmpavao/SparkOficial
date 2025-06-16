@@ -41,7 +41,7 @@ const editImportSchema = z.object({
 type EditImportForm = z.infer<typeof editImportSchema>;
 
 export default function ImportEditPage() {
-  const [match, params] = useRoute("/import/edit/:id");
+  const [match, params] = useRoute("/imports/edit/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -111,7 +111,7 @@ export default function ImportEditPage() {
         description: "Importação atualizada com sucesso.",
       });
       setTimeout(() => {
-        setLocation(`/import/details/${importId}`);
+        setLocation(`/imports/details/${importId}`);
       }, 1500);
     },
     onError: (error: any) => {

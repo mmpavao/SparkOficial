@@ -49,8 +49,8 @@ function Router() {
             <Route path="/credit/edit/:id" component={CreditEditPage} />
             <Route path="/imports" component={ImportsPage} />
             <Route path="/imports/new" component={NewImportPage} />
-            <Route path="/import/details/:id" component={ImportDetailsPage} />
-            <Route path="/import/edit/:id" component={ImportEditPage} />
+            <Route path="/imports/details/:id" component={ImportDetailsPage} />
+            <Route path="/imports/edit/:id" component={ImportEditPage} />
             <Route path="/suppliers" component={SuppliersPage} />
         <Route path="/suppliers/new" component={SupplierNewPage} />
             <Route path="/reports" component={ReportsPage} />
