@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertImportSchema, type InsertImport } from "@shared/schema";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Package, 
   Building,
@@ -38,7 +38,7 @@ export default function NewImportPage() {
     totalValue: ""
   }]);
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user } = useAuth();
 
   const form = useForm<InsertImport>({
     resolver: zodResolver(insertImportSchema),
