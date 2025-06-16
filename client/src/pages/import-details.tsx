@@ -156,7 +156,7 @@ export default function ImportDetailsPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {importData.productName || "Detalhes da Importação"}
+              {importData.importName || "Detalhes da Importação"}
             </h1>
             <p className="text-gray-600">
               {importData.importNumber || `IMP-${importData.id.toString().padStart(3, '0')}`}
@@ -186,30 +186,50 @@ export default function ImportDetailsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5" />
-                Informações do Produto
+                Informações dos Produtos
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Nome do Produto</label>
-                  <p className="text-sm text-gray-900">{importData.productName}</p>
+              {importData.products && importData.products.length > 0 ? (
+                <div className="space-y-4">
+                  {importData.products.map((product: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Nome do Produto</label>
+                          <p className="text-sm text-gray-900">{product.name || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Quantidade</label>
+                          <p className="text-sm text-gray-900">{product.quantity?.toLocaleString() || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Preço Unitário</label>
+                          <p className="text-sm text-gray-900">{importData.currency} {product.unitPrice || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Valor Total</label>
+                          <p className="text-sm text-gray-900">{importData.currency} {product.totalValue || 'N/A'}</p>
+                        </div>
+                        {product.description && (
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium text-gray-600">Descrição</label>
+                            <p className="text-sm text-gray-900 bg-white p-3 rounded-md">{product.description}</p>
+                          </div>
+                        )}
+                        {product.hsCode && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-600">Código HS</label>
+                            <p className="text-sm text-gray-900">{product.hsCode}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Quantidade</label>
-                  <p className="text-sm text-gray-900">{importData.quantity?.toLocaleString() || 'N/A'}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-gray-600">Descrição</label>
-                  <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{importData.productDescription}</p>
-                </div>
-                {importData.hsCode && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Código HS</label>
-                    <p className="text-sm text-gray-900">{importData.hsCode}</p>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <p className="text-gray-500">Nenhum produto registrado</p>
+              )}
             </CardContent>
           </Card>
 
@@ -224,12 +244,6 @@ export default function ImportDetailsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Preço Unitário</label>
-                  <p className="text-sm text-gray-900">
-                    {importData.currency} {parseFloat(importData.unitPrice || 0).toLocaleString()}
-                  </p>
-                </div>
-                <div>
                   <label className="text-sm font-medium text-gray-600">Valor Total</label>
                   <p className="text-lg font-semibold text-gray-900">
                     {importData.currency} {parseFloat(importData.totalValue).toLocaleString()}
@@ -239,22 +253,6 @@ export default function ImportDetailsPage() {
                   <label className="text-sm font-medium text-gray-600">Moeda</label>
                   <p className="text-sm text-gray-900">{importData.currency}</p>
                 </div>
-                {importData.fobPrice && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Preço FOB</label>
-                    <p className="text-sm text-gray-900">
-                      {importData.currency} {parseFloat(importData.fobPrice).toLocaleString()}
-                    </p>
-                  </div>
-                )}
-                {importData.cifPrice && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Preço CIF</label>
-                    <p className="text-sm text-gray-900">
-                      {importData.currency} {parseFloat(importData.cifPrice).toLocaleString()}
-                    </p>
-                  </div>
-                )}
                 {importData.incoterms && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Incoterms</label>
@@ -265,27 +263,32 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Supplier Information */}
+          {/* Cargo Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Informações do Fornecedor
+                <Box className="w-5 h-5" />
+                Informações da Carga
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Nome do Fornecedor</label>
-                  <p className="text-sm text-gray-900">{importData.supplierName}</p>
+                  <label className="text-sm font-medium text-gray-600">Tipo de Carga</label>
+                  <p className="text-sm text-gray-900">{importData.cargoType === 'FCL' ? 'Container Completo (FCL)' : 'Carga Fracionada (LCL)'}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Localização</label>
-                  <p className="text-sm text-gray-900 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {importData.supplierLocation}
-                  </p>
-                </div>
+                {importData.containerNumber && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Número do Container</label>
+                    <p className="text-sm text-gray-900">{importData.containerNumber}</p>
+                  </div>
+                )}
+                {importData.sealNumber && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Número do Lacre</label>
+                    <p className="text-sm text-gray-900">{importData.sealNumber}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

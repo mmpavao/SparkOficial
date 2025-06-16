@@ -47,11 +47,12 @@ export default function ImportsPage() {
   });
 
   // Filter imports
-  const filteredImports = imports.filter((importItem: Import) => {
+  const filteredImports = (imports as Import[]).filter((importItem: Import) => {
     const matchesSearch = !searchTerm || 
-      importItem.supplierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      importItem.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      importItem.importName?.toLowerCase().includes(searchTerm.toLowerCase());
+      importItem.importName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      ));
     
     const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
     
@@ -59,12 +60,12 @@ export default function ImportsPage() {
   });
 
   // Calculate metrics
-  const totalImports = imports.length;
-  const activeImports = imports.filter((imp: Import) => 
+  const totalImports = (imports as Import[]).length;
+  const activeImports = (imports as Import[]).filter((imp: Import) => 
     ['planning', 'in_progress', 'shipped'].includes(imp.status)
   ).length;
-  const completedImports = imports.filter((imp: Import) => imp.status === 'completed').length;
-  const totalValue = imports.reduce((sum: number, imp: Import) => 
+  const completedImports = (imports as Import[]).filter((imp: Import) => imp.status === 'completed').length;
+  const totalValue = (imports as Import[]).reduce((sum: number, imp: Import) => 
     sum + (parseFloat(imp.totalValue) || 0), 0
   );
 
