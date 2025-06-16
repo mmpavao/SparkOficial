@@ -35,7 +35,7 @@ export default function FinanceiraCreditPage() {
   // Buscar aplicações pré-aprovadas
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ['/api/financeira/credit-applications'],
-    queryFn: () => apiRequest('/api/financeira/credit-applications')
+    queryFn: () => apiRequest('/api/financeira/credit-applications', 'GET')
   });
 
   // Mutação para atualizar status financeiro

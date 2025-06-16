@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -28,10 +27,8 @@ import { formatPhone } from "@/lib/phone";
 import { Users, UserPlus, MoreVertical, Edit, UserCheck, UserX } from "lucide-react";
 import type { User } from "@shared/schema";
 
-
-
 export default function AdminUsersPage() {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -39,92 +36,53 @@ export default function AdminUsersPage() {
     action: () => void;
   }>({
     open: false,
-    title: '',
-    description: '',
+    title: "",
+    description: "",
     action: () => {}
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
-  });
-
-  const createUserMutation = useMutation({
-    mutationFn: async (data: CreateUserForm) => {
-      const response = await apiRequest("POST", "/api/admin/users", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      setCreateDialogOpen(false);
-      toast({
-        title: "Sucesso!",
-        description: "Usuário criado com sucesso.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível criar o usuário.",
-        variant: "destructive",
-      });
-    },
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/admin/users'],
+    queryFn: () => apiRequest('/api/admin/users', 'GET'),
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
-      const response = await apiRequest("PUT", `/api/admin/users/${userId}/role`, { role });
-      return response.json();
-    },
+    mutationFn: ({ userId, role }: { userId: number; role: string }) =>
+      apiRequest(`/api/admin/users/${userId}/role`, 'PUT', { role }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: "Sucesso!",
-        description: "Role do usuário atualizada com sucesso.",
+        title: "Role atualizada",
+        description: "Role do usuário atualizada com sucesso!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar a role do usuário.",
+        description: error.message || "Erro ao atualizar role",
         variant: "destructive",
       });
     },
   });
 
   const deactivateUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      const response = await apiRequest("PUT", `/api/admin/users/${userId}/deactivate`);
-      return response.json();
-    },
+    mutationFn: (userId: number) =>
+      apiRequest(`/api/admin/users/${userId}/deactivate`, 'PUT'),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
-        title: "Sucesso!",
-        description: "Usuário desativado com sucesso.",
+        title: "Usuário desativado",
+        description: "Usuário desativado com sucesso!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
       toast({
         title: "Erro",
-        description: "Não foi possível desativar o usuário.",
+        description: error.message || "Erro ao desativar usuário",
         variant: "destructive",
       });
-    },
-  });
-
-  const form = useForm<CreateUserForm>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      companyName: "",
-      cnpj: "",
-      phone: "",
-      role: "importer",
     },
   });
 
@@ -137,10 +95,6 @@ export default function AdminUsersPage() {
     });
   };
 
-  const onSubmit = (data: CreateUserForm) => {
-    createUserMutation.mutate(data);
-  };
-
   const getStatusBadge = (status: string | undefined) => {
     const userStatus = status || 'active';
     return userStatus === 'active' ? (
@@ -151,11 +105,14 @@ export default function AdminUsersPage() {
   };
 
   const getRoleBadge = (role: string) => {
-    return role === 'admin' ? (
-      <Badge className="bg-blue-100 text-blue-800">Administrador</Badge>
-    ) : (
-      <Badge className="bg-gray-100 text-gray-800">Importador</Badge>
-    );
+    switch (role) {
+      case 'admin':
+        return <Badge className="bg-blue-100 text-blue-800">Administrador</Badge>;
+      case 'financeira':
+        return <Badge className="bg-purple-100 text-purple-800">Financeira</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">Importador</Badge>;
+    }
   };
 
   return (
@@ -166,254 +123,116 @@ export default function AdminUsersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h1>
           <p className="text-gray-600">Gerencie usuários do sistema e suas permissões</p>
         </div>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-spark-600 hover:bg-spark-700">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Novo Usuário
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Usuário</DialogTitle>
-              <DialogDescription>
-                Adicione um novo usuário ao sistema
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Completo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome completo do usuário" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="email@exemplo.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="(11) 99999-9999" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="importer">Importador</SelectItem>
-                          <SelectItem value="admin">Administrador</SelectItem>
-                          <SelectItem value="financeira">Financeira</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="companyName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome da Empresa</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome da empresa" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cnpj"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CNPJ</FormLabel>
-                      <FormControl>
-                        <Input placeholder="00.000.000/0000-00" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Senha" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Confirme a senha" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCreateDialogOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={createUserMutation.isPending}>
-                    {createUserMutation.isPending ? "Criando..." : "Criar Usuário"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="bg-spark-600 hover:bg-spark-700"
+          onClick={() => setLocation('/users/new')}
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          Novo Usuário
+        </Button>
       </div>
 
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Usuários do Sistema
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando usuários...</p>
-            </div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Nenhum usuário encontrado</p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden md:block">
+      {/* Users Grid */}
+      <div className="grid gap-6">
+        {users.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Users className="w-12 h-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum usuário encontrado</h3>
+              <p className="text-gray-600 text-center">
+                Comece criando o primeiro usuário do sistema.
+              </p>
+              <Button 
+                className="mt-4 bg-spark-600 hover:bg-spark-700"
+                onClick={() => setLocation('/users/new')}
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Criar Primeiro Usuário
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <Card className="hidden md:block">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Usuários ({users.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4 font-medium text-gray-700">Nome</th>
-                        <th className="text-left p-4 font-medium text-gray-700">Email</th>
-                        <th className="text-left p-4 font-medium text-gray-700">Telefone</th>
-                        <th className="text-left p-4 font-medium text-gray-700">Role</th>
-                        <th className="text-left p-4 font-medium text-gray-700">Status</th>
-                        <th className="text-center p-4 font-medium text-gray-700">Ações</th>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Nome</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Email</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Telefone</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Role</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-900">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((user: User) => (
-                        <tr key={user.id} className="border-b hover:bg-gray-50 transition-colors">
-                          <td className="p-4">
+                        <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4">
                             <div className="font-medium text-gray-900">{user.fullName}</div>
+                            <div className="text-sm text-gray-600">{user.companyName}</div>
                           </td>
-                          <td className="p-4">
-                            <div className="text-gray-900">{user.email}</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="text-gray-900">{formatPhone(user.phone || '')}</div>
-                          </td>
-                          <td className="p-4">
-                            {getRoleBadge(user.role || 'importer')}
-                          </td>
-                          <td className="p-4">
-                            {getStatusBadge((user as any).status)}
-                          </td>
-                          <td className="p-4 text-center">
+                          <td className="py-3 px-4 text-gray-900">{user.email}</td>
+                          <td className="py-3 px-4 text-gray-900">{formatPhone(user.phone)}</td>
+                          <td className="py-3 px-4">{getRoleBadge(user.role)}</td>
+                          <td className="py-3 px-4">{getStatusBadge(user.status)}</td>
+                          <td className="py-3 px-4 text-center">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Button variant="ghost" size="sm">
                                   <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
-                                    "Alterar Role",
-                                    `Deseja alterar a role do usuário ${user.fullName}?`,
-                                    () => updateRoleMutation.mutate({ 
-                                      userId: user.id, 
-                                      role: user.role === 'admin' ? 'importer' : 'admin'
-                                    })
+                                    "Tornar Administrador",
+                                    `Tem certeza que deseja tornar ${user.fullName} um administrador?`,
+                                    () => updateRoleMutation.mutate({ userId: user.id, role: 'admin' })
                                   )}
-                                >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Alterar Role
-                                </DropdownMenuItem>
-                                
-                                <DropdownMenuItem 
-                                  onClick={() => handleConfirmAction(
-                                    "Ativar Usuário",
-                                    `Deseja ativar o usuário ${user.fullName}?`,
-                                    () => console.log('Ativar usuário', user.id)
-                                  )}
-                                  className="text-green-600"
+                                  disabled={user.role === 'admin'}
                                 >
                                   <UserCheck className="w-4 h-4 mr-2" />
-                                  Ativar
+                                  Tornar Admin
                                 </DropdownMenuItem>
-                                
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
+                                  onClick={() => handleConfirmAction(
+                                    "Tornar Financeira",
+                                    `Tem certeza que deseja tornar ${user.fullName} uma financeira?`,
+                                    () => updateRoleMutation.mutate({ userId: user.id, role: 'financeira' })
+                                  )}
+                                  disabled={user.role === 'financeira'}
+                                >
+                                  <UserCheck className="w-4 h-4 mr-2" />
+                                  Tornar Financeira
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleConfirmAction(
+                                    "Tornar Importador",
+                                    `Tem certeza que deseja tornar ${user.fullName} um importador?`,
+                                    () => updateRoleMutation.mutate({ userId: user.id, role: 'importer' })
+                                  )}
+                                  disabled={user.role === 'importer'}
+                                >
+                                  <UserCheck className="w-4 h-4 mr-2" />
+                                  Tornar Importador
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
                                     "Desativar Usuário",
-                                    `Deseja desativar o usuário ${user.fullName}? Esta ação pode ser revertida.`,
+                                    `Tem certeza que deseja desativar ${user.fullName}?`,
                                     () => deactivateUserMutation.mutate(user.id)
                                   )}
+                                  disabled={user.status === 'inactive'}
                                   className="text-red-600"
                                 >
                                   <UserX className="w-4 h-4 mr-2" />
@@ -427,59 +246,66 @@ export default function AdminUsersPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Mobile Card View */}
-              <div className="md:hidden space-y-4">
-                {users.map((user: User) => (
-                  <div
-                    key={user.id}
-                    className="bg-white border rounded-lg p-4 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between mb-3">
+            {/* Mobile Cards */}
+            <div className="grid gap-4 md:hidden">
+              {users.map((user: User) => (
+                <Card key={user.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h3 className="font-semibold text-gray-900">{user.fullName}</h3>
-                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <h3 className="font-medium text-gray-900">{user.fullName}</h3>
+                        <p className="text-sm text-gray-600">{user.companyName}</p>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button variant="ghost" size="sm">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleConfirmAction(
-                              "Alterar Role",
-                              `Deseja alterar a role do usuário ${user.fullName}?`,
-                              () => updateRoleMutation.mutate({ 
-                                userId: user.id, 
-                                role: user.role === 'admin' ? 'importer' : 'admin'
-                              })
+                              "Tornar Administrador",
+                              `Tem certeza que deseja tornar ${user.fullName} um administrador?`,
+                              () => updateRoleMutation.mutate({ userId: user.id, role: 'admin' })
                             )}
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Alterar Role
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuItem 
-                            onClick={() => handleConfirmAction(
-                              "Ativar Usuário",
-                              `Deseja ativar o usuário ${user.fullName}?`,
-                              () => console.log('Ativar usuário', user.id)
-                            )}
-                            className="text-green-600"
+                            disabled={user.role === 'admin'}
                           >
                             <UserCheck className="w-4 h-4 mr-2" />
-                            Ativar
+                            Tornar Admin
                           </DropdownMenuItem>
-                          
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
+                            onClick={() => handleConfirmAction(
+                              "Tornar Financeira",
+                              `Tem certeza que deseja tornar ${user.fullName} uma financeira?`,
+                              () => updateRoleMutation.mutate({ userId: user.id, role: 'financeira' })
+                            )}
+                            disabled={user.role === 'financeira'}
+                          >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Tornar Financeira
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleConfirmAction(
+                              "Tornar Importador",
+                              `Tem certeza que deseja tornar ${user.fullName} um importador?`,
+                              () => updateRoleMutation.mutate({ userId: user.id, role: 'importer' })
+                            )}
+                            disabled={user.role === 'importer'}
+                          >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Tornar Importador
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleConfirmAction(
                               "Desativar Usuário",
-                              `Deseja desativar o usuário ${user.fullName}? Esta ação pode ser revertida.`,
+                              `Tem certeza que deseja desativar ${user.fullName}?`,
                               () => deactivateUserMutation.mutate(user.id)
                             )}
+                            disabled={user.status === 'inactive'}
                             className="text-red-600"
                           >
                             <UserX className="w-4 h-4 mr-2" />
@@ -488,34 +314,24 @@ export default function AdminUsersPage() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <span className="text-gray-500">Telefone:</span>
-                        <div className="font-medium">{formatPhone(user.phone || '')}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Role:</span>
-                        <div className="mt-1">{getRoleBadge(user.role || 'importer')}</div>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Status:</span>
-                        <div className="mt-1">{getStatusBadge((user as any).status)}</div>
+                    <div className="space-y-2 text-sm">
+                      <div><span className="font-medium">Email:</span> {user.email}</div>
+                      <div><span className="font-medium">Telefone:</span> {formatPhone(user.phone)}</div>
+                      <div className="flex items-center justify-between">
+                        <div><span className="font-medium">Role:</span> {getRoleBadge(user.role)}</div>
+                        <div><span className="font-medium">Status:</span> {getStatusBadge(user.status)}</div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Confirmation Dialog */}
-      <AlertDialog 
-        open={confirmDialog.open} 
-        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
-      >
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({...confirmDialog, open})}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
@@ -524,13 +340,13 @@ export default function AdminUsersPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
+            <AlertDialogCancel onClick={() => setConfirmDialog({...confirmDialog, open: false})}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
                 confirmDialog.action();
-                setConfirmDialog(prev => ({ ...prev, open: false }));
+                setConfirmDialog({...confirmDialog, open: false});
               }}
             >
               Confirmar

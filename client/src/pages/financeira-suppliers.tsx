@@ -17,7 +17,7 @@ export default function FinanceiraSuppliers() {
   // Buscar fornecedores de usuários pré-aprovados
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ['/api/financeira/suppliers'],
-    queryFn: () => apiRequest('/api/financeira/suppliers')
+    queryFn: () => apiRequest('/api/financeira/suppliers', 'GET')
   });
 
   // Calcular métricas
