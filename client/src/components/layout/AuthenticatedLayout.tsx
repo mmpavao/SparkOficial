@@ -308,10 +308,10 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 mb-2">
               <DropdownMenuItem asChild>
-                <a href="/settings" className="flex items-center w-full">
+                <Link href="/settings" className="flex items-center w-full">
                   <Settings className="w-4 h-4 mr-3" />
                   {t.nav.settings}
-                </a>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
