@@ -508,11 +508,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
-        'approved',
+        'pre_approved',
         {
           approvedBy: userId,
           approvedAt: new Date(),
-          approvalReason: req.body.reason || 'Aprovado pela administração'
+          approvalReason: req.body.reason || 'Pré-aprovado pela administração'
         }
       );
       

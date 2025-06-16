@@ -144,9 +144,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         "Tem certeza que deseja pré-aprovar esta solicitação de crédito?",
         () => {
           updateStatusMutation.mutate({
-            status: 'approved',
+            status: 'pre_approved',
             data: {
-              reason: analysisData.notes || 'Aprovado após análise administrativa',
+              reason: analysisData.notes || 'Pré-aprovado após análise administrativa',
               riskLevel: analysisData.riskLevel,
               analysisNotes: analysisData.notes,
               preAnalysisStatus: 'pre_approved'
@@ -245,7 +245,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     const statusMap = {
       pending: { label: "Pendente", variant: "secondary" as const, color: "bg-gray-100 text-gray-800" },
       under_review: { label: "Em Análise", variant: "default" as const, color: "bg-blue-100 text-blue-800" },
-      pre_approved: { label: "Pré-Aprovado", variant: "default" as const, color: "bg-green-100 text-green-800" },
+      pre_approved: { label: "Pré-análise", variant: "default" as const, color: "bg-green-100 text-green-800" },
       needs_documents: { label: "Precisa Documentos", variant: "destructive" as const, color: "bg-yellow-100 text-yellow-800" },
       needs_clarification: { label: "Precisa Esclarecimentos", variant: "destructive" as const, color: "bg-orange-100 text-orange-800" },
       approved: { label: "Aprovado", variant: "default" as const, color: "bg-green-100 text-green-800" },

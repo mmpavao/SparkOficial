@@ -118,6 +118,11 @@ export default function CreditDetailsPage() {
         icon: Clock, 
         label: "Pendente" 
       },
+      pre_approved: { 
+        variant: "default" as const, 
+        icon: CheckCircle, 
+        label: "Pré-análise" 
+      },
       approved: { 
         variant: "default" as const, 
         icon: CheckCircle, 
