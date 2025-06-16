@@ -19,8 +19,7 @@ import { ArrowLeft, Package, Truck, Plus, Trash2, Building2 } from "lucide-react
 const importSchema = z.object({
   importName: z.string().min(3, "Nome da importação é obrigatório"),
   cargoType: z.enum(["FCL", "LCL"]).default("FCL"),
-  supplierName: z.string().min(2, "Nome do fornecedor é obrigatório"),
-  supplierLocation: z.string().min(2, "Localização do fornecedor é obrigatória"),
+  supplierId: z.number().min(1, "Selecione um fornecedor"),
   productName: z.string().min(2, "Nome do produto é obrigatório"),
   productDescription: z.string().min(10, "Descrição do produto é obrigatória"),
   quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
@@ -63,8 +62,7 @@ export default function ImportComplete() {
     defaultValues: {
       importName: "",
       cargoType: "FCL",
-      supplierName: "",
-      supplierLocation: "",
+      supplierId: 0,
       productName: "",
       productDescription: "",
       quantity: 1,
@@ -130,27 +128,39 @@ export default function ImportComplete() {
     mutationFn: async (data: ImportFormData) => {
       console.log("Creating import with data:", data);
       
+      // Find selected supplier info
+      const selectedSupplier = suppliers.find((s: any) => s.id === data.supplierId);
+      if (!selectedSupplier) {
+        throw new Error("Fornecedor não encontrado");
+      }
+      
       // Prepare data for API matching backend schema
       const apiData = {
         importName: data.importName,
         cargoType: data.cargoType,
-        supplierName: data.supplierName,
-        supplierLocation: data.supplierLocation,
+        supplierId: data.supplierId,
+        supplierName: selectedSupplier.companyName,
+        supplierLocation: `${selectedSupplier.city}, ${selectedSupplier.country}`,
         // Convert to products array for backend
-        products: cargoType === "LCL" ? products.map(p => ({
-          name: p.name,
-          description: p.description,
-          hsCode: "",
-          quantity: p.quantity,
-          unitPrice: p.unitPrice,
-          totalValue: p.totalValue
-        })) : [{
+        products: cargoType === "LCL" ? products.map(p => {
+          const productSupplier = suppliers.find((s: any) => s.id === p.supplierId);
+          return {
+            name: p.name,
+            description: p.description,
+            hsCode: "",
+            quantity: p.quantity,
+            unitPrice: p.unitPrice,
+            totalValue: p.totalValue,
+            supplierName: productSupplier?.companyName || ""
+          };
+        }) : [{
           name: data.productName,
           description: data.productDescription,
           hsCode: "",
           quantity: data.quantity,
           unitPrice: data.unitPrice,
-          totalValue: data.totalValue
+          totalValue: data.totalValue,
+          supplierName: selectedSupplier.companyName
         }],
         totalValue: getTotalValue(),
         currency: data.currency,
@@ -276,49 +286,37 @@ export default function ImportComplete() {
               Fornecedor
             </h3>
             
-            {suppliers.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Selecionar Fornecedor Cadastrado</Label>
-                  <Select onValueChange={onSupplierSelect}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolha um fornecedor..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers.map((supplier: any) => (
-                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                          {supplier.companyName} - {supplier.city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="supplierName">Nome do Fornecedor *</Label>
-                <Input
-                  id="supplierName"
-                  {...form.register("supplierName")}
-                  placeholder="Nome da empresa fornecedora"
-                />
-                {form.formState.errors.supplierName && (
-                  <p className="text-sm text-red-500">{form.formState.errors.supplierName.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="supplierLocation">Localização do Fornecedor *</Label>
-                <Input
-                  id="supplierLocation"
-                  {...form.register("supplierLocation")}
-                  placeholder="Ex: Guangzhou, China"
-                />
-                {form.formState.errors.supplierLocation && (
-                  <p className="text-sm text-red-500">{form.formState.errors.supplierLocation.message}</p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="supplierId">Selecionar Fornecedor *</Label>
+              <Select
+                value={form.watch("supplierId")?.toString() || ""}
+                onValueChange={(value) => form.setValue("supplierId", parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha um fornecedor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier: any) => (
+                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                      {supplier.companyName} - {supplier.city}, {supplier.country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.supplierId && (
+                <p className="text-sm text-red-500">{form.formState.errors.supplierId.message}</p>
+              )}
+              {suppliers.length === 0 && (
+                <p className="text-sm text-yellow-600">
+                  Nenhum fornecedor cadastrado. <button 
+                    type="button" 
+                    onClick={() => setLocation('/suppliers/new')} 
+                    className="underline hover:no-underline"
+                  >
+                    Cadastrar fornecedor
+                  </button>
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

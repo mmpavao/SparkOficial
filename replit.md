@@ -286,6 +286,14 @@ Changelog:
   * Added container information section (number and seal) visible only for FCL shipments
   * Integrated real-time product summary showing total quantities and values for LCL cargo
   * Enhanced form validation and user experience with visual product management interface
+- June 16, 2025. Complete Chinese supplier system implementation:
+  * Implemented comprehensive Chinese supplier registration with simplified data format
+  * Created page-based navigation for supplier registration (no popups/modals)
+  * Built Chinese manufacturer data structure (no CNPJ/CEP, simplified address with city/province)
+  * Optimized import form to use dropdown supplier selection instead of manual entry
+  * Enhanced LCL system where each product has individual supplier dropdown selection
+  * Integrated supplier database with import operations for seamless workflow
+  * Established complete Chinese supplier management with search and filtering capabilities
 ```
 
 ## User Preferences
