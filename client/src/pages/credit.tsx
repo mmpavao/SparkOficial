@@ -177,10 +177,18 @@ export default function CreditPage() {
   });
 
   // Fetch credit applications - adaptável baseado no tipo de usuário
+  const getEndpoint = () => {
+    if (user?.role === "financeira") {
+      return "/api/financeira/credit-applications";
+    } else if (permissions.canViewAllApplications) {
+      return "/api/admin/credit-applications";
+    } else {
+      return "/api/credit/applications";
+    }
+  };
+
   const { data: applications = [], isLoading } = useQuery({
-    queryKey: permissions.canViewAllApplications 
-      ? ["/api/admin/credit-applications"] 
-      : ["/api/credit/applications"],
+    queryKey: [getEndpoint()],
   });
 
   // Create credit application mutation

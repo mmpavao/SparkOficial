@@ -55,9 +55,20 @@ export default function ImportsPage() {
 
   const typedUser = user as User | undefined;
   const isAdmin = typedUser?.role === "admin" || typedUser?.email === "pavaosmart@gmail.com";
+  const isFinanceira = typedUser?.role === "financeira";
   
+  const getImportsEndpoint = () => {
+    if (isFinanceira) {
+      return "/api/financeira/imports";
+    } else if (isAdmin) {
+      return "/api/admin/imports";
+    } else {
+      return "/api/imports";
+    }
+  };
+
   const { data: imports, isLoading } = useQuery({
-    queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"]
+    queryKey: [getImportsEndpoint()]
   });
 
   // Filter imports based on admin or regular user

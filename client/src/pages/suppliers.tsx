@@ -52,10 +52,21 @@ export default function SuppliersPage() {
 
   const typedUser = user as any;
   const isAdmin = typedUser?.role === "admin" || typedUser?.email === "pavaosmart@gmail.com";
+  const isFinanceira = typedUser?.role === "financeira";
 
-  // Fetch suppliers data - use admin endpoint if admin
+  const getSuppliersEndpoint = () => {
+    if (isFinanceira) {
+      return "/api/financeira/suppliers";
+    } else if (isAdmin) {
+      return "/api/admin/suppliers";
+    } else {
+      return "/api/suppliers";
+    }
+  };
+
+  // Fetch suppliers data - use appropriate endpoint based on user role
   const { data: suppliers = [], isLoading } = useQuery({
-    queryKey: isAdmin ? ["/api/admin/suppliers"] : ["/api/suppliers"]
+    queryKey: [getSuppliersEndpoint()]
   });
 
   // Filter suppliers
