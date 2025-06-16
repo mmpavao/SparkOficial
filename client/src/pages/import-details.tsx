@@ -33,17 +33,21 @@ import {
 
 export default function ImportDetailsPage() {
   const [match, params] = useRoute("/imports/details/:id");
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { isAdmin } = useUserPermissions();
   const queryClient = useQueryClient();
 
-  const importId = params?.id ? parseInt(params.id) : null;
+  // Extract importId from URL path if useRoute fails
+  const importId = params?.id ? parseInt(params.id) : 
+    location.startsWith('/imports/details/') ? 
+    parseInt(location.split('/imports/details/')[1]) : null;
   
   console.log("=== IMPORT DETAILS DEBUG ===");
   console.log("match:", match);
   console.log("params:", params);
+  console.log("location:", location);
   console.log("importId:", importId);
 
   // Fetch import details
@@ -90,9 +94,9 @@ export default function ImportDetailsPage() {
     updatePipelineMutation.mutate({ stage, data });
   };
 
-  console.log("Match check:", { match, importId, shouldShow: !match || !importId });
+  console.log("Match check:", { match, importId, shouldShow: !importId });
   
-  if (!match || !importId) {
+  if (!importId) {
     console.log("Returning not found due to:", { match, importId });
     return <div>Importação não encontrada</div>;
   }
