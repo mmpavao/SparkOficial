@@ -14,6 +14,20 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // CORS configuration for cookies
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+
   // Session configuration
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
@@ -30,10 +44,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      httpOnly: true,
-      secure: false, // Disabled for Replit deployment
+      httpOnly: false, // Allow JavaScript access for debugging
+      secure: false, // HTTP for development
       maxAge: sessionTtl,
       sameSite: 'lax',
+      path: '/',
     },
   }));
 
@@ -113,10 +128,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       req.session.userId = user.id;
       console.log("Session created for user ID:", user.id, "Session ID:", req.sessionID);
-
-      // Return user without password
-      const { password: _, ...userResponse } = user;
-      res.json(userResponse);
+      
+      // Save session explicitly
+      req.session.save((err: any) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Erro ao salvar sessão" });
+        }
+        console.log("Session saved successfully");
+        
+        // Return user without password
+        const { password: _, ...userResponse } = user;
+        res.json(userResponse);
+      });
     } catch (error: any) {
       if (error.name === "ZodError") {
         return res.status(400).json({ 
