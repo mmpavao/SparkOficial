@@ -63,6 +63,8 @@ function Router() {
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />
             <Route path="/users/new" component={AdminUserNewPage} />
+            <Route path="/admin/users" component={AdminUsersPage} />
+            <Route path="/admin/users/new" component={AdminUserNewPage} />
 
             <Route component={NotFound} />
           </Switch>

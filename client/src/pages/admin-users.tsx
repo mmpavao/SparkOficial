@@ -125,7 +125,7 @@ export default function AdminUsersPage() {
         </div>
         <Button 
           className="bg-spark-600 hover:bg-spark-700"
-          onClick={() => setLocation('/users/new')}
+          onClick={() => setLocation('/admin/users/new')}
         >
           <UserPlus className="w-4 h-4 mr-2" />
           Novo Usuário
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
               </p>
               <Button 
                 className="mt-4 bg-spark-600 hover:bg-spark-700"
-                onClick={() => setLocation('/users/new')}
+                onClick={() => setLocation('/admin/users/new')}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Criar Primeiro Usuário
