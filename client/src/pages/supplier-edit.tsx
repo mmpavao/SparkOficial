@@ -1,102 +1,98 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Save, Building2, MapPin, Phone, Mail } from "lucide-react";
+import { insertSupplierSchema } from "@shared/schema";
+import { ArrowLeft, Save } from "lucide-react";
+import { z } from "zod";
 
-// Form validation schema using only existing supplier fields
-const editSupplierSchema = z.object({
-  companyName: z.string().min(1, "Nome da empresa é obrigatório"),
-  contactName: z.string().min(1, "Nome do contato é obrigatório"),
-  contactPerson: z.string().optional(),
-  phone: z.string().min(1, "Telefone é obrigatório"),
-  email: z.string().email("E-mail inválido"),
-  address: z.string().min(1, "Endereço é obrigatório"),
-  city: z.string().min(1, "Cidade é obrigatória"),
-  state: z.string().optional(),
-  country: z.string().min(1, "País é obrigatório"),
-  specialization: z.string().optional(),
-  status: z.enum(["active", "inactive"]).default("active"),
-});
-
-type EditSupplierForm = z.infer<typeof editSupplierSchema>;
+const editSupplierSchema = insertSupplierSchema.omit({ userId: true });
 
 export default function SupplierEditPage() {
-  const [match, params] = useRoute("/suppliers/edit/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const supplierId = window.location.pathname.split('/').pop();
 
-  const supplierId = params?.id ? parseInt(params.id) : null;
-
-  // Fetch supplier details
   const { data: supplier, isLoading } = useQuery({
-    queryKey: ["/api/suppliers", supplierId],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/suppliers/${supplierId}`);
-      return response.json();
-    },
-    enabled: !!supplierId,
+    queryKey: [`/api/suppliers/${supplierId}`],
   });
 
-  // Form setup
-  const form = useForm<EditSupplierForm>({
+  const form = useForm<z.infer<typeof editSupplierSchema>>({
     resolver: zodResolver(editSupplierSchema),
     defaultValues: {
       companyName: "",
       contactName: "",
-      contactPerson: "",
-      phone: "",
       email: "",
+      phone: "",
       address: "",
       city: "",
       state: "",
       country: "China",
+      zipCode: "",
+      businessRegistration: "",
+      taxId: "",
+      bankName: "",
+      bankAccount: "",
+      swiftCode: "",
+      productCategories: [],
       specialization: "",
+      certifications: [],
+      preferredPaymentTerms: "",
+      minimumOrderValue: "",
+      leadTime: "",
+      qualityStandards: [],
+      exportLicenses: [],
       status: "active",
+      rating: 5,
+      notes: "",
     },
   });
 
-  // Update form when supplier data loads
+  // Update form when supplier data is loaded
   useEffect(() => {
     if (supplier) {
       form.reset({
         companyName: supplier.companyName || "",
         contactName: supplier.contactName || "",
-        contactPerson: supplier.contactPerson || "",
-        phone: supplier.phone || "",
         email: supplier.email || "",
+        phone: supplier.phone || "",
         address: supplier.address || "",
         city: supplier.city || "",
         state: supplier.state || "",
         country: supplier.country || "China",
+        zipCode: supplier.zipCode || "",
+        businessRegistration: supplier.businessRegistration || "",
+        taxId: supplier.taxId || "",
+        bankName: supplier.bankName || "",
+        bankAccount: supplier.bankAccount || "",
+        swiftCode: supplier.swiftCode || "",
+        productCategories: supplier.productCategories || [],
         specialization: supplier.specialization || "",
+        certifications: supplier.certifications || [],
+        preferredPaymentTerms: supplier.preferredPaymentTerms || "",
+        minimumOrderValue: supplier.minimumOrderValue || "",
+        leadTime: supplier.leadTime || "",
+        qualityStandards: supplier.qualityStandards || [],
+        exportLicenses: supplier.exportLicenses || [],
         status: supplier.status || "active",
+        rating: supplier.rating || 5,
+        notes: supplier.notes || "",
       });
     }
   }, [supplier, form]);
 
-  // Update supplier mutation
   const updateSupplierMutation = useMutation({
-    mutationFn: async (data: EditSupplierForm) => {
-      setIsSubmitting(true);
+    mutationFn: async (data: z.infer<typeof editSupplierSchema>) => {
       const response = await apiRequest("PUT", `/api/suppliers/${supplierId}`, data);
       return response.json();
     },
@@ -106,7 +102,7 @@ export default function SupplierEditPage() {
         description: "As informações do fornecedor foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/suppliers", supplierId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/suppliers/${supplierId}`] });
       setLocation(`/suppliers/details/${supplierId}`);
     },
     onError: (error: any) => {
@@ -116,29 +112,35 @@ export default function SupplierEditPage() {
         variant: "destructive",
       });
     },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
   });
 
-  const onSubmit = (data: EditSupplierForm) => {
+  const onSubmit = (data: z.infer<typeof editSupplierSchema>) => {
     updateSupplierMutation.mutate(data);
   };
 
-  if (!match || !supplierId) {
-    return <div>Fornecedor não encontrado</div>;
-  }
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
   if (!supplier) {
-    return <div>Fornecedor não encontrado</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-8">
+          <h2 className="text-2xl font-bold text-gray-900">Fornecedor não encontrado</h2>
+          <p className="text-gray-600 mt-2">O fornecedor solicitado não existe ou foi removido.</p>
+          <Button onClick={() => setLocation('/suppliers')} className="mt-4">
+            Voltar para Fornecedores
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -146,245 +148,345 @@ export default function SupplierEditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setLocation(`/suppliers/details/${supplierId}`)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setLocation(`/suppliers/details/${supplierId}`)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Editar Fornecedor</h1>
-            <p className="text-muted-foreground">{supplier.companyName}</p>
+            <h1 className="text-3xl font-bold">Editar Fornecedor</h1>
+            <p className="text-gray-600">Atualize as informações do fornecedor chinês</p>
           </div>
         </div>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Company Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Informações da Empresa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="companyName">Nome da Empresa *</Label>
-                <Input
-                  id="companyName"
-                  {...form.register("companyName")}
-                  placeholder="Nome da empresa chinesa"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações Básicas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="companyName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Empresa *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da empresa chinesa" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {form.formState.errors.companyName && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.companyName.message}
-                  </p>
+                <FormField
+                  control={form.control}
+                  name="contactName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Contato</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da pessoa de contato" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail *</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="email@empresa.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+86 138 0000 0000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Localização</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Endereço *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Endereço completo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Cidade" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Província/Estado</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Província ou estado" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>País *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="País" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Business Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações Comerciais</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="businessRegistration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Registro Empresarial</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Número de registro" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="taxId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ID Fiscal</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Identificação fiscal" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="bankName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Banco</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do banco" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="bankAccount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Conta Bancária</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Número da conta" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="swiftCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Código SWIFT</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Código SWIFT" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="preferredPaymentTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Termos de Pagamento Preferidos</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 30% antecipado, 70% contra BL" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Trading Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações Comerciais</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="specialization"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Especialização</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Área de especialização" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="minimumOrderValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor Mínimo do Pedido</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: USD 10,000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="leadTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lead Time</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 15-30 dias" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="active">Ativo</SelectItem>
+                          <SelectItem value="inactive">Inativo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Notas adicionais sobre o fornecedor"
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-
-              <div>
-                <Label htmlFor="contactName">Pessoa de Contato *</Label>
-                <Input
-                  id="contactName"
-                  {...form.register("contactName")}
-                  placeholder="Nome do contato principal"
-                />
-                {form.formState.errors.contactName && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.contactName.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="contactPerson">Contato Adicional</Label>
-                <Input
-                  id="contactPerson"
-                  {...form.register("contactPerson")}
-                  placeholder="Pessoa de contato secundária"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="specialization">Especialização</Label>
-                <Input
-                  id="specialization"
-                  {...form.register("specialization")}
-                  placeholder="Área de especialização"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contact Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Phone className="h-5 w-5" />
-              Informações de Contato
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="phone">Telefone *</Label>
-                <Input
-                  id="phone"
-                  {...form.register("phone")}
-                  placeholder="+86 xxx xxxx xxxx"
-                />
-                {form.formState.errors.phone && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.phone.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="email">E-mail *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...form.register("email")}
-                  placeholder="email@empresa.com"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.email.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Address Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Endereço
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="address">Endereço Completo *</Label>
-              <Textarea
-                id="address"
-                {...form.register("address")}
-                placeholder="Endereço completo da empresa"
-                rows={3}
               />
-              {form.formState.errors.address && (
-                <p className="text-sm text-red-600 mt-1">
-                  {form.formState.errors.address.message}
-                </p>
-              )}
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="city">Cidade *</Label>
-                <Input
-                  id="city"
-                  {...form.register("city")}
-                  placeholder="Cidade"
-                />
-                {form.formState.errors.city && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.city.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="state">Província/Estado</Label>
-                <Input
-                  id="state"
-                  {...form.register("state")}
-                  placeholder="Província"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="country">País *</Label>
-                <Select
-                  value={form.watch("country")}
-                  onValueChange={(value) => form.setValue("country", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o país" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="China">China</SelectItem>
-                    <SelectItem value="Hong Kong">Hong Kong</SelectItem>
-                    <SelectItem value="Taiwan">Taiwan</SelectItem>
-                    <SelectItem value="Singapore">Singapura</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.country && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.country.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Status do Fornecedor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={form.watch("status")}
-                onValueChange={(value: "active" | "inactive") => form.setValue("status", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="inactive">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit Buttons */}
-        <div className="flex justify-end gap-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => setLocation(`/suppliers/details/${supplierId}`)}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Alterações
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setLocation(`/suppliers/details/${supplierId}`)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={updateSupplierMutation.isPending}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {updateSupplierMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
