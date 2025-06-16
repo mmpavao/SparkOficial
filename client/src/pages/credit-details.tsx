@@ -492,7 +492,7 @@ export default function CreditDetailsPage() {
           </Card>
 
           {/* Ações Adaptáveis baseadas no tipo de usuário */}
-          {permissions.canManageApplications ? (
+          {(permissions.canManageApplications || permissions.isFinanceira) ? (
             <AdminAnalysisPanel application={application} />
           ) : (
             <Card>

@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +18,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare } from "lucide-react";
+import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
 
 interface AdminAnalysisPanelProps {
@@ -25,12 +28,21 @@ interface AdminAnalysisPanelProps {
 }
 
 export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelProps) {
+  const permissions = useUserPermissions();
+  
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
     riskLevel: application.riskLevel || "medium",
     notes: application.analysisNotes || "",
     requestedDocuments: application.requestedDocuments || "",
     observations: application.adminObservations || ""
+  });
+
+  // Financeira-specific state
+  const [financialData, setFinancialData] = useState({
+    creditLimit: application.creditLimit || "",
+    approvedTerms: application.approvedTerms || "30",
+    financialNotes: application.financialNotes || ""
   });
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -51,14 +63,25 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   // Mutation para atualizar status da aplicação
   const updateStatusMutation = useMutation({
     mutationFn: async ({ status, data }: { status: string; data?: any }) => {
-      const endpoint = status === 'approved' 
-        ? `/api/admin/credit/applications/${application.id}/approve`
-        : status === 'rejected'
-        ? `/api/admin/credit/applications/${application.id}/reject`
-        : `/api/admin/credit/applications/${application.id}/update-analysis`;
+      let endpoint;
       
-      const response = await apiRequest(endpoint, "PUT", data);
-      return response.json();
+      if (permissions.isFinanceira) {
+        // Financeira endpoints for final approval/rejection
+        endpoint = status === 'approved' 
+          ? `/api/financeira/credit-applications/${application.id}/approve`
+          : status === 'rejected'
+          ? `/api/financeira/credit-applications/${application.id}/reject`
+          : `/api/financeira/credit-applications/${application.id}/update-financial`;
+      } else {
+        // Admin endpoints for pre-approval
+        endpoint = status === 'approved' 
+          ? `/api/admin/credit/applications/${application.id}/approve`
+          : status === 'rejected'
+          ? `/api/admin/credit/applications/${application.id}/reject`
+          : `/api/admin/credit/applications/${application.id}/update-analysis`;
+      }
+      
+      return await apiRequest(endpoint, "PUT", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", application.id] });
@@ -88,39 +111,86 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   };
 
   const handleApprove = () => {
-    handleConfirmAction(
-      "Aprovar Solicitação",
-      "Tem certeza que deseja aprovar esta solicitação de crédito?",
-      () => {
-        updateStatusMutation.mutate({
-          status: 'approved',
-          data: {
-            reason: analysisData.notes || 'Aprovado após análise administrativa',
-            riskLevel: analysisData.riskLevel,
-            analysisNotes: analysisData.notes,
-            preAnalysisStatus: 'pre_approved'
-          }
+    if (permissions.isFinanceira) {
+      // Financeira final approval
+      if (!financialData.creditLimit) {
+        toast({
+          title: "Erro",
+          description: "Por favor, informe o limite de crédito aprovado.",
+          variant: "destructive",
         });
+        return;
       }
-    );
+      
+      handleConfirmAction(
+        "Aprovar Crédito",
+        "Tem certeza que deseja aprovar esta solicitação de crédito com limite final?",
+        () => {
+          updateStatusMutation.mutate({
+            status: 'approved',
+            data: {
+              creditLimit: financialData.creditLimit,
+              approvedTerms: financialData.approvedTerms,
+              financialNotes: financialData.financialNotes,
+              financialStatus: 'approved'
+            }
+          });
+        }
+      );
+    } else {
+      // Admin pre-approval
+      handleConfirmAction(
+        "Pré-aprovar Solicitação",
+        "Tem certeza que deseja pré-aprovar esta solicitação de crédito?",
+        () => {
+          updateStatusMutation.mutate({
+            status: 'approved',
+            data: {
+              reason: analysisData.notes || 'Aprovado após análise administrativa',
+              riskLevel: analysisData.riskLevel,
+              analysisNotes: analysisData.notes,
+              preAnalysisStatus: 'pre_approved'
+            }
+          });
+        }
+      );
+    }
   };
 
   const handleReject = () => {
-    handleConfirmAction(
-      "Rejeitar Solicitação",
-      "Tem certeza que deseja rejeitar esta solicitação de crédito?",
-      () => {
-        updateStatusMutation.mutate({
-          status: 'rejected',
-          data: {
-            reason: analysisData.notes || 'Rejeitado após análise administrativa',
-            riskLevel: analysisData.riskLevel,
-            analysisNotes: analysisData.notes,
-            preAnalysisStatus: 'rejected'
-          }
-        });
-      }
-    );
+    if (permissions.isFinanceira) {
+      // Financeira final rejection
+      handleConfirmAction(
+        "Rejeitar Crédito",
+        "Tem certeza que deseja rejeitar esta solicitação de crédito definitivamente?",
+        () => {
+          updateStatusMutation.mutate({
+            status: 'rejected',
+            data: {
+              financialNotes: financialData.financialNotes || 'Rejeitado após análise financeira',
+              financialStatus: 'rejected'
+            }
+          });
+        }
+      );
+    } else {
+      // Admin rejection
+      handleConfirmAction(
+        "Rejeitar Solicitação",
+        "Tem certeza que deseja rejeitar esta solicitação de crédito?",
+        () => {
+          updateStatusMutation.mutate({
+            status: 'rejected',
+            data: {
+              reason: analysisData.notes || 'Rejeitado após análise administrativa',
+              riskLevel: analysisData.riskLevel,
+              analysisNotes: analysisData.notes,
+              preAnalysisStatus: 'rejected'
+            }
+          });
+        }
+      );
+    }
   };
 
   const handleRequestDocuments = () => {
