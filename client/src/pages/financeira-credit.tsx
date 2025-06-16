@@ -149,19 +149,19 @@ export default function FinanceiraCreditPage() {
           title="Aguardando Análise"
           value={totalApplications}
           icon={Clock}
-          color="blue"
+          iconColor="text-blue-600"
         />
         <MetricsCard
           title="Valor Médio Solicitado"
           value={formatCurrency(avgCreditAmount)}
           icon={DollarSign}
-          color="green"
+          iconColor="text-green-600"
         />
         <MetricsCard
           title="Tempo Médio de Análise"
           value="2-3 dias"
           icon={Calendar}
-          color="purple"
+          iconColor="text-purple-600"
         />
       </div>
 

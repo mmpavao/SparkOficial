@@ -78,19 +78,19 @@ export default function FinanceiraSuppliers() {
           title="Total de Fornecedores"
           value={totalSuppliers}
           icon={Users}
-          color="blue"
+          iconColor="text-blue-600"
         />
         <MetricsCard
           title="Fornecedores Ativos"
           value={activeSuppliers}
           icon={Building2}
-          color="green"
+          iconColor="text-green-600"
         />
         <MetricsCard
           title="Avaliação Média"
           value={avgRating.toFixed(1)}
           icon={Star}
-          color="yellow"
+          iconColor="text-yellow-600"
         />
       </div>
 
@@ -103,14 +103,14 @@ export default function FinanceiraSuppliers() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {suppliers.length === 0 ? (
+          {suppliersArray.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Nenhum fornecedor encontrado</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {suppliers.map((supplier: any) => (
+              {suppliersArray.map((supplier: any) => (
                 <Card key={supplier.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     {/* Header do Card */}

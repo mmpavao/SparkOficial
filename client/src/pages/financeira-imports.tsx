@@ -24,9 +24,10 @@ export default function FinanceiraImports() {
   });
 
   // Calcular métricas
-  const totalImports = imports.length;
-  const totalValue = imports.reduce((sum: number, imp: any) => sum + (imp.totalValue || 0), 0);
-  const activeImports = imports.filter((imp: any) => 
+  const importsArray = Array.isArray(imports) ? imports : [];
+  const totalImports = importsArray.length;
+  const totalValue = importsArray.reduce((sum: number, imp: any) => sum + (imp.totalValue || 0), 0);
+  const activeImports = importsArray.filter((imp: any) => 
     ['planejamento', 'em_transito', 'desembaraco'].includes(imp.status)
   ).length;
 
@@ -115,7 +116,7 @@ export default function FinanceiraImports() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {imports.length === 0 ? (
+          {importsArray.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Truck className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Nenhuma importação encontrada</p>
