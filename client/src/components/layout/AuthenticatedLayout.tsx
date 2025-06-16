@@ -120,8 +120,22 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       icon: Truck, 
       label: t.nav.imports,
       submenu: [
-        { path: "/imports", label: isAdmin ? "Todas as Importações" : "Minhas Importações" },
-        { path: "/suppliers", label: isAdmin ? "Todos os Fornecedores" : "Fornecedores" },
+        { 
+          path: "/imports", 
+          label: isFinanceira 
+            ? "Análise de Importações" 
+            : isAdmin 
+              ? "Todas as Importações" 
+              : "Minhas Importações" 
+        },
+        { 
+          path: "/suppliers", 
+          label: isFinanceira 
+            ? "Análise de Fornecedores" 
+            : isAdmin 
+              ? "Todos os Fornecedores" 
+              : "Fornecedores" 
+        },
       ]
     },
     { path: "/reports", icon: BarChart3, label: t.nav.reports },

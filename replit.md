@@ -342,6 +342,13 @@ Changelog:
   * Validated complete three-tier approval system: importers → admin pre-approval → financeira final approval
   * System tested and confirmed 100% functional with proper data flow between all three user types
   * All API endpoints working correctly with proper authentication and role-based access control
+- June 16, 2025. Complete Financeira role integration into existing pages:
+  * Integrated Financeira role into useUserPermissions hook with proper permission structure
+  * Updated credit, imports, and suppliers pages with role-based headers and functionality
+  * Removed "New" buttons for Financeira users (analysis-only access, no creation rights)
+  * Added proper role-based navigation labels in sidebar (Análise de Importações/Fornecedores)
+  * Financeira users now access existing admin components with financial analysis context
+  * Completed unified interface architecture eliminating duplicate Financeira-specific pages
 ```
 
 ## User Preferences
