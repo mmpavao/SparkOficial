@@ -250,6 +250,8 @@ export default function CreditApplicationPage() {
       setProductTags(newTags);
       setCurrentProduct("");
       creditForm.setValue("productsToImport", newTags);
+      // Force form validation update
+      creditForm.trigger("productsToImport");
     }
   };
 
@@ -257,6 +259,8 @@ export default function CreditApplicationPage() {
     const newTags = productTags.filter(tag => tag !== tagToRemove);
     setProductTags(newTags);
     creditForm.setValue("productsToImport", newTags);
+    // Force form validation update
+    creditForm.trigger("productsToImport");
   };
 
   const handleProductKeyPress = (e: React.KeyboardEvent) => {
@@ -363,7 +367,7 @@ export default function CreditApplicationPage() {
       case 3:
         const creditData = creditForm.getValues();
         return creditData.requestedAmount && 
-               creditData.productsToImport && creditData.productsToImport.length > 0 &&
+               productTags.length > 0 &&
                creditData.monthlyImportVolume && creditData.justification;
       case 4:
         return false; // Documents step requires actual document uploads
@@ -966,55 +970,62 @@ export default function CreditApplicationPage() {
 
                 
                 {/* Products to Import - Tag System */}
-                <div className="space-y-4">
-                  <FormLabel className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-600" />
-                    Produtos a Importar *
-                  </FormLabel>
-                  
-                  <div className="flex gap-2">
-                    <Input
-                      value={currentProduct}
-                      onChange={(e) => setCurrentProduct(e.target.value)}
-                      onKeyPress={handleProductKeyPress}
-                      placeholder="Digite um produto e pressione Enter"
-                      className="flex-1"
-                    />
-                    <Button 
-                      type="button" 
-                      onClick={addProductTag}
-                      disabled={!currentProduct.trim()}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Adicionar
-                    </Button>
-                  </div>
-
-                  {/* Product Tags Display */}
-                  {productTags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      {productTags.map((tag, index) => (
-                        <span 
-                          key={index}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                <FormField
+                  control={creditForm.control}
+                  name="productsToImport"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-600" />
+                        Produtos a Importar *
+                      </FormLabel>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          value={currentProduct}
+                          onChange={(e) => setCurrentProduct(e.target.value)}
+                          onKeyPress={handleProductKeyPress}
+                          placeholder="Digite um produto e pressione Enter"
+                          className="flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          onClick={addProductTag}
+                          disabled={!currentProduct.trim()}
+                          className="bg-blue-600 hover:bg-blue-700"
                         >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => removeProductTag(tag)}
-                            className="text-blue-600 hover:text-blue-800 ml-1"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                          Adicionar
+                        </Button>
+                      </div>
+
+                      {/* Product Tags Display */}
+                      {productTags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          {productTags.map((tag, index) => (
+                            <span 
+                              key={index}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeProductTag(tag)}
+                                className="text-blue-600 hover:text-blue-800 ml-1"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {productTags.length === 0 && (
+                        <p className="text-sm text-gray-500">Adicione pelo menos um produto</p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  
-                  {productTags.length === 0 && (
-                    <p className="text-sm text-gray-500">Adicione pelo menos um produto</p>
-                  )}
-                </div>
+                />
 
                 {/* Monthly Import Volume */}
                 <FormField
