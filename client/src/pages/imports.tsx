@@ -10,8 +10,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { type Import } from "@shared/schema";
+import { type Import, type User } from "@shared/schema";
 import { formatCurrency } from "@/lib/formatters";
+import AdminImportFilters from "@/components/AdminImportFilters";
 import { 
   Truck, 
   Package, 
@@ -39,6 +40,12 @@ export default function ImportsPage() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [adminFilters, setAdminFilters] = useState({
+    search: "",
+    status: "",
+    company: "",
+    cargoType: "",
+  });
   const { toast } = useToast();
 
   // Fetch imports data - check if user is admin to use admin endpoint
@@ -46,23 +53,40 @@ export default function ImportsPage() {
     queryKey: ["/api/auth/user"]
   });
 
-  const isAdmin = user?.role === "admin" || user?.email === "pavaosmart@gmail.com";
+  const typedUser = user as User | undefined;
+  const isAdmin = typedUser?.role === "admin" || typedUser?.email === "pavaosmart@gmail.com";
   
   const { data: imports, isLoading } = useQuery({
     queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"]
   });
 
-  // Filter imports
-  const filteredImports = Array.isArray(imports) ? imports.filter((importItem: Import) => {
-    const matchesSearch = !searchTerm || 
-      importItem.importName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      ));
-    
-    const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  // Filter imports based on admin or regular user
+  const filteredImports = Array.isArray(imports) ? imports.filter((importItem: any) => {
+    if (isAdmin) {
+      // Admin filtering using AdminImportFilters
+      const matchesSearch = !adminFilters.search || 
+        importItem.importName?.toLowerCase().includes(adminFilters.search.toLowerCase()) ||
+        importItem.companyName?.toLowerCase().includes(adminFilters.search.toLowerCase()) ||
+        (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
+          product.name?.toLowerCase().includes(adminFilters.search.toLowerCase())
+        ));
+      
+      const matchesStatus = !adminFilters.status || importItem.status === adminFilters.status;
+      const matchesCargoType = !adminFilters.cargoType || importItem.cargoType === adminFilters.cargoType;
+      
+      return matchesSearch && matchesStatus && matchesCargoType;
+    } else {
+      // Regular user filtering
+      const matchesSearch = !searchTerm || 
+        importItem.importName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
+          product.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
+      
+      const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    }
   }) : [];
 
   // Calculate metrics
