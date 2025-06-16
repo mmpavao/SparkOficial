@@ -216,10 +216,8 @@ export default function CreditApplicationPage() {
         title: "Sucesso!",
         description: "Solicitação de crédito enviada com sucesso.",
       });
-      // Navigate to credit management page with smooth transition
-      setTimeout(() => {
-        setLocation('/credit');
-      }, 1500);
+      // Navigate to credit management page immediately
+      setLocation('/credit');
     },
     onError: (error: any) => {
       toast({
