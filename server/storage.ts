@@ -13,7 +13,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -350,7 +350,9 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(creditApplications)
-      .where(eq(creditApplications.status, "pre_approved"));
+      .where(
+        inArray(creditApplications.status, ["pre_approved", "approved"])
+      );
   }
 
   async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
