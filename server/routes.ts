@@ -523,22 +523,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
       
-      // Clean and convert timestamp fields to proper Date objects or null
-      const cleanedData = {
-        ...data,
+      // Clean and convert data to match the new schema
+      const cleanedData: any = {
+        userId,
+        importName: data.importName,
+        cargoType: data.cargoType || "FCL",
+        containerNumber: data.containerNumber || null,
+        sealNumber: data.sealNumber || null,
+        products: data.products || [],
+        totalValue: data.totalValue,
+        currency: data.currency || "USD",
+        incoterms: data.incoterms,
+        shippingMethod: data.shippingMethod,
+        containerType: data.containerType || null,
         estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        status: "planning",
+        currentStage: "estimativa"
       };
-      
-      // Remove any undefined timestamp fields that might cause issues
-      Object.keys(cleanedData).forEach(key => {
-        if (cleanedData[key] === undefined || cleanedData[key] === '') {
-          if (key.includes('Date') || key.includes('At') || key === 'estimatedDelivery') {
-            cleanedData[key] = null;
-          }
-        }
-      });
       
       const importRecord = await storage.createImport(cleanedData);
       res.status(201).json(importRecord);
