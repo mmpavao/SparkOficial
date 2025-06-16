@@ -254,11 +254,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
-                    isActiveRoute("/financeira/dashboard") 
+                    isActiveRoute("/") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => setLocation("/financeira/dashboard")}
+                  onClick={() => setLocation("/")}
                 >
                   <LayoutDashboard className="w-4 h-4 lg:mr-0 mr-3" />
                   <span className={`transition-opacity duration-300 ${
@@ -272,11 +272,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
-                    isActiveRoute("/financeira/credit") 
+                    isActiveRoute("/credit") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => setLocation("/financeira/credit")}
+                  onClick={() => setLocation("/credit")}
                 >
                   <CreditCard className="w-4 h-4 lg:mr-0 mr-3" />
                   <span className={`transition-opacity duration-300 ${
@@ -290,11 +290,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
-                    isActiveRoute("/financeira/imports") 
+                    isActiveRoute("/imports") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => setLocation("/financeira/imports")}
+                  onClick={() => setLocation("/imports")}
                 >
                   <Truck className="w-4 h-4 lg:mr-0 mr-3" />
                   <span className={`transition-opacity duration-300 ${
@@ -308,11 +308,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
-                    isActiveRoute("/financeira/suppliers") 
+                    isActiveRoute("/suppliers") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => setLocation("/financeira/suppliers")}
+                  onClick={() => setLocation("/suppliers")}
                 >
                   <Users className="w-4 h-4 lg:mr-0 mr-3" />
                   <span className={`transition-opacity duration-300 ${
@@ -326,11 +326,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
-                    isActiveRoute("/financeira/reports") 
+                    isActiveRoute("/reports") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => setLocation("/financeira/reports")}
+                  onClick={() => setLocation("/reports")}
                 >
                   <BarChart3 className="w-4 h-4 lg:mr-0 mr-3" />
                   <span className={`transition-opacity duration-300 ${

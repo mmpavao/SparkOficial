@@ -71,9 +71,9 @@ export default function ImportsPage() {
     queryKey: [getImportsEndpoint()]
   });
 
-  // Filter imports based on admin or regular user
+  // Filter imports based on admin/financeira or regular user
   const filteredImports = Array.isArray(imports) ? imports.filter((importItem: any) => {
-    if (isAdmin) {
+    if (isAdmin || isFinanceira) {
       // Admin filtering using AdminImportFilters
       const matchesSearch = !adminFilters.search || 
         importItem.importName?.toLowerCase().includes(adminFilters.search.toLowerCase()) ||
@@ -244,7 +244,7 @@ export default function ImportsPage() {
       </div>
 
       {/* Filters */}
-      {isAdmin ? (
+      {(isAdmin || isFinanceira) ? (
         <AdminImportFilters onFiltersChange={setAdminFilters} />
       ) : (
         <div className="flex flex-col sm:flex-row gap-4">
