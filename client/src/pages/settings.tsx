@@ -186,7 +186,7 @@ export default function SettingsPage() {
                   {/* Avatar Section */}
                   <div className="flex items-center space-x-6">
                     <Avatar className="w-24 h-24">
-                      <AvatarImage src={avatarPreview || user?.avatar} />
+                      <AvatarImage src={avatarPreview || (user?.avatar ? user.avatar : undefined)} />
                       <AvatarFallback className="bg-spark-600 text-white text-xl font-medium">
                         {user?.fullName && getInitials(user.fullName)}
                       </AvatarFallback>
