@@ -10,7 +10,7 @@ export default function StatusBadge({ status, type = 'default' }: StatusBadgePro
     const configs: Record<string, Record<string, { label: string; className: string }>> = {
       credit: {
         pending: { label: "Pendente", className: "bg-yellow-100 text-yellow-800" },
-        pre_approved: { label: "Pré-análise", className: "bg-green-100 text-green-800" },
+        pre_approved: { label: "Pré-análise Completa", className: "bg-green-100 text-green-800" },
         approved: { label: "Aprovado", className: "bg-green-100 text-green-800" },
         rejected: { label: "Rejeitado", className: "bg-red-100 text-red-800" },
         under_review: { label: "Em Análise", className: "bg-blue-100 text-blue-800" },

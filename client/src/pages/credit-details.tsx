@@ -474,6 +474,16 @@ export default function CreditDetailsPage() {
                 </div>
               )}
               
+              {application.status === 'pre_approved' && (
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium">Pré-análise Completa</p>
+                    <p className="text-xs text-gray-500">Aprovado para análise financeira</p>
+                  </div>
+                </div>
+              )}
+
               {application.status === 'approved' && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
