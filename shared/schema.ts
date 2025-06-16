@@ -122,11 +122,20 @@ export const creditApplications = pgTable("credit_applications", {
   
   // Financial Institution Analysis
   financialStatus: text("financial_status").default("pending_financial"), // pending_financial, approved_financial, rejected_financial, needs_documents_financial
-  creditLimit: text("credit_limit"), // Limite de crédito aprovado
+  creditLimit: text("credit_limit"), // Limite de crédito aprovado pela financeira
   approvedTerms: text("approved_terms"), // JSON array dos prazos aprovados [30, 60, 90, etc]
   financialNotes: text("financial_notes"), // Observações da financeira
   financialAnalyzedBy: integer("financial_analyzed_by").references(() => users.id),
   financialAnalyzedAt: timestamp("financial_analyzed_at"),
+  
+  // Admin Final Terms (after financial approval)
+  adminStatus: text("admin_status").default("pending_admin"), // pending_admin, admin_finalized
+  finalCreditLimit: text("final_credit_limit"), // Limite final definido pelo admin
+  finalApprovedTerms: text("final_approved_terms"), // Prazos finais definidos pelo admin
+  finalDownPayment: text("final_down_payment").default("10"), // Percentual de entrada final
+  adminFinalNotes: text("admin_final_notes"), // Observações finais do admin
+  adminFinalizedBy: integer("admin_finalized_by").references(() => users.id),
+  adminFinalizedAt: timestamp("admin_finalized_at"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

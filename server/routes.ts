@@ -951,7 +951,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin finalization of credit terms (after financial approval)
+  app.put('/api/admin/credit/applications/:id/finalize', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(userId);
+      
+      // Only admins can finalize
+      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
 
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Only allow finalization if financially approved
+      if (application.financialStatus !== 'approved') {
+        return res.status(400).json({ 
+          message: "Apenas aplicações aprovadas pela financeira podem ser finalizadas" 
+        });
+      }
+
+      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes } = req.body;
+      
+      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+        adminStatus: 'admin_finalized',
+        finalCreditLimit,
+        finalApprovedTerms,
+        finalDownPayment,
+        adminFinalNotes,
+        adminFinalizedBy: userId,
+        adminFinalizedAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error finalizing credit application:", error);
+      res.status(500).json({ message: "Erro ao finalizar solicitação de crédito" });
+    }
+  });
 
   // Supplier routes
   app.post('/api/suppliers', requireAuth, async (req: any, res) => {

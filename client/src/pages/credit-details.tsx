@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
+import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
 import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
