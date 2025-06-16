@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,6 +39,11 @@ export default function NewImportPage() {
   }]);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Fetch suppliers
+  const suppliersQuery = useQuery({
+    queryKey: ["/api/suppliers"],
+  });
 
   const form = useForm<InsertImport>({
     resolver: zodResolver(insertImportSchema),
@@ -264,30 +269,27 @@ export default function NewImportPage() {
                   Informações do Fornecedor
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <FormField
                     control={form.control}
-                    name="supplierName"
+                    name="supplierId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome do Fornecedor *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Shanghai Manufacturing Co." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="supplierLocation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Localização do Fornecedor *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Shanghai, China" {...field} />
-                        </FormControl>
+                        <FormLabel>Fornecedor *</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um fornecedor" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {suppliersQuery.data?.map((supplier: any) => (
+                              <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                                {supplier.companyName} - {supplier.city}, {supplier.province}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -445,7 +447,7 @@ export default function NewImportPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="productName"
+                      name="products.0.name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nome do Produto *</FormLabel>
@@ -459,7 +461,7 @@ export default function NewImportPage() {
                     
                     <FormField
                       control={form.control}
-                      name="quantity"
+                      name="products.0.quantity"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Quantidade *</FormLabel>
@@ -482,7 +484,7 @@ export default function NewImportPage() {
                 {form.watch("cargoType") !== "LCL" && (
                   <FormField
                     control={form.control}
-                    name="productDescription"
+                    name="products.0.description"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Descrição Detalhada *</FormLabel>
