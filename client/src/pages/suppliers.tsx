@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,92 +189,93 @@ export default function SuppliersPage() {
         </div>
       </div>
 
-      {/* Results count */}
-      <div>
-        <h2 className="text-xl font-semibold">Lista de Fornecedores</h2>
-        <p className="text-gray-600">{filteredSuppliers.length} fornecedores encontrados</p>
-      </div>
-
       {/* Suppliers List */}
-      <div className="space-y-4">
-        {filteredSuppliers.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-600">Nenhum fornecedor encontrado</div>
-            <Button
-              onClick={() => setLocation('/suppliers/new')}
-              className="mt-4"
-              variant="outline"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Cadastrar primeiro fornecedor
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredSuppliers.map((supplier: any) => (
-              <div key={supplier.id} className="bg-white border rounded-lg p-4 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">
-                        {supplier.companyName}
-                      </h3>
-                      <Badge variant="outline" className="text-xs">
-                        Fornecedor Chinês
-                      </Badge>
-                      {isAdmin && (supplier as any).companyName && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                          {(supplier as any).companyName}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Fornecedores</CardTitle>
+          <p className="text-sm text-gray-600">{filteredSuppliers.length} fornecedores encontrados</p>
+        </CardHeader>
+        <CardContent>
+          {filteredSuppliers.length === 0 ? (
+            <div className="text-center py-8">
+              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Nenhum fornecedor encontrado</p>
+              <Button
+                onClick={() => setLocation('/suppliers/new')}
+                className="mt-4"
+                variant="outline"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Cadastrar primeiro fornecedor
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredSuppliers.map((supplier: any) => (
+                <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">
+                          {supplier.companyName}
+                        </h3>
+                        <Badge variant="outline" className="text-xs">
+                          Fornecedor Chinês
                         </Badge>
-                      )}
+                        {isAdmin && (supplier as any).companyName && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                            {(supplier as any).companyName}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          <span>Local: <strong>{supplier.city}, {supplier.country}</strong></span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span>Tel: <strong>{supplier.phone}</strong></span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          <span>Email: <strong>{supplier.email}</strong></span>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>Local: <strong>{supplier.city}, {supplier.country}</strong></span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        <span>Tel: <strong>{supplier.phone}</strong></span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        <span>Email: <strong>{supplier.email}</strong></span>
-                      </div>
-                    </div>
-                  </div>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Ver Detalhes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteSupplier(supplier)}
-                        className="text-red-600 focus:text-red-600"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteSupplier(supplier)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
 
 
