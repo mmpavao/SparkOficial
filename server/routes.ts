@@ -641,6 +641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isFinanceira = currentUser?.role === "financeira";
       
       const importRecord = await storage.getImport(id);
       
@@ -648,8 +649,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
       
-      // Allow access if user owns the import or is admin
-      if (!isAdmin && importRecord.userId !== userId) {
+      // Allow access if user owns the import, is admin, or is financeira
+      if (!isAdmin && !isFinanceira && importRecord.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
@@ -986,13 +987,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      
       const supplier = await storage.getSupplier(id);
       
       if (!supplier) {
         return res.status(404).json({ message: "Fornecedor não encontrado" });
       }
       
-      if (supplier.userId !== userId) {
+      // Allow access if user owns the supplier, is admin, or is financeira
+      if (!isAdmin && !isFinanceira && supplier.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
