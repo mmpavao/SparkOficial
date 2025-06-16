@@ -175,7 +175,7 @@ export default function ImportComplete() {
       };
       
       console.log("API data:", apiData);
-      return apiRequest('POST', '/api/imports', apiData);
+      return apiRequest('/api/imports', 'POST', apiData);
     },
     onSuccess: () => {
       toast({

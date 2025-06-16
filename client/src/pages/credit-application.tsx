@@ -207,7 +207,7 @@ export default function CreditApplicationPage() {
   // Submit application mutation
   const submitApplicationMutation = useMutation({
     mutationFn: async (data: Partial<InsertCreditApplication>) => {
-      const response = await apiRequest("POST", "/api/credit/applications", data);
+      const response = await apiRequest("/api/credit/applications", "POST", data);
       return response.json();
     },
     onSuccess: () => {

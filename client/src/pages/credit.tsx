@@ -199,7 +199,7 @@ export default function CreditPage() {
   // Create credit application mutation
   const createApplicationMutation = useMutation({
     mutationFn: async (data: CreditApplicationForm) => {
-      const response = await apiRequest("POST", "/api/credit/applications", data);
+      const response = await apiRequest("/api/credit/applications", "POST", data);
       return response.json();
     },
     onSuccess: () => {
@@ -227,7 +227,7 @@ export default function CreditPage() {
   // Cancel application mutation
   const cancelApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
-      const response = await apiRequest("DELETE", `/api/credit/applications/${applicationId}`);
+      const response = await apiRequest(`/api/credit/applications/${applicationId}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -255,7 +255,7 @@ export default function CreditPage() {
   // Administrative mutations for approval/rejection
   const approveApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
-      const response = await apiRequest("PUT", `/api/admin/credit/applications/${applicationId}/approve`);
+      const response = await apiRequest(`/api/admin/credit/applications/${applicationId}/approve`, "PUT");
       return response.json();
     },
     onSuccess: () => {
@@ -277,7 +277,7 @@ export default function CreditPage() {
 
   const rejectApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
-      const response = await apiRequest("PUT", `/api/admin/credit/applications/${applicationId}/reject`);
+      const response = await apiRequest(`/api/admin/credit/applications/${applicationId}/reject`, "PUT");
       return response.json();
     },
     onSuccess: () => {
