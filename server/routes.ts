@@ -221,6 +221,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // User profile update route
+  app.put("/api/user/profile", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { fullName, email, phone, companyName, cnpj, avatar } = req.body;
+      
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Check if email is being changed and if it's already in use
+      if (email !== currentUser.email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ 
+            message: "Este email já está sendo usado por outro usuário",
+            field: "email"
+          });
+        }
+      }
+
+      // Check if CNPJ is being changed and if it's already in use
+      if (cnpj !== currentUser.cnpj) {
+        const existingUser = await storage.getUserByCnpj(cnpj);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ 
+            message: "Este CNPJ já está sendo usado por outro usuário",
+            field: "cnpj"
+          });
+        }
+      }
+
+      // Update user data
+      const updateData = {
+        fullName: fullName || currentUser.fullName,
+        email: email || currentUser.email,
+        phone: phone || currentUser.phone,
+        companyName: companyName || currentUser.companyName,
+        cnpj: cnpj || currentUser.cnpj,
+        avatar: avatar || currentUser.avatar
+      };
+
+      const updatedUser = await storage.updateUser(userId, updateData);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Erro ao atualizar perfil" });
+    }
+  });
+
   // User management routes (Admin area)
   app.post("/api/admin/users", requireAuth, async (req: any, res) => {
     try {

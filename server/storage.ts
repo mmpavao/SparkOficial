@@ -23,6 +23,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByCnpj(cnpj: string): Promise<User | undefined>;
   createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User>;
+  updateUser(id: number, data: Partial<User>): Promise<User>;
   
   // Credit application operations
   createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication>;
@@ -79,6 +80,20 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User> {
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
   }
 
   // Credit application operations

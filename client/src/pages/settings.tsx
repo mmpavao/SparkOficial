@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LanguageSelector from "@/components/ui/language-selector";
 import { 
   User, 
@@ -25,16 +26,29 @@ import {
   Phone,
   Save,
   Key,
-  Trash2
+  Trash2,
+  Upload,
+  Camera
 } from "lucide-react";
 
 export default function SettingsPage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { user } = useAuth();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    companyName: user?.companyName || "",
+    cnpj: user?.cnpj || "",
+  });
 
   // Notification preferences state
   const [notifications, setNotifications] = useState({
@@ -52,6 +66,35 @@ export default function SettingsPage() {
     sessionTimeout: 30,
     loginNotifications: true
   });
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter menos de 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -75,15 +118,17 @@ export default function SettingsPage() {
     },
   });
 
-  const handleSaveProfile = (formData: FormData) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
     const data = {
-      companyName: formData.get("companyName"),
-      cnpj: formData.get("cnpj"),
-      fullName: formData.get("fullName"),
-      phone: formData.get("phone"),
-      email: formData.get("email"),
+      ...formData,
+      avatar: avatarPreview
     };
     updateProfileMutation.mutate(data);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
@@ -111,12 +156,11 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile">{t.settings.profile}</TabsTrigger>
           <TabsTrigger value="preferences">{t.settings.preferences}</TabsTrigger>
           <TabsTrigger value="notifications">{t.settings.notifications}</TabsTrigger>
           <TabsTrigger value="security">{t.settings.security}</TabsTrigger>
-          <TabsTrigger value="billing">Faturamento</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -137,85 +181,146 @@ export default function SettingsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                handleSaveProfile(formData);
-              }}>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="fullName">Nome Completo</Label>
-                      <Input
-                        id="fullName"
-                        name="fullName"
-                        defaultValue={user?.fullName || ""}
-                        disabled={!isEditing}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        defaultValue={user?.email || ""}
-                        disabled={!isEditing}
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="phone">Telefone</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        defaultValue={user?.phone || ""}
-                        disabled={!isEditing}
-                        onChange={(e) => {
-                          if (isEditing) {
-                            e.target.value = formatPhone(e.target.value);
-                          }
-                        }}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cnpj">CNPJ</Label>
-                      <Input
-                        id="cnpj"
-                        name="cnpj"
-                        defaultValue={user?.cnpj || ""}
-                        disabled={!isEditing}
-                        onChange={(e) => {
-                          if (isEditing) {
-                            e.target.value = formatCnpj(e.target.value);
-                          }
-                        }}
-                        className="mt-1"
+              <form onSubmit={handleSaveProfile}>
+                <div className="space-y-6">
+                  {/* Avatar Section */}
+                  <div className="flex items-center space-x-6">
+                    <Avatar className="w-24 h-24">
+                      <AvatarImage src={avatarPreview || user?.avatar} />
+                      <AvatarFallback className="bg-spark-600 text-white text-xl font-medium">
+                        {user?.fullName && getInitials(user.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                      <div>
+                        <h3 className="text-lg font-medium">{user?.fullName}</h3>
+                        <p className="text-sm text-gray-500">{user?.email}</p>
+                      </div>
+                      {isEditing && (
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Alterar Foto
+                          </Button>
+                          {avatarPreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAvatarPreview(null)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Remover
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        className="hidden"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="companyName">Nome da Empresa</Label>
-                    <Input
-                      id="companyName"
-                      name="companyName"
-                      defaultValue={user?.companyName || ""}
-                      disabled={!isEditing}
-                      className="mt-1"
-                    />
+                  <Separator />
+
+                  {/* Personal Information */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="fullName">Nome Completo</Label>
+                        <Input
+                          id="fullName"
+                          name="fullName"
+                          value={formData.fullName}
+                          onChange={(e) => handleInputChange("fullName", e.target.value)}
+                          disabled={!isEditing}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange("email", e.target.value)}
+                          disabled={!isEditing}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="phone">Telefone</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange("phone", formatPhone(e.target.value))}
+                          disabled={!isEditing}
+                          placeholder="(11) 99999-9999"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cnpj">CNPJ</Label>
+                        <Input
+                          id="cnpj"
+                          name="cnpj"
+                          value={formData.cnpj}
+                          onChange={(e) => handleInputChange("cnpj", formatCnpj(e.target.value))}
+                          disabled={!isEditing}
+                          placeholder="00.000.000/0000-00"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="companyName">Nome da Empresa</Label>
+                      <Input
+                        id="companyName"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={(e) => handleInputChange("companyName", e.target.value)}
+                        disabled={!isEditing}
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
 
                   {isEditing && (
-                    <div className="flex justify-end">
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setFormData({
+                            fullName: user?.fullName || "",
+                            email: user?.email || "",
+                            phone: user?.phone || "",
+                            companyName: user?.companyName || "",
+                            cnpj: user?.cnpj || "",
+                          });
+                          setAvatarPreview(null);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
                       <Button
                         type="submit"
-                        className="bg-spark-600 hover:bg-spark-700"
                         disabled={updateProfileMutation.isPending}
                       >
                         <Save className="w-4 h-4 mr-2" />
@@ -233,65 +338,48 @@ export default function SettingsPage() {
         <TabsContent value="preferences" className="space-y-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center space-x-2">
-                <User className="w-5 h-5" />
-                <CardTitle>{t.settings.preferences}</CardTitle>
-              </div>
+              <CardTitle className="flex items-center space-x-2">
+                <Building className="w-5 h-5" />
+                <span>{t.settings.preferences}</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium mb-4">{t.settings.language}</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Idioma da Interface</p>
-                    <p className="text-sm text-gray-600">Escolha o idioma para a interface do sistema</p>
-                  </div>
-                  <div className="min-w-[200px]">
-                    <LanguageSelector />
-                  </div>
-                </div>
+                <Label className="text-base font-medium">Idioma</Label>
+                <p className="text-sm text-gray-500 mb-3">Selecione seu idioma preferido</p>
+                <LanguageSelector />
               </div>
 
               <Separator />
 
               <div>
-                <h3 className="text-lg font-medium mb-4">Formato Regional</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Formato de Moeda</p>
-                      <p className="text-sm text-gray-600">Como valores monetários são exibidos</p>
-                    </div>
-                    <Select defaultValue="BRL">
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="BRL">{t.currency.BRL} (R$)</SelectItem>
-                        <SelectItem value="USD">{t.currency.USD} ($)</SelectItem>
-                        <SelectItem value="EUR">{t.currency.EUR} (€)</SelectItem>
-                        <SelectItem value="CNY">{t.currency.CNY} (¥)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Formato de Data</p>
-                      <p className="text-sm text-gray-600">Como datas são exibidas no sistema</p>
-                    </div>
-                    <Select defaultValue="dd/mm/yyyy">
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dd/mm/yyyy">DD/MM/AAAA</SelectItem>
-                        <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                <Label className="text-base font-medium">Formato de Data</Label>
+                <p className="text-sm text-gray-500 mb-3">Como as datas são exibidas</p>
+                <Select defaultValue="dd/mm/yyyy">
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dd/mm/yyyy">DD/MM/AAAA (brasileiro)</SelectItem>
+                    <SelectItem value="mm/dd/yyyy">MM/DD/AAAA (americano)</SelectItem>
+                    <SelectItem value="yyyy-mm-dd">AAAA-MM-DD (ISO)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-base font-medium">Moeda</Label>
+                <p className="text-sm text-gray-500 mb-3">Moeda padrão para exibição</p>
+                <Select defaultValue="brl">
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="brl">Real Brasileiro (R$)</SelectItem>
+                    <SelectItem value="usd">Dólar Americano (US$)</SelectItem>
+                    <SelectItem value="eur">Euro (€)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -301,19 +389,19 @@ export default function SettingsPage() {
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2">
                 <Bell className="w-5 h-5" />
-                <CardTitle>Preferências de Notificação</CardTitle>
-              </div>
+                <span>{t.settings.notifications}</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium mb-4">Email</h3>
+                <h3 className="text-lg font-medium mb-4">Notificações por Email</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Atualizações de Importação</p>
-                      <p className="text-sm text-gray-600">Receba emails sobre o status das suas importações</p>
+                      <Label className="text-base">Importações</Label>
+                      <p className="text-sm text-gray-500">Atualizações sobre suas importações</p>
                     </div>
                     <Switch
                       checked={notifications.emailImports}
@@ -322,8 +410,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Notificações de Crédito</p>
-                      <p className="text-sm text-gray-600">Alertas sobre limite de crédito e aprovações</p>
+                      <Label className="text-base">Crédito</Label>
+                      <p className="text-sm text-gray-500">Status de solicitações de crédito</p>
                     </div>
                     <Switch
                       checked={notifications.emailCredit}
@@ -332,8 +420,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Relatórios Semanais</p>
-                      <p className="text-sm text-gray-600">Resumo semanal das suas operações</p>
+                      <Label className="text-base">Relatórios</Label>
+                      <p className="text-sm text-gray-500">Relatórios semanais e mensais</p>
                     </div>
                     <Switch
                       checked={notifications.emailReports}
@@ -346,12 +434,12 @@ export default function SettingsPage() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-medium mb-4">SMS</h3>
+                <h3 className="text-lg font-medium mb-4">Notificações SMS</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Importações Urgentes</p>
-                      <p className="text-sm text-gray-600">SMS para importações que precisam de atenção</p>
+                      <Label className="text-base">Importações Urgentes</Label>
+                      <p className="text-sm text-gray-500">Alertas críticos sobre importações</p>
                     </div>
                     <Switch
                       checked={notifications.smsImports}
@@ -360,30 +448,14 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Alertas de Crédito</p>
-                      <p className="text-sm text-gray-600">SMS quando crédito estiver baixo</p>
+                      <Label className="text-base">Aprovação de Crédito</Label>
+                      <p className="text-sm text-gray-500">Quando crédito for aprovado/negado</p>
                     </div>
                     <Switch
                       checked={notifications.smsCredit}
                       onCheckedChange={(checked) => handleNotificationChange("smsCredit", checked)}
                     />
                   </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h3 className="text-lg font-medium mb-4">Push</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Notificações Push</p>
-                    <p className="text-sm text-gray-600">Receba notificações no navegador</p>
-                  </div>
-                  <Switch
-                    checked={notifications.pushNotifications}
-                    onCheckedChange={(checked) => handleNotificationChange("pushNotifications", checked)}
-                  />
                 </div>
               </div>
             </CardContent>
@@ -394,16 +466,16 @@ export default function SettingsPage() {
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2">
                 <Shield className="w-5 h-5" />
-                <CardTitle>Segurança da Conta</CardTitle>
-              </div>
+                <span>{t.settings.security}</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Autenticação de Dois Fatores</p>
-                  <p className="text-sm text-gray-600">Adicione uma camada extra de segurança</p>
+                  <Label className="text-base">Autenticação de Dois Fatores</Label>
+                  <p className="text-sm text-gray-500">Adicione uma camada extra de segurança</p>
                 </div>
                 <Switch
                   checked={security.twoFactorAuth}
@@ -413,10 +485,32 @@ export default function SettingsPage() {
 
               <Separator />
 
+              <div>
+                <Label className="text-base font-medium">Timeout de Sessão</Label>
+                <p className="text-sm text-gray-500 mb-3">Tempo em minutos para logout automático</p>
+                <Select 
+                  value={security.sessionTimeout.toString()} 
+                  onValueChange={(value) => handleSecurityChange("sessionTimeout", parseInt(value))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutos</SelectItem>
+                    <SelectItem value="30">30 minutos</SelectItem>
+                    <SelectItem value="60">1 hora</SelectItem>
+                    <SelectItem value="120">2 horas</SelectItem>
+                    <SelectItem value="0">Nunca</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Separator />
+
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Notificações de Login</p>
-                  <p className="text-sm text-gray-600">Seja notificado sobre novos acessos</p>
+                  <Label className="text-base">Notificações de Login</Label>
+                  <p className="text-sm text-gray-500">Receba alertas de novos logins</p>
                 </div>
                 <Switch
                   checked={security.loginNotifications}
@@ -426,58 +520,11 @@ export default function SettingsPage() {
 
               <Separator />
 
-              <div>
-                <Label htmlFor="sessionTimeout">Timeout da Sessão (minutos)</Label>
-                <Input
-                  id="sessionTimeout"
-                  type="number"
-                  value={security.sessionTimeout}
-                  onChange={(e) => handleSecurityChange("sessionTimeout", parseInt(e.target.value))}
-                  className="mt-1 w-32"
-                  min="5"
-                  max="120"
-                />
-                <p className="text-sm text-gray-600 mt-1">
-                  Sua sessão expirará após este período de inatividade
-                </p>
-              </div>
-
-              <Separator />
-
               <div className="space-y-4">
-                <Button variant="outline" className="w-full justify-start">
+                <h3 className="text-lg font-medium">Alterar Senha</h3>
+                <Button variant="outline" className="w-full">
                   <Key className="w-4 h-4 mr-2" />
                   Alterar Senha
-                </Button>
-                <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir Conta
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Billing Tab */}
-        <TabsContent value="billing" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5" />
-                <CardTitle>Informações de Faturamento</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Faturamento e Pagamentos
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Gerencie seus métodos de pagamento e histórico de faturas.
-                </p>
-                <Button variant="outline">
-                  Configurar Faturamento
                 </Button>
               </div>
             </CardContent>
