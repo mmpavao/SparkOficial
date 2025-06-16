@@ -43,18 +43,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    name: 'connect.sid',
     cookie: {
       httpOnly: false, // Allow JavaScript access for debugging
       secure: false, // HTTP for development
       maxAge: sessionTtl,
       sameSite: 'lax',
       path: '/',
+      domain: undefined, // Let browser set domain automatically
     },
+    rolling: true, // Reset expiration on each request
   }));
 
   // Authentication middleware
   const requireAuth = async (req: any, res: any, next: any) => {
     console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
+    console.log("Request cookies:", req.headers.cookie);
+    console.log("Session object:", req.session);
     
     if (!req.session?.userId) {
       console.log("Authentication failed - no session or user ID");
