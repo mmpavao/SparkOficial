@@ -1,24 +1,91 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Search, Plus, MapPin, Phone, Mail } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { 
+  Building2, 
+  Search, 
+  Plus, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2
+} from "lucide-react";
 
 export default function SuppliersPage() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteSupplier, setDeleteSupplier] = useState<any>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ["/api/suppliers"],
   });
 
+  // Filter suppliers
   const filteredSuppliers = (suppliers as any[]).filter((supplier: any) =>
     supplier.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Delete supplier mutation
+  const deleteSupplierMutation = useMutation({
+    mutationFn: async (supplierId: number) => {
+      const response = await apiRequest("DELETE", `/api/suppliers/${supplierId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Fornecedor excluído",
+        description: "O fornecedor foi removido com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
+      setDeleteSupplier(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao excluir fornecedor",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteSupplier = (supplier: any) => {
+    setDeleteSupplier(supplier);
+  };
+
+  const confirmDelete = () => {
+    if (deleteSupplier) {
+      deleteSupplierMutation.mutate(deleteSupplier.id);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -62,18 +129,46 @@ export default function SuppliersPage() {
         />
       </div>
 
-      {/* Suppliers Grid */}
+      {/* Suppliers List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSuppliers.map((supplier: any) => (
           <Card key={supplier.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle className="text-lg">{supplier.companyName}</CardTitle>
-              <p className="text-sm text-muted-foreground">{supplier.contactName}</p>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg">{supplier.companyName}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{supplier.contactName}</p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalhes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDeleteSupplier(supplier)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4 text-gray-400" />
-                <span>{supplier.city}, {supplier.country}</span>
+                <span>{supplier.city}, {supplier.province}</span>
               </div>
               
               <div className="flex items-center gap-2 text-sm">
@@ -86,28 +181,18 @@ export default function SuppliersPage() {
                 <span>{supplier.email}</span>
               </div>
 
-              {supplier.productCategories && supplier.productCategories.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {supplier.productCategories.slice(0, 3).map((category: string, index: number) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
-                    >
-                      {category}
-                    </span>
-                  ))}
-                  {supplier.productCategories.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                      +{supplier.productCategories.length - 3}
-                    </span>
-                  )}
+              {supplier.specialization && (
+                <div className="pt-2 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    Especialização: {supplier.specialization}
+                  </p>
                 </div>
               )}
 
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Especialização: {supplier.specialization || "Não informado"}
-                </p>
+              <div className="pt-2">
+                <Badge variant="outline" className="text-xs">
+                  Fornecedor Chinês
+                </Badge>
               </div>
             </CardContent>
           </Card>
@@ -135,6 +220,29 @@ export default function SuppliersPage() {
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteSupplier} onOpenChange={() => setDeleteSupplier(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o fornecedor "{deleteSupplier?.companyName}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteSupplierMutation.isPending}
+            >
+              {deleteSupplierMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
