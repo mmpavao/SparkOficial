@@ -22,8 +22,16 @@ export default function SupplierDetailsPage() {
   const [, setLocation] = useLocation();
   const supplierId = window.location.pathname.split('/').pop();
 
+  // Check if user is admin to determine which endpoint to use
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+  });
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  
   const { data: supplier, isLoading } = useQuery({
-    queryKey: [`/api/suppliers/${supplierId}`],
+    queryKey: isAdmin ? [`/api/admin/suppliers/${supplierId}`] : [`/api/suppliers/${supplierId}`],
+    enabled: !!supplierId,
   });
 
   if (isLoading) {
