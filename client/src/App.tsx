@@ -67,9 +67,11 @@ function Router() {
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />
             <Route path="/users/new" component={AdminUserNewPage} />
+            <Route path="/financeira/dashboard" component={FinanceiraDashboard} />
             <Route path="/financeira/credit" component={FinanceiraCreditPage} />
-            <Route path="/financeira/suppliers" component={FinanceiraSuppliers} />
             <Route path="/financeira/imports" component={FinanceiraImports} />
+            <Route path="/financeira/suppliers" component={FinanceiraSuppliers} />
+            <Route path="/financeira/reports" component={FinanceiraReports} />
             <Route component={NotFound} />
           </Switch>
         </AuthenticatedLayout>

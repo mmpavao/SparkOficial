@@ -8,6 +8,8 @@ interface MetricsCardProps {
   iconColor?: string;
   change?: string;
   changeType?: 'positive' | 'negative' | 'neutral';
+  trend?: string;
+  trendValue?: string;
 }
 
 export default function MetricsCard({ 
@@ -16,7 +18,9 @@ export default function MetricsCard({
   icon: Icon, 
   iconColor = "text-blue-600",
   change,
-  changeType = "neutral"
+  changeType = "neutral",
+  trend,
+  trendValue
 }: MetricsCardProps) {
   const getChangeColor = () => {
     switch (changeType) {
@@ -36,6 +40,9 @@ export default function MetricsCard({
             <p className="text-2xl font-bold text-gray-900">{value}</p>
             {change && (
               <p className={`text-sm ${getChangeColor()}`}>{change}</p>
+            )}
+            {trendValue && (
+              <p className={`text-sm ${getChangeColor()}`}>{trendValue}</p>
             )}
           </div>
         </div>

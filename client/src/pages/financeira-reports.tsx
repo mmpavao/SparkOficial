@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MetricsCard } from "@/components/ui/metrics-card";
+import MetricsCard from "@/components/common/MetricsCard";
 import { useTranslation } from "@/contexts/I18nContext";
 import { 
   BarChart3, 
