@@ -257,6 +257,7 @@ export default function AdminUsersPage() {
                         <SelectContent>
                           <SelectItem value="importer">Importador</SelectItem>
                           <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="financeira">Financeira</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
