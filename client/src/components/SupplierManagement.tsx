@@ -94,7 +94,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
   // Mutations
   const createSupplierMutation = useMutation({
     mutationFn: async (data: InsertSupplier) => {
-      const response = await apiRequest("POST", "/api/suppliers", data);
+      const response = await apiRequest("/api/suppliers", "POST", data);
       return response.json();
     },
     onSuccess: () => {
@@ -117,7 +117,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
 
   const updateSupplierMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<InsertSupplier> }) => {
-      const response = await apiRequest("PUT", `/api/suppliers/${id}`, data);
+      const response = await apiRequest(`/api/suppliers/${id}`, "PUT", data);
       return response.json();
     },
     onSuccess: () => {

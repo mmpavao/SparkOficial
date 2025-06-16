@@ -37,7 +37,7 @@ export default function AdminCreditAnalysisPage() {
   // Update pre-analysis mutation
   const updatePreAnalysisMutation = useMutation({
     mutationFn: async (data: { preAnalysisStatus: string; riskAssessment: string; adminRecommendation: string }) => {
-      return await apiRequest("PUT", `/api/admin/credit-applications/${id}/pre-analysis`, data);
+      return await apiRequest(`/api/admin/credit-applications/${id}/pre-analysis`, "PUT", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${id}`] });

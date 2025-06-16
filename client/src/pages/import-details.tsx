@@ -62,7 +62,7 @@ export default function ImportDetailsPage() {
   // Pipeline update mutation
   const updatePipelineMutation = useMutation({
     mutationFn: async ({ stage, data }: { stage: string; data: any }) => {
-      const response = await apiRequest("PUT", `/api/imports/${importId}/pipeline`, {
+      const response = await apiRequest(`/api/imports/${importId}/pipeline`, "PUT", {
         stage,
         data,
         currentStage: stage

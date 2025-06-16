@@ -103,7 +103,7 @@ export default function SupplierNew() {
         exportLicenses: [],
       };
       
-      return apiRequest('POST', '/api/suppliers', apiData);
+      return apiRequest('/api/suppliers', 'POST', apiData);
     },
     onSuccess: () => {
       toast({

@@ -72,7 +72,7 @@ export default function CreditEditPage() {
   const { data: application, isLoading } = useQuery({
     queryKey: ["/api/credit/applications", applicationId],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/credit/applications/${applicationId}`);
+      const response = await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
       return response.json();
     },
     enabled: !!applicationId,
@@ -145,7 +145,7 @@ export default function CreditEditPage() {
         requestedAmount: parseUSDInput(data.requestedAmount).toString(),
       };
       
-      const response = await apiRequest("PUT", `/api/credit/applications/${applicationId}`, applicationData);
+      const response = await apiRequest(`/api/credit/applications/${applicationId}`, "PUT", applicationData);
       return response.json();
     },
     onSuccess: () => {
