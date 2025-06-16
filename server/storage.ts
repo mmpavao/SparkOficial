@@ -48,6 +48,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   getAllCreditApplications(): Promise<CreditApplication[]>;
   getAllImports(): Promise<Import[]>;
+  getAllSuppliers(): Promise<Supplier[]>;
   
   // User management operations
   createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User>;
@@ -260,6 +261,10 @@ export class DatabaseStorage implements IStorage {
 
   async getAllImports(): Promise<Import[]> {
     return await db.select().from(imports).orderBy(desc(imports.createdAt));
+  }
+
+  async getAllSuppliers(): Promise<Supplier[]> {
+    return await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
   }
 
   // User management operations

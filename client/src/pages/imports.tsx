@@ -41,9 +41,15 @@ export default function ImportsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const { toast } = useToast();
 
-  // Fetch imports data
+  // Fetch imports data - check if user is admin to use admin endpoint
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/user"]
+  });
+
+  const isAdmin = user?.role === "admin" || user?.email === "pavaosmart@gmail.com";
+  
   const { data: imports, isLoading } = useQuery({
-    queryKey: ["/api/imports"]
+    queryKey: isAdmin ? ["/api/admin/imports"] : ["/api/imports"]
   });
 
   // Filter imports

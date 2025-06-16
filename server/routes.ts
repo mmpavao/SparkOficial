@@ -996,6 +996,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Administrative suppliers endpoint
+  app.get("/api/admin/suppliers", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      
+      // Only admins can access all suppliers
+      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+      
+      const allSuppliers = await storage.getAllSuppliers();
+      res.json(allSuppliers);
+    } catch (error) {
+      console.error("Error fetching all suppliers:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Admin routes for credit analysis
   app.get("/api/admin/credit-applications/:id", requireAuth, requireAdmin, async (req: any, res) => {
     try {
