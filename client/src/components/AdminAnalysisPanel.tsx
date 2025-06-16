@@ -57,7 +57,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         ? `/api/admin/credit/applications/${application.id}/reject`
         : `/api/admin/credit/applications/${application.id}/update-analysis`;
       
-      const response = await apiRequest("PUT", endpoint, data);
+      const response = await apiRequest(endpoint, "PUT", data);
       return response.json();
     },
     onSuccess: () => {
@@ -269,7 +269,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               disabled={updateStatusMutation.isPending}
             >
               <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
+              Pré-aprovar
             </Button>
             
             <Button 
