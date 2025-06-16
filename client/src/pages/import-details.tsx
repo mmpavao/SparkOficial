@@ -40,16 +40,25 @@ export default function ImportDetailsPage() {
   const queryClient = useQueryClient();
 
   const importId = params?.id ? parseInt(params.id) : null;
+  
+  console.log("=== IMPORT DETAILS DEBUG ===");
+  console.log("match:", match);
+  console.log("params:", params);
+  console.log("importId:", importId);
 
   // Fetch import details
   const { data: importData, isLoading, error } = useQuery({
     queryKey: ["/api/imports", importId],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/imports/${importId}`);
-      return response.json();
+      const data = await response.json();
+      console.log("API Response:", data);
+      return data;
     },
     enabled: !!importId,
   });
+  
+  console.log("Query state:", { importData, isLoading, error });
 
   // Pipeline update mutation
   const updatePipelineMutation = useMutation({
