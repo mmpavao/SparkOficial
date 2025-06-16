@@ -41,8 +41,6 @@ export default function ImportDetailsPage() {
 
   const importId = params?.id ? parseInt(params.id) : null;
 
-  console.log("ImportDetailsPage Debug:", { match, params, importId });
-
   // Fetch import details
   const { data: importData, isLoading, error } = useQuery({
     queryKey: ["/api/imports", importId],
@@ -52,8 +50,6 @@ export default function ImportDetailsPage() {
     },
     enabled: !!importId,
   });
-
-  console.log("Query Debug:", { importData, isLoading, error, importId });
 
   // Pipeline update mutation
   const updatePipelineMutation = useMutation({
@@ -86,7 +82,6 @@ export default function ImportDetailsPage() {
   };
 
   if (!match || !importId) {
-    console.log("Route not matched or no importId:", { match, importId });
     return <div>Importação não encontrada</div>;
   }
 
@@ -99,7 +94,6 @@ export default function ImportDetailsPage() {
   }
 
   if (!importData) {
-    console.log("No import data found:", { importData, isLoading, error });
     return <div>Importação não encontrada</div>;
   }
 
