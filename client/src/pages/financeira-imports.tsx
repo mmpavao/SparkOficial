@@ -11,8 +11,8 @@ import {
   Ship,
   Clock
 } from "lucide-react";
-import { MetricsCard } from "@/components/common/MetricsCard";
-import { StatusBadge } from "@/components/common/StatusBadge";
+import MetricsCard from "@/components/common/MetricsCard";
+import StatusBadge from "@/components/common/StatusBadge";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -20,7 +20,7 @@ export default function FinanceiraImports() {
   // Buscar importações de usuários pré-aprovados
   const { data: imports = [], isLoading } = useQuery({
     queryKey: ['/api/financeira/imports'],
-    queryFn: () => apiRequest('/api/financeira/imports')
+    queryFn: () => apiRequest('/api/financeira/imports', { method: 'GET' })
   });
 
   // Calcular métricas
@@ -91,19 +91,19 @@ export default function FinanceiraImports() {
           title="Total de Importações"
           value={totalImports}
           icon={Truck}
-          color="blue"
+          iconColor="text-blue-600"
         />
         <MetricsCard
           title="Valor Total"
           value={formatCurrency(totalValue)}
           icon={DollarSign}
-          color="green"
+          iconColor="text-green-600"
         />
         <MetricsCard
           title="Importações Ativas"
           value={activeImports}
           icon={Clock}
-          color="orange"
+          iconColor="text-orange-600"
         />
       </div>
 
@@ -123,7 +123,7 @@ export default function FinanceiraImports() {
             </div>
           ) : (
             <div className="space-y-4">
-              {imports.map((importItem: any) => (
+              {importsArray.map((importItem: any) => (
                 <Card key={importItem.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     {/* Header do Card */}
