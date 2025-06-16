@@ -326,7 +326,7 @@ export default function ImportsPage() {
                           {getStatusIcon(importItem.status)}
                           {getStatusLabel(importItem.status)}
                         </Badge>
-                        {isAdmin && (importItem as any).companyName && (
+                        {(isAdmin || isFinanceira) && (importItem as any).companyName && (
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                             {(importItem as any).companyName}
                           </Badge>

@@ -577,11 +577,16 @@ export default function CreditPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-medium">
-                        {permissions.canViewAllApplications 
+                        {(permissions.canViewAllApplications || permissions.isFinanceira)
                           ? `${application.legalCompanyName || application.tradingName || `Empresa #${application.userId}`}`
                           : `Solicitação #${application.id}`}
                       </h3>
                       {getStatusBadge(application.status)}
+                      {(permissions.canViewAllApplications || permissions.isFinanceira) && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          {application.legalCompanyName || application.tradingName || `Importador #${application.userId}`}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 mb-1">
                       Valor: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}

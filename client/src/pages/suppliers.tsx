@@ -245,9 +245,9 @@ export default function SuppliersPage() {
                         <Badge variant="outline" className="text-xs">
                           Fornecedor Chinês
                         </Badge>
-                        {isAdmin && (supplier as any).companyName && (
+                        {(isAdmin || isFinanceira) && (supplier as any).importerCompanyName && (
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                            {(supplier as any).companyName}
+                            {(supplier as any).importerCompanyName}
                           </Badge>
                         )}
                       </div>
