@@ -9,9 +9,9 @@ export function calculateCreditMetrics(applications: CreditApplication[]) {
     (sum, app) => sum + Number(app.requestedAmount || 0), 0
   );
 
-  const approvedApps = applications.filter(app => app.status === 'approved');
+  const approvedApps = applications.filter(app => app.financialStatus === 'approved');
   const totalApproved = approvedApps.reduce(
-    (sum, app) => sum + Number(app.approvedAmount || 0), 0
+    (sum, app) => sum + Number(app.creditLimit || 0), 0
   );
 
   const utilizationRate = totalApproved > 0 ? (totalRequested / totalApproved) : 0;
