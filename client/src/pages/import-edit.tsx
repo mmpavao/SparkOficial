@@ -92,24 +92,44 @@ export default function ImportEditPage() {
   // Load import data into form when available
   useEffect(() => {
     if (importData) {
-      // Parse products from database
+      // Parse products from database - handle current format
       let products = [];
       try {
         if (Array.isArray(importData.products)) {
-          products = importData.products;
+          // Convert current database format to form format
+          products = importData.products.map((product: any) => ({
+            name: product.name || "",
+            quantity: parseInt(product.quantity) || 1,
+            unitPrice: parseFloat(product.unitPrice) || 0,
+            supplierId: suppliers.find((s: any) => s.companyName === product.supplierName)?.id || 
+                       (suppliers.length > 0 ? suppliers[0].id : 1)
+          }));
         } else if (typeof importData.products === 'string') {
-          products = JSON.parse(importData.products);
+          const parsed = JSON.parse(importData.products);
+          products = Array.isArray(parsed) ? parsed.map((product: any) => ({
+            name: product.name || "",
+            quantity: parseInt(product.quantity) || 1,
+            unitPrice: parseFloat(product.unitPrice) || 0,
+            supplierId: suppliers.find((s: any) => s.companyName === product.supplierName)?.id || 
+                       (suppliers.length > 0 ? suppliers[0].id : 1)
+          })) : [{ name: "", quantity: 1, unitPrice: 0, supplierId: suppliers.length > 0 ? suppliers[0].id : 1 }];
         } else {
-          // Legacy format compatibility
+          // Fallback for completely different format
           products = [{ 
-            name: importData.description || "Produto", 
+            name: "Produto", 
             quantity: 1, 
             unitPrice: parseFloat(importData.totalValue) || 0, 
             supplierId: suppliers.length > 0 ? suppliers[0].id : 1 
           }];
         }
-      } catch {
-        products = [{ name: importData.description || "", quantity: 1, unitPrice: parseFloat(importData.totalValue) || 0, supplierId: 1 }];
+      } catch (error) {
+        console.error("Error parsing products:", error);
+        products = [{ 
+          name: "Produto", 
+          quantity: 1, 
+          unitPrice: parseFloat(importData.totalValue) || 0, 
+          supplierId: suppliers.length > 0 ? suppliers[0].id : 1 
+        }];
       }
 
       form.reset({
@@ -124,7 +144,7 @@ export default function ImportEditPage() {
         status: importData.status || "planejamento",
       });
     }
-  }, [importData, form]);
+  }, [importData, suppliers, form]);
 
   // Update import mutation
   const updateImportMutation = useMutation({
@@ -212,8 +232,8 @@ export default function ImportEditPage() {
     return <div>Importação não encontrada</div>;
   }
 
-  // Check if import can be edited
-  const canEdit = importData.status === "planejamento" || importData.status === "em_andamento";
+  // Check if import can be edited (accepting both Portuguese and English status)
+  const canEdit = ["planejamento", "planning", "em_andamento", "in_progress"].includes(importData.status);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -245,7 +265,7 @@ export default function ImportEditPage() {
               </span>
             </div>
             <p className="text-sm text-amber-700 mt-1">
-              Apenas importações em "Planejamento" ou "Em Andamento" podem ser editadas.
+              Apenas importações em "Planejamento" ou "Em Andamento" podem ser editadas. Status atual: {importData.status}
             </p>
           </CardContent>
         </Card>
