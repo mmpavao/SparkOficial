@@ -48,7 +48,7 @@ export const createAdminUserSchema = createInsertSchema(users).omit({
 }).extend({
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
   confirmPassword: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
-  role: z.enum(["super_admin", "admin", "financeira", "importer"]).default("admin"),
+  role: z.enum(["super_admin", "admin", "financeira", "importer"]).default("importer"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],

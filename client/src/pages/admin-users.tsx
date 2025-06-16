@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -32,21 +28,7 @@ import { formatPhone } from "@/lib/phone";
 import { Users, UserPlus, MoreVertical, Edit, UserCheck, UserX } from "lucide-react";
 import type { User } from "@shared/schema";
 
-const createUserSchema = z.object({
-  fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string(),
-  companyName: z.string().min(2, "Nome da empresa obrigatório"),
-  cnpj: z.string().min(14, "CNPJ deve ter 14 dígitos"),
-  phone: z.string().min(10, "Telefone inválido"),
-  role: z.enum(["admin", "importer"]),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Senhas não coincidem",
-  path: ["confirmPassword"],
-});
 
-type CreateUserForm = z.infer<typeof createUserSchema>;
 
 export default function AdminUsersPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

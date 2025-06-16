@@ -18,6 +18,7 @@ import ImportEditPage from "@/pages/import-edit";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminUsersPage from "@/pages/admin-users";
+import AdminUserNewPage from "@/pages/admin-user-new";
 import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
@@ -63,6 +64,7 @@ function Router() {
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />
+            <Route path="/users/new" component={AdminUserNewPage} />
             <Route path="/financeira/credit" component={FinanceiraCreditPage} />
             <Route path="/financeira/suppliers" component={FinanceiraSuppliers} />
             <Route path="/financeira/imports" component={FinanceiraImports} />
