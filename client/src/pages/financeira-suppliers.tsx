@@ -21,10 +21,11 @@ export default function FinanceiraSuppliers() {
   });
 
   // Calcular métricas
-  const totalSuppliers = suppliers.length;
-  const activeSuppliers = suppliers.filter((s: any) => s.status === 'active').length;
-  const avgRating = suppliers.length > 0 
-    ? suppliers.reduce((sum: number, s: any) => sum + (s.rating || 0), 0) / suppliers.length 
+  const suppliersArray = Array.isArray(suppliers) ? suppliers : [];
+  const totalSuppliers = suppliersArray.length;
+  const activeSuppliers = suppliersArray.filter((s: any) => s.status === 'active').length;
+  const avgRating = suppliersArray.length > 0 
+    ? suppliersArray.reduce((sum: number, s: any) => sum + (s.rating || 0), 0) / suppliersArray.length 
     : 0;
 
   const getStatusBadge = (status: string) => {

@@ -41,10 +41,7 @@ export default function FinanceiraCreditPage() {
   // Mutação para atualizar status financeiro
   const updateFinancialStatusMutation = useMutation({
     mutationFn: ({ id, status, data }: { id: number; status: string; data: any }) => 
-      apiRequest(`/api/financeira/credit-applications/${id}/financial-status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status, ...data })
-      }),
+      apiRequest(`/api/financeira/credit-applications/${id}/financial-status`, 'PUT', { status, ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
       toast({ title: "Status atualizado com sucesso!" });
@@ -116,9 +113,10 @@ export default function FinanceiraCreditPage() {
   const availableTerms = [30, 60, 90, 120, 150, 180];
 
   // Métricas calculadas
-  const totalApplications = applications.length;
-  const avgCreditAmount = applications.length > 0 
-    ? applications.reduce((sum: number, app: any) => sum + (app.creditAmount || 0), 0) / applications.length 
+  const applicationsArray = Array.isArray(applications) ? applications : [];
+  const totalApplications = applicationsArray.length;
+  const avgCreditAmount = applicationsArray.length > 0 
+    ? applicationsArray.reduce((sum: number, app: any) => sum + (app.creditAmount || 0), 0) / applicationsArray.length 
     : 0;
 
   if (isLoading) {
@@ -176,14 +174,14 @@ export default function FinanceiraCreditPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {applications.length === 0 ? (
+          {applicationsArray.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Nenhuma solicitação pré-aprovada encontrada</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {applications.map((application: any) => (
+              {applicationsArray.map((application: any) => (
                 <div 
                   key={application.id}
                   className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
