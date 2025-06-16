@@ -113,7 +113,7 @@ export default function ImportsPage() {
   // Handle import cancellation
   const cancelImportMutation = useMutation({
     mutationFn: async (importId: number) => {
-      return apiRequest('DELETE', `/api/imports/${importId}`);
+      return apiRequest(`/api/imports/${importId}`, 'DELETE');
     },
     onSuccess: () => {
       toast({

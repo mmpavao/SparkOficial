@@ -98,7 +98,7 @@ export default function SettingsPage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", "/api/user/profile", data);
+      const response = await apiRequest("/api/user/profile", "PUT", data);
       return response.json();
     },
     onSuccess: () => {

@@ -160,7 +160,7 @@ export default function ImportEditPage() {
         products: JSON.stringify(data.products),
       };
 
-      const response = await apiRequest("PUT", `/api/imports/${importId}`, updateData);
+      const response = await apiRequest(`/api/imports/${importId}`, "PUT", updateData);
       return response.json();
     },
     onSuccess: () => {
