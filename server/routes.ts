@@ -53,14 +53,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Authentication middleware
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = async (req: any, res: any, next: any) => {
     console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
+    
     if (!req.session?.userId) {
       console.log("Authentication failed - no session or user ID");
       return res.status(401).json({ message: "Não autorizado" });
     }
-    console.log("Authentication successful for user:", req.session.userId);
-    next();
+
+    try {
+      // Get user data and attach to request for authorization middleware
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        console.log("User not found for session:", req.session.userId);
+        return res.status(401).json({ message: "Usuário não encontrado" });
+      }
+      
+      req.user = { id: user.id, email: user.email, role: user.role };
+      console.log("Authentication successful for user:", req.session.userId, "Role:", user.role);
+      next();
+    } catch (error) {
+      console.error("Error in authentication middleware:", error);
+      return res.status(500).json({ message: "Erro interno de autenticação" });
+    }
   };
 
   // Register endpoint
