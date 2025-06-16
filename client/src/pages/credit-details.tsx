@@ -50,8 +50,11 @@ export default function CreditDetailsPage() {
   const { data: application, isLoading } = useQuery({
     queryKey: ["/api/credit/applications", applicationId],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/credit/applications/${applicationId}`);
-      return response.json();
+      if (permissions.isAdmin) {
+        return await apiRequest("GET", `/api/admin/credit-applications/${applicationId}`);
+      } else {
+        return await apiRequest("GET", `/api/credit/applications/${applicationId}`);
+      }
     },
     enabled: !!applicationId,
   }) as { data: any, isLoading: boolean };

@@ -110,6 +110,7 @@ export default function ImportsPage() {
         description: "A importação foi cancelada com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
     },
     onError: (error: any) => {
       toast({

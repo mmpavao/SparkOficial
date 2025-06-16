@@ -48,10 +48,11 @@ export default function ImportDetailsPage() {
   const { data: importData, isLoading, error } = useQuery({
     queryKey: ["/api/imports", importId],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/imports/${importId}`);
-      const data = await response.json();
-      console.log("API Response:", data);
-      return data;
+      if (isAdmin) {
+        return await apiRequest("GET", `/api/admin/imports/${importId}`);
+      } else {
+        return await apiRequest("GET", `/api/imports/${importId}`);
+      }
     },
     enabled: !!importId,
   });
