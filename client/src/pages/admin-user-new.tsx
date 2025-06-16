@@ -46,9 +46,20 @@ export default function AdminUserNew() {
       setLocation('/admin/users');
     },
     onError: (error: any) => {
+      const errorMessage = error.message || "Erro ao criar usuário";
+      const isEmailDuplicate = errorMessage.includes("email");
+      const isCnpjDuplicate = errorMessage.includes("CNPJ");
+      
+      let description = errorMessage;
+      if (isEmailDuplicate) {
+        description = "Este email já está cadastrado no sistema. Use um email diferente.";
+      } else if (isCnpjDuplicate) {
+        description = "Este CNPJ já está cadastrado no sistema. Use um CNPJ diferente.";
+      }
+      
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar usuário",
+        title: "Erro ao criar usuário",
+        description,
         variant: "destructive",
       });
     }
