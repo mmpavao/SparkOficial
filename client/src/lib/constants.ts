@@ -86,13 +86,13 @@ export const API_ENDPOINTS = {
 };
 
 export const QUERY_KEYS = {
-  auth: ['auth', 'user'],
-  users: ['users'],
-  creditApplications: ['credit', 'applications'],
-  imports: ['imports'],
+  auth: ['/api/auth/user'],
+  users: ['/api/users'],
+  creditApplications: ['/api/credit/applications'],
+  imports: ['/api/imports'],
   admin: {
-    users: ['admin', 'users'],
-    creditApplications: ['admin', 'credit-applications'],
-    imports: ['admin', 'imports']
+    users: ['/api/admin/users'],
+    creditApplications: ['/api/admin/credit-applications'],
+    imports: ['/api/admin/imports']
   }
 } as const;
