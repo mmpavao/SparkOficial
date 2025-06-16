@@ -48,7 +48,7 @@ export const createAdminUserSchema = createInsertSchema(users).omit({
 }).extend({
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
   confirmPassword: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
-  role: z.enum(["super_admin", "admin", "importer"]).default("admin"),
+  role: z.enum(["super_admin", "admin", "financeira", "importer"]).default("admin"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
@@ -119,6 +119,14 @@ export const creditApplications = pgTable("credit_applications", {
   adminObservations: text("admin_observations"), // Observações para o importador
   analyzedBy: integer("analyzed_by").references(() => users.id),
   analyzedAt: timestamp("analyzed_at"),
+  
+  // Financial Institution Analysis
+  financialStatus: text("financial_status").default("pending_financial"), // pending_financial, approved_financial, rejected_financial, needs_documents_financial
+  creditLimit: text("credit_limit"), // Limite de crédito aprovado
+  approvedTerms: text("approved_terms"), // JSON array dos prazos aprovados [30, 60, 90, etc]
+  financialNotes: text("financial_notes"), // Observações da financeira
+  financialAnalyzedBy: integer("financial_analyzed_by").references(() => users.id),
+  financialAnalyzedAt: timestamp("financial_analyzed_at"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -56,6 +56,12 @@ export interface IStorage {
   updateUserRole(userId: number, role: string): Promise<User>;
   deactivateUser(userId: number): Promise<User>;
   getUsersByRole(role: string): Promise<User[]>;
+  
+  // Financial operations
+  getPreApprovedCreditApplications(): Promise<CreditApplication[]>;
+  updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication>;
+  getSuppliersByPreApprovedUsers(): Promise<Supplier[]>;
+  getImportsByPreApprovedUsers(): Promise<Import[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -337,6 +343,94 @@ export class DatabaseStorage implements IStorage {
 
   async getUsersByRole(role: string): Promise<User[]> {
     return await db.select().from(users).where(eq(users.role, role));
+  }
+
+  // Financial operations
+  async getPreApprovedCreditApplications(): Promise<CreditApplication[]> {
+    return await db
+      .select()
+      .from(creditApplications)
+      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
+  }
+
+  async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
+    const updateData: any = {
+      financialStatus: status,
+      financialAnalyzedAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    if (financialData?.creditLimit) {
+      updateData.creditLimit = financialData.creditLimit;
+    }
+    if (financialData?.approvedTerms) {
+      updateData.approvedTerms = JSON.stringify(financialData.approvedTerms);
+    }
+    if (financialData?.financialNotes) {
+      updateData.financialNotes = financialData.financialNotes;
+    }
+    if (financialData?.financialAnalyzedBy) {
+      updateData.financialAnalyzedBy = financialData.financialAnalyzedBy;
+    }
+
+    const [application] = await db
+      .update(creditApplications)
+      .set(updateData)
+      .where(eq(creditApplications.id, id))
+      .returning();
+    return application;
+  }
+
+  async getSuppliersByPreApprovedUsers(): Promise<Supplier[]> {
+    // Get all users with pre-approved credit applications
+    const preApprovedApplications = await db
+      .select({ userId: creditApplications.userId })
+      .from(creditApplications)
+      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
+    
+    if (preApprovedApplications.length === 0) {
+      return [];
+    }
+
+    const userIds = preApprovedApplications.map(app => app.userId);
+    
+    // Get suppliers from those users
+    const suppliersWithUser = await db
+      .select({
+        ...getTableColumns(suppliers),
+        companyName: users.companyName
+      })
+      .from(suppliers)
+      .innerJoin(users, eq(suppliers.userId, users.id))
+      .where(inArray(suppliers.userId, userIds));
+
+    return suppliersWithUser as any[];
+  }
+
+  async getImportsByPreApprovedUsers(): Promise<Import[]> {
+    // Get all users with pre-approved credit applications
+    const preApprovedApplications = await db
+      .select({ userId: creditApplications.userId })
+      .from(creditApplications)
+      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
+    
+    if (preApprovedApplications.length === 0) {
+      return [];
+    }
+
+    const userIds = preApprovedApplications.map(app => app.userId);
+    
+    // Get imports from those users
+    const importsWithUser = await db
+      .select({
+        ...getTableColumns(imports),
+        companyName: users.companyName
+      })
+      .from(imports)
+      .innerJoin(users, eq(imports.userId, users.id))
+      .where(inArray(imports.userId, userIds));
+
+    return importsWithUser as any[];
   }
 }
 
