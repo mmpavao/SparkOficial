@@ -475,22 +475,32 @@ export default function CreditDetailsPage() {
                 </div>
               )}
               
-              {application.status === 'pre_approved' && (
+              {(application.preAnalysisStatus === 'pre_approved' || application.status === 'approved') && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
                     <p className="text-sm font-medium">Pré-análise Completa</p>
-                    <p className="text-xs text-gray-500">Aprovado para análise financeira</p>
+                    <p className="text-xs text-gray-500">
+                      {application.analyzedAt 
+                        ? new Date(application.analyzedAt).toLocaleDateString('pt-BR')
+                        : 'Aprovado para análise financeira'
+                      }
+                    </p>
                   </div>
                 </div>
               )}
 
-              {application.status === 'approved' && (
+              {application.financialStatus === 'approved' && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
                     <p className="text-sm font-medium">Aprovado</p>
-                    <p className="text-xs text-gray-500">Crédito liberado</p>
+                    <p className="text-xs text-gray-500">
+                      {application.financialAnalyzedAt 
+                        ? new Date(application.financialAnalyzedAt).toLocaleDateString('pt-BR')
+                        : 'Crédito liberado'
+                      }
+                    </p>
                   </div>
                 </div>
               )}
@@ -508,7 +518,7 @@ export default function CreditDetailsPage() {
           </Card>
 
           {/* Credit Limit Display for Approved Applications */}
-          {application.status === 'approved' && application.creditLimit && (
+          {application.financialStatus === 'approved' && application.creditLimit && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -526,30 +536,52 @@ export default function CreditDetailsPage() {
 
                 <Separator />
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Limite de Crédito Aprovado (USD)</span>
-                    <span className="text-lg font-semibold text-green-600">
-                      {application.creditLimit ? `US$ ${Number(application.creditLimit).toLocaleString()}` : 'Ex: 100000'}
-                    </span>
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Limite Aprovado */}
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-800">Limite Aprovado</span>
+                      <span className="text-xl font-bold text-green-600">
+                        {application.creditLimit ? `US$ ${Number(application.creditLimit).toLocaleString()}` : 'US$ 0'}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  {/* Valor Utilizado */}
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-blue-800">Valor Utilizado</span>
+                      <span className="text-xl font-bold text-blue-600">US$ 0</span>
+                    </div>
+                  </div>
+
+                  {/* Valor Disponível */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800">Valor Disponível</span>
+                      <span className="text-xl font-bold text-gray-600">
+                        {application.creditLimit ? `US$ ${Number(application.creditLimit).toLocaleString()}` : 'US$ 0'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Prazo de Pagamento */}
+                  <div className="flex items-center justify-between pt-2">
                     <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
                     <Badge variant="outline" className="bg-green-50 text-green-700">
                       {application.approvedTerms || '30'} dias
                     </Badge>
                   </div>
-
-                  {application.financialNotes && (
-                    <div className="space-y-1">
-                      <span className="text-sm font-medium text-gray-600">Observações Financeiras:</span>
-                      <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
-                        {application.financialNotes}
-                      </p>
-                    </div>
-                  )}
                 </div>
+
+                {application.financialNotes && (
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-gray-600">Observações Financeiras:</span>
+                    <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                      {application.financialNotes}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

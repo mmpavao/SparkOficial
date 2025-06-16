@@ -1268,18 +1268,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const financialData = {
-        creditLimit: parseFloat(creditLimit),
-        approvedTerms: parseInt(approvedTerms) || 30,
+        creditLimit: creditLimit,
+        approvedTerms: approvedTerms,
         financialNotes: financialNotes || '',
-        financialStatus: 'approved',
-        approvedBy: req.session.userId,
-        approvedAt: new Date().toISOString()
+        financialAnalyzedBy: req.session.userId,
+        financialAnalyzedAt: new Date().toISOString()
       };
 
-      const updatedApplication = await storage.updateCreditApplicationStatus(
+      // Update financial status to approved
+      const updatedApplication = await storage.updateFinancialStatus(
         applicationId,
         'approved',
         financialData
+      );
+
+      // Also update main status to approved
+      await storage.updateCreditApplicationStatus(
+        applicationId,
+        'approved',
+        {}
       );
 
       res.json(updatedApplication);
