@@ -294,6 +294,14 @@ Changelog:
   * Enhanced LCL system where each product has individual supplier dropdown selection
   * Integrated supplier database with import operations for seamless workflow
   * Established complete Chinese supplier management with search and filtering capabilities
+- June 16, 2025. Administrative interface and UI design improvements:
+  * Implemented complete administrative module showing ALL imports and suppliers from ALL importers
+  * Added company identification badges displaying Brazilian importer names for admin oversight
+  * Created administrative endpoints with proper authentication and role verification
+  * Built comprehensive filtering system for administrative data management
+  * Modified supplier page layout from table to card format matching imports page design
+  * Reduced displayed information to essential data (location, phone, email) for cleaner UI
+  * Maintained all CRUD functionalities while improving visual consistency across modules
 ```
 
 ## User Preferences

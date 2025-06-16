@@ -145,109 +145,83 @@ export default function SuppliersPage() {
         />
       </div>
 
-      {/* Suppliers Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Empresa</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>Localização</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Especialização</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredSuppliers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  {searchTerm ? "Nenhum fornecedor encontrado para a busca." : "Nenhum fornecedor cadastrado."}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredSuppliers.map((supplier: any) => (
-                <TableRow key={supplier.id} className="hover:bg-muted/50">
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{supplier.companyName}</div>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          Fornecedor Chinês
-                        </Badge>
-                        {isAdmin && (supplier as any).companyName && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                            {(supplier as any).companyName}
-                          </Badge>
-                        )}
-                      </div>
+      {/* Suppliers List */}
+      <div className="space-y-4">
+        {filteredSuppliers.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-600">Nenhum fornecedor encontrado</div>
+            <Button
+              onClick={() => setLocation('/suppliers/new')}
+              className="mt-4"
+              variant="outline"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Cadastrar primeiro fornecedor
+            </Button>
+          </div>
+        ) : (
+          filteredSuppliers.map((supplier: any) => (
+            <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-lg">
+                      {supplier.companyName}
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      Fornecedor Chinês
+                    </Badge>
+                    {isAdmin && (supplier as any).companyName && (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                        {(supplier as any).companyName}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>Local: <strong>{supplier.city}, {supplier.country}</strong></span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div className="font-medium">{supplier.contactName}</div>
-                      {supplier.contactPerson && (
-                        <div className="text-muted-foreground text-xs">{supplier.contactPerson}</div>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <span>Tel: <strong>{supplier.phone}</strong></span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <MapPin className="h-3 w-3 text-muted-foreground" />
-                      <span>{supplier.city}, {supplier.state || supplier.country}</span>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      <span>Email: <strong>{supplier.email}</strong></span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Phone className="h-3 w-3 text-muted-foreground" />
-                      <span>{supplier.phone}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Mail className="h-3 w-3 text-muted-foreground" />
-                      <span className="truncate max-w-[200px]">{supplier.email}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {supplier.specialization || (
-                        <span className="text-muted-foreground">Não informado</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteSupplier(supplier)}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </div>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver Detalhes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteSupplier(supplier)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
 
