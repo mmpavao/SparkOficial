@@ -129,7 +129,7 @@ export default function ImportComplete() {
       console.log("Creating import with data:", data);
       
       // Find selected supplier info
-      const selectedSupplier = suppliers.find((s: any) => s.id === data.supplierId);
+      const selectedSupplier = (suppliers as any[]).find((s: any) => s.id === data.supplierId);
       if (!selectedSupplier) {
         throw new Error("Fornecedor não encontrado");
       }
@@ -143,7 +143,7 @@ export default function ImportComplete() {
         supplierLocation: `${selectedSupplier.city}, ${selectedSupplier.country}`,
         // Convert to products array for backend
         products: cargoType === "LCL" ? products.map(p => {
-          const productSupplier = suppliers.find((s: any) => s.id === p.supplierId);
+          const productSupplier = (suppliers as any[]).find((s: any) => s.id === p.supplierId);
           return {
             name: p.name,
             description: p.description,

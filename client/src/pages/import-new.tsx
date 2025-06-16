@@ -283,7 +283,7 @@ export default function NewImportPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {suppliersQuery.data?.map((supplier: any) => (
+                            {(suppliersQuery.data as any[])?.map((supplier: any) => (
                               <SelectItem key={supplier.id} value={supplier.id.toString()}>
                                 {supplier.companyName} - {supplier.city}, {supplier.province}
                               </SelectItem>
@@ -552,7 +552,7 @@ export default function NewImportPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="unitPrice"
+                      name="products.0.unitPrice"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Preço Unitário (USD) *</FormLabel>

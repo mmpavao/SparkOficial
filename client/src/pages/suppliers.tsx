@@ -14,7 +14,7 @@ export default function SuppliersPage() {
     queryKey: ["/api/suppliers"],
   });
 
-  const filteredSuppliers = suppliers.filter((supplier: any) =>
+  const filteredSuppliers = (suppliers as any[]).filter((supplier: any) =>
     supplier.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.city.toLowerCase().includes(searchTerm.toLowerCase())
