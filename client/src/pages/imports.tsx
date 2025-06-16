@@ -291,12 +291,12 @@ export default function ImportsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocation(`/import/details/${importItem.id}`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/imports/details/${importItem.id}`)}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalhes
                         </DropdownMenuItem>
                         {importItem.status === 'planning' && (
-                          <DropdownMenuItem onClick={() => setLocation(`/import/edit/${importItem.id}`)}>
+                          <DropdownMenuItem onClick={() => setLocation(`/imports/edit/${importItem.id}`)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
                           </DropdownMenuItem>

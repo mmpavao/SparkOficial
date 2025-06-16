@@ -168,7 +168,7 @@ export default function ImportDetailsPage() {
           {canEdit && (
             <Button 
               variant="outline"
-              onClick={() => setLocation(`/import/edit/${importId}`)}
+              onClick={() => setLocation(`/imports/edit/${importId}`)}
               className="flex items-center gap-2"
             >
               <Edit className="w-4 h-4" />
@@ -389,7 +389,7 @@ export default function ImportDetailsPage() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => setLocation(`/import/edit/${importId}`)}
+                  onClick={() => setLocation(`/imports/edit/${importId}`)}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Editar Importação

@@ -150,7 +150,7 @@ export default function ImportEditPage() {
         <div className="flex items-center gap-4">
           <Button 
             variant="outline" 
-            onClick={() => setLocation(`/import/details/${importId}`)}
+            onClick={() => setLocation(`/imports/details/${importId}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -330,7 +330,7 @@ export default function ImportEditPage() {
                 <Button 
                   type="button" 
                   variant="outline"
-                  onClick={() => setLocation(`/import/details/${importId}`)}
+                  onClick={() => setLocation(`/imports/details/${importId}`)}
                 >
                   Cancelar
                 </Button>
