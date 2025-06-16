@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Building2, Search, Plus, MapPin, Phone, Mail } from "lucide-react";
-import SupplierManagement from "@/components/SupplierManagement";
 
 export default function SuppliersPage() {
   const [, setLocation] = useLocation();
@@ -24,10 +23,12 @@ export default function SuppliersPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-spark-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando fornecedores...</p>
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-gray-200 rounded"></div>
+            ))}
           </div>
         </div>
       </div>
@@ -37,10 +38,9 @@ export default function SuppliersPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Building2 className="h-6 w-6" />
+          <h1 className="text-2xl font-bold text-gray-900">
             Fornecedores
           </h1>
           <p className="text-muted-foreground">Gerencie seus fornecedores chineses</p>
@@ -61,20 +61,6 @@ export default function SuppliersPage() {
           className="pl-10"
         />
       </div>
-
-      {/* Create Form Modal */}
-      {showCreateForm && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Novo Fornecedor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SupplierManagement
-              onSelectSupplier={() => setShowCreateForm(false)}
-            />
-          </CardContent>
-        </Card>
-      )}
 
       {/* Suppliers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -128,6 +114,7 @@ export default function SuppliersPage() {
         ))}
       </div>
 
+      {/* Empty State */}
       {filteredSuppliers.length === 0 && (
         <div className="text-center py-12">
           <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -141,7 +128,7 @@ export default function SuppliersPage() {
             }
           </p>
           {!searchTerm && (
-            <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
+            <Button onClick={() => setLocation('/suppliers/new')} className="flex items-center gap-2 mx-auto">
               <Plus className="h-4 w-4" />
               Adicionar Fornecedor
             </Button>
