@@ -337,21 +337,29 @@ export default function CreditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {permissions.canViewAllApplications ? "Gestão de Crédito - Área Administrativa" : t.credit.title}
+            {permissions.isFinanceira 
+              ? "Análise Financeira - Aprovação de Crédito" 
+              : permissions.canViewAllApplications 
+                ? "Gestão de Crédito - Área Administrativa" 
+                : t.credit.title}
           </h1>
           <p className="text-gray-600">
-            {permissions.canViewAllApplications 
-              ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
-              : t.credit.requestCredit}
+            {permissions.isFinanceira
+              ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
+              : permissions.canViewAllApplications 
+                ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
+                : t.credit.requestCredit}
           </p>
         </div>
-        <Button 
-          onClick={() => setLocation('/credit/new')}
-          className="bg-spark-600 hover:bg-spark-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Solicitação de Crédito
-        </Button>
+        {!permissions.isFinanceira && (
+          <Button 
+            onClick={() => setLocation('/credit/new')}
+            className="bg-spark-600 hover:bg-spark-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Solicitação de Crédito
+          </Button>
+        )}
       </div>
 
       {/* Filtros Administrativos - apenas para admins */}

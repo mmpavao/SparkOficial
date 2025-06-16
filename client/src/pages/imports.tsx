@@ -180,16 +180,30 @@ export default function ImportsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Importações</h1>
-          <p className="text-gray-600 mt-1">Gerencie suas importações da China</p>
+          <h1 className="text-3xl font-bold">
+            {isFinanceira 
+              ? "Análise de Importações" 
+              : isAdmin 
+                ? "Todas as Importações" 
+                : "Minhas Importações"}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {isFinanceira
+              ? "Monitore importações de empresas aprovadas para análise financeira"
+              : isAdmin
+                ? "Visualize e gerencie importações de todos os importadores"
+                : "Gerencie suas importações da China"}
+          </p>
         </div>
-        <Button
-          onClick={() => setLocation('/imports/new')}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Importação
-        </Button>
+        {!isFinanceira && (
+          <Button
+            onClick={() => setLocation('/imports/new')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Importação
+          </Button>
+        )}
       </div>
 
       {/* Metrics */}

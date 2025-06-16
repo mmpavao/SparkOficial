@@ -136,14 +136,26 @@ export default function SuppliersPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Fornecedores
+            {isFinanceira 
+              ? "Análise de Fornecedores" 
+              : isAdmin 
+                ? "Todos os Fornecedores" 
+                : "Fornecedores"}
           </h1>
-          <p className="text-muted-foreground">Gerencie seus fornecedores chineses</p>
+          <p className="text-muted-foreground">
+            {isFinanceira
+              ? "Analise fornecedores de empresas aprovadas para avaliação de crédito"
+              : isAdmin
+                ? "Visualize e gerencie fornecedores de todos os importadores"
+                : "Gerencie seus fornecedores chineses"}
+          </p>
         </div>
-        <Button onClick={() => setLocation('/suppliers/new')} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Fornecedor
-        </Button>
+        {!isFinanceira && (
+          <Button onClick={() => setLocation('/suppliers/new')} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Fornecedor
+          </Button>
+        )}
       </div>
 
       {/* Metrics Cards */}
