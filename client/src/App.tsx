@@ -19,6 +19,7 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminUsersPage from "@/pages/admin-users";
 import SuppliersPage from "@/pages/suppliers";
+import SupplierNewPage from "@/pages/supplier-new";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
@@ -51,6 +52,7 @@ function Router() {
             <Route path="/import/details/:id" component={ImportDetailsPage} />
             <Route path="/import/edit/:id" component={ImportEditPage} />
             <Route path="/suppliers" component={SuppliersPage} />
+        <Route path="/suppliers/new" component={SupplierNewPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />

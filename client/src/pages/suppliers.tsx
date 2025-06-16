@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +8,8 @@ import { Building2, Search, Plus, MapPin, Phone, Mail } from "lucide-react";
 import SupplierManagement from "@/components/SupplierManagement";
 
 export default function SuppliersPage() {
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ["/api/suppliers"],
@@ -44,7 +45,7 @@ export default function SuppliersPage() {
           </h1>
           <p className="text-muted-foreground">Gerencie seus fornecedores chineses</p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
+        <Button onClick={() => setLocation('/suppliers/new')} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Novo Fornecedor
         </Button>
@@ -127,7 +128,7 @@ export default function SuppliersPage() {
         ))}
       </div>
 
-      {filteredSuppliers.length === 0 && !showCreateForm && (
+      {filteredSuppliers.length === 0 && (
         <div className="text-center py-12">
           <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
