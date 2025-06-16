@@ -863,7 +863,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/suppliers', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      const supplierData = { ...req.body, userId };
+      const supplierData = { 
+        ...req.body, 
+        userId,
+        contactPerson: req.body.contactName, // Map contactName to contactPerson for database
+        contactName: req.body.contactName
+      };
       
       const supplier = await storage.createSupplier(supplierData);
       res.status(201).json(supplier);

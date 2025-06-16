@@ -130,7 +130,8 @@ export const suppliers = pgTable("suppliers", {
   
   // Basic Information
   companyName: text("company_name").notNull(),
-  contactName: text("contact_name").notNull(),
+  contactPerson: text("contact_person"),
+  contactName: text("contact_name"),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   
