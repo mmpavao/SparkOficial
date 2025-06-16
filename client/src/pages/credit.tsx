@@ -67,17 +67,19 @@ type CreditApplicationForm = {
 function CreditSummaryCards({ applications, permissions }: { applications: any[], permissions: any }) {
   // Calcular métricas reais baseadas nas aplicações
   const metrics = applications?.reduce((acc, app) => {
-    const amount = parseFloat(app.requestedAmount || '0');
+    const requestedAmount = parseFloat(app.requestedAmount || '0');
     
-    if (app.status === 'approved') {
-      acc.totalApproved += amount;
+    if (app.financialStatus === 'approved') {
+      // Para aprovados, usar creditLimit (valor aprovado) em vez de requestedAmount
+      const approvedAmount = parseFloat(app.creditLimit || '0');
+      acc.totalApproved += approvedAmount;
     } else if (app.status === 'pending') {
-      acc.totalPending += amount;
+      acc.totalPending += requestedAmount;
     } else if (app.status === 'under_review') {
-      acc.totalUnderReview += amount;
+      acc.totalUnderReview += requestedAmount;
     }
     
-    acc.totalRequested += amount;
+    acc.totalRequested += requestedAmount;
     return acc;
   }, {
     totalApproved: 0,
@@ -86,7 +88,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
     totalRequested: 0
   }) || { totalApproved: 0, totalPending: 0, totalUnderReview: 0, totalRequested: 0 };
 
-  const approvedApplications = applications?.filter(app => app.status === 'approved') || [];
+  const approvedApplications = applications?.filter(app => app.financialStatus === 'approved') || [];
   const pendingApplications = applications?.filter(app => app.status === 'pending') || [];
   const underReviewApplications = applications?.filter(app => app.status === 'under_review') || [];
 

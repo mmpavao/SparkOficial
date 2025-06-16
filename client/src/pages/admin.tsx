@@ -77,7 +77,7 @@ export default function AdminPage() {
 
   // Calculate metrics
   const totalCreditRequested = allCreditApplications.reduce((sum: number, app: CreditApplication) => sum + Number(app.requestedAmount || 0), 0);
-  const totalCreditApproved = allCreditApplications.filter((app: CreditApplication) => app.status === 'approved').reduce((sum: number, app: CreditApplication) => sum + Number(app.requestedAmount || 0), 0);
+  const totalCreditApproved = allCreditApplications.filter((app: CreditApplication) => app.financialStatus === 'approved').reduce((sum: number, app: CreditApplication) => sum + Number(app.creditLimit || 0), 0);
 
   return (
     <div className="container mx-auto p-6">
