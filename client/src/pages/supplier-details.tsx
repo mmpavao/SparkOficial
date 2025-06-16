@@ -1,99 +1,57 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { 
   ArrowLeft, 
-  Edit, 
-  Trash2,
-  Building2,
-  MapPin,
-  Phone,
-  Mail,
-  User,
-  AlertTriangle
+  MapPin, 
+  Phone, 
+  Mail, 
+  Globe, 
+  Building, 
+  CreditCard,
+  Package,
+  Clock,
+  Star,
+  Edit
 } from "lucide-react";
 
 export default function SupplierDetailsPage() {
-  const [match, params] = useRoute("/suppliers/details/:id");
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const supplierId = window.location.pathname.split('/').pop();
 
-  const supplierId = params?.id ? parseInt(params.id) : null;
-
-  // Fetch supplier details
   const { data: supplier, isLoading } = useQuery({
-    queryKey: ["/api/suppliers", supplierId],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/suppliers/${supplierId}`);
-      return response.json();
-    },
-    enabled: !!supplierId,
+    queryKey: [`/api/suppliers/${supplierId}`],
   });
-
-  // Delete supplier mutation
-  const deleteSupplierMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("DELETE", `/api/suppliers/${supplierId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Fornecedor excluído",
-        description: "O fornecedor foi removido com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
-      setLocation("/suppliers");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao excluir fornecedor",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDeleteSupplier = () => {
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    deleteSupplierMutation.mutate();
-    setShowDeleteDialog(false);
-  };
-
-  if (!match || !supplierId) {
-    return <div>Fornecedor não encontrado</div>;
-  }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
   if (!supplier) {
-    return <div>Fornecedor não encontrado</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-8">
+          <h2 className="text-2xl font-bold text-gray-900">Fornecedor não encontrado</h2>
+          <p className="text-gray-600 mt-2">O fornecedor solicitado não existe ou foi removido.</p>
+          <Button 
+            onClick={() => setLocation('/suppliers')}
+            className="mt-4"
+          >
+            Voltar para Fornecedores
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -101,279 +59,234 @@ export default function SupplierDetailsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setLocation("/suppliers")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setLocation('/suppliers')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{supplier.companyName}</h1>
-            <p className="text-muted-foreground">Detalhes do fornecedor</p>
+            <h1 className="text-3xl font-bold">{supplier.companyName}</h1>
+            <p className="text-gray-600">Detalhes do fornecedor chinês</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={handleDeleteSupplier}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Excluir
-          </Button>
-        </div>
+        <Button onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
+          <Edit className="w-4 h-4 mr-2" />
+          Editar
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Information */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Company Information */}
+          {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Informações da Empresa
+                <Building className="w-5 h-5" />
+                Informações Básicas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Nome da Empresa
-                  </label>
-                  <p className="font-medium">{supplier.companyName}</p>
+                  <label className="text-sm font-medium text-gray-600">Nome da Empresa</label>
+                  <p className="text-lg font-semibold">{supplier.companyName}</p>
                 </div>
-                
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Pessoa de Contato
-                  </label>
-                  <p className="font-medium">{supplier.contactName}</p>
+                  <label className="text-sm font-medium text-gray-600">Pessoa de Contato</label>
+                  <p className="text-lg">{supplier.contactName || 'Não informado'}</p>
                 </div>
-
-                {supplier.contactPerson && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Contato Adicional
-                    </label>
-                    <p className="font-medium">{supplier.contactPerson}</p>
-                  </div>
-                )}
-
-                {supplier.specialization && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Especialização
-                    </label>
-                    <p className="font-medium">{supplier.specialization}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Phone className="h-5 w-5" />
-                Informações de Contato
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Telefone
-                    </label>
-                    <p className="font-medium">{supplier.phone}</p>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">E-mail</label>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <p>{supplier.email}</p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      E-mail
-                    </label>
-                    <p className="font-medium">{supplier.email}</p>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Telefone</label>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <p>{supplier.phone}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Address Information */}
+          {/* Location Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
+                <MapPin className="w-5 h-5" />
                 Localização
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Endereço
-                  </label>
-                  <p className="font-medium">{supplier.address}</p>
+                  <label className="text-sm font-medium text-gray-600">Endereço</label>
+                  <p>{supplier.address}</p>
                 </div>
-
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Cidade
-                  </label>
-                  <p className="font-medium">{supplier.city}</p>
+                  <label className="text-sm font-medium text-gray-600">Cidade</label>
+                  <p>{supplier.city}</p>
                 </div>
-
-                {supplier.state && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Estado/Província
-                    </label>
-                    <p className="font-medium">{supplier.state}</p>
-                  </div>
-                )}
-
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    País
-                  </label>
-                  <p className="font-medium">{supplier.country}</p>
+                  <label className="text-sm font-medium text-gray-600">Estado/Província</label>
+                  <p>{supplier.state || 'Não informado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">País</label>
+                  <p>{supplier.country}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Business Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Informações Comerciais
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Registro Empresarial</label>
+                  <p>{supplier.businessRegistration || 'Não informado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">ID Fiscal</label>
+                  <p>{supplier.taxId || 'Não informado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Banco</label>
+                  <p>{supplier.bankName || 'Não informado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Conta Bancária</label>
+                  <p>{supplier.bankAccount || 'Não informado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Código SWIFT</label>
+                  <p>{supplier.swiftCode || 'Não informado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Termos de Pagamento</label>
+                  <p>{supplier.preferredPaymentTerms || 'Não informado'}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar Information */}
         <div className="space-y-6">
-          {/* Quick Info */}
+          {/* Status and Rating */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Informações Rápidas</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5" />
+                Status e Avaliação
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <div>
+                <label className="text-sm font-medium text-gray-600">Status</label>
+                <div className="mt-1">
+                  <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
                     {supplier.status === 'active' ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Tipo</span>
-                  <Badge variant="secondary">
-                    Fornecedor Chinês
-                  </Badge>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">ID</span>
-                  <span className="text-sm font-mono">#{supplier.id}</span>
-                </div>
               </div>
-
-              <Separator />
-
               <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Adicionado em
-                </label>
-                <p className="text-sm mt-1">
-                  {supplier.createdAt ? 
-                    new Date(supplier.createdAt).toLocaleDateString('pt-BR') : 
-                    "Data não disponível"
-                  }
-                </p>
+                <label className="text-sm font-medium text-gray-600">Avaliação</label>
+                <div className="flex items-center gap-1 mt-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-4 h-4 ${
+                        star <= (supplier.rating || 0)
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                  <span className="text-sm text-gray-600 ml-2">
+                    {supplier.rating || 0}/5
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Actions */}
+          {/* Categories and Specialization */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Ações Rápidas</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                Especialização
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Editar Fornecedor
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => setLocation("/imports/new")}
-              >
-                <User className="h-4 w-4 mr-2" />
-                Nova Importação
-              </Button>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">Especialização</label>
+                <p className="mt-1">{supplier.specialization || 'Não informado'}</p>
+              </div>
+              {supplier.productCategories && supplier.productCategories.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Categorias de Produtos</label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {supplier.productCategories.map((category: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {category}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium text-gray-600">Valor Mínimo do Pedido</label>
+                <p className="mt-1">{supplier.minimumOrderValue || 'Não informado'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Lead Time</label>
+                <p className="mt-1">{supplier.leadTime || 'Não informado'}</p>
+              </div>
+            </CardContent>
+          </Card>
 
-              <Separator />
-
-              <Button 
-                variant="destructive" 
-                className="w-full justify-start"
-                onClick={handleDeleteSupplier}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Excluir Fornecedor
-              </Button>
+          {/* Additional Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Informações Adicionais
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">Data de Cadastro</label>
+                <p className="mt-1">
+                  {supplier.createdAt ? new Date(supplier.createdAt).toLocaleDateString('pt-BR') : 'Não informado'}
+                </p>
+              </div>
+              {supplier.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Observações</label>
+                  <p className="mt-1 text-sm bg-gray-50 p-3 rounded-md">{supplier.notes}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              Confirmar Exclusão
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o fornecedor "{supplier.companyName}"?
-              <br /><br />
-              <strong>Esta ação não pode ser desfeita.</strong> Todas as informações do fornecedor 
-              serão permanentemente removidas do sistema.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={deleteSupplierMutation.isPending}
-            >
-              {deleteSupplierMutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Excluindo...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir Definitivamente
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -50,8 +50,17 @@ export default function SuppliersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch user data to check if admin
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/user"]
+  });
+
+  const typedUser = user as any;
+  const isAdmin = typedUser?.role === "admin" || typedUser?.email === "pavaosmart@gmail.com";
+
+  // Fetch suppliers data - use admin endpoint if admin
   const { data: suppliers = [], isLoading } = useQuery({
-    queryKey: ["/api/suppliers"],
+    queryKey: isAdmin ? ["/api/admin/suppliers"] : ["/api/suppliers"]
   });
 
   // Filter suppliers
@@ -167,6 +176,11 @@ export default function SuppliersPage() {
                         <Badge variant="outline" className="text-xs">
                           Fornecedor Chinês
                         </Badge>
+                        {isAdmin && (supplier as any).companyName && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                            {(supplier as any).companyName}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </TableCell>

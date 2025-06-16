@@ -13,7 +13,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, getTableColumns } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -260,87 +260,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllImports(): Promise<Import[]> {
-    const result = await db
-      .select({
-        id: imports.id,
-        userId: imports.userId,
-        creditApplicationId: imports.creditApplicationId,
-        supplierId: imports.supplierId,
-        importName: imports.importName,
-        importNumber: imports.importNumber,
-        cargoType: imports.cargoType,
-        containerNumber: imports.containerNumber,
-        sealNumber: imports.sealNumber,
-        products: imports.products,
-        totalValue: imports.totalValue,
-        currency: imports.currency,
-        fobPrice: imports.fobPrice,
-        cifPrice: imports.cifPrice,
-        freightCost: imports.freightCost,
-        insuranceCost: imports.insuranceCost,
-        weight: imports.weight,
-        volume: imports.volume,
-        dimensions: imports.dimensions,
-        shippingMethod: imports.shippingMethod,
-        containerType: imports.containerType,
-        incoterms: imports.incoterms,
-        currentStage: imports.currentStage,
-        status: imports.status,
-        stageEstimativa: imports.stageEstimativa,
-        stageInvoice: imports.stageInvoice,
-        stageProducao: imports.stageProducao,
-        stageEmbarque: imports.stageEmbarque,
-        stageTransporte: imports.stageTransporte,
-        stageAtracacao: imports.stageAtracacao,
-        stageDesembaraco: imports.stageDesembaraco,
-        stageTransporteTerrestre: imports.stageTransporteTerrestre,
-        stageEntrega: imports.stageEntrega,
-        estimatedDelivery: imports.estimatedDelivery,
-        actualDelivery: imports.actualDelivery,
-        invoiceDate: imports.invoiceDate,
-        productionStartDate: imports.productionStartDate,
-        shippingDate: imports.shippingDate,
-        trackingNumber: imports.trackingNumber,
-        bl_number: imports.bl_number,
-        port_of_loading: imports.port_of_loading,
-        port_of_discharge: imports.port_of_discharge,
-        customs_status: imports.customs_status,
-        customs_clearance_date: imports.customs_clearance_date,
-        notes: imports.notes,
-        createdAt: imports.createdAt,
-        updatedAt: imports.updatedAt,
-        companyName: users.companyName,
-      })
-      .from(imports)
-      .leftJoin(users, eq(imports.userId, users.id))
-      .orderBy(desc(imports.createdAt));
+    const allImports = await db.select().from(imports).orderBy(desc(imports.createdAt));
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+    
+    const result = allImports.map(importItem => {
+      const user = allUsers.find(u => u.id === importItem.userId);
+      return {
+        ...importItem,
+        companyName: user?.companyName || 'Empresa não encontrada'
+      };
+    });
     
     return result as any[];
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
-    const result = await db
-      .select({
-        id: suppliers.id,
-        userId: suppliers.userId,
-        name: suppliers.name,
-        email: suppliers.email,
-        phone: suppliers.phone,
-        address: suppliers.address,
-        city: suppliers.city,
-        province: suppliers.province,
-        country: suppliers.country,
-        businessLicense: suppliers.businessLicense,
-        contactPerson: suppliers.contactPerson,
-        website: suppliers.website,
-        notes: suppliers.notes,
-        createdAt: suppliers.createdAt,
-        updatedAt: suppliers.updatedAt,
-        companyName: users.companyName,
-      })
-      .from(suppliers)
-      .leftJoin(users, eq(suppliers.userId, users.id))
-      .orderBy(desc(suppliers.createdAt));
+    const allSuppliers = await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+    
+    const result = allSuppliers.map(supplier => {
+      const user = allUsers.find(u => u.id === supplier.userId);
+      return {
+        ...supplier,
+        companyName: user?.companyName || 'Empresa não encontrada'
+      };
+    });
     
     return result as any[];
   }
