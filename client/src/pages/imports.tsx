@@ -42,12 +42,12 @@ export default function ImportsPage() {
   const { toast } = useToast();
 
   // Fetch imports data
-  const { data: imports = [], isLoading } = useQuery({
+  const { data: imports, isLoading } = useQuery({
     queryKey: ["/api/imports"]
   });
 
   // Filter imports
-  const filteredImports = (imports as Import[]).filter((importItem: Import) => {
+  const filteredImports = Array.isArray(imports) ? imports.filter((importItem: Import) => {
     const matchesSearch = !searchTerm || 
       importItem.importName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
@@ -57,17 +57,17 @@ export default function ImportsPage() {
     const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
   // Calculate metrics
-  const totalImports = (imports as Import[]).length;
-  const activeImports = (imports as Import[]).filter((imp: Import) => 
+  const totalImports = Array.isArray(imports) ? imports.length : 0;
+  const activeImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
     ['planning', 'in_progress', 'shipped'].includes(imp.status)
-  ).length;
-  const completedImports = (imports as Import[]).filter((imp: Import) => imp.status === 'completed').length;
-  const totalValue = (imports as Import[]).reduce((sum: number, imp: Import) => 
+  ).length : 0;
+  const completedImports = Array.isArray(imports) ? imports.filter((imp: Import) => imp.status === 'completed').length : 0;
+  const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: Import) => 
     sum + (parseFloat(imp.totalValue) || 0), 0
-  );
+  ) : 0;
 
   // Handle import cancellation
   const cancelImportMutation = useMutation({

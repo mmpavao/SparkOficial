@@ -90,7 +90,10 @@ export default function ImportDetailsPage() {
     updatePipelineMutation.mutate({ stage, data });
   };
 
+  console.log("Match check:", { match, importId, shouldShow: !match || !importId });
+  
   if (!match || !importId) {
+    console.log("Returning not found due to:", { match, importId });
     return <div>Importação não encontrada</div>;
   }
 
