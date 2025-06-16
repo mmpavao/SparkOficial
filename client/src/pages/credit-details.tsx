@@ -51,9 +51,9 @@ export default function CreditDetailsPage() {
     queryKey: ["/api/credit/applications", applicationId],
     queryFn: async () => {
       if (permissions.isAdmin) {
-        return await apiRequest("GET", `/api/admin/credit-applications/${applicationId}`);
+        return await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
       } else {
-        return await apiRequest("GET", `/api/credit/applications/${applicationId}`);
+        return await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
       }
     },
     enabled: !!applicationId,

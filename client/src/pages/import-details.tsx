@@ -49,9 +49,9 @@ export default function ImportDetailsPage() {
     queryKey: ["/api/imports", importId],
     queryFn: async () => {
       if (isAdmin) {
-        return await apiRequest("GET", `/api/admin/imports/${importId}`);
+        return await apiRequest(`/api/admin/imports/${importId}`, "GET");
       } else {
-        return await apiRequest("GET", `/api/imports/${importId}`);
+        return await apiRequest(`/api/imports/${importId}`, "GET");
       }
     },
     enabled: !!importId,
