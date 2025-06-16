@@ -407,7 +407,7 @@ export class DatabaseStorage implements IStorage {
         const user = allUsers.find(u => u.id === supplier.userId);
         return {
           ...supplier,
-          companyName: user?.companyName || 'Empresa não encontrada'
+          importerCompanyName: user?.companyName || 'Empresa não encontrada'
         };
       });
     
