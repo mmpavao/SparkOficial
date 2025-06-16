@@ -22,6 +22,9 @@ import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
+import FinanceiraCreditPage from "@/pages/financeira-credit";
+import FinanceiraSuppliers from "@/pages/financeira-suppliers";
+import FinanceiraImports from "@/pages/financeira-imports";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
@@ -60,6 +63,9 @@ function Router() {
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={AdminUsersPage} />
+            <Route path="/financeira/credit" component={FinanceiraCreditPage} />
+            <Route path="/financeira/suppliers" component={FinanceiraSuppliers} />
+            <Route path="/financeira/imports" component={FinanceiraImports} />
             <Route component={NotFound} />
           </Switch>
         </AuthenticatedLayout>
