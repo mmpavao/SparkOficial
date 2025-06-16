@@ -93,7 +93,7 @@ export default function ImportsPage() {
 
   const createImportMutation = useMutation({
     mutationFn: async (data: InsertImport) => {
-      return apiRequest('POST', '/api/imports', data);
+      return apiRequest('/api/imports', 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -117,7 +117,7 @@ export default function ImportsPage() {
 
   const updateImportStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      return apiRequest('PATCH', `/api/imports/${id}`, { status });
+      return apiRequest(`/api/imports/${id}`, 'PATCH', { status });
     },
     onSuccess: () => {
       toast({
@@ -260,7 +260,7 @@ export default function ImportsPage() {
   // Handle import actions
   const cancelImportMutation = useMutation({
     mutationFn: async (importId: number) => {
-      return apiRequest('DELETE', `/api/imports/${importId}`);
+      return apiRequest(`/api/imports/${importId}`, 'DELETE');
     },
     onSuccess: () => {
       toast({

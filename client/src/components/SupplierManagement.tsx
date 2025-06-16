@@ -140,7 +140,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
 
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest("DELETE", `/api/suppliers/${id}`);
+      return apiRequest(`/api/suppliers/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
