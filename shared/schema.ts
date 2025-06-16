@@ -175,8 +175,8 @@ export const suppliers = pgTable("suppliers", {
 // Import tracking table with enhanced pipeline tracking
 export const imports = pgTable("imports", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id).notNull(),
-  creditApplicationId: serial("credit_application_id").references(() => creditApplications.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id),
   supplierId: integer("supplier_id").references(() => suppliers.id),
   
   // Basic Import Information
@@ -189,7 +189,7 @@ export const imports = pgTable("imports", {
   sealNumber: text("seal_number"), // Número do lacre
   
   // Product Details - now supports multiple products for LCL
-  products: jsonb("products").notNull(), // Array de produtos: [{name, description, hsCode, quantity, unitPrice, totalValue}]
+  products: jsonb("products").notNull(), // Array de produtos: [{name, description, hsCode, quantity, unitPrice, totalValue, supplierId}]
   totalValue: text("total_value").notNull(),
   currency: text("currency").notNull().default("USD"),
   
@@ -340,6 +340,7 @@ const productSchema = z.object({
   quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
   unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
+  supplierId: z.number().min(1, "Fornecedor é obrigatório"),
 });
 
 // Enhanced import validation schema
