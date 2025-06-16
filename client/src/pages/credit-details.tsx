@@ -506,6 +506,53 @@ export default function CreditDetailsPage() {
             </CardContent>
           </Card>
 
+          {/* Credit Limit Display for Approved Applications */}
+          {application.status === 'approved' && application.creditLimit && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Análise Financeira
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status Atual:</span>
+                    <Badge className="bg-green-100 text-green-800">Aprovado</Badge>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Limite de Crédito Aprovado (USD)</span>
+                    <span className="text-lg font-semibold text-green-600">
+                      {application.creditLimit ? `US$ ${Number(application.creditLimit).toLocaleString()}` : 'Ex: 100000'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      {application.approvedTerms || '30'} dias
+                    </Badge>
+                  </div>
+
+                  {application.financialNotes && (
+                    <div className="space-y-1">
+                      <span className="text-sm font-medium text-gray-600">Observações Financeiras:</span>
+                      <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                        {application.financialNotes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Ações Adaptáveis baseadas no tipo de usuário */}
           {(permissions.canManageApplications || permissions.isFinanceira) ? (
             <AdminAnalysisPanel application={application} />

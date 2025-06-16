@@ -350,7 +350,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(creditApplications)
-      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
+      .where(eq(creditApplications.status, "pre_approved"));
   }
 
   async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
