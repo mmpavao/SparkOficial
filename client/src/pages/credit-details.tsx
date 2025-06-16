@@ -538,10 +538,10 @@ export default function CreditDetailsPage() {
                 <Separator />
 
                 <div className="grid grid-cols-1 gap-4">
-                  {/* Limite Aprovado */}
+                  {/* Crédito Aprovado */}
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-green-800">Limite Aprovado</span>
+                      <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
                         {(() => {
                           const finalLimit = application.adminStatus === 'admin_finalized' 
@@ -553,18 +553,18 @@ export default function CreditDetailsPage() {
                     </div>
                   </div>
 
-                  {/* Valor Utilizado */}
+                  {/* Em Uso */}
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-blue-800">Valor Utilizado</span>
+                      <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">US$ 0</span>
                     </div>
                   </div>
 
-                  {/* Valor Disponível */}
+                  {/* Disponível */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-800">Valor Disponível</span>
+                      <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
                         {(() => {
                           const finalLimit = application.adminStatus === 'admin_finalized' 

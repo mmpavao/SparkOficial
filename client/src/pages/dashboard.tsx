@@ -76,14 +76,14 @@ export default function Dashboard() {
           iconColor="text-green-600"
         />
 
-        {/* Valor Utilizado - calculado das importações ativas */}
+        {/* Em Uso - calculado das importações ativas */}
         <MetricsCard
-          title="Valor Utilizado"
+          title="Em Uso"
           value={formatCurrency(
             imports
               .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
               .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0)
-          )}
+          ).replace('R$', 'US$')}
           icon={PiggyBank}
           iconColor="text-blue-600"
         />
@@ -141,12 +141,12 @@ export default function Dashboard() {
               return (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
-                    <span className="text-sm font-medium text-green-800">Limite Aprovado</span>
+                    <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                     <span className="text-lg font-bold text-green-600">{formatCurrency(approvedCredit).replace('R$', 'US$')}</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
-                    <span className="text-sm font-medium text-blue-800">Valor Utilizado</span>
+                    <span className="text-sm font-medium text-blue-800">Em Uso</span>
                     <span className="text-lg font-bold text-blue-600">{formatCurrency(usedCredit).replace('R$', 'US$')}</span>
                   </div>
                   

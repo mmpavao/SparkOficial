@@ -366,6 +366,12 @@ Changelog:
   * Enhanced credit details page with prominent down payment information display in dedicated yellow-themed card
   * Integrated document upload functionality with file type validation (PDF, DOC, DOCX, JPG, PNG) and 10MB size limit
   * Fixed importer company name display in suppliers page for proper Financeira user identification
+- June 16, 2025. Complete credit terminology standardization across all dashboards:
+  * Implemented consistent nomenclature: "Crédito Aprovado", "Em Uso", "Disponível" replacing previous terms
+  * Updated dashboard metrics, credit details pages, and admin panels to use standardized terminology
+  * Reflects rotative credit logic where payments restore available limits for reuse
+  * Applied changes across importer dashboard, admin interfaces, and credit detail pages
+  * Maintained role-based data visibility logic while updating all user-facing labels
 ```
 
 ## User Preferences

@@ -93,7 +93,7 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
           <h4 className="font-medium mb-3 text-gray-800">Termos Aprovados pela Financeira</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label className="text-sm font-medium text-gray-600">Limite Aprovado</Label>
+              <Label className="text-sm font-medium text-gray-600">Crédito Aprovado</Label>
               <div className="flex items-center gap-2 mt-1">
                 <DollarSign className="h-4 w-4 text-green-600" />
                 <span className="font-semibold text-green-700">
