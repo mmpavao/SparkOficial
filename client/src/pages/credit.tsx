@@ -38,7 +38,8 @@ import {
   X,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Building
 } from "lucide-react";
 import { CreditApplication } from "@shared/schema";
 
@@ -572,38 +573,90 @@ export default function CreditPage() {
               {Array.isArray(applications) && applications.map((application: any) => (
                 <div
                   key={application.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  className="border border-gray-200 rounded-xl hover:shadow-lg transition-all duration-200 bg-white"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-medium">
-                        {(permissions.canViewAllApplications || permissions.isFinanceira)
-                          ? `${application.legalCompanyName || application.tradingName || `Empresa #${application.userId}`}`
-                          : `Solicitação #${application.id}`}
-                      </h3>
-                      {getStatusBadge(application.status)}
-                      {(permissions.canViewAllApplications || permissions.isFinanceira) && (
-                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                          {application.legalCompanyName || application.tradingName || `Importador #${application.userId}`}
-                        </Badge>
-                      )}
+                  <div className="p-6">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          {(permissions.canViewAllApplications || permissions.isFinanceira)
+                            ? `${application.legalCompanyName || application.tradingName || `Empresa #${application.userId}`}`
+                            : `Solicitação #${application.id}`}
+                        </h3>
+                        {(permissions.canViewAllApplications || permissions.isFinanceira) && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            {application.legalCompanyName || application.tradingName || `Importador #${application.userId}`}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(application.status)}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Valor: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
-                    </p>
-                    {permissions.canViewAllApplications && (
-                      <p className="text-sm text-gray-500 mb-1">
-                        CNPJ: {application.cnpj || 'Não informado'}
+
+                    {/* Mini Cards com valores */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {/* Valor Solicitado */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <DollarSign className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800">Valor Solicitado</span>
+                        </div>
+                        <p className="text-xl font-bold text-blue-600">
+                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
+                        </p>
+                      </div>
+
+                      {/* Valor Aprovado (se aprovado) */}
+                      {application.financialStatus === 'approved' && application.creditLimit && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-800">Valor Aprovado</span>
+                          </div>
+                          <p className="text-xl font-bold text-green-600">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.creditLimit))}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* CNPJ (se admin/financeira) */}
+                      {permissions.canViewAllApplications && (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Building className="w-4 h-4 text-gray-600" />
+                            <span className="text-sm font-medium text-gray-700">CNPJ</span>
+                          </div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {application.cnpj || 'Não informado'}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Data de Criação */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Calendar className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">Criado em</span>
+                        </div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {new Date(application.createdAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Descrição do Propósito */}
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {application.purpose || application.justification || 'Sem descrição disponível'}
                       </p>
-                    )}
-                    <p className="text-sm text-gray-500 line-clamp-2">
-                      {application.purpose || application.justification || 'Sem descrição'}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Criado em: {new Date(application.createdAt).toLocaleDateString('pt-BR')}
-                    </p>
+                    </div>
                   </div>
-                  <DropdownMenu>
+
+                  {/* Footer com ações */}
+                  <div className="px-6 pb-6 flex justify-end">
+                    <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
                         <MoreVertical className="w-4 h-4" />
