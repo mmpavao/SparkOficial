@@ -57,6 +57,19 @@ export default function AdminUserNew() {
         description = "Este CNPJ já está cadastrado no sistema. Use um CNPJ diferente.";
       }
       
+      // Show which field has the conflict
+      if (isEmailDuplicate) {
+        form.setError("email", { 
+          type: "manual", 
+          message: "Email já cadastrado" 
+        });
+      } else if (isCnpjDuplicate) {
+        form.setError("cnpj", { 
+          type: "manual", 
+          message: "CNPJ já cadastrado" 
+        });
+      }
+      
       toast({
         title: "Erro ao criar usuário",
         description,
