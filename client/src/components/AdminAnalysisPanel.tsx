@@ -41,8 +41,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   // Financeira-specific state
   const [financialData, setFinancialData] = useState({
     creditLimit: application.creditLimit || "",
-    approvedTerms: application.approvedTerms || "30",
-    financialNotes: application.financialNotes || ""
+    approvedTerms: application.approvedTerms ? application.approvedTerms.split(',') : [],
+    financialNotes: application.financialNotes || "",
+    downPayment: application.downPayment || "10",
+    attachments: []
   });
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -130,7 +132,8 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
             status: 'approved',
             data: {
               creditLimit: financialData.creditLimit,
-              approvedTerms: financialData.approvedTerms,
+              approvedTerms: financialData.approvedTerms.join(','),
+              downPayment: financialData.downPayment,
               financialNotes: financialData.financialNotes,
               financialStatus: 'approved'
             }
@@ -325,21 +328,50 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               />
             </div>
 
-            {/* Payment Terms Selection */}
+            {/* Payment Terms Selection - Multiple Selection */}
             <div className="space-y-2">
               <Label>Prazo de Pagamento Aprovado</Label>
               <div className="flex flex-wrap gap-2">
                 {['30', '60', '90', '120', '150', '180'].map((term) => (
                   <Button
                     key={term}
-                    variant={financialData.approvedTerms === term ? "default" : "outline"}
+                    variant={financialData.approvedTerms.includes(term) ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setFinancialData(prev => ({ ...prev, approvedTerms: term }))}
+                    onClick={() => {
+                      setFinancialData(prev => ({
+                        ...prev,
+                        approvedTerms: prev.approvedTerms.includes(term)
+                          ? prev.approvedTerms.filter(t => t !== term)
+                          : [...prev.approvedTerms, term]
+                      }));
+                    }}
                   >
                     {term} dias
                   </Button>
                 ))}
               </div>
+              {financialData.approvedTerms.length > 0 && (
+                <p className="text-xs text-gray-500">
+                  Selecionados: {financialData.approvedTerms.join(', ')} dias
+                </p>
+              )}
+            </div>
+
+            {/* Down Payment Percentage */}
+            <div className="space-y-2">
+              <Label htmlFor="downPayment">Entrada Requerida (%)</Label>
+              <Input
+                id="downPayment"
+                type="number"
+                placeholder="Ex: 10"
+                value={financialData.downPayment}
+                onChange={(e) => setFinancialData(prev => ({ ...prev, downPayment: e.target.value }))}
+                min="0"
+                max="100"
+              />
+              <p className="text-xs text-gray-500">
+                {financialData.downPayment}% de entrada do valor do pedido
+              </p>
             </div>
 
             {/* Financial Notes */}
@@ -352,6 +384,52 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 onChange={(e) => setFinancialData(prev => ({ ...prev, financialNotes: e.target.value }))}
                 rows={3}
               />
+            </div>
+
+            {/* Document Attachments */}
+            <div className="space-y-2">
+              <Label>Anexar Apólices e Documentos Adicionais</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setFinancialData(prev => ({
+                      ...prev,
+                      attachments: [...prev.attachments, ...files]
+                    }));
+                  }}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Aceitos: PDF, DOC, DOCX, JPG, PNG (máx. 10MB por arquivo)
+                </p>
+              </div>
+              
+              {financialData.attachments.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Arquivos Selecionados:</p>
+                  {financialData.attachments.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                      <span className="text-sm text-gray-700">{file.name}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setFinancialData(prev => ({
+                            ...prev,
+                            attachments: prev.attachments.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Separator />

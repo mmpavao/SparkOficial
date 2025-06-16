@@ -572,6 +572,19 @@ export default function CreditDetailsPage() {
                       {application.approvedTerms || '30'} dias
                     </Badge>
                   </div>
+
+                  {/* Entrada Requerida */}
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-yellow-800">Entrada Requerida</span>
+                      <span className="text-lg font-bold text-yellow-700">
+                        {application.downPayment || '10'}% do valor do pedido
+                      </span>
+                    </div>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Order Down Payment - {application.downPayment || '10'}% of order value
+                    </p>
+                  </div>
                 </div>
 
                 {application.financialNotes && (
