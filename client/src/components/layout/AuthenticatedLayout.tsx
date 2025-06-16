@@ -28,6 +28,7 @@ import {
   LogOut,
   Bell,
   ChevronLeft,
+  LayoutDashboard,
   ChevronRight,
   Users,
   UserCog,
@@ -253,6 +254,24 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
+                    isActiveRoute("/financeira/dashboard") 
+                      ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => setLocation("/financeira/dashboard")}
+                >
+                  <LayoutDashboard className="w-4 h-4 lg:mr-0 mr-3" />
+                  <span className={`transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                  }`}>
+                    Dashboard
+                  </span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={`w-full transition-colors ${
+                    sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                  } ${
                     isActiveRoute("/financeira/credit") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
@@ -264,6 +283,24 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
                   }`}>
                     Análise de Crédito
+                  </span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={`w-full transition-colors ${
+                    sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                  } ${
+                    isActiveRoute("/financeira/imports") 
+                      ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => setLocation("/financeira/imports")}
+                >
+                  <Truck className="w-4 h-4 lg:mr-0 mr-3" />
+                  <span className={`transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                  }`}>
+                    Importações
                   </span>
                 </Button>
                 <Button
@@ -289,17 +326,17 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className={`w-full transition-colors ${
                     sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                   } ${
-                    isActiveRoute("/financeira/imports") 
+                    isActiveRoute("/financeira/reports") 
                       ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => setLocation("/financeira/imports")}
+                  onClick={() => setLocation("/financeira/reports")}
                 >
-                  <Truck className="w-4 h-4 lg:mr-0 mr-3" />
+                  <BarChart3 className="w-4 h-4 lg:mr-0 mr-3" />
                   <span className={`transition-opacity duration-300 ${
                     sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
                   }`}>
-                    Importações
+                    Relatórios
                   </span>
                 </Button>
               </div>

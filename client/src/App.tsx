@@ -23,9 +23,11 @@ import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
+import FinanceiraDashboard from "@/pages/financeira-dashboard";
 import FinanceiraCreditPage from "@/pages/financeira-credit";
 import FinanceiraSuppliers from "@/pages/financeira-suppliers";
 import FinanceiraImports from "@/pages/financeira-imports";
+import FinanceiraReports from "@/pages/financeira-reports";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 
