@@ -372,15 +372,6 @@ Changelog:
   * Reflects rotative credit logic where payments restore available limits for reuse
   * Applied changes across importer dashboard, admin interfaces, and credit detail pages
   * Maintained role-based data visibility logic while updating all user-facing labels
-- June 16, 2025. Complete credit application flow redesign and simplification:
-  * Fixed critical apiRequest parameter order bugs causing system-wide fetch errors throughout application
-  * Corrected "response.json is not a function" error in credit application submission process
-  * Redesigned credit application flow from 4 complex steps to 3 streamlined, optimized steps
-  * Simplified step structure: 1) Company Data, 2) Credit Data, 3) Documentation confirmation
-  * Eliminated complex product tagging system in favor of simple textarea for main imported products
-  * Removed duplicate fields and unnecessary complexity while maintaining all required data collection
-  * Implemented proper form validation and navigation between steps with clear visual indicators
-  * Created credit-application-new.tsx with optimized user experience and 100% functional workflow
 ```
 
 ## User Preferences

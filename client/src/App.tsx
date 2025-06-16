@@ -8,7 +8,7 @@ import { I18nProvider } from "@/contexts/I18nContext";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import CreditPage from "@/pages/credit";
-import CreditApplicationPage from "@/pages/credit-application-new";
+import CreditApplicationPage from "@/pages/credit-application";
 import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
