@@ -1,35 +1,48 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRoute, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { insertSupplierSchema } from "@shared/schema";
-import { 
-  ArrowLeft, 
-  Save, 
-  Building2,
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  Globe
-} from "lucide-react";
-import { z } from "zod";
+import { ArrowLeft, Save, Building2, MapPin, Phone, Mail } from "lucide-react";
 
-type EditSupplierForm = z.infer<typeof insertSupplierSchema>;
+// Form validation schema using only existing supplier fields
+const editSupplierSchema = z.object({
+  companyName: z.string().min(1, "Nome da empresa é obrigatório"),
+  contactName: z.string().min(1, "Nome do contato é obrigatório"),
+  contactPerson: z.string().optional(),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+  email: z.string().email("E-mail inválido"),
+  address: z.string().min(1, "Endereço é obrigatório"),
+  city: z.string().min(1, "Cidade é obrigatória"),
+  state: z.string().optional(),
+  country: z.string().min(1, "País é obrigatório"),
+  specialization: z.string().optional(),
+  status: z.enum(["active", "inactive"]).default("active"),
+});
+
+type EditSupplierForm = z.infer<typeof editSupplierSchema>;
 
 export default function SupplierEditPage() {
   const [match, params] = useRoute("/suppliers/edit/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const supplierId = params?.id ? parseInt(params.id) : null;
 
@@ -43,48 +56,39 @@ export default function SupplierEditPage() {
     enabled: !!supplierId,
   });
 
+  // Form setup
   const form = useForm<EditSupplierForm>({
-    resolver: zodResolver(insertSupplierSchema),
+    resolver: zodResolver(editSupplierSchema),
     defaultValues: {
       companyName: "",
       contactName: "",
-      position: "",
+      contactPerson: "",
       phone: "",
       email: "",
-      website: "",
-      wechat: "",
       address: "",
       city: "",
-      province: "",
+      state: "",
+      country: "China",
       specialization: "",
-      description: "",
-      minimumOrder: "",
-      paymentTerms: "",
-      leadTime: "",
-      certifications: "",
+      status: "active",
     },
   });
 
-  // Load supplier data into form when available
+  // Update form when supplier data loads
   useEffect(() => {
     if (supplier) {
       form.reset({
         companyName: supplier.companyName || "",
         contactName: supplier.contactName || "",
-        position: supplier.position || "",
+        contactPerson: supplier.contactPerson || "",
         phone: supplier.phone || "",
         email: supplier.email || "",
-        website: supplier.website || "",
-        wechat: supplier.wechat || "",
         address: supplier.address || "",
         city: supplier.city || "",
-        province: supplier.province || "",
+        state: supplier.state || "",
+        country: supplier.country || "China",
         specialization: supplier.specialization || "",
-        description: supplier.description || "",
-        minimumOrder: supplier.minimumOrder || "",
-        paymentTerms: supplier.paymentTerms || "",
-        leadTime: supplier.leadTime || "",
-        certifications: supplier.certifications || "",
+        status: supplier.status || "active",
       });
     }
   }, [supplier, form]);
@@ -92,13 +96,14 @@ export default function SupplierEditPage() {
   // Update supplier mutation
   const updateSupplierMutation = useMutation({
     mutationFn: async (data: EditSupplierForm) => {
+      setIsSubmitting(true);
       const response = await apiRequest("PUT", `/api/suppliers/${supplierId}`, data);
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Fornecedor atualizado",
-        description: "Os dados do fornecedor foram salvos com sucesso.",
+        description: "As informações do fornecedor foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
       queryClient.invalidateQueries({ queryKey: ["/api/suppliers", supplierId] });
@@ -110,6 +115,9 @@ export default function SupplierEditPage() {
         description: error.message,
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
     },
   });
 
@@ -149,320 +157,234 @@ export default function SupplierEditPage() {
         </div>
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Company Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Informações da Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="companyName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome da Empresa *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Shanghai Electronics Co." />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Company Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Informações da Empresa
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="companyName">Nome da Empresa *</Label>
+                <Input
+                  id="companyName"
+                  {...form.register("companyName")}
+                  placeholder="Nome da empresa chinesa"
                 />
+                {form.formState.errors.companyName && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.companyName.message}
+                  </p>
+                )}
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="specialization"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Especialização</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Eletrônicos, Têxtil, Máquinas" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div>
+                <Label htmlFor="contactName">Pessoa de Contato *</Label>
+                <Input
+                  id="contactName"
+                  {...form.register("contactName")}
+                  placeholder="Nome do contato principal"
+                />
+                {form.formState.errors.contactName && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.contactName.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="contactPerson">Contato Adicional</Label>
+                <Input
+                  id="contactPerson"
+                  {...form.register("contactPerson")}
+                  placeholder="Pessoa de contato secundária"
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição da Empresa</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Descreva os produtos e serviços oferecidos pela empresa..."
-                        rows={3}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Informações de Contato
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contactName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Contato *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Li Wei" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="position"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Posição/Cargo</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Sales Manager" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: +86 138 0013 8000" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail *</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" placeholder="Ex: contact@company.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: https://www.company.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="wechat"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>WeChat</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: wechat_id" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div>
+                <Label htmlFor="specialization">Especialização</Label>
+                <Input
+                  id="specialization"
+                  {...form.register("specialization")}
+                  placeholder="Área de especialização"
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Address Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Localização
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Endereço *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ex: Room 1502, Building A, 123 Nanjing Road" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+        {/* Contact Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5" />
+              Informações de Contato
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone">Telefone *</Label>
+                <Input
+                  id="phone"
+                  {...form.register("phone")}
+                  placeholder="+86 xxx xxxx xxxx"
+                />
+                {form.formState.errors.phone && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.phone.message}
+                  </p>
                 )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Shanghai" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="province"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Província *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: Shanghai" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Business Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Informações Comerciais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="minimumOrder"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pedido Mínimo</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: 100 peças" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="leadTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tempo de Produção</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: 15-20 dias" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
 
-              <FormField
-                control={form.control}
-                name="paymentTerms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Termos de Pagamento</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ex: 30% antecipado, 70% antes do embarque" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div>
+                <Label htmlFor="email">E-mail *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...form.register("email")}
+                  placeholder="email@empresa.com"
+                />
+                {form.formState.errors.email && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.email.message}
+                  </p>
                 )}
-              />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <FormField
-                control={form.control}
-                name="certifications"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Certificações</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Ex: ISO 9001, CE, RoHS, FCC..."
-                        rows={2}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        {/* Address Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Endereço
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="address">Endereço Completo *</Label>
+              <Textarea
+                id="address"
+                {...form.register("address")}
+                placeholder="Endereço completo da empresa"
+                rows={3}
               />
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setLocation(`/suppliers/details/${supplierId}`)}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={updateSupplierMutation.isPending}
-            >
-              {updateSupplierMutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Alterações
-                </>
+              {form.formState.errors.address && (
+                <p className="text-sm text-red-600 mt-1">
+                  {form.formState.errors.address.message}
+                </p>
               )}
-            </Button>
-          </div>
-        </form>
-      </Form>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="city">Cidade *</Label>
+                <Input
+                  id="city"
+                  {...form.register("city")}
+                  placeholder="Cidade"
+                />
+                {form.formState.errors.city && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.city.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="state">Província/Estado</Label>
+                <Input
+                  id="state"
+                  {...form.register("state")}
+                  placeholder="Província"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="country">País *</Label>
+                <Select
+                  value={form.watch("country")}
+                  onValueChange={(value) => form.setValue("country", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o país" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="China">China</SelectItem>
+                    <SelectItem value="Hong Kong">Hong Kong</SelectItem>
+                    <SelectItem value="Taiwan">Taiwan</SelectItem>
+                    <SelectItem value="Singapore">Singapura</SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.country && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.country.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Status do Fornecedor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={form.watch("status")}
+                onValueChange={(value: "active" | "inactive") => form.setValue("status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Submit Buttons */}
+        <div className="flex justify-end gap-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => setLocation(`/suppliers/details/${supplierId}`)}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Alterações
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

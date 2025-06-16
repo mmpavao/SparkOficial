@@ -33,7 +33,6 @@ export default function SupplierDetailsPage() {
   const [match, params] = useRoute("/suppliers/details/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -156,32 +155,24 @@ export default function SupplierDetailsPage() {
                   <p className="font-medium">{supplier.contactName}</p>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Posição/Cargo
-                  </label>
-                  <p className="font-medium">{supplier.position || "Não informado"}</p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Especialização
-                  </label>
-                  <p className="font-medium">{supplier.specialization || "Não informado"}</p>
-                </div>
-              </div>
-
-              {supplier.description && (
-                <>
-                  <Separator />
+                {supplier.contactPerson && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
-                      Descrição da Empresa
+                      Contato Adicional
                     </label>
-                    <p className="mt-1 text-sm">{supplier.description}</p>
+                    <p className="font-medium">{supplier.contactPerson}</p>
                   </div>
-                </>
-              )}
+                )}
+
+                {supplier.specialization && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Especialização
+                    </label>
+                    <p className="font-medium">{supplier.specialization}</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -214,39 +205,6 @@ export default function SupplierDetailsPage() {
                     <p className="font-medium">{supplier.email}</p>
                   </div>
                 </div>
-
-                {supplier.website && (
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Website
-                      </label>
-                      <p className="font-medium">
-                        <a 
-                          href={supplier.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {supplier.website}
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {supplier.wechat && (
-                  <div className="flex items-center gap-3">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        WeChat
-                      </label>
-                      <p className="font-medium">{supplier.wechat}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -275,18 +233,20 @@ export default function SupplierDetailsPage() {
                   <p className="font-medium">{supplier.city}</p>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Província
-                  </label>
-                  <p className="font-medium">{supplier.province}</p>
-                </div>
+                {supplier.state && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Estado/Província
+                    </label>
+                    <p className="font-medium">{supplier.state}</p>
+                  </div>
+                )}
 
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     País
                   </label>
-                  <p className="font-medium">China</p>
+                  <p className="font-medium">{supplier.country}</p>
                 </div>
               </div>
             </CardContent>
@@ -305,7 +265,7 @@ export default function SupplierDetailsPage() {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Status</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    Ativo
+                    {supplier.status === 'active' ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </div>
                 
@@ -328,58 +288,13 @@ export default function SupplierDetailsPage() {
                 <label className="text-sm font-medium text-muted-foreground">
                   Adicionado em
                 </label>
-                <p className="text-sm flex items-center gap-1 mt-1">
-                  <Calendar className="h-3 w-3" />
+                <p className="text-sm mt-1">
                   {supplier.createdAt ? 
                     new Date(supplier.createdAt).toLocaleDateString('pt-BR') : 
                     "Data não disponível"
                   }
                 </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Business Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações Comerciais</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {supplier.minimumOrder && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Pedido Mínimo
-                  </label>
-                  <p className="font-medium">{supplier.minimumOrder}</p>
-                </div>
-              )}
-
-              {supplier.paymentTerms && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Termos de Pagamento
-                  </label>
-                  <p className="font-medium">{supplier.paymentTerms}</p>
-                </div>
-              )}
-
-              {supplier.leadTime && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Tempo de Produção
-                  </label>
-                  <p className="font-medium">{supplier.leadTime}</p>
-                </div>
-              )}
-
-              {supplier.certifications && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Certificações
-                  </label>
-                  <p className="text-sm">{supplier.certifications}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -403,7 +318,7 @@ export default function SupplierDetailsPage() {
                 className="w-full justify-start"
                 onClick={() => setLocation("/imports/new")}
               >
-                <Package className="h-4 w-4 mr-2" />
+                <User className="h-4 w-4 mr-2" />
                 Nova Importação
               </Button>
 
