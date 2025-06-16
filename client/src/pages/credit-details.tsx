@@ -601,9 +601,21 @@ export default function CreditDetailsPage() {
           )}
 
           {/* Ações Adaptáveis baseadas no tipo de usuário */}
-          {(permissions.canManageApplications || permissions.isFinanceira) ? (
-            <AdminAnalysisPanel application={application} />
-          ) : (
+          {(permissions.canManageApplications || permissions.isFinanceira) && (
+            <>
+              <AdminAnalysisPanel application={application} />
+              {permissions.canManageApplications && (
+                <AdminFinalizationPanel 
+                  application={application} 
+                  onUpdate={() => {
+                    queryClient.invalidateQueries({ queryKey: ['/api/credit/application', applicationId] });
+                  }}
+                />
+              )}
+            </>
+          )}
+          
+          {!(permissions.canManageApplications || permissions.isFinanceira) && (
             <Card>
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>

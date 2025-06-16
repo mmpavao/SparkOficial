@@ -9,10 +9,25 @@ export function calculateCreditMetrics(applications: CreditApplication[]) {
     (sum, app) => sum + Number(app.requestedAmount || 0), 0
   );
 
-  const approvedApps = applications.filter(app => app.financialStatus === 'approved');
-  const totalApproved = approvedApps.reduce(
-    (sum, app) => sum + Number(app.creditLimit || 0), 0
+  // Applications approved by financeira but not yet finalized by admin
+  const financiallyApproved = applications.filter(app => 
+    app.financialStatus === 'approved' && app.adminStatus !== 'admin_finalized'
   );
+  
+  // Applications fully finalized and available to clients
+  const finalizedApps = applications.filter(app => 
+    app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
+  );
+
+  // Total approved uses final credit limit if finalized, otherwise original credit limit
+  const totalApproved = applications
+    .filter(app => app.financialStatus === 'approved')
+    .reduce((sum, app) => {
+      const creditAmount = app.adminStatus === 'admin_finalized' 
+        ? Number(app.finalCreditLimit || app.creditLimit || 0)
+        : Number(app.creditLimit || 0);
+      return sum + creditAmount;
+    }, 0);
 
   const utilizationRate = totalApproved > 0 ? (totalRequested / totalApproved) : 0;
 
@@ -21,7 +36,9 @@ export function calculateCreditMetrics(applications: CreditApplication[]) {
     totalApproved,
     utilizationRate,
     pendingCount: applications.filter(app => app.status === 'pending').length,
-    approvedCount: approvedApps.length,
+    approvedCount: applications.filter(app => app.financialStatus === 'approved').length,
+    finalizedCount: finalizedApps.length,
+    awaitingFinalizationCount: financiallyApproved.length,
   };
 }
 
