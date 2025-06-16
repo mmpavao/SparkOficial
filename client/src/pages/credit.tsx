@@ -40,6 +40,7 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
+import { CreditApplication } from "@shared/schema";
 
 const createCreditApplicationSchema = (t: any) => z.object({
   requestedAmount: z.string()
@@ -525,7 +526,7 @@ export default function CreditPage() {
       )}
 
       {/* Credit Summary Cards - Dados Reais */}
-      <CreditSummaryCards applications={applications} permissions={permissions} />
+      <CreditSummaryCards applications={(applications || []) as CreditApplication[]} permissions={permissions} />
 
       {/* Applications List */}
       <Card>

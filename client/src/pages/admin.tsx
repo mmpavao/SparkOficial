@@ -356,8 +356,8 @@ export default function AdminPage() {
                 <TableBody>
                   {allImports.map((importItem: Import) => (
                     <TableRow key={importItem.id}>
-                      <TableCell className="font-medium">{importItem.supplierName}</TableCell>
-                      <TableCell>{importItem.productDescription}</TableCell>
+                      <TableCell className="font-medium">{importItem.importName}</TableCell>
+                      <TableCell>{importItem.products && Array.isArray(importItem.products) ? (importItem.products as any)[0]?.name : 'N/A'}</TableCell>
                       <TableCell>{formatCurrency(Number(importItem.totalValue))}</TableCell>
                       <TableCell>
                         <Badge>{importItem.status}</Badge>

@@ -82,14 +82,9 @@ export class DatabaseStorage implements IStorage {
 
   // Credit application operations
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
-    const processedApplication = {
-      ...application,
-      userId: application.userId || 0 // Ensure userId is never undefined
-    };
-    
     const [creditApp] = await db
       .insert(creditApplications)
-      .values([processedApplication as any])
+      .values([application])
       .returning();
     return creditApp;
   }
