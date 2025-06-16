@@ -43,12 +43,6 @@ export default function ImportDetailsPage() {
   const importId = params?.id ? parseInt(params.id) : 
     location.startsWith('/imports/details/') ? 
     parseInt(location.split('/imports/details/')[1]) : null;
-  
-  console.log("=== IMPORT DETAILS DEBUG ===");
-  console.log("match:", match);
-  console.log("params:", params);
-  console.log("location:", location);
-  console.log("importId:", importId);
 
   // Fetch import details
   const { data: importData, isLoading, error } = useQuery({
@@ -94,10 +88,7 @@ export default function ImportDetailsPage() {
     updatePipelineMutation.mutate({ stage, data });
   };
 
-  console.log("Match check:", { match, importId, shouldShow: !importId });
-  
   if (!importId) {
-    console.log("Returning not found due to:", { match, importId });
     return <div>Importação não encontrada</div>;
   }
 
