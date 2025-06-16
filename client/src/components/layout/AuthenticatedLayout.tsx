@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/contexts/I18nContext";
 import LanguageSelector from "@/components/ui/language-selector";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
 import { 
   Menu, 
@@ -98,6 +106,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       .slice(0, 2);
   };
 
+  // Verificar se o usuário tem acesso administrativo
+  const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
+
   // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
   const navigation = [
     { path: "/", icon: Home, label: t.nav.dashboard },
@@ -107,21 +118,17 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       icon: Truck, 
       label: t.nav.imports,
       submenu: [
-        { path: "/imports", label: "Minhas Importações" },
-        { path: "/suppliers", label: "Fornecedores" },
+        { path: "/imports", label: isAdmin ? "Todas as Importações" : "Minhas Importações" },
+        { path: "/suppliers", label: isAdmin ? "Todos os Fornecedores" : "Fornecedores" },
       ]
     },
     { path: "/reports", icon: BarChart3, label: t.nav.reports },
-    { path: "/settings", icon: Settings, label: t.nav.settings },
   ];
 
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
     { path: "/users", icon: Users, label: "Gerenciar Usuários" },
   ];
-
-  // Verificar se o usuário tem acesso administrativo
-  const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
 
   const isActiveRoute = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -272,37 +279,51 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <div className={`flex items-center mb-3 ${sidebarCollapsed ? "lg:justify-center" : ""}`}>
-            <div className="w-8 h-8 bg-spark-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-              {user?.fullName && getInitials(user.fullName)}
-            </div>
-            <div className={`ml-3 min-w-0 flex-1 transition-opacity duration-300 ${
-              sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"
-            }`}>
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.fullName}
-              </p>
-              <p className="text-xs text-gray-500 truncate capitalize">
-                {user?.role === "admin" ? t.roles.admin : t.roles.importer}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-            className={`w-full transition-colors hover:bg-red-50 hover:text-red-600 ${
-              sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
-            }`}
-          >
-            <LogOut className="w-4 h-4 lg:mr-0 mr-3" />
-            <span className={`transition-opacity duration-300 ${
-              sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
-            }`}>
-              {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
-            </span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className={`w-full p-3 h-auto hover:bg-gray-50 ${
+                  sidebarCollapsed ? "lg:justify-center" : "justify-start"
+                }`}
+              >
+                <div className="flex items-center w-full">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
+                      {user?.fullName && getInitials(user.fullName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={`ml-3 min-w-0 flex-1 text-left transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"
+                  }`}>
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {user?.fullName}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate capitalize">
+                      {user?.role === "admin" ? t.roles.admin : t.roles.importer}
+                    </p>
+                  </div>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 mb-2">
+              <DropdownMenuItem asChild>
+                <a href="/settings" className="flex items-center w-full">
+                  <Settings className="w-4 h-4 mr-3" />
+                  {t.nav.settings}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                className="text-red-600 focus:text-red-600"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       {/* Mobile Sidebar Overlay */}

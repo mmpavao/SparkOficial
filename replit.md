@@ -309,6 +309,13 @@ Changelog:
   * Fixed CardHeader/CardTitle import errors for proper component functionality
   * Achieved 100% visual consistency between imports and suppliers modules
   * Standardized all administrative and user interfaces with identical design patterns
+- June 16, 2025. Administrative access permissions and menu labeling finalization:
+  * Fixed supplier details access permission error for administrators
+  * Added administrative endpoint /api/admin/suppliers/:id for proper access control
+  * Implemented conditional menu labeling based on user role in sidebar navigation
+  * Administrators see "Todas as Importações" and "Todos os Fornecedores"
+  * Regular importers see "Minhas Importações" and "Fornecedores"
+  * Maintained unified interface while providing clear role-based context
 ```
 
 ## User Preferences
