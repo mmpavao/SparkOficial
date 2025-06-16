@@ -521,9 +521,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      const importData = { ...req.body, userId };
+      const data = { ...req.body, userId };
       
-      const importRecord = await storage.createImport(importData);
+      // Clean and convert timestamp fields to proper Date objects or null
+      const cleanedData = {
+        ...data,
+        estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Remove any undefined timestamp fields that might cause issues
+      Object.keys(cleanedData).forEach(key => {
+        if (cleanedData[key] === undefined || cleanedData[key] === '') {
+          if (key.includes('Date') || key.includes('At') || key === 'estimatedDelivery') {
+            cleanedData[key] = null;
+          }
+        }
+      });
+      
+      const importRecord = await storage.createImport(cleanedData);
       res.status(201).json(importRecord);
     } catch (error) {
       console.error("Error creating import:", error);

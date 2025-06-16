@@ -169,7 +169,7 @@ export default function ImportComplete() {
         containerType: data.containerType,
         containerNumber: data.containerNumber || "",
         sealNumber: data.sealNumber || "",
-        estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery).toISOString() : null,
+        estimatedDelivery: data.estimatedDelivery || null,
         status: "planning",
         currentStage: "estimativa"
       };

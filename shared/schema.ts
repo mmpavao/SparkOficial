@@ -182,8 +182,6 @@ export const imports = pgTable("imports", {
   // Basic Import Information
   importName: text("import_name").notNull(), // Nome/código da importação para rastreamento
   importNumber: text("import_number").unique(),
-  supplierName: text("supplier_name").notNull(),
-  supplierLocation: text("supplier_location").notNull(),
   
   // Cargo Type and Container Information
   cargoType: text("cargo_type").notNull().default("FCL"), // FCL (Full Container Load) ou LCL (Less than Container Load)
@@ -355,17 +353,14 @@ export const insertImportSchema = createInsertSchema(imports).omit({
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
   products: z.array(productSchema).min(1, "Pelo menos um produto é obrigatório"),
-  productName: z.string().optional(), // For FCL compatibility
-  productDescription: z.string().optional(), // For FCL compatibility
-  quantity: z.number().optional(), // For FCL compatibility
-  unitPrice: z.string().optional(), // For FCL compatibility
   totalValue: z.string().min(1, "Valor total é obrigatório"),
-  supplierName: z.string().min(2, "Nome do fornecedor é obrigatório"),
-  supplierLocation: z.string().min(2, "Localização do fornecedor é obrigatória"),
-  shippingMethod: z.enum(["sea", "air", "land"]).default("sea"),
-  containerType: z.enum(["20ft", "40ft", "40ft-hc", "lcl"]).optional(),
+  currency: z.string().default("USD"),
+  incoterms: z.string().min(1, "Incoterms é obrigatório"),
+  shippingMethod: z.string().min(1, "Método de envio é obrigatório"),
+  containerType: z.string().optional(),
   weight: z.string().optional(),
   volume: z.string().optional(),
+  estimatedDelivery: z.string().optional(),
 });
 
 // Pipeline stage schema
