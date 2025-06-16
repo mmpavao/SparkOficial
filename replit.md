@@ -342,6 +342,15 @@ Changelog:
   * Validated complete three-tier approval system: importers → admin pre-approval → financeira final approval
   * System tested and confirmed 100% functional with proper data flow between all three user types
   * All API endpoints working correctly with proper authentication and role-based access control
+- June 16, 2025. Complete administrative finalization system implementation:
+  * Added database fields for admin finalization control (adminStatus, finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes, adminFinalizedBy, adminFinalizedAt)
+  * Created PUT /api/admin/credit/applications/:id/finalize endpoint with proper admin authentication
+  * Developed AdminFinalizationPanel component with professional amber-themed interface for term adjustment
+  * Integrated finalization panel in credit details page, appearing only for financially approved applications
+  * Updated credit display logic to show final admin terms instead of original financial terms to importers
+  * Modified metrics calculations to use final credit limits when applications are admin-finalized
+  * Established complete four-tier workflow: importers apply → admins pre-approve → financeira approves → admins finalize terms before client visibility
+  * System now provides complete administrative control over final terms presented to clients
 - June 16, 2025. Complete Financeira role integration into existing pages:
   * Integrated Financeira role into useUserPermissions hook with proper permission structure
   * Updated credit, imports, and suppliers pages with role-based headers and functionality

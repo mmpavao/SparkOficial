@@ -543,7 +543,12 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-800">Limite Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
-                        {application.creditLimit ? `US$ ${Number(application.creditLimit).toLocaleString()}` : 'US$ 0'}
+                        {(() => {
+                          const finalLimit = application.adminStatus === 'admin_finalized' 
+                            ? application.finalCreditLimit 
+                            : application.creditLimit;
+                          return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -561,7 +566,12 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-800">Valor Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
-                        {application.creditLimit ? `US$ ${Number(application.creditLimit).toLocaleString()}` : 'US$ 0'}
+                        {(() => {
+                          const finalLimit = application.adminStatus === 'admin_finalized' 
+                            ? application.finalCreditLimit 
+                            : application.creditLimit;
+                          return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -570,7 +580,12 @@ export default function CreditDetailsPage() {
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
                     <Badge variant="outline" className="bg-green-50 text-green-700">
-                      {application.approvedTerms || '30'} dias
+                      {(() => {
+                        const finalTerms = application.adminStatus === 'admin_finalized' 
+                          ? application.finalApprovedTerms 
+                          : application.approvedTerms;
+                        return finalTerms || '30';
+                      })()} dias
                     </Badge>
                   </div>
 
@@ -579,11 +594,21 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-yellow-800">Entrada Requerida</span>
                       <span className="text-lg font-bold text-yellow-700">
-                        {application.downPayment || '10'}% do valor do pedido
+                        {(() => {
+                          const finalDownPayment = application.adminStatus === 'admin_finalized' 
+                            ? application.finalDownPayment 
+                            : application.downPayment;
+                          return finalDownPayment || '10';
+                        })()}% do valor do pedido
                       </span>
                     </div>
                     <p className="text-xs text-yellow-600 mt-1">
-                      Order Down Payment - {application.downPayment || '10'}% of order value
+                      Order Down Payment - {(() => {
+                        const finalDownPayment = application.adminStatus === 'admin_finalized' 
+                          ? application.finalDownPayment 
+                          : application.downPayment;
+                        return finalDownPayment || '10';
+                      })()}% of order value
                     </p>
                   </div>
                 </div>
