@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
 import { 
   Menu, 
@@ -289,6 +289,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               >
                 <div className="flex items-center w-full">
                   <Avatar className="w-8 h-8">
+                    <AvatarImage src={user?.avatar ? user.avatar : undefined} />
                     <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
                       {user?.fullName && getInitials(user.fullName)}
                     </AvatarFallback>
