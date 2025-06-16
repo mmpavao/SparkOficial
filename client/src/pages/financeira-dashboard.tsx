@@ -20,15 +20,15 @@ export default function FinanceiraDashboard() {
   const { t } = useTranslation();
 
   // Fetch data for Financeira metrics
-  const { data: creditApplications = [] } = useQuery({
+  const { data: creditApplications = [] } = useQuery<any[]>({
     queryKey: ["/api/financeira/credit-applications"],
   });
 
-  const { data: imports = [] } = useQuery({
+  const { data: imports = [] } = useQuery<any[]>({
     queryKey: ["/api/financeira/imports"],
   });
 
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<any[]>({
     queryKey: ["/api/financeira/suppliers"],
   });
 

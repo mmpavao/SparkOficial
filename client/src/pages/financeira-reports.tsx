@@ -24,15 +24,15 @@ export default function FinanceiraReports() {
   const [reportType, setReportType] = useState("overview");
 
   // Fetch data for reports
-  const { data: creditApplications = [] } = useQuery({
+  const { data: creditApplications = [] } = useQuery<any[]>({
     queryKey: ["/api/financeira/credit-applications"],
   });
 
-  const { data: imports = [] } = useQuery({
+  const { data: imports = [] } = useQuery<any[]>({
     queryKey: ["/api/financeira/imports"],
   });
 
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<any[]>({
     queryKey: ["/api/financeira/suppliers"],
   });
 
