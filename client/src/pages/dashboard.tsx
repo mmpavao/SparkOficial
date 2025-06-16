@@ -53,83 +53,237 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Importer Credit & Import Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Crédito Aprovado */}
         <MetricsCard
-          title={t.dashboard.availableCredit}
-          value={`R$ ${metrics.totalCreditApproved.toLocaleString('pt-BR')}`}
+          title="Crédito Aprovado"
+          value={formatCurrency(
+            creditApplications
+              .filter(app => app.financialStatus === 'approved')
+              .reduce((sum, app) => {
+                const creditAmount = app.adminStatus === 'admin_finalized' 
+                  ? Number(app.finalCreditLimit || app.creditLimit || 0)
+                  : Number(app.creditLimit || 0);
+                return sum + creditAmount;
+              }, 0)
+          )}
           icon={CreditCard}
           iconColor="text-green-600"
         />
 
+        {/* Valor Utilizado - calculado das importações ativas */}
         <MetricsCard
-          title={t.dashboard.activeImports}
-          value={metrics.activeImports}
-          icon={Truck}
+          title="Valor Utilizado"
+          value={formatCurrency(
+            imports
+              .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
+              .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0)
+          )}
+          icon={PiggyBank}
           iconColor="text-blue-600"
         />
 
+        {/* Importações Ativas */}
         <MetricsCard
-          title={t.dashboard.totalImports}
-          value={`R$ ${metrics.totalImportValue.toLocaleString('pt-BR')}`}
-          icon={BarChart3}
-          iconColor="text-purple-600"
+          title="Importações Ativas"
+          value={imports.filter(imp => ['planning', 'ordered', 'in_transit', 'customs'].includes(imp.status)).length}
+          icon={Truck}
+          iconColor="text-orange-600"
         />
 
+        {/* Total de Importações */}
         <MetricsCard
-          title={t.dashboard.totalImports}
-          value={metrics.totalImports}
+          title="Total de Importações"
+          value={imports.length}
           icon={Package}
-          iconColor="text-spark-600"
+          iconColor="text-purple-600"
         />
       </div>
 
-      {/* Recent Activities and Quick Actions */}
+      {/* Credit Details and Pipeline */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Detalhes do Crédito */}
         <Card>
           <CardHeader>
-            <CardTitle>{t.dashboard.recentImports}</CardTitle>
+            <CardTitle>Detalhes do Crédito</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-blue-600" />
+            {(() => {
+              const approvedApp = creditApplications.find(app => app.financialStatus === 'approved');
+              if (!approvedApp) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhuma solicitação de crédito aprovada</p>
                   </div>
-                  <div>
-                    <p className="font-medium">Smartphones Samsung</p>
-                    <p className="text-sm text-gray-600">Shenzhen → Santos</p>
-                  </div>
-                </div>
-                <span className="text-sm text-green-600 font-medium">Em trânsito</span>
-              </div>
+                );
+              }
+
+              const approvedCredit = approvedApp.adminStatus === 'admin_finalized' 
+                ? Number(approvedApp.finalCreditLimit || approvedApp.creditLimit || 0)
+                : Number(approvedApp.creditLimit || 0);
               
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-yellow-600" />
+              const usedCredit = imports
+                .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
+                .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0);
+              
+              const availableCredit = approvedCredit - usedCredit;
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                    <span className="text-sm font-medium text-green-800">Limite Aprovado</span>
+                    <span className="text-lg font-bold text-green-600">{formatCurrency(approvedCredit)}</span>
                   </div>
-                  <div>
-                    <p className="font-medium">Componentes Eletrônicos</p>
-                    <p className="text-sm text-gray-600">Beijing → São Paulo</p>
+                  
+                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                    <span className="text-sm font-medium text-blue-800">Valor Utilizado</span>
+                    <span className="text-lg font-bold text-blue-600">{formatCurrency(usedCredit)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-800">Disponível</span>
+                    <span className="text-lg font-bold text-gray-600">{formatCurrency(availableCredit)}</span>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Taxa de Utilização</span>
+                      <span>{approvedCredit > 0 ? `${((usedCredit / approvedCredit) * 100).toFixed(1)}%` : '0%'}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${approvedCredit > 0 ? Math.min((usedCredit / approvedCredit) * 100, 100) : 0}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
-                <span className="text-sm text-yellow-600 font-medium">Alfândega</span>
-              </div>
-            </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
+        {/* Pipeline de Importações */}
         <Card>
           <CardHeader>
-            <CardTitle>{t.common.actions}</CardTitle>
+            <CardTitle>Pipeline de Importações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const statusCounts = {
+                planning: imports.filter(imp => imp.status === 'planning').length,
+                ordered: imports.filter(imp => imp.status === 'ordered').length,
+                in_transit: imports.filter(imp => imp.status === 'in_transit').length,
+                customs: imports.filter(imp => imp.status === 'customs').length,
+                delivered: imports.filter(imp => imp.status === 'delivered').length,
+              };
+
+              const statusLabels = {
+                planning: 'Planejamento',
+                ordered: 'Pedido Feito',
+                in_transit: 'Em Trânsito',
+                customs: 'Alfândega',
+                delivered: 'Entregue'
+              };
+
+              const statusColors = {
+                planning: 'text-gray-600 bg-gray-100',
+                ordered: 'text-blue-600 bg-blue-100',
+                in_transit: 'text-orange-600 bg-orange-100',
+                customs: 'text-yellow-600 bg-yellow-100',
+                delivered: 'text-green-600 bg-green-100'
+              };
+
+              return (
+                <div className="space-y-3">
+                  {Object.entries(statusCounts).map(([status, count]) => (
+                    <div key={status} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${statusColors[status as keyof typeof statusColors]}`}>
+                          <span className="text-sm font-bold">{count}</span>
+                        </div>
+                        <span className="font-medium">{statusLabels[status as keyof typeof statusLabels]}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">{count} {count === 1 ? 'importação' : 'importações'}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Imports */}
+      <div className="grid grid-cols-1 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Importações Recentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {imports.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhuma importação encontrada</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {imports.slice(0, 5).map((importItem) => {
+                  const statusColors = {
+                    planning: 'text-gray-600 bg-gray-100',
+                    ordered: 'text-blue-600 bg-blue-100',
+                    in_transit: 'text-orange-600 bg-orange-100',
+                    customs: 'text-yellow-600 bg-yellow-100',
+                    delivered: 'text-green-600 bg-green-100'
+                  };
+
+                  const statusLabels = {
+                    planning: 'Planejamento',
+                    ordered: 'Pedido Feito',
+                    in_transit: 'Em Trânsito',
+                    customs: 'Alfândega',
+                    delivered: 'Entregue'
+                  };
+
+                  return (
+                    <div key={importItem.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusColors[importItem.status as keyof typeof statusColors] || 'text-gray-600 bg-gray-100'}`}>
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{importItem.importName || `Importação #${importItem.id}`}</p>
+                          <p className="text-sm text-gray-600">
+                            {formatCurrency(Number(importItem.totalValue || 0))} • {formatDate(importItem.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[importItem.status as keyof typeof statusColors] || 'text-gray-600 bg-gray-100'}`}>
+                        {statusLabels[importItem.status as keyof typeof statusLabels] || importItem.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Ações Rápidas */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Ações Rápidas</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button className="w-full justify-between bg-spark-50 hover:bg-spark-100 text-gray-900 border border-spark-200">
+            <Button 
+              className="w-full justify-between bg-spark-50 hover:bg-spark-100 text-gray-900 border border-spark-200"
+              onClick={() => window.location.href = '/imports/new'}
+            >
               <div className="flex items-center">
                 <Plus className="w-4 h-4 text-spark-600 mr-3" />
-                <span className="font-medium">{t.imports.newImport}</span>
+                <span className="font-medium">Nova Importação</span>
               </div>
               <span className="text-gray-400">→</span>
             </Button>
@@ -137,10 +291,11 @@ export default function Dashboard() {
             <Button
               variant="outline"
               className="w-full justify-between hover:bg-gray-50"
+              onClick={() => window.location.href = '/credit/new'}
             >
               <div className="flex items-center">
                 <CreditCard className="w-4 h-4 text-gray-600 mr-3" />
-                <span className="font-medium">{t.credit.requestCredit}</span>
+                <span className="font-medium">Solicitar Crédito</span>
               </div>
               <span className="text-gray-400">→</span>
             </Button>
@@ -148,10 +303,23 @@ export default function Dashboard() {
             <Button
               variant="outline"
               className="w-full justify-between hover:bg-gray-50"
+              onClick={() => window.location.href = '/suppliers/new'}
             >
               <div className="flex items-center">
                 <FileText className="w-4 h-4 text-gray-600 mr-3" />
-                <span className="font-medium">{t.reports.generateReport}</span>
+                <span className="font-medium">Cadastrar Fornecedor</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-between hover:bg-gray-50"
+              onClick={() => window.location.href = '/credit'}
+            >
+              <div className="flex items-center">
+                <BarChart3 className="w-4 h-4 text-gray-600 mr-3" />
+                <span className="font-medium">Ver Crédito</span>
               </div>
               <span className="text-gray-400">→</span>
             </Button>
