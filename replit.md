@@ -349,6 +349,14 @@ Changelog:
   * Added proper role-based navigation labels in sidebar (Análise de Importações/Fornecedores)
   * Financeira users now access existing admin components with financial analysis context
   * Completed unified interface architecture eliminating duplicate Financeira-specific pages
+- June 16, 2025. Enhanced financial approval system with advanced features:
+  * Renamed sidebar menus for Admin and Financeira modules: Dashboard, Análise de Crédito, Importações, Todos Fornecedores, Relatórios
+  * Implemented multiple payment terms selection allowing combinations (30, 60, 90, 120 days) for flexible credit approval
+  * Added 10% down payment information display in financial approval cards with bilingual support (PT/EN)
+  * Created comprehensive attachment system for insurance policies and additional documents in financial approval area
+  * Enhanced credit details page with prominent down payment information display in dedicated yellow-themed card
+  * Integrated document upload functionality with file type validation (PDF, DOC, DOCX, JPG, PNG) and 10MB size limit
+  * Fixed importer company name display in suppliers page for proper Financeira user identification
 ```
 
 ## User Preferences
