@@ -335,6 +335,13 @@ Changelog:
   * Added "Financeira" role option in user creation dropdown for administrative user management
   * Fixed all component import issues and API parameter formatting throughout financeira module
   * Established complete workflow: importers apply → admins pre-approve → financeira provides final approval with credit limits
+- June 16, 2025. Critical system fixes and workflow validation:
+  * Fixed critical apiRequest parameter order issues throughout application (URL first, method second)
+  * Corrected AdminAnalysisPanel and all detail pages to use proper API call format
+  * Changed admin approval button from "Aprovar" to "Pré-aprovar" for accurate workflow representation
+  * Validated complete three-tier approval system: importers → admin pre-approval → financeira final approval
+  * System tested and confirmed 100% functional with proper data flow between all three user types
+  * All API endpoints working correctly with proper authentication and role-based access control
 ```
 
 ## User Preferences
