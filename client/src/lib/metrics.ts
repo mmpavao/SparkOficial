@@ -4,7 +4,7 @@
 import type { CreditApplication, Import } from "@shared/schema";
 import type { MetricsData } from "@/types";
 
-export function calculateCreditMetrics(applications: CreditApplication[]) {
+export function calculateCreditMetrics(applications: CreditApplication[], userRole?: string) {
   const totalRequested = applications.reduce(
     (sum, app) => sum + Number(app.requestedAmount || 0), 0
   );
@@ -19,15 +19,30 @@ export function calculateCreditMetrics(applications: CreditApplication[]) {
     app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
   );
 
-  // Total approved uses final credit limit if finalized, otherwise original credit limit
-  const totalApproved = applications
-    .filter(app => app.financialStatus === 'approved')
-    .reduce((sum, app) => {
-      const creditAmount = app.adminStatus === 'admin_finalized' 
-        ? Number(app.finalCreditLimit || app.creditLimit || 0)
-        : Number(app.creditLimit || 0);
-      return sum + creditAmount;
-    }, 0);
+  // Different logic for different user roles
+  let totalApproved = 0;
+  
+  if (userRole === 'financeira') {
+    // Financeira always sees original approved amounts (never changes)
+    totalApproved = applications
+      .filter(app => app.financialStatus === 'approved')
+      .reduce((sum, app) => sum + Number(app.creditLimit || 0), 0);
+  } else if (userRole === 'admin') {
+    // Admin sees both original and final amounts
+    totalApproved = applications
+      .filter(app => app.financialStatus === 'approved')
+      .reduce((sum, app) => {
+        const creditAmount = app.adminStatus === 'admin_finalized' 
+          ? Number(app.finalCreditLimit || app.creditLimit || 0)
+          : Number(app.creditLimit || 0);
+        return sum + creditAmount;
+      }, 0);
+  } else {
+    // Importers only see final amounts (admin-adjusted)
+    totalApproved = applications
+      .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+      .reduce((sum, app) => sum + Number(app.finalCreditLimit || 0), 0);
+  }
 
   const utilizationRate = totalApproved > 0 ? (totalRequested / totalApproved) : 0;
 
@@ -65,9 +80,10 @@ export function calculateImportMetrics(imports: Import[]) {
 export function buildMetricsData(
   creditApplications: CreditApplication[],
   imports: Import[],
-  totalUsers: number = 0
+  totalUsers: number = 0,
+  userRole?: string
 ): MetricsData {
-  const creditMetrics = calculateCreditMetrics(creditApplications);
+  const creditMetrics = calculateCreditMetrics(creditApplications, userRole);
   const importMetrics = calculateImportMetrics(imports);
 
   return {

@@ -64,19 +64,14 @@ export default function Dashboard() {
 
       {/* Importer Credit & Import Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Crédito Aprovado */}
+        {/* Crédito Aprovado - Importador só vê valores finalizados pelo admin */}
         <MetricsCard
           title="Crédito Aprovado"
           value={formatCurrency(
             creditApplications
-              .filter(app => app.financialStatus === 'approved')
-              .reduce((sum, app) => {
-                const creditAmount = app.adminStatus === 'admin_finalized' 
-                  ? Number(app.finalCreditLimit || app.creditLimit || 0)
-                  : Number(app.creditLimit || 0);
-                return sum + creditAmount;
-              }, 0)
-          )}
+              .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+              .reduce((sum, app) => sum + Number(app.finalCreditLimit || 0), 0)
+          ).replace('R$', 'US$')}
           icon={CreditCard}
           iconColor="text-green-600"
         />
@@ -119,19 +114,23 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {(() => {
-              const approvedApp = creditApplications.find(app => app.financialStatus === 'approved');
+              // Importadores só veem aplicações finalizadas pelo admin
+              const approvedApp = creditApplications.find(app => 
+                app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
+              );
+              
               if (!approvedApp) {
                 return (
                   <div className="text-center py-8 text-gray-500">
                     <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>Nenhuma solicitação de crédito aprovada</p>
+                    <p className="text-xs mt-2">Aguardando finalização administrativa</p>
                   </div>
                 );
               }
 
-              const approvedCredit = approvedApp.adminStatus === 'admin_finalized' 
-                ? Number(approvedApp.finalCreditLimit || approvedApp.creditLimit || 0)
-                : Number(approvedApp.creditLimit || 0);
+              // Importadores veem apenas valores finais ajustados pelo admin
+              const approvedCredit = Number(approvedApp.finalCreditLimit || 0);
               
               const usedCredit = imports
                 .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
@@ -143,17 +142,17 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
                     <span className="text-sm font-medium text-green-800">Limite Aprovado</span>
-                    <span className="text-lg font-bold text-green-600">{formatCurrency(approvedCredit)}</span>
+                    <span className="text-lg font-bold text-green-600">{formatCurrency(approvedCredit).replace('R$', 'US$')}</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
                     <span className="text-sm font-medium text-blue-800">Valor Utilizado</span>
-                    <span className="text-lg font-bold text-blue-600">{formatCurrency(usedCredit)}</span>
+                    <span className="text-lg font-bold text-blue-600">{formatCurrency(usedCredit).replace('R$', 'US$')}</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium text-gray-800">Disponível</span>
-                    <span className="text-lg font-bold text-gray-600">{formatCurrency(availableCredit)}</span>
+                    <span className="text-lg font-bold text-gray-600">{formatCurrency(availableCredit).replace('R$', 'US$')}</span>
                   </div>
 
                   <div className="mt-4 pt-4 border-t">

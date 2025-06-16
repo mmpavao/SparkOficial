@@ -4,17 +4,30 @@ import { MetricsData } from "@/types";
 import { QUERY_KEYS } from "@/lib/constants";
 import { buildMetricsData } from "@/lib/metrics";
 
-export function useMetrics(isAdmin = false) {
+export function useMetrics(isAdmin = false, isFinanceira = false) {
   const { data: user } = useQuery<User>({
     queryKey: QUERY_KEYS.auth,
   });
 
+  // Determine correct endpoints based on user role
+  const creditEndpoint = isAdmin 
+    ? QUERY_KEYS.admin.creditApplications 
+    : isFinanceira 
+      ? ['financeira', 'credit-applications']
+      : QUERY_KEYS.creditApplications;
+
+  const importsEndpoint = isAdmin
+    ? QUERY_KEYS.admin.imports
+    : isFinanceira
+      ? ['financeira', 'imports'] 
+      : QUERY_KEYS.imports;
+
   const { data: creditApplications = [] } = useQuery<CreditApplication[]>({
-    queryKey: isAdmin ? QUERY_KEYS.admin.creditApplications : QUERY_KEYS.creditApplications,
+    queryKey: creditEndpoint,
   });
 
   const { data: imports = [] } = useQuery<Import[]>({
-    queryKey: isAdmin ? QUERY_KEYS.admin.imports : QUERY_KEYS.imports,
+    queryKey: importsEndpoint,
   });
 
   const { data: users = [] } = useQuery<User[]>({
@@ -22,7 +35,7 @@ export function useMetrics(isAdmin = false) {
     enabled: isAdmin,
   });
 
-  const metrics = buildMetricsData(creditApplications, imports, users.length);
+  const metrics = buildMetricsData(creditApplications, imports, users.length, user?.role);
 
   return {
     user,
@@ -30,6 +43,6 @@ export function useMetrics(isAdmin = false) {
     imports,
     users: isAdmin ? users : [],
     metrics,
-    isLoading: false, // Simplified for now
+    isLoading: false,
   };
 }
