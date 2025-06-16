@@ -114,26 +114,30 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
   const navigation = [
     { path: "/", icon: Home, label: t.nav.dashboard },
-    { path: "/credit", icon: CreditCard, label: t.nav.credit },
+    { 
+      path: "/credit", 
+      icon: CreditCard, 
+      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : t.nav.credit 
+    },
     { 
       path: "/imports", 
       icon: Truck, 
-      label: t.nav.imports,
+      label: (isAdmin || isFinanceira) ? "Importações" : t.nav.imports,
       submenu: [
         { 
           path: "/imports", 
           label: isFinanceira 
-            ? "Análise de Importações" 
+            ? "Importações" 
             : isAdmin 
-              ? "Todas as Importações" 
+              ? "Importações" 
               : "Minhas Importações" 
         },
         { 
           path: "/suppliers", 
           label: isFinanceira 
-            ? "Análise de Fornecedores" 
+            ? "Todos Fornecedores" 
             : isAdmin 
-              ? "Todos os Fornecedores" 
+              ? "Todos Fornecedores" 
               : "Fornecedores" 
         },
       ]
