@@ -208,7 +208,7 @@ export default function CreditApplicationPage() {
   const submitApplicationMutation = useMutation({
     mutationFn: async (data: Partial<InsertCreditApplication>) => {
       const response = await apiRequest("/api/credit/applications", "POST", data);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
