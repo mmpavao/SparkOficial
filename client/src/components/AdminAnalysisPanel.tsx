@@ -280,8 +280,17 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Gestão Administrativa
+          {permissions.isFinanceira ? (
+            <>
+              <DollarSign className="w-5 h-5" />
+              Análise Financeira
+            </>
+          ) : (
+            <>
+              <FileText className="w-5 h-5" />
+              Gestão Administrativa
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -291,109 +300,185 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
             <span className="text-sm font-medium">Status Atual:</span>
             {getStatusBadge(application.status)}
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Nível de Risco:</span>
-            {getRiskBadge(analysisData.riskLevel)}
-          </div>
+          {!permissions.isFinanceira && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Nível de Risco:</span>
+              {getRiskBadge(analysisData.riskLevel)}
+            </div>
+          )}
         </div>
 
         <Separator />
 
-        {/* Análise de Risco */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Nível de Risco</label>
-          <Select
-            value={analysisData.riskLevel}
-            onValueChange={(value) => setAnalysisData(prev => ({ ...prev, riskLevel: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="low">Baixo Risco</SelectItem>
-              <SelectItem value="medium">Médio Risco</SelectItem>
-              <SelectItem value="high">Alto Risco</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {permissions.isFinanceira ? (
+          // Financeira Interface - Final Approval with Credit Limits and Payment Terms
+          <>
+            {/* Credit Limit Input */}
+            <div className="space-y-2">
+              <Label htmlFor="creditLimit">Limite de Crédito Aprovado (USD)</Label>
+              <Input
+                id="creditLimit"
+                type="number"
+                placeholder="Ex: 100000"
+                value={financialData.creditLimit}
+                onChange={(e) => setFinancialData(prev => ({ ...prev, creditLimit: e.target.value }))}
+              />
+            </div>
 
-        {/* Notas da Análise */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Notas da Análise</label>
-          <Textarea
-            placeholder="Adicione observações sobre a análise desta solicitação..."
-            value={analysisData.notes}
-            onChange={(e) => setAnalysisData(prev => ({ ...prev, notes: e.target.value }))}
-            rows={3}
-          />
-        </div>
+            {/* Payment Terms Selection */}
+            <div className="space-y-2">
+              <Label>Prazo de Pagamento Aprovado</Label>
+              <div className="flex flex-wrap gap-2">
+                {['30', '60', '90', '120', '150', '180'].map((term) => (
+                  <Button
+                    key={term}
+                    variant={financialData.approvedTerms === term ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFinancialData(prev => ({ ...prev, approvedTerms: term }))}
+                  >
+                    {term} dias
+                  </Button>
+                ))}
+              </div>
+            </div>
 
-        <Separator />
+            {/* Financial Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="financialNotes">Observações Financeiras</Label>
+              <Textarea
+                id="financialNotes"
+                placeholder="Adicione observações sobre a aprovação financeira..."
+                value={financialData.financialNotes}
+                onChange={(e) => setFinancialData(prev => ({ ...prev, financialNotes: e.target.value }))}
+                rows={3}
+              />
+            </div>
 
-        {/* Ações Principais */}
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              onClick={handleApprove}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={updateStatusMutation.isPending}
-            >
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Pré-aprovar
-            </Button>
-            
-            <Button 
-              onClick={handleReject}
-              variant="destructive"
-              disabled={updateStatusMutation.isPending}
-            >
-              <XCircle className="w-4 h-4 mr-1" />
-              Rejeitar
-            </Button>
-          </div>
-        </div>
+            <Separator />
 
-        <Separator />
+            {/* Final Approval Actions */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={handleApprove}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Aprovar
+                </Button>
+                
+                <Button 
+                  onClick={handleReject}
+                  variant="destructive"
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-1" />
+                  Rejeitar
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          // Admin Interface - Pre-approval with Risk Analysis
+          <>
+            {/* Análise de Risco */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nível de Risco</label>
+              <Select
+                value={analysisData.riskLevel}
+                onValueChange={(value) => setAnalysisData(prev => ({ ...prev, riskLevel: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixo Risco</SelectItem>
+                  <SelectItem value="medium">Médio Risco</SelectItem>
+                  <SelectItem value="high">Alto Risco</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Solicitar Documentos */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Solicitar Documentos</label>
-          <Textarea
-            placeholder="Especifique quais documentos adicionais são necessários..."
-            value={analysisData.requestedDocuments}
-            onChange={(e) => setAnalysisData(prev => ({ ...prev, requestedDocuments: e.target.value }))}
-            rows={2}
-          />
-          <Button 
-            variant="outline"
-            onClick={handleRequestDocuments}
-            className="w-full"
-            disabled={updateStatusMutation.isPending}
-          >
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Solicitar Documentos
-          </Button>
-        </div>
+            {/* Notas da Análise */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notas da Análise</label>
+              <Textarea
+                placeholder="Adicione observações sobre a análise desta solicitação..."
+                value={analysisData.notes}
+                onChange={(e) => setAnalysisData(prev => ({ ...prev, notes: e.target.value }))}
+                rows={3}
+              />
+            </div>
 
-        {/* Adicionar Observações */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Observações para Importador</label>
-          <Textarea
-            placeholder="Adicione observações ou solicitações de esclarecimento..."
-            value={analysisData.observations}
-            onChange={(e) => setAnalysisData(prev => ({ ...prev, observations: e.target.value }))}
-            rows={2}
-          />
-          <Button 
-            variant="outline"
-            onClick={handleAddObservation}
-            className="w-full"
-            disabled={updateStatusMutation.isPending}
-          >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Enviar Observações
-          </Button>
-        </div>
+            <Separator />
+
+            {/* Ações Principais */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={handleApprove}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Pré-aprovar
+                </Button>
+                
+                <Button 
+                  onClick={handleReject}
+                  variant="destructive"
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-1" />
+                  Rejeitar
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Solicitar Documentos */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Solicitar Documentos</label>
+              <Textarea
+                placeholder="Especifique quais documentos adicionais são necessários..."
+                value={analysisData.requestedDocuments}
+                onChange={(e) => setAnalysisData(prev => ({ ...prev, requestedDocuments: e.target.value }))}
+                rows={2}
+              />
+              <Button 
+                variant="outline"
+                onClick={handleRequestDocuments}
+                className="w-full"
+                disabled={updateStatusMutation.isPending}
+              >
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                Solicitar Documentos
+              </Button>
+            </div>
+
+            {/* Adicionar Observações */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Observações para Importador</label>
+              <Textarea
+                placeholder="Adicione observações ou solicitações de esclarecimento..."
+                value={analysisData.observations}
+                onChange={(e) => setAnalysisData(prev => ({ ...prev, observations: e.target.value }))}
+                rows={2}
+              />
+              <Button 
+                variant="outline"
+                onClick={handleAddObservation}
+                className="w-full"
+                disabled={updateStatusMutation.isPending}
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Enviar Observações
+              </Button>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
 

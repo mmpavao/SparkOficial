@@ -1251,6 +1251,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Financeira final approval endpoint
+  app.put('/api/financeira/credit-applications/:id/approve', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { creditLimit, approvedTerms, financialNotes } = req.body;
+      
+      if (!creditLimit) {
+        return res.status(400).json({ message: "Limite de crédito é obrigatório" });
+      }
+
+      const financialData = {
+        creditLimit: parseFloat(creditLimit),
+        approvedTerms: parseInt(approvedTerms) || 30,
+        financialNotes: financialNotes || '',
+        financialStatus: 'approved',
+        approvedBy: req.session.userId,
+        approvedAt: new Date().toISOString()
+      };
+
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId,
+        'approved',
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error approving credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira final rejection endpoint
+  app.put('/api/financeira/credit-applications/:id/reject', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { financialNotes } = req.body;
+
+      const financialData = {
+        financialNotes: financialNotes || 'Rejeitado após análise financeira',
+        financialStatus: 'rejected',
+        rejectedBy: req.session.userId,
+        rejectedAt: new Date().toISOString()
+      };
+
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId,
+        'rejected',
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error rejecting credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira update financial data endpoint
+  app.put('/api/financeira/credit-applications/:id/update-financial', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const financialData = {
+        ...req.body,
+        updatedBy: req.session.userId,
+        updatedAt: new Date().toISOString()
+      };
+
+      const updatedApplication = await storage.updateCreditApplication(
+        applicationId,
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating financial data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
