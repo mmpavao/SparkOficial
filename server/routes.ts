@@ -1147,6 +1147,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== FINANCEIRA ROUTES =====
+  
+  // Middleware para verificar role financeira
+  const requireFinanceira = (req: any, res: any, next: any) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+    
+    storage.getUser(req.session.userId).then(user => {
+      if (user?.role !== "financeira") {
+        return res.status(403).json({ message: "Acesso negado - apenas financeira" });
+      }
+      next();
+    }).catch(error => {
+      console.error("Error checking financeira role:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    });
+  };
+
+  // Get pre-approved credit applications for financeira
+  app.get('/api/financeira/credit-applications', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applications = await storage.getPreApprovedCreditApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching pre-approved applications:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update financial status of credit application
+  app.put('/api/financeira/credit-applications/:id/financial-status', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, creditLimit, approvedTerms, financialNotes } = req.body;
+      
+      if (!['approved_financial', 'rejected_financial', 'needs_documents_financial'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const financialData = {
+        creditLimit,
+        approvedTerms,
+        financialNotes,
+        financialAnalyzedBy: req.session.userId
+      };
+
+      const updatedApplication = await storage.updateFinancialStatus(
+        parseInt(id), 
+        status, 
+        financialData
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating financial status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get suppliers from pre-approved users for financeira
+  app.get('/api/financeira/suppliers', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const suppliers = await storage.getSuppliersByPreApprovedUsers();
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching financeira suppliers:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get imports from pre-approved users for financeira
+  app.get('/api/financeira/imports', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const imports = await storage.getImportsByPreApprovedUsers();
+      res.json(imports);
+    } catch (error) {
+      console.error("Error fetching financeira imports:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get specific credit application details for financeira
+  app.get('/api/financeira/credit-applications/:id', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Verify it's pre-approved
+      if (application.preAnalysisStatus !== "pre_approved") {
+        return res.status(403).json({ message: "Solicitação não está pré-aprovada" });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching application for financeira:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

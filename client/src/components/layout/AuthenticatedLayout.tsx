@@ -108,6 +108,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   // Verificar se o usuário tem acesso administrativo
   const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
+  const isFinanceira = user?.role === "financeira";
 
   // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
   const navigation = [
@@ -237,6 +238,73 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               })}
             </div>
           </div>
+
+          {/* Navegação Financeira */}
+          {isFinanceira && (
+            <div>
+              <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
+                  FINANCEIRA
+                </h3>
+              </div>
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className={`w-full transition-colors ${
+                    sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                  } ${
+                    isActiveRoute("/financeira/credit") 
+                      ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => setLocation("/financeira/credit")}
+                >
+                  <CreditCard className="w-4 h-4 lg:mr-0 mr-3" />
+                  <span className={`transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                  }`}>
+                    Análise de Crédito
+                  </span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={`w-full transition-colors ${
+                    sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                  } ${
+                    isActiveRoute("/financeira/suppliers") 
+                      ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => setLocation("/financeira/suppliers")}
+                >
+                  <Users className="w-4 h-4 lg:mr-0 mr-3" />
+                  <span className={`transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                  }`}>
+                    Fornecedores
+                  </span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={`w-full transition-colors ${
+                    sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
+                  } ${
+                    isActiveRoute("/financeira/imports") 
+                      ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => setLocation("/financeira/imports")}
+                >
+                  <Truck className="w-4 h-4 lg:mr-0 mr-3" />
+                  <span className={`transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                  }`}>
+                    Importações
+                  </span>
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Navegação Administrativa */}
           {isAdmin && (

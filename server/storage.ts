@@ -13,7 +13,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -394,17 +394,22 @@ export class DatabaseStorage implements IStorage {
 
     const userIds = preApprovedApplications.map(app => app.userId);
     
-    // Get suppliers from those users
-    const suppliersWithUser = await db
-      .select({
-        ...getTableColumns(suppliers),
-        companyName: users.companyName
-      })
-      .from(suppliers)
-      .innerJoin(users, eq(suppliers.userId, users.id))
-      .where(inArray(suppliers.userId, userIds));
-
-    return suppliersWithUser as any[];
+    // Get all suppliers
+    const allSuppliers = await db.select().from(suppliers);
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+    
+    // Filter suppliers by pre-approved users and add company name
+    const result = allSuppliers
+      .filter(supplier => userIds.includes(supplier.userId))
+      .map(supplier => {
+        const user = allUsers.find(u => u.id === supplier.userId);
+        return {
+          ...supplier,
+          companyName: user?.companyName || 'Empresa não encontrada'
+        };
+      });
+    
+    return result as any[];
   }
 
   async getImportsByPreApprovedUsers(): Promise<Import[]> {
@@ -420,17 +425,22 @@ export class DatabaseStorage implements IStorage {
 
     const userIds = preApprovedApplications.map(app => app.userId);
     
-    // Get imports from those users
-    const importsWithUser = await db
-      .select({
-        ...getTableColumns(imports),
-        companyName: users.companyName
-      })
-      .from(imports)
-      .innerJoin(users, eq(imports.userId, users.id))
-      .where(inArray(imports.userId, userIds));
-
-    return importsWithUser as any[];
+    // Get all imports
+    const allImports = await db.select().from(imports);
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+    
+    // Filter imports by pre-approved users and add company name
+    const result = allImports
+      .filter(importItem => userIds.includes(importItem.userId))
+      .map(importItem => {
+        const user = allUsers.find(u => u.id === importItem.userId);
+        return {
+          ...importItem,
+          companyName: user?.companyName || 'Empresa não encontrada'
+        };
+      });
+    
+    return result as any[];
   }
 }
 
