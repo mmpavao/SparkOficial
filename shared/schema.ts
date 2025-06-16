@@ -309,7 +309,7 @@ export const insertCreditApplicationSchema = companyInfoSchema
   .merge(commercialInfoSchema)
   .merge(creditInfoSchema)
   .extend({
-    userId: z.number().optional(),
+    userId: z.number(),
     status: z.string().default("draft"),
     currentStep: z.number().default(1),
     documentsStatus: z.string().default("pending"),

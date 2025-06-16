@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertImportSchema, type InsertImport } from "@shared/schema";
+import { useUser } from "@/hooks/use-user";
 import { 
   Package, 
   Building,
@@ -37,18 +38,22 @@ export default function NewImportPage() {
     totalValue: ""
   }]);
   const { toast } = useToast();
+  const { user } = useUser();
 
   const form = useForm<InsertImport>({
     resolver: zodResolver(insertImportSchema),
     defaultValues: {
       importName: "",
       cargoType: "FCL",
-      supplierName: "",
-      supplierLocation: "",
-      productName: "",
-      productDescription: "",
-      quantity: 1,
-      unitPrice: "",
+      products: [{
+        name: "",
+        description: "",
+        supplierId: 0,
+        quantity: 1,
+        unitPrice: "",
+        totalValue: "",
+        hsCode: ""
+      }],
       totalValue: "",
       currency: "USD",
       incoterms: "FOB",
@@ -56,8 +61,8 @@ export default function NewImportPage() {
       containerType: "20ft",
       containerNumber: "",
       sealNumber: "",
-      status: "planning",
-      currentStage: "estimativa"
+      status: "planejamento",
+      userId: user?.id || 0
     },
   });
 
@@ -112,15 +117,8 @@ export default function NewImportPage() {
           return sum + (parseFloat(product.totalValue) || 0);
         }, 0).toString();
       } else {
-        // For FCL, create single product from form data
-        productsArray = [{
-          name: data.productName || "",
-          description: data.productDescription || "",
-          hsCode: "",
-          quantity: data.quantity || 1,
-          unitPrice: data.unitPrice || "",
-          totalValue: data.totalValue || ""
-        }];
+        // For FCL, use existing products array from form
+        productsArray = data.products || [];
         finalTotalValue = data.totalValue || "";
       }
       
@@ -128,8 +126,6 @@ export default function NewImportPage() {
       const submissionData = {
         importName: data.importName,
         cargoType: data.cargoType,
-        supplierName: data.supplierName,
-        supplierLocation: data.supplierLocation,
         products: productsArray,
         totalValue: finalTotalValue,
         currency: data.currency || "USD",
