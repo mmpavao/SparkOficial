@@ -20,7 +20,7 @@ export default function FinanceiraImports() {
   // Buscar importações de usuários pré-aprovados
   const { data: imports = [], isLoading } = useQuery({
     queryKey: ['/api/financeira/imports'],
-    queryFn: () => apiRequest('/api/financeira/imports', { method: 'GET' })
+    queryFn: () => apiRequest('/api/financeira/imports')
   });
 
   // Calcular métricas
