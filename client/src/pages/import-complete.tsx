@@ -213,10 +213,9 @@ export default function ImportComplete() {
   };
 
   const onSupplierSelect = (supplierId: string) => {
-    const supplier = suppliers.find((s: any) => s.id.toString() === supplierId);
+    const supplier = (suppliers as any[]).find((s: any) => s.id.toString() === supplierId);
     if (supplier) {
-      form.setValue("supplierName", supplier.companyName);
-      form.setValue("supplierLocation", `${supplier.city}, ${supplier.country}`);
+      // These fields are not in the new schema - data is handled via supplierId
     }
   };
 
@@ -296,7 +295,7 @@ export default function ImportComplete() {
                   <SelectValue placeholder="Escolha um fornecedor..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {suppliers.map((supplier: any) => (
+                  {(suppliers as any[]).map((supplier: any) => (
                     <SelectItem key={supplier.id} value={supplier.id.toString()}>
                       {supplier.companyName} - {supplier.city}, {supplier.country}
                     </SelectItem>
@@ -306,7 +305,7 @@ export default function ImportComplete() {
               {form.formState.errors.supplierId && (
                 <p className="text-sm text-red-500">{form.formState.errors.supplierId.message}</p>
               )}
-              {suppliers.length === 0 && (
+              {(suppliers as any[]).length === 0 && (
                 <p className="text-sm text-yellow-600">
                   Nenhum fornecedor cadastrado. <button 
                     type="button" 
@@ -465,7 +464,7 @@ export default function ImportComplete() {
                             <SelectValue placeholder="Selecione..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {suppliers.map((supplier: any) => (
+                            {(suppliers as any[]).map((supplier: any) => (
                               <SelectItem key={supplier.id} value={supplier.id.toString()}>
                                 {supplier.companyName}
                               </SelectItem>
