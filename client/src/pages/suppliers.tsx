@@ -4,14 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,11 +29,13 @@ import {
   MapPin, 
   Phone, 
   Mail, 
-  MoreHorizontal,
+  MoreVertical,
   Eye,
   Edit,
   Trash2,
-  AlertTriangle
+  Users,
+  Building2,
+  TrendingUp
 } from "lucide-react";
 
 export default function SuppliersPage() {
@@ -70,6 +65,12 @@ export default function SuppliersPage() {
     supplier.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calculate metrics
+  const suppliersArray = suppliers as any[];
+  const totalSuppliers = suppliersArray.length;
+  const activeSuppliers = suppliersArray.filter((s: any) => s.status === 'active' || !s.status).length;
+  const chineseSuppliers = suppliersArray.length; // All suppliers are Chinese manufacturers
+
   // Delete supplier mutation
   const deleteSupplierMutation = useMutation({
     mutationFn: async (supplierId: number) => {
@@ -81,7 +82,7 @@ export default function SuppliersPage() {
         title: "Fornecedor excluído",
         description: "O fornecedor foi removido com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
+      queryClient.invalidateQueries({ queryKey: isAdmin ? ["/api/admin/suppliers"] : ["/api/suppliers"] });
       setDeleteSupplier(null);
     },
     onError: (error: any) => {
@@ -197,7 +198,7 @@ export default function SuppliersPage() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
+                      <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
