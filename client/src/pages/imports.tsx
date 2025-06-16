@@ -270,8 +270,8 @@ export default function ImportsPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
-                          <Building className="w-4 h-4" />
-                          <span>Fornecedor: <strong>{importItem.supplierName}</strong></span>
+                          <Package className="w-4 h-4" />
+                          <span>Produtos: <strong>{Array.isArray(importItem.products) ? importItem.products.length : 0}</strong></span>
                         </div>
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4" />

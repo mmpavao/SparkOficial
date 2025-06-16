@@ -82,9 +82,14 @@ export class DatabaseStorage implements IStorage {
 
   // Credit application operations
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
+    const processedApplication = {
+      ...application,
+      userId: application.userId || 0 // Ensure userId is never undefined
+    };
+    
     const [creditApp] = await db
       .insert(creditApplications)
-      .values(application)
+      .values([processedApplication as any])
       .returning();
     return creditApp;
   }
@@ -153,9 +158,15 @@ export class DatabaseStorage implements IStorage {
 
   // Import operations
   async createImport(importData: InsertImport): Promise<Import> {
+    // Convert estimatedDelivery string to Date if present
+    const processedData = {
+      ...importData,
+      estimatedDelivery: importData.estimatedDelivery ? new Date(importData.estimatedDelivery) : null
+    };
+    
     const [importRecord] = await db
       .insert(imports)
-      .values(importData)
+      .values([processedData as any])
       .returning();
     return importRecord;
   }

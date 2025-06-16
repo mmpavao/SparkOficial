@@ -361,7 +361,7 @@ export const insertImportSchema = createInsertSchema(imports).omit({
   containerType: z.string().optional(),
   weight: z.string().optional(),
   volume: z.string().optional(),
-  estimatedDelivery: z.string().optional(),
+  estimatedDelivery: z.string().optional().transform((val) => val ? new Date(val) : undefined),
 });
 
 // Pipeline stage schema
