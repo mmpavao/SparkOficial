@@ -23,6 +23,15 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { metrics, creditApplications, imports } = useMetrics();
 
+  // Debug logging
+  console.log('Dashboard Debug Data:', {
+    user: user?.id,
+    creditApplications: creditApplications.length,
+    imports: imports.length,
+    creditApps: creditApplications,
+    importsData: imports
+  });
+
 
 
 
