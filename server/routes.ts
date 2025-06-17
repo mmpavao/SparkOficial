@@ -1335,12 +1335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
-      // Financeira can view applications that are pre-approved or already processed by them
-      const validStatuses = ["pre_approved", "approved", "rejected"];
-      if (!validStatuses.includes(application.preAnalysisStatus || "")) {
-        return res.status(403).json({ message: "Solicitação não disponível para análise financeira" });
-      }
-      
+      // Financeira can view all applications (removed status restriction)
       res.json(application);
     } catch (error) {
       console.error("Error fetching application for financeira:", error);
