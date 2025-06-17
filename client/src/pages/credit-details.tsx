@@ -50,7 +50,7 @@ export default function CreditDetailsPage() {
 
   // Fetch credit application details
   const { data: application, isLoading } = useQuery({
-    queryKey: ["/api/credit/applications", applicationId],
+    queryKey: ["/api/credit/applications", applicationId, permissions.isFinanceira ? "financeira" : permissions.isAdmin ? "admin" : "user"],
     queryFn: async () => {
       console.log("Debug - User permissions:", {
         isFinanceira: permissions.isFinanceira,
@@ -61,11 +61,8 @@ export default function CreditDetailsPage() {
       if (permissions.isFinanceira) {
         console.log("Using Financeira endpoint");
         return await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
-      } else if (permissions.isAdmin) {
-        console.log("Using Admin endpoint");
-        return await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
       } else {
-        console.log("Using regular endpoint");
+        console.log("Using regular endpoint for admin/user");
         return await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
       }
     },
