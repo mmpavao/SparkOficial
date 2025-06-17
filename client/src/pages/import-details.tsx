@@ -167,7 +167,7 @@ export default function ImportDetailsPage() {
               {importData.importName || "Detalhes da Importação"}
             </h1>
             <p className="text-gray-600">
-              {importData.importNumber || `IMP-${importData.id.toString().padStart(3, '0')}`}
+              {importData.importNumber || `IMP-${importData.id?.toString().padStart(3, '0') || '000'}`}
             </p>
           </div>
         </div>
