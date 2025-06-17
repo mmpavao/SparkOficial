@@ -45,28 +45,19 @@ export default function SuppliersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch user data to check if admin
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"]
-  });
-
-  const typedUser = user as any;
-  const isAdmin = typedUser?.role === "admin" || typedUser?.email === "pavaosmart@gmail.com";
-  const isFinanceira = typedUser?.role === "financeira";
-
-  const getSuppliersEndpoint = () => {
-    if (isFinanceira) {
-      return "/api/financeira/suppliers";
-    } else if (isAdmin) {
-      return "/api/admin/suppliers";
-    } else {
-      return "/api/suppliers";
-    }
-  };
+  // Use unified endpoint system
+  const { 
+    isAdmin, 
+    isFinanceira, 
+    getEndpoint, 
+    invalidateAllRelatedQueries,
+    permissions
+  } = useUnifiedEndpoints();
 
   // Fetch suppliers data - use appropriate endpoint based on user role
   const { data: suppliers = [], isLoading } = useQuery({
-    queryKey: [getSuppliersEndpoint()]
+    queryKey: [getEndpoint("suppliers")],
+    enabled: !!user
   });
 
   // Filter suppliers
@@ -93,7 +84,7 @@ export default function SuppliersPage() {
         title: "Fornecedor excluído",
         description: "O fornecedor foi removido com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: isAdmin ? ["/api/admin/suppliers"] : ["/api/suppliers"] });
+      invalidateAllRelatedQueries(queryClient, "suppliers");
       setDeleteSupplier(null);
     },
     onError: (error: any) => {

@@ -48,27 +48,18 @@ export default function ImportsPage() {
   });
   const { toast } = useToast();
 
-  // Fetch imports data - check if user is admin to use admin endpoint
-  const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"]
-  });
-
-  const typedUser = user as User | undefined;
-  const isAdmin = typedUser?.role === "admin" || typedUser?.email === "pavaosmart@gmail.com";
-  const isFinanceira = typedUser?.role === "financeira";
-  
-  const getImportsEndpoint = () => {
-    if (isFinanceira) {
-      return "/api/financeira/imports";
-    } else if (isAdmin) {
-      return "/api/admin/imports";
-    } else {
-      return "/api/imports";
-    }
-  };
+  // Use unified endpoint system
+  const { 
+    isAdmin, 
+    isFinanceira, 
+    getEndpoint, 
+    invalidateAllRelatedQueries,
+    permissions
+  } = useUnifiedEndpoints();
 
   const { data: imports, isLoading } = useQuery({
-    queryKey: [getImportsEndpoint()]
+    queryKey: [getEndpoint("imports")],
+    enabled: !!user
   });
 
   // Filter imports based on admin/financeira or regular user
@@ -120,8 +111,7 @@ export default function ImportsPage() {
         title: "Importação cancelada",
         description: "A importação foi cancelada com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
+      invalidateAllRelatedQueries(queryClient, "imports");
     },
     onError: (error: any) => {
       toast({

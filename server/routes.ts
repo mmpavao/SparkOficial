@@ -58,8 +58,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware
   const requireAuth = async (req: any, res: any, next: any) => {
     console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
-    console.log("Request cookies:", req.headers.cookie);
-    console.log("Session object:", req.session);
     
     if (!req.session?.userId) {
       console.log("Authentication failed - no session or user ID");
@@ -71,6 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(req.session.userId);
       if (!user) {
         console.log("User not found for session:", req.session.userId);
+        req.session.destroy(() => {}); // Clear invalid session
         return res.status(401).json({ message: "Usuário não encontrado" });
       }
       
@@ -81,6 +80,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error in authentication middleware:", error);
       return res.status(500).json({ message: "Erro interno de autenticação" });
     }
+  };
+
+  // Role checking utilities
+  const checkRole = (requiredRole: string) => {
+    return (req: any, res: any, next: any) => {
+      const user = req.user;
+      const isSuperAdmin = user?.email === "pavaosmart@gmail.com";
+      const isAdmin = user?.role === "admin" || isSuperAdmin;
+      const isFinanceira = user?.role === "financeira";
+      
+      switch (requiredRole) {
+        case 'admin':
+          if (!isAdmin) {
+            return res.status(403).json({ message: "Acesso negado - privilégios de administrador necessários" });
+          }
+          break;
+        case 'financeira':
+          if (!isFinanceira) {
+            return res.status(403).json({ message: "Acesso negado - privilégios financeiros necessários" });
+          }
+          break;
+        case 'super_admin':
+          if (!isSuperAdmin) {
+            return res.status(403).json({ message: "Acesso negado - apenas super administrador" });
+          }
+          break;
+      }
+      next();
+    };
   };
 
   // Register endpoint
