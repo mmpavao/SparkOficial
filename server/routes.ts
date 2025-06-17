@@ -455,12 +455,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Allow access if:
       // 1. User owns the application
       // 2. User is admin or super admin
-      // 3. User is financeira role
       const isOwner = application.userId === req.session.userId;
       const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'pavaosmart@gmail.com';
-      const isFinanceira = currentUser?.role === 'financeira';
       
-      if (!isOwner && !isAdmin && !isFinanceira) {
+      if (!isOwner && !isAdmin) {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
