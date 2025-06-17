@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Search, 
   Plus, 
@@ -44,6 +46,7 @@ export default function SuppliersPage() {
   const [deleteSupplier, setDeleteSupplier] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Use unified endpoint system
   const { 

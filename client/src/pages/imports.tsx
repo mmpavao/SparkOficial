@@ -13,6 +13,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Import, type User } from "@shared/schema";
 import { formatCurrency } from "@/lib/formatters";
 import AdminImportFilters from "@/components/AdminImportFilters";
+import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Truck, 
   Package, 
@@ -56,6 +58,7 @@ export default function ImportsPage() {
     invalidateAllRelatedQueries,
     permissions
   } = useUnifiedEndpoints();
+    const { user } = useAuth();
 
   const { data: imports, isLoading } = useQuery({
     queryKey: [getEndpoint("imports")],
@@ -72,10 +75,10 @@ export default function ImportsPage() {
         (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
           product.name?.toLowerCase().includes(adminFilters.search.toLowerCase())
         ));
-      
+
       const matchesStatus = !adminFilters.status || importItem.status === adminFilters.status;
       const matchesCargoType = !adminFilters.cargoType || importItem.cargoType === adminFilters.cargoType;
-      
+
       return matchesSearch && matchesStatus && matchesCargoType;
     } else {
       // Regular user filtering
@@ -84,9 +87,9 @@ export default function ImportsPage() {
         (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
           product.name?.toLowerCase().includes(searchTerm.toLowerCase())
         ));
-      
+
       const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
-      
+
       return matchesSearch && matchesStatus;
     }
   }) : [];
@@ -322,7 +325,7 @@ export default function ImportsPage() {
                           </Badge>
                         )}
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
                           <Package className="w-4 h-4" />
