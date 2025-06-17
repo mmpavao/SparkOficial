@@ -301,11 +301,14 @@ export default function AuthPage() {
                           <FormControl>
                             <Input 
                               placeholder="(11) 99999-9999" 
-                              {...field}
+                              value={field.value || ""}
                               onChange={(e) => {
                                 const formatted = formatPhone(e.target.value);
                                 field.onChange(formatted);
                               }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
                           </FormControl>
@@ -348,7 +351,11 @@ export default function AuthPage() {
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••" 
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
                           </FormControl>
@@ -366,7 +373,11 @@ export default function AuthPage() {
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••" 
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
                           </FormControl>
