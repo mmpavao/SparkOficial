@@ -256,7 +256,7 @@ export default function CreditPage() {
   const approveApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
       const response = await apiRequest(`/api/admin/credit/applications/${applicationId}/approve`, "PUT");
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
@@ -278,7 +278,7 @@ export default function CreditPage() {
   const rejectApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
       const response = await apiRequest(`/api/admin/credit/applications/${applicationId}/reject`, "PUT");
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });

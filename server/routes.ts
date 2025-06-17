@@ -1307,9 +1307,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
-      // Verify it's pre-approved
-      if (application.preAnalysisStatus !== "pre_approved") {
-        return res.status(403).json({ message: "Solicitação não está pré-aprovada" });
+      // Financeira can view applications that are pre-approved or already processed by them
+      const validStatuses = ["pre_approved", "approved", "rejected"];
+      if (!validStatuses.includes(application.preAnalysisStatus || "")) {
+        return res.status(403).json({ message: "Solicitação não disponível para análise financeira" });
       }
       
       res.json(application);
