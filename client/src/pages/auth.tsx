@@ -155,7 +155,11 @@ export default function AuthPage() {
                           <Input 
                             type="email" 
                             placeholder="seu@email.com" 
-                            {...field} 
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
                         </FormControl>
@@ -173,7 +177,11 @@ export default function AuthPage() {
                         <FormControl>
                           <PasswordInput 
                             placeholder="••••••••" 
-                            {...field} 
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
                         </FormControl>
@@ -255,11 +263,14 @@ export default function AuthPage() {
                           <FormControl>
                             <Input 
                               placeholder="00.000.000/0000-00" 
-                              {...field}
+                              value={field.value || ""}
                               onChange={(e) => {
                                 const formatted = formatCnpj(e.target.value);
                                 field.onChange(formatted);
                               }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
                           </FormControl>
