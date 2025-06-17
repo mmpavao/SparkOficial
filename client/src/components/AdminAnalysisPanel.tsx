@@ -76,7 +76,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           : `/api/financeira/credit-applications/${application.id}/update-financial`;
       } else {
         // Admin endpoints for pre-approval
-        endpoint = status === 'approved' 
+        endpoint = status === 'pre_approved' 
           ? `/api/admin/credit/applications/${application.id}/approve`
           : status === 'rejected'
           ? `/api/admin/credit/applications/${application.id}/reject`
@@ -86,9 +86,19 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       return await apiRequest(endpoint, "PUT", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", application.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
+      
+      // Clear form fields after successful submission
+      setAnalysisData({
+        status: "pending",
+        riskLevel: "medium",
+        notes: "",
+        requestedDocuments: "",
+        observations: ""
+      });
+      
       toast({
         title: "Sucesso!",
         description: "Status atualizado com sucesso.",
