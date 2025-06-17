@@ -68,7 +68,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
   // Calcular métricas reais baseadas nas aplicações
   const metrics = applications?.reduce((acc, app) => {
     const requestedAmount = parseFloat(app.requestedAmount || '0');
-    
+
     if (app.financialStatus === 'approved') {
       // Para aprovados, usar finalCreditLimit se finalizado pelo admin, senão creditLimit
       const approvedAmount = app.adminStatus === 'admin_finalized' 
@@ -80,7 +80,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
     } else if (app.status === 'under_review') {
       acc.totalUnderReview += requestedAmount;
     }
-    
+
     acc.totalRequested += requestedAmount;
     return acc;
   }, {
@@ -324,10 +324,10 @@ export default function CreditPage() {
       approved: { label: t.credit.status.approved, variant: "default" as const, icon: CheckCircle },
       rejected: { label: t.credit.status.rejected, variant: "destructive" as const, icon: XCircle },
     };
-    
+
     const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
     const Icon = config.icon;
-    
+
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="w-3 h-3" />
@@ -421,7 +421,7 @@ export default function CreditPage() {
                       const currentValue = parseUSDInput(field.value || '0');
                       const validation = validateUSDRange(currentValue);
                       const isValid = validation.isValid && currentValue > 0;
-                      
+
                       return (
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
@@ -470,7 +470,7 @@ export default function CreditPage() {
                       );
                     }}
                   />
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">{t.auth.companyName}</label>
                     <Input
@@ -616,7 +616,7 @@ export default function CreditPage() {
                         <Eye className="w-4 h-4 mr-2" />
                         Ver Detalhes
                       </DropdownMenuItem>
-                      
+
                       {/* Ações do Importador */}
                       {!permissions.canManageApplications && application.status === 'pending' && (
                         <>
@@ -633,7 +633,7 @@ export default function CreditPage() {
                           </DropdownMenuItem>
                         </>
                       )}
-                      
+
                       {/* Ações Administrativas */}
                       {permissions.canManageApplications && (
                         <>
