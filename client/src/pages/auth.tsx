@@ -233,7 +233,11 @@ export default function AuthPage() {
                           <FormControl>
                             <Input 
                               placeholder="Sua Empresa Ltda" 
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
                           </FormControl>
@@ -274,7 +278,11 @@ export default function AuthPage() {
                         <FormControl>
                           <Input 
                             placeholder="Seu nome completo" 
-                            {...field}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
                         </FormControl>
@@ -316,7 +324,11 @@ export default function AuthPage() {
                             <Input 
                               type="email" 
                               placeholder="seu@email.com" 
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
                             />
                           </FormControl>
