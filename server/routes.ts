@@ -1436,6 +1436,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =========== DOCUMENT UPLOAD ROUTES ===========
+  // Multer setup for file uploads
+  const multer = await import('multer');
+  const upload = multer.default({ 
+    storage: multer.default.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  });
+
+  // Upload document to credit application
+  app.post('/api/credit/applications/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { documentType } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Get current application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Store document info
+      const documentInfo = {
+        filename: file.originalname,
+        size: file.size,
+        type: file.mimetype,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      // Update documents in database
+      const currentRequired = application.requiredDocuments || {};
+      const currentOptional = application.optionalDocuments || {};
+      
+      // Check if it's a mandatory document
+      const mandatoryDocs = [
+        'business_license', 'cnpj_certificate', 'financial_statements', 'bank_statements',
+        'articles_of_incorporation', 'board_resolution', 'tax_registration', 
+        'social_security_clearance', 'labor_clearance', 'income_tax_return'
+      ];
+      
+      if (mandatoryDocs.includes(documentType)) {
+        currentRequired[documentType] = documentInfo;
+        await storage.updateCreditApplication(applicationId, { 
+          requiredDocuments: currentRequired 
+        });
+      } else {
+        currentOptional[documentType] = documentInfo;
+        await storage.updateCreditApplication(applicationId, { 
+          optionalDocuments: currentOptional 
+        });
+      }
+
+      // Check if all mandatory documents are uploaded to auto-advance status
+      const uploadedMandatory = Object.keys(currentRequired).length;
+      if (uploadedMandatory === mandatoryDocs.length) {
+        await storage.updateCreditApplication(applicationId, { 
+          status: 'under_review',
+          documentsStatus: 'complete'
+        });
+      } else if (uploadedMandatory >= 2) {
+        await storage.updateCreditApplication(applicationId, { 
+          documentsStatus: 'partial'
+        });
+      }
+
+      res.json({ success: true, document: documentInfo });
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Erro ao fazer upload do documento" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -407,7 +407,7 @@ export default function CreditDetailsPage() {
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                      uploadedDocuments={application.documents || {}}
+                      uploadedDocuments={application.requiredDocuments || {}}
                       onValidation={(result) => {
                         setValidationResults(prev => ({
                           ...prev,
@@ -430,7 +430,7 @@ export default function CreditDetailsPage() {
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                      uploadedDocuments={application.documents || {}}
+                      uploadedDocuments={application.optionalDocuments || {}}
                       onValidation={(result) => {
                         setValidationResults(prev => ({
                           ...prev,
