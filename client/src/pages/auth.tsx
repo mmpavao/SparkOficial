@@ -152,20 +152,20 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-lg opacity-90 mb-8">
-            {t.auth.platformDescription}
+            Plataforma completa para gestão de crédito e importações
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm opacity-75">
             <div className="flex items-center">
               <Shield className="w-4 h-4 mr-2" />
-              <span>{t.auth.secure}</span>
+              <span>Seguro</span>
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              <span>{t.auth.fast}</span>
+              <span>Rápido</span>
             </div>
             <div className="flex items-center">
               <TrendingUp className="w-4 h-4 mr-2" />
-              <span>{t.auth.efficient}</span>
+              <span>Eficiente</span>
             </div>
           </div>
         </div>
@@ -186,8 +186,8 @@ export default function AuthPage() {
           {isLogin ? (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.welcomeBack}</h2>
-                <p className="text-gray-600">{t.auth.loginDescription}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo de volta</h2>
+                <p className="text-gray-600">Faça login para acessar sua conta</p>
               </div>
 
               <Form {...loginForm}>
@@ -197,7 +197,7 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.auth.email}</FormLabel>
+                        <FormLabel>E-mail</FormLabel>
                         <FormControl>
                           <Input 
                             type="email" 
@@ -220,7 +220,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.auth.password}</FormLabel>
+                        <FormLabel>Senha</FormLabel>
                         <FormControl>
                           <PasswordInput 
                             placeholder="••••••••" 
@@ -244,10 +244,10 @@ export default function AuthPage() {
                         onCheckedChange={setRememberMe}
                         className="peer shrink-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 h-6 w-6 border-3 border-gray-600 rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md ml-[0px] mr-[0px] bg-[#e1e3e2]" 
                       />
-                      <span className="ml-2 text-sm text-gray-600">{t.auth.rememberMe}</span>
+                      <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
                     </label>
                     <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0">
-                      {t.auth.forgotPassword}
+                      Esqueci minha senha
                     </Button>
                   </div>
 
@@ -256,7 +256,7 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? t.auth.signingIn : t.auth.signIn}
+                    {loginMutation.isPending ? "Entrando..." : "Entrar"}
                   </Button>
                 </form>
               </Form>
@@ -276,8 +276,8 @@ export default function AuthPage() {
             /* Register Form */
             (<div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.createAccount}</h2>
-                <p className="text-gray-600">{t.auth.createAccountDescription}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Criar Conta</h2>
+                <p className="text-gray-600">Cadastre sua empresa para começar</p>
               </div>
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
@@ -287,7 +287,7 @@ export default function AuthPage() {
                       name="companyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t.auth.companyName}</FormLabel>
+                          <FormLabel>Nome da Empresa</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Sua Empresa Ltda" 
@@ -309,7 +309,7 @@ export default function AuthPage() {
                       name="cnpj"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t.auth.cnpj}</FormLabel>
+                          <FormLabel>CNPJ</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="00.000.000/0000-00" 
@@ -336,7 +336,7 @@ export default function AuthPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      {t.auth.fullName}
+                      Nome Completo
                     </label>
                     <input
                       type="text"
