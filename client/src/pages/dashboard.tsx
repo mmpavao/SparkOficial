@@ -48,7 +48,7 @@ export default function Dashboard() {
               {getRoleDisplayName(user?.role as any)} na {user?.companyName}
             </p>
             <p className="opacity-75 text-sm">
-              {t.dashboard.manageCreditsAndImports}
+              Gerencie seus créditos e importações
             </p>
           </div>
           <div className="hidden md:block">

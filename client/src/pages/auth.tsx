@@ -57,14 +57,14 @@ export default function AuthPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: t.auth.loginSuccess,
+        title: "Login realizado com sucesso",
         description: "Bem-vindo de volta à Spark Comex.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: t.errors.loginFailed,
-        description: error.message || t.errors.loginFailed,
+        title: "Erro no login",
+        description: error.message || "Falha na autenticação",
         variant: "destructive",
       });
     },
@@ -77,7 +77,7 @@ export default function AuthPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: t.auth.registerSuccess,
+        title: "Cadastro realizado com sucesso",
         description: "Bem-vindo à Spark Comex.",
       });
     },
