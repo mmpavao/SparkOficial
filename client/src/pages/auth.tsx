@@ -20,6 +20,8 @@ import logo_spark_bco from "@assets/logo-spark-bco.jpg";
 
 import logo_spark_comex_green_bg from "@assets/logo spark comex green bg.png";
 
+import logo_spark_fundo_color_ from "@assets/logo spark fundo color .png";
+
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
@@ -120,7 +122,7 @@ export default function AuthPage() {
         <div className="max-w-md text-center">
           <div className="mb-8">
             <img 
-              src={logo_spark_comex_green_bg} 
+              src={logo_spark_fundo_color_} 
               alt="Spark Comex" 
               className="h-20 w-auto mx-auto mb-4"
             />
