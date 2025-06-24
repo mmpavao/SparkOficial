@@ -36,6 +36,7 @@ import {
   ArrowRight,
   Building,
   User,
+  Users,
   CreditCard,
   FileText,
   CheckCircle,
@@ -55,7 +56,9 @@ import {
   Eye,
   EyeOff,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Plus,
+  Minus
 } from "lucide-react";
 
 // Multi-step form type definitions
