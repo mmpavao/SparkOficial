@@ -637,8 +637,9 @@ export default function CreditPage() {
                             <div className="min-w-0 flex-1">
                               <h3 className="font-semibold text-gray-900 mb-1">Solicitação #{application.id}</h3>
                               <p className="text-sm text-gray-600 mb-2">Criado em {new Date(application.createdAt).toLocaleDateString('pt-BR')}</p>
-                              <div className="text-xs text-gray-500">
-                                {application.justification || application.purpose || '"Não especificado"'}
+                              <div className="text-xs text-gray-500 truncate">
+                                {(application.justification || application.purpose || '"Não especificado"').substring(0, 80)}
+                                {(application.justification || application.purpose || '').length > 80 ? '...' : ''}
                               </div>
                             </div>
                           </div>
@@ -679,15 +680,72 @@ export default function CreditPage() {
                               </div>
                             </div>
                             
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setLocation(`/credit/details/${application.id}`)}
-                              className="hover:bg-spark-50 border-spark-200 text-spark-700"
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              Ver Detalhes
-                            </Button>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setLocation(`/credit/details/${application.id}`)}
+                                className="hover:bg-spark-50 border-spark-200 text-spark-700"
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                Ver Detalhes
+                              </Button>
+
+                              {/* Actions Dropdown */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => setLocation(`/credit/details/${application.id}`)}
+                                  >
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Ver Detalhes
+                                  </DropdownMenuItem>
+                                  
+                                  {application.status === 'pending' && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => setLocation(`/credit/edit/${application.id}`)}
+                                      >
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        Editar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => handleCancelApplication(application.id)}
+                                        className="text-red-600"
+                                      >
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        Cancelar
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+
+                                  {/* Admin Actions */}
+                                  {permissions.canViewAllApplications && application.status === 'pending' && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => handleApproveApplication(application.id)}
+                                        className="text-green-600"
+                                      >
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                        Aprovar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => handleRejectApplication(application.id)}
+                                        className="text-red-600"
+                                      >
+                                        <XCircle className="w-4 h-4 mr-2" />
+                                        Rejeitar
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </div>
                         </div>
                       </CardContent>
