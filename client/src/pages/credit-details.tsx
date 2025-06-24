@@ -625,11 +625,11 @@ export default function CreditDetailsPage() {
             </Card>
           )}
 
-          {/* Ações Adaptáveis baseadas no tipo de usuário */}
-          {(permissions.canManageApplications || permissions.isFinanceira) && (
+          {/* Gestão Administrativa - Apenas para Admins e Financeira */}
+          {(permissions.isAdmin || permissions.isFinanceira) && (
             <>
               <AdminAnalysisPanel application={application} />
-              {permissions.canManageApplications && (
+              {permissions.isAdmin && (
                 <AdminFinalizationPanel 
                   application={application} 
                   onUpdate={() => {
@@ -640,7 +640,7 @@ export default function CreditDetailsPage() {
             </>
           )}
           
-          {!(permissions.canManageApplications || permissions.isFinanceira) && (
+          {!(permissions.isAdmin || permissions.isFinanceira) && (
             <Card>
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>

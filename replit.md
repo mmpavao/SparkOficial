@@ -383,6 +383,8 @@ Changelog:
   * Enhanced error message display with specific guidance for CNPJ/email conflicts
   * Implemented real-time CNPJ validation with mathematical verification on blur event
   * Added comprehensive CNPJ validation algorithm in Zod schema with proper error messages
+  * Fixed AdminAnalysisPanel visibility - now only shows for admin/financeira users, hidden from importers
+  * Corrected role-based permissions in credit details page for proper interface separation
 ```
 
 ## User Preferences
