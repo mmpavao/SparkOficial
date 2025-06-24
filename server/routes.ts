@@ -86,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const checkRole = (requiredRole: string) => {
     return (req: any, res: any, next: any) => {
       const user = req.user;
-      const isSuperAdmin = user?.email === "pavaosmart@gmail.com";
+      const isSuperAdmin = user?.role === "super_admin";
       const isAdmin = user?.role === "admin" || isSuperAdmin;
       const isFinanceira = user?.role === "financeira";
 
