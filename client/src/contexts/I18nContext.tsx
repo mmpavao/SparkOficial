@@ -1,4 +1,3 @@
-
 /**
  * Internationalization Context for Spark Comex
  */
@@ -28,8 +27,7 @@ interface I18nProviderProps {
 }
 
 export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
-  // Forçar português como idioma inicial
-  const [language, setCurrentLanguage] = useState<Language>('pt');
+  const [language, setCurrentLanguage] = useState<Language>(getCurrentLanguage);
   
   const availableLanguages = [
     { code: 'pt' as Language, name: 'Português', flag: '🇧🇷' },
@@ -39,7 +37,6 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   ];
 
   const changeLanguage = (newLanguage: Language) => {
-    console.log('Changing language to:', newLanguage);
     setCurrentLanguage(newLanguage);
     setLanguage(newLanguage);
     
@@ -50,17 +47,11 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    // Garantir que o localStorage está sempre em português na inicialização
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('spark-comex-language', 'pt');
-    }
-    
     // Set initial document language
     if (typeof document !== 'undefined') {
       document.documentElement.lang = language;
     }
-    console.log('I18nProvider initialized with language:', language);
-  }, [language]);
+  }, []);
 
   const contextValue: I18nContextType = {
     language,
@@ -69,8 +60,6 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     changeLanguage,
     availableLanguages,
   };
-
-  console.log('I18nProvider rendering with context:', contextValue);
 
   return (
     <I18nContext.Provider value={contextValue}>
