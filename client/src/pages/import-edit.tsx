@@ -59,8 +59,7 @@ export default function ImportEditPage() {
   const { data: importData, isLoading } = useQuery({
     queryKey: ["/api/imports", importId],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/imports/${importId}`);
-      return response.json();
+      return await apiRequest(`/api/imports/${importId}`, "GET");
     },
     enabled: !!importId,
   });
@@ -69,8 +68,7 @@ export default function ImportEditPage() {
   const { data: suppliers = [] } = useQuery({
     queryKey: ["/api/suppliers"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/suppliers");
-      return response.json();
+      return await apiRequest("/api/suppliers", "GET");
     },
   });
 
@@ -160,8 +158,7 @@ export default function ImportEditPage() {
         products: JSON.stringify(data.products),
       };
 
-      const response = await apiRequest(`/api/imports/${importId}`, "PUT", updateData);
-      return response.json();
+      return await apiRequest(`/api/imports/${importId}`, "PUT", updateData);
     },
     onSuccess: () => {
       toast({
