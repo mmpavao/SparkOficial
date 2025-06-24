@@ -35,7 +35,8 @@ import {
   Edit,
   Building,
   Box,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from "lucide-react";
 
 export default function ImportsPage() {
