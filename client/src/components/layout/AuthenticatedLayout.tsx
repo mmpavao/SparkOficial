@@ -108,8 +108,10 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   };
 
   // Verificar se o usuário tem acesso administrativo
-  const isAdmin = user?.email === "pavaosmart@gmail.com" || user?.role === "admin";
+  const isSuperAdmin = user?.email === "pavaosmart@gmail.com";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || isSuperAdmin;
   const isFinanceira = user?.role === "financeira";
+  const isImporter = user?.role === "importer" || (!isAdmin && !isFinanceira);
 
   // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
   const navigation = [
@@ -260,8 +262,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
 
 
-          {/* Navegação Administrativa */}
-          {isAdmin && (
+          {/* Navegação Administrativa - APENAS para admins e super admins */}
+          {(isAdmin && !isImporter) && (
             <div>
               <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">

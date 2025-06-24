@@ -26,6 +26,7 @@ import SupplierNewPage from "@/pages/supplier-new";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
+import AdminRoute from "@/components/AdminRoute";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -61,10 +62,10 @@ function Router() {
             <Route path="/suppliers/new" component={SupplierNewPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
-            <Route path="/users" component={AdminUsersPage} />
-            <Route path="/users/new" component={AdminUserNewPage} />
-            <Route path="/admin/users" component={AdminUsersPage} />
-            <Route path="/admin/users/new" component={AdminUserNewPage} />
+            <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
+            <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
 
             <Route component={NotFound} />
           </Switch>
