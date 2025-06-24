@@ -35,7 +35,11 @@ import {
   AlertTriangle,
   Anchor,
   FileCheck,
-  Play
+  Play,
+  TrendingUp,
+  Search,
+  AlertCircle,
+  Box
 } from "lucide-react";
 
 // Pipeline stages with icons
