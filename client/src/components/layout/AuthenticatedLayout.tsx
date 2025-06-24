@@ -1,438 +1,182 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
+import { ReactNode, useState } from "react";
+import { Link, useLocation } from "wouter";
 import { 
-  Menu, 
-  X, 
-  Home, 
+  LayoutDashboard, 
   CreditCard, 
-  Truck, 
+  FileInput, 
   BarChart3, 
   Settings, 
-  Shield,
+  Users, 
   LogOut,
-  Bell,
-  ChevronLeft,
-  LayoutDashboard,
-  ChevronRight,
-  Users,
-  UserCog,
-  FileCheck
+  Menu,
+  X,
+  Truck
 } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useTranslation } from "@/contexts/I18nContext";
 import LanguageSelector from "@/components/ui/language-selector";
 
 interface AuthenticatedLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [location, setLocation] = useLocation();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [location] = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const { canAccessAdmin } = useUserPermissions();
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      try {
-        return await apiRequest("/api/auth/logout", "POST");
-      } catch (error) {
-        console.error("Logout API error:", error);
-        // Even if API fails, proceed with client-side cleanup
-        throw error;
+  // Usar try/catch para capturar problemas de contexto
+  let t, language;
+  try {
+    const translation = useTranslation();
+    t = translation.t;
+    language = translation.language;
+  } catch (error) {
+    console.error('AuthenticatedLayout: useTranslation error:', error);
+    // Fallback para valores padrão
+    t = {
+      nav: {
+        dashboard: 'Dashboard',
+        credit: 'Crédito',
+        imports: 'Importações',
+        reports: 'Relatórios',
+        settings: 'Configurações',
+        users: 'Usuários',
+        logout: 'Sair'
       }
-    },
-    onSuccess: () => {
-      // Clear React Query cache
-      queryClient.clear();
+    };
+    language = 'pt';
+  }
 
-      // Clear any localStorage/sessionStorage data
-      localStorage.clear();
-      sessionStorage.clear();
+  const navigation = [
+    { name: t.nav.dashboard, href: "/", icon: LayoutDashboard },
+    { name: t.nav.credit, href: "/credit", icon: CreditCard },
+    { name: t.nav.imports, href: "/imports", icon: FileInput },
+    { name: "Fornecedores", href: "/suppliers", icon: Truck },
+    { name: t.nav.reports, href: "/reports", icon: BarChart3 },
+    { name: t.nav.settings, href: "/settings", icon: Settings },
+  ];
 
-      // Redirect to home page
-      window.location.href = "/";
-    },
-    onError: (error) => {
-      console.error("Logout error:", error);
-
-      // Even on error, clear client-side data and redirect
-      queryClient.clear();
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Show error but still redirect after a short delay
-      toast({
-        title: "Logout",
-        description: "Logout realizado (sessão pode persistir no servidor)",
-        variant: "default",
-      });
-
-      // Force redirect after 1 second
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
-    },
-  });
-
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
+  if (canAccessAdmin) {
+    navigation.push({ name: t.nav.users, href: "/users", icon: Users });
+  }
 
   const handleLogout = () => {
-    logoutMutation.mutate();
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  // Verificar se o usuário tem acesso administrativo
-  const isSuperAdmin = user?.email === "pavaosmart@gmail.com";
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || isSuperAdmin;
-  const isFinanceira = user?.role === "financeira";
-  const isImporter = user?.role === "importer" || (!isAdmin && !isFinanceira);
-
-  // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
-  const navigation = [
-    { path: "/", icon: Home, label: "Dashboard" },
-    { 
-      path: "/credit", 
-      icon: CreditCard, 
-      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : "Crédito" 
-    },
-    { 
-      path: "/imports", 
-      icon: Truck, 
-      label: (isAdmin || isFinanceira) ? "Importações" : "Importações",
-      submenu: [
-        { 
-          path: "/imports", 
-          label: isFinanceira 
-            ? "Importações" 
-            : isAdmin 
-              ? "Importações" 
-              : "Minhas Importações" 
-        },
-        { 
-          path: "/suppliers", 
-          label: isFinanceira 
-            ? "Todos Fornecedores" 
-            : isAdmin 
-              ? "Todos Fornecedores" 
-              : "Fornecedores" 
-        },
-      ]
-    },
-    { path: "/reports", icon: BarChart3, label: "Relatórios" },
-  ];
-
-  // Navegação adicional apenas para admins
-  const adminOnlyNavigation = [
-    { path: "/users", icon: Users, label: "Gerenciar Usuários" },
-  ];
-
-  const isActiveRoute = (path: string) => {
-    if (path === "/" && location === "/") return true;
-    if (path !== "/" && location.startsWith(path)) return true;
-    return false;
+    logout();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 bg-white shadow-lg transform transition-all duration-300 ease-in-out z-50 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } ${
-          sidebarCollapsed ? "lg:w-16" : "lg:w-64"
-        } lg:translate-x-0 w-64`}
-      >
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
-            <img 
-              src={sparkLogo} 
-              alt="Spark Comex" 
-              className="h-8 w-auto"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebarCollapse}
-              className="hidden lg:flex"
-            >
-              {sidebarCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebar}
-              className="lg:hidden"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        <nav className="p-4 space-y-4">
-          {/* Navegação Principal */}
-          <div>
-            <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                SPARK COMEX
-              </h3>
-            </div>
-            <div className="space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const active = isActiveRoute(item.path);
-
-                return (
-                  <div key={item.path}>
-                    <Button
-                      variant="ghost"
-                      className={`w-full transition-colors ${
-                        sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
-                      } ${
-                        active 
-                          ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
-                          : "hover:bg-gray-50"
-                      }`}
-                      onClick={() => setLocation(item.path)}
-                    >
-                      <Icon className="w-4 h-4 lg:mr-0 mr-3" />
-                      <span className={`transition-opacity duration-300 ${
-                        sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
-                      }`}>
-                        {item.label}
-                      </span>
-                    </Button>
-
-                    {/* Submenu */}
-                    {item.submenu && !sidebarCollapsed && (
-                      <div className="ml-6 mt-1 space-y-1">
-                        {item.submenu.map((subItem) => (
-                          <Button
-                            key={subItem.path}
-                            variant="ghost"
-                            size="sm"
-                            className={`w-full justify-start text-sm ${
-                              isActiveRoute(subItem.path)
-                                ? "text-spark-600 bg-spark-50 hover:bg-spark-100"
-                                : "text-gray-600 hover:bg-gray-50"
-                            }`}
-                            onClick={() => setLocation(subItem.path)}
-                          >
-                            {subItem.label}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-
-
-          {/* Navegação Administrativa - APENAS para admins e super admins */}
-          {(isAdmin && !isImporter) && (
-            <div>
-              <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                  ADMINISTRAÇÃO
-                </h3>
-              </div>
-              <div className="space-y-1">
-                {adminOnlyNavigation.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActiveRoute(item.path);
-
-                  return (
-                    <Button
-                      key={item.path}
-                      variant="ghost"
-                      className={`w-full transition-colors ${
-                        sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
-                      } ${
-                        active 
-                          ? "text-spark-600 bg-spark-50 hover:bg-spark-100" 
-                          : "hover:bg-gray-50"
-                      }`}
-                      onClick={() => setLocation(item.path)}
-                    >
-                      <Icon className="w-4 h-4 lg:mr-0 mr-3" />
-                      <span className={`transition-opacity duration-300 ${
-                        sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
-                      }`}>
-                        {item.label}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </nav>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="w-full p-3 h-auto hover:bg-gray-50 justify-start"
-              >
-                <div className="flex items-center w-full">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarImage src={user?.avatar ? user.avatar : undefined} />
-                    <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
-                      {user?.fullName && getInitials(user.fullName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3 min-w-0 flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {user?.fullName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {user?.role === "admin" ? "Administrador" : user?.role === "financeira" ? "Financeira" : "Importador"}
-                    </p>
-                  </div>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64 mb-2">
-              {/* Header do usuário no dropdown */}
-              <div className="px-3 py-3 border-b">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={user?.avatar ? user.avatar : undefined} />
-                    <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
-                      {user?.fullName && getInitials(user.fullName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {user?.fullName}
-                    </p>
-                    <p className="text-xs text-gray-600 truncate">
-                      {user?.email}
-                    </p>
-                    <div className="flex items-center mt-1">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        user?.role === "admin" 
-                          ? "bg-blue-100 text-blue-800" 
-                          : user?.role === "financeira" 
-                            ? "bg-purple-100 text-purple-800" 
-                            : "bg-green-100 text-green-800"
-                      }`}>
-                        {user?.role === "admin" ? (
-                          <>
-                            <Shield className="w-3 h-3 mr-1" />
-                            Spark Admin
-                          </>
-                        ) : user?.role === "financeira" ? (
-                          <>
-                            <BarChart3 className="w-3 h-3 mr-1" />
-                            Financeira
-                          </>
-                        ) : (
-                          <>
-                            <Truck className="w-3 h-3 mr-1" />
-                            Importador
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Menu Items */}
-              <div className="py-1">
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center w-full px-3 py-2">
-                    <Settings className="w-4 h-4 mr-3" />
-                    Configurações
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
-                  className="text-red-600 focus:text-red-600 px-3 py-2"
-                >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  {logoutMutation.isPending ? "Saindo..." : "Sair"}
-                </DropdownMenuItem>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile menu backdrop */}
+      {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={toggleSidebar}
+          onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
-      {/* Main Content */}
-      <div className={`transition-all duration-300 ease-in-out ${
-        sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
-      }`}>
-        {/* Top Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleSidebar}
-                className="mr-4 lg:hidden"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
 
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex flex-col h-full">
+          {/* Logo and brand */}
+          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-spark-500 to-spark-700 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">SC</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">Spark Comex</h1>
+                <p className="text-xs text-gray-500">Importação Inteligente</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <LanguageSelector />
-              <Button variant="ghost" size="sm">
-                <Bell className="w-4 h-4" />
-              </Button>
-            </div>
+
+            {/* Mobile close button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-        </header>
 
-        <main className="p-6">
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {navigation.map((item) => {
+              const isActive = location === item.href || 
+                (item.href !== "/" && location.startsWith(item.href));
+
+              return (
+                <Link key={item.name} href={item.href}>
+                  <a className={cn(
+                    "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-spark-50 text-spark-700 border-r-2 border-spark-500"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  )}>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </a>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* User info and logout */}
+          <div className="border-t border-gray-200 p-4 space-y-4">
+            {/* Language Selector */}
+            <div className="px-2">
+              <LanguageSelector />
+            </div>
+
+            {/* User info */}
+            {user && (
+              <div className="px-2">
+                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                <div className="text-xs text-gray-500">{user.email}</div>
+                <div className="text-xs text-gray-400 capitalize">{user.role}</div>
+              </div>
+            )}
+
+            {/* Logout button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="w-full justify-start"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {t.nav.logout}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 lg:pl-0">
+        {/* Mobile menu button */}
+        <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="text-lg font-semibold text-gray-900">Spark Comex</div>
+          <div className="w-8"></div> {/* Spacer for centering */}
+        </div>
+
+        {/* Page content */}
+        <main className="flex-1">
           {children}
         </main>
       </div>
