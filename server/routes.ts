@@ -1461,12 +1461,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
-      // Store document info
+      // Store document info with actual file data
       const documentInfo = {
         filename: file.originalname,
         size: file.size,
         type: file.mimetype,
         uploadedAt: new Date().toISOString(),
+        data: file.buffer.toString('base64'), // Store file as base64
       };
 
       // Update documents in database
@@ -1512,20 +1513,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download document endpoint
-  app.get('/api/documents/download/:documentKey', requireAuth, async (req: any, res) => {
+  // Download document endpoint with real file retrieval
+  app.get('/api/documents/download/:documentKey/:applicationId', requireAuth, async (req: any, res) => {
     try {
-      const { documentKey } = req.params;
+      const { documentKey, applicationId } = req.params;
       
-      // In a real implementation, you would retrieve the actual file from storage
-      // For now, we'll return a placeholder response
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${documentKey}.pdf"`);
+      // Get the application to retrieve document data
+      const application = await storage.getCreditApplication(parseInt(applicationId));
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Find the document in required or optional documents
+      let documentData = null;
+      const mandatoryDocs = [
+        'business_license', 'cnpj_certificate', 'financial_statements', 'bank_statements',
+        'articles_of_incorporation', 'board_resolution', 'tax_registration', 
+        'social_security_clearance', 'labor_clearance', 'income_tax_return'
+      ];
       
-      // Send a simple PDF placeholder (in production, retrieve from file storage)
-      const pdfContent = Buffer.from('%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n174\n%%EOF');
+      if (mandatoryDocs.includes(documentKey)) {
+        documentData = application.requiredDocuments?.[documentKey];
+      } else {
+        documentData = application.optionalDocuments?.[documentKey];
+      }
+
+      if (!documentData || !documentData.data) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Set proper headers based on file type
+      res.setHeader('Content-Type', documentData.type || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${documentData.filename}"`);
       
-      res.send(pdfContent);
+      // Send the actual file data
+      const fileBuffer = Buffer.from(documentData.data, 'base64');
+      res.send(fileBuffer);
     } catch (error) {
       console.error("Error downloading document:", error);
       res.status(500).json({ message: "Erro ao fazer download do documento" });

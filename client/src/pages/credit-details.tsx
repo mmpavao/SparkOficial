@@ -699,6 +699,7 @@ function DocumentUploadSection({
       isUploading={isUploading}
       onUpload={onUpload}
       onValidation={onValidation}
+      applicationId={applicationId}
     />
   );
 }

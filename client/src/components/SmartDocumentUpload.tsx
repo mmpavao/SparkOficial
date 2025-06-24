@@ -39,6 +39,7 @@ interface SmartDocumentUploadProps {
   isUploading: boolean;
   onUpload: (file: File) => void;
   onValidation?: (result: ValidationResult) => void;
+  applicationId?: number;
 }
 
 export function SmartDocumentUpload({ 
@@ -48,7 +49,8 @@ export function SmartDocumentUpload({
   isUploaded,
   isUploading,
   onUpload,
-  onValidation
+  onValidation,
+  applicationId
 }: SmartDocumentUploadProps) {
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
@@ -250,29 +252,32 @@ export function SmartDocumentUpload({
                 </p>
               </div>
             ) : isUploaded ? (
-              <div className="flex items-center justify-between w-full">
-                <div>
-                  <p className="text-sm font-medium">Documento enviado</p>
-                  <p className="text-xs text-gray-500">Clique para substituir</p>
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-sm font-medium text-green-700">Documento enviado</p>
+                    <p className="text-xs text-gray-500">Clique para substituir</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const link = document.createElement('a');
+                        link.href = `/api/documents/download/${documentKey}/${applicationId}`;
+                        link.download = `${documentLabel}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="h-8 px-3 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      Download
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Create download functionality
-                    const link = document.createElement('a');
-                    link.href = `/api/documents/download/${documentKey}`;
-                    link.download = `${documentLabel}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <Download className="w-3 h-3" />
-                  Download
-                </Button>
               </div>
             ) : (
               <div>
