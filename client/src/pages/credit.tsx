@@ -573,93 +573,192 @@ export default function CreditPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {Array.isArray(applications) && applications.map((application: any) => (
-                <div key={application.id} className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-medium text-gray-900">
-                        {(permissions.canViewAllApplications || permissions.isFinanceira)
-                          ? `${application.legalCompanyName || application.tradingName || `Empresa #${application.userId}`}`
-                          : `Solicitação #${application.id}`}
-                      </h3>
-                      {getStatusBadge(application.status)}
-                      {(permissions.canViewAllApplications || permissions.isFinanceira) && (
-                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                          {application.legalCompanyName || application.tradingName || `Importador #${application.userId}`}
-                        </Badge>
-                      )}
+            <div className="space-y-6">
+              {Array.isArray(applications) && applications.map((application: any) => {
+                  // Determinar status visual e cor
+                  const getStatusInfo = () => {
+                    if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
+                      return { 
+                        label: 'Aprovado', 
+                        color: 'bg-green-100 text-green-800 border-green-200',
+                        icon: '✅'
+                      };
+                    } else if (application.financialStatus === 'rejected') {
+                      return { 
+                        label: 'Rejeitado', 
+                        color: 'bg-red-100 text-red-800 border-red-200',
+                        icon: '❌'
+                      };
+                    } else if (application.preAnalysisStatus === 'pre_approved') {
+                      return { 
+                        label: 'Pré-aprovado', 
+                        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                        icon: '⏳'
+                      };
+                    } else if (application.preAnalysisStatus === 'under_review') {
+                      return { 
+                        label: 'Em Análise', 
+                        color: 'bg-blue-100 text-blue-800 border-blue-200',
+                        icon: '🔍'
+                      };
+                    } else {
+                      return { 
+                        label: 'Pendente', 
+                        color: 'bg-gray-100 text-gray-800 border-gray-200',
+                        icon: '📋'
+                      };
+                    }
+                  };
+
+                  const statusInfo = getStatusInfo();
+                  const finalCreditAmount = application.finalCreditLimit || application.creditLimit;
+                  const hasApprovedCredit = application.financialStatus === 'approved' && finalCreditAmount;
+
+                  return (
+                    <div key={application.id} className="border-2 border-gray-100 rounded-xl p-6 hover:border-spark-200 transition-all duration-200 hover:shadow-md bg-gradient-to-r from-white to-gray-50">
+                      {/* Header da Solicitação */}
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-spark-100 rounded-lg flex items-center justify-center">
+                            <span className="text-2xl">{statusInfo.icon}</span>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-900">
+                              Solicitação #{application.id}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Criado em {new Date(application.createdAt).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
+                      </div>
+
+                      {/* Informações Principais */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        {/* Valor Solicitado */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <CreditCard className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-gray-600">Valor Solicitado</span>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
+                          </p>
+                        </div>
+
+                        {/* Valor Aprovado (se houver) */}
+                        {hasApprovedCredit && (
+                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <span className="text-sm font-medium text-green-700">Valor Aprovado</span>
+                            </div>
+                            <p className="text-xl font-bold text-green-800">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(finalCreditAmount))}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Tipo de Negócio */}
+                        {/* <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Building className="w-4 h-4 text-purple-600" />
+                            <span className="text-sm font-medium text-gray-600">Categoria</span>
+                          </div>
+                          <p className="text-sm font-bold text-gray-900 capitalize">
+                            {application.businessType?.replace('_', ' ') || 'Não informado'}
+                          </p>
+                        </div> */}
+                      </div>
+
+                      {/* Finalidade do Negócio */}
+                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-600">Finalidade</span>
+                        </div>
+                        <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">
+                          "{application.purpose || 'Não especificado'}"
+                        </p>
+                      </div>
+
+                      {/* Progresso e Informações Adicionais */}
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0">
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          {/* Progresso de Documentos */}
+                          {/* <div className="flex items-center space-x-2">
+                            <Upload className="w-4 h-4" />
+                            <span>
+                              {application.documents?.filter(doc => doc).length || 0} documentos
+                            </span>
+                          </div> */}
+
+                          {/* Data de Atualização */}
+                          <div className="flex items-center space-x-2">
+                            <Clock className="w-4 h-4" />
+                            <span>
+                              Atualizado {new Date(application.updatedAt).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Ações */}
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setLocation(`/credit/details/${application.id}`)}
+                            className="hover:bg-spark-50"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes
+                          </Button>
+
+                          {/* {application.status === 'pending' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.location.href = `/credit/${application.id}/edit`}
+                              className="hover:bg-blue-50"
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </Button>
+                          )} */}
+                        </div>
+                      </div>
+
+                      {/* Barra de Progresso do Status */}
+                      {/* <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                          <span>Progresso da Análise</span>
+                          <span>
+                            {application.financialStatus === 'approved' ? '100%' :
+                             application.preAnalysisStatus === 'pre_approved' ? '75%' :
+                             application.preAnalysisStatus === 'under_review' ? '50%' : '25%'}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-500 ${
+                              application.financialStatus === 'approved' ? 'bg-green-500 w-full' :
+                              application.preAnalysisStatus === 'pre_approved' ? 'bg-yellow-500 w-3/4' :
+                              application.preAnalysisStatus === 'under_review' ? 'bg-blue-500 w-1/2' : 'bg-gray-400 w-1/4'
+                            }`}
+                          />
+                        </div>
+                      </div> */}
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Valor: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
-                    </p>
-                    {permissions.canViewAllApplications && (
-                      <p className="text-sm text-gray-500 mb-1">
-                        CNPJ: {application.cnpj || 'Não informado'}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-500 line-clamp-2">
-                      {application.purpose || application.justification || 'Sem descrição'}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Criado em: {new Date(application.createdAt).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setLocation(`/credit/details/${application.id}`)}>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Ver Detalhes
-                      </DropdownMenuItem>
-
-                      {/* Ações do Importador */}
-                      {!permissions.canManageApplications && application.status === 'pending' && (
-                        <>
-                          <DropdownMenuItem onClick={() => setLocation(`/credit/edit/${application.id}`)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleCancelApplication(application.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Cancelar
-                          </DropdownMenuItem>
-                        </>
-                      )}
-
-                      {/* Ações Administrativas */}
-                      {permissions.canManageApplications && (
-                        <>
-                          <DropdownMenuItem 
-                            onClick={() => handleApproveApplication(application.id)}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Aprovar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleRejectApplication(application.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Rejeitar
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </Card>
     </div>
   );
