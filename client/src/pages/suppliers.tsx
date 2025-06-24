@@ -227,37 +227,46 @@ export default function SuppliersPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredSuppliers.map((supplier: any) => (
-                <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">
-                          {supplier.companyName}
-                        </h3>
-                        <Badge variant="outline" className="text-xs">
-                          Fornecedor Chinês
-                        </Badge>
-                        {(isAdmin || isFinanceira) && (supplier as any).importerCompanyName && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                            {(supplier as any).importerCompanyName}
-                          </Badge>
-                        )}
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-green-600" />
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          <span>Local: <strong>{supplier.city}, {supplier.country}</strong></span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {supplier.companyName}
+                          </h3>
+                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                            Fornecedor Chinês
+                          </Badge>
+                          {(isAdmin || isFinanceira) && (supplier as any).importerCompanyName && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                              {(supplier as any).importerCompanyName}
+                            </Badge>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4" />
-                          <span>Tel: <strong>{supplier.phone}</strong></span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          <span>Email: <strong>{supplier.email}</strong></span>
+                        
+                        <div className="flex items-center gap-6 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>Local:</span>
+                            <span className="font-medium">{supplier.city}, {supplier.country}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-4 h-4" />
+                            <span>Tel:</span>
+                            <span className="font-medium">{supplier.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            <span>Email:</span>
+                            <span className="font-medium">{supplier.email}</span>
+                          </div>
                         </div>
                       </div>
                     </div>

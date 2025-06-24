@@ -306,38 +306,44 @@ export default function ImportsPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredImports.map((importItem: Import) => (
-                <div key={importItem.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                <div key={importItem.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">
-                          {importItem.importName || `Importação #${importItem.id}`}
-                        </h3>
-                        <Badge className={`flex items-center gap-1 ${getStatusColor(importItem.status)}`}>
-                          {getStatusIcon(importItem.status)}
-                          {getStatusLabel(importItem.status)}
-                        </Badge>
-                        {(isAdmin || isFinanceira) && (importItem as any).companyName && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            {(importItem as any).companyName}
-                          </Badge>
-                        )}
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Package className="w-6 h-6 text-blue-600" />
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4" />
-                          <span>Produtos: <strong>{Array.isArray(importItem.products) ? importItem.products.length : 0}</strong></span>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {importItem.importName || `Importação #${importItem.id}`}
+                          </h3>
+                          <Badge className={`flex items-center gap-1 text-xs ${getStatusColor(importItem.status)}`}>
+                            {getStatusIcon(importItem.status)}
+                            {getStatusLabel(importItem.status)}
+                          </Badge>
+                          {(isAdmin || isFinanceira) && (importItem as any).companyName && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                              {(importItem as any).companyName}
+                            </Badge>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4" />
-                          <span>Valor: <strong>{formatCurrency(parseFloat(importItem.totalValue))}</strong></span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Box className="w-4 h-4" />
-                          <span>Tipo: <strong>{importItem.cargoType}</strong></span>
+                        
+                        <div className="flex items-center gap-6 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <span>Valor:</span>
+                            <span className="font-semibold text-blue-600">{formatCurrency(parseFloat(importItem.totalValue))}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>Produtos:</span>
+                            <span className="font-medium">{Array.isArray(importItem.products) ? importItem.products.length : 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>Tipo:</span>
+                            <span className="font-medium">{importItem.cargoType}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
