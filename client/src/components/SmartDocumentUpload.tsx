@@ -266,7 +266,7 @@ export function SmartDocumentUpload({
                         e.stopPropagation();
                         const link = document.createElement('a');
                         link.href = `/api/documents/download/${documentKey}/${applicationId}`;
-                        link.download = `${documentLabel}`;
+                        link.target = '_blank';
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);

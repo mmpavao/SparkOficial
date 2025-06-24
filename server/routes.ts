@@ -1455,18 +1455,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
       }
 
-      // Get current application
+      // Check if user owns the application
       const application = await storage.getCreditApplication(applicationId);
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
-      // Store document info with actual file data
+      if (application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Store document info with proper encoding
       const documentInfo = {
         filename: file.originalname,
+        originalName: file.originalname, // Preserve original name explicitly
         size: file.size,
         type: file.mimetype,
         uploadedAt: new Date().toISOString(),
+        uploadedBy: req.session.userId,
         data: file.buffer.toString('base64'), // Store file as base64
       };
 
@@ -1506,7 +1512,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ success: true, document: documentInfo });
+      console.log(`Document uploaded: ${documentInfo.originalName} for application ${applicationId}`);
+      res.json({ 
+        success: true, 
+        document: {
+          filename: documentInfo.originalName,
+          size: documentInfo.size,
+          type: documentInfo.type,
+          uploadedAt: documentInfo.uploadedAt
+        }
+      });
     } catch (error) {
       console.error("Error uploading document:", error);
       res.status(500).json({ message: "Erro ao fazer upload do documento" });
@@ -1522,6 +1537,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const application = await storage.getCreditApplication(parseInt(applicationId));
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Check permissions: user must own the application or be admin/financeira
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
       }
 
       // Find the document in required or optional documents
@@ -1542,12 +1567,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Documento não encontrado" });
       }
 
-      // Set proper headers based on file type
+      // Use original filename if available, fallback to stored filename
+      const filename = documentData.originalName || documentData.filename || `documento_${documentKey}`;
+      
+      // Set proper headers for download with original filename
       res.setHeader('Content-Type', documentData.type || 'application/octet-stream');
-      res.setHeader('Content-Disposition', `attachment; filename="${documentData.filename}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+      res.setHeader('Content-Length', documentData.size || 0);
       
       // Send the actual file data
       const fileBuffer = Buffer.from(documentData.data, 'base64');
+      console.log(`Document download: ${filename} for application ${applicationId} by user ${req.session.userId}`);
       res.send(fileBuffer);
     } catch (error) {
       console.error("Error downloading document:", error);

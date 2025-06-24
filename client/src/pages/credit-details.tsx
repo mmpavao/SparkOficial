@@ -57,7 +57,7 @@ export default function CreditDetailsPage() {
         isAdmin: permissions.isAdmin,
         userRole: user?.role
       });
-      
+
       if (permissions.isFinanceira) {
         console.log("Using Financeira endpoint");
         return await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
@@ -78,16 +78,16 @@ export default function CreditDetailsPage() {
       const formData = new FormData();
       formData.append('document', file);
       formData.append('documentType', documentType);
-      
+
       const response = await fetch(`/api/credit/applications/${applicationId}/documents`, {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error('Falha no upload do documento');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -149,7 +149,7 @@ export default function CreditDetailsPage() {
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const Icon = config.icon;
-    
+
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="w-3 h-3" />
@@ -317,7 +317,7 @@ export default function CreditDetailsPage() {
                   <p className="text-gray-900">{application.annualRevenue}</p>
                 </div>
               </div>
-              
+
               {application.productsToImport && application.productsToImport.length > 0 && (
                 <div>
                   <Label className="text-sm font-medium text-gray-600 mb-2 block">Produtos para Importar</Label>
@@ -328,7 +328,7 @@ export default function CreditDetailsPage() {
                   </div>
                 </div>
               )}
-              
+
               {application.justification && (
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Justificativa</Label>
@@ -359,7 +359,7 @@ export default function CreditDetailsPage() {
                     </div>
                   </div>
                 )}
-                
+
                 {application.adminObservations && (
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start gap-3">
@@ -465,7 +465,7 @@ export default function CreditDetailsPage() {
                   </p>
                 </div>
               </div>
-              
+
               {application.status === 'under_review' && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
@@ -475,7 +475,7 @@ export default function CreditDetailsPage() {
                   </div>
                 </div>
               )}
-              
+
               {(application.preAnalysisStatus === 'pre_approved' || application.status === 'approved') && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
@@ -505,7 +505,7 @@ export default function CreditDetailsPage() {
                   </div>
                 </div>
               )}
-              
+
               {application.status === 'rejected' && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
@@ -639,7 +639,7 @@ export default function CreditDetailsPage() {
               )}
             </>
           )}
-          
+
           {!(permissions.isAdmin || permissions.isFinanceira) && (
             <Card>
               <CardHeader>
@@ -654,7 +654,7 @@ export default function CreditDetailsPage() {
                   <FileText className="w-4 h-4 mr-2" />
                   Editar Solicitação
                 </Button>
-                
+
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
