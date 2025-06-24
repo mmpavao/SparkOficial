@@ -72,8 +72,7 @@ export default function CreditEditPage() {
   const { data: application, isLoading } = useQuery({
     queryKey: ["/api/credit/applications", applicationId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
-      return response.json();
+      return await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
     },
     enabled: !!applicationId,
   }) as { data: any, isLoading: boolean };
@@ -145,8 +144,7 @@ export default function CreditEditPage() {
         requestedAmount: parseUSDInput(data.requestedAmount).toString(),
       };
       
-      const response = await apiRequest(`/api/credit/applications/${applicationId}`, "PUT", applicationData);
-      return response.json();
+      return await apiRequest(`/api/credit/applications/${applicationId}`, "PUT", applicationData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
@@ -222,7 +220,7 @@ export default function CreditEditPage() {
   }
 
   // Check if application can be edited
-  if (application.status !== 'pending') {
+  if (application.status !== 'pending' && application.status !== 'under_review') {
     return (
       <div className="text-center py-12">
         <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
