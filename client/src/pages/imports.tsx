@@ -331,18 +331,47 @@ export default function ImportsPage() {
                           )}
                         </div>
                         
-                        <div className="flex items-center gap-6 text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <span>Valor:</span>
-                            <span className="font-semibold text-blue-600">{formatCurrency(parseFloat(importItem.totalValue))}</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-6 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <span>Valor:</span>
+                              <span className="font-semibold text-blue-600">{formatCurrency(parseFloat(importItem.totalValue))}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span>Produtos:</span>
+                              <span className="font-medium">{Array.isArray(importItem.products) ? importItem.products.length : 0}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span>Tipo:</span>
+                              <span className="font-medium">{importItem.cargoType}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span>Produtos:</span>
-                            <span className="font-medium">{Array.isArray(importItem.products) ? importItem.products.length : 0}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>Tipo:</span>
-                            <span className="font-medium">{importItem.cargoType}</span>
+                          
+                          {/* Pipeline Progress */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">Pipeline:</span>
+                            <div className="flex items-center gap-1">
+                              {['estimativa', 'invoice', 'producao', 'embarque', 'transporte', 'atracacao', 'desembaraco', 'transporte_terrestre', 'entrega'].map((stage, index) => {
+                                const currentStageIndex = ['estimativa', 'invoice', 'producao', 'embarque', 'transporte', 'atracacao', 'desembaraco', 'transporte_terrestre', 'entrega'].indexOf(importItem.currentStage || 'estimativa');
+                                const isCompleted = index < currentStageIndex;
+                                const isCurrent = index === currentStageIndex;
+                                
+                                return (
+                                  <div
+                                    key={stage}
+                                    className={`w-2 h-2 rounded-full ${
+                                      isCompleted ? 'bg-green-500' : 
+                                      isCurrent ? 'bg-blue-500' : 
+                                      'bg-gray-300'
+                                    }`}
+                                    title={stage}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {Math.round((((['estimativa', 'invoice', 'producao', 'embarque', 'transporte', 'atracacao', 'desembaraco', 'transporte_terrestre', 'entrega'].indexOf(importItem.currentStage || 'estimativa') + 1) / 9) * 100))}%
+                            </span>
                           </div>
                         </div>
                       </div>

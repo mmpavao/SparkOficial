@@ -358,29 +358,42 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Pipeline Tracker */}
+          {/* Status e Progresso Simplificado */}
           <Card>
             <CardHeader>
-              <CardTitle>Pipeline de Importação</CardTitle>
+              <CardTitle>Status da Importação</CardTitle>
             </CardHeader>
             <CardContent>
-              <PipelineTracker
-                importId={importId}
-                currentStage={importData.currentStage || "estimativa"}
-                stages={{
-                  stageEstimativa: importData.stageEstimativa,
-                  stageInvoice: importData.stageInvoice,
-                  stageProducao: importData.stageProducao,
-                  stageEmbarque: importData.stageEmbarque,
-                  stageTransporte: importData.stageTransporte,
-                  stageAtracacao: importData.stageAtracacao,
-                  stageDesembaraco: importData.stageDesembaraco,
-                  stageTransporteTerrestre: importData.stageTransporteTerrestre,
-                  stageEntrega: importData.stageEntrega,
-                }}
-                onUpdateStage={handlePipelineUpdate}
-                readOnly={!isAdmin && importData.userId !== user?.id}
-              />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Status Atual</span>
+                  {getStatusBadge(importData.status)}
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Etapa do Pipeline</span>
+                  <Badge variant="outline" className="text-blue-600">
+                    {importData.currentStage === 'estimativa' ? 'Estimativa' :
+                     importData.currentStage === 'invoice' ? 'Invoice' :
+                     importData.currentStage === 'producao' ? 'Produção' :
+                     importData.currentStage === 'embarque' ? 'Embarque' :
+                     importData.currentStage === 'transporte' ? 'Transporte Marítimo' :
+                     importData.currentStage === 'atracacao' ? 'Atracação' :
+                     importData.currentStage === 'desembaraco' ? 'Desembaraço' :
+                     importData.currentStage === 'transporte_terrestre' ? 'Transporte Terrestre' :
+                     importData.currentStage === 'entrega' ? 'Entrega' : 'Em Andamento'}
+                  </Badge>
+                </div>
+
+                {importData.estimatedDelivery && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Previsão de Entrega</span>
+                    <span className="text-sm text-gray-900">
+                      {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
