@@ -306,11 +306,12 @@ export default function ImportsPage() {
               </Button>
             </div>
           ) : (
-            {filteredImports.map((importItem: any) => (
-              <Card 
-                key={importItem.id} 
-                className="hover:shadow-md transition-all"
-              >
+            <div className="space-y-4">
+              {filteredImports.map((importItem: any) => (
+                <Card 
+                  key={importItem.id} 
+                  className="hover:shadow-md transition-all"
+                >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between gap-6">
                     {/* Left Section - Main Info */}
@@ -480,7 +481,8 @@ export default function ImportsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
