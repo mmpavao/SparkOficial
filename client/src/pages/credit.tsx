@@ -759,7 +759,6 @@ export default function CreditPage() {
             )}
           </CardContent>
         </Card>
-      </Card>
     </div>
   );
 }
