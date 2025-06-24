@@ -22,15 +22,12 @@ import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare, DollarSig
 import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
-import { useTranslation } from "react-i18next";
-
 interface AdminAnalysisPanelProps {
   application: any;
 }
 
 export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelProps) {
   const permissions = useUserPermissions();
-  const { t } = useTranslation();
 
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
-import { useTranslation } from "@/contexts/I18nContext";
+
 import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";
 import { formatCurrency, formatDate } from "@/lib/formatters";
@@ -20,7 +20,6 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const { metrics, creditApplications, imports } = useMetrics();
 
   // Debug logging

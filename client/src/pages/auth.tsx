@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "@/contexts/I18nContext";
+
 import { apiRequest } from "@/lib/queryClient";
 import { insertUserSchema, loginSchema, type InsertUser, type LoginUser } from "@shared/schema";
 import { formatCnpj, validateCnpj } from "@/lib/cnpj";
@@ -26,7 +26,6 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const loginForm = useForm<LoginUser>({
