@@ -20,7 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { useTranslation } from "@/contexts/I18nContext";
+
 import AdminFilters from "@/components/AdminFilters";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 import { CreditApplication } from "@shared/schema";
 
-const createCreditApplicationSchema = (t: any) => z.object({
+const createCreditApplicationSchema = z.object({
   requestedAmount: z.string()
     .min(1, "Valor é obrigatório")
     .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
@@ -167,13 +167,13 @@ export default function CreditPage() {
   const [filters, setFilters] = useState({});
   const { toast } = useToast();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  
   const permissions = useUserPermissions();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
   const form = useForm<CreditApplicationForm>({
-    resolver: zodResolver(createCreditApplicationSchema(t)),
+    resolver: zodResolver(createCreditApplicationSchema),
     defaultValues: {
       requestedAmount: "",
       purpose: "",
@@ -347,14 +347,14 @@ export default function CreditPage() {
               ? "Análise Financeira - Aprovação de Crédito" 
               : permissions.canViewAllApplications 
                 ? "Gestão de Crédito - Área Administrativa" 
-                : t.credit.title}
+                : "Gestão de Crédito"}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
               ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
               : permissions.canViewAllApplications 
                 ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
-                : t.credit.requestCredit}
+                : "Solicitar Crédito"}
           </p>
         </div>
         {!permissions.isFinanceira && (
