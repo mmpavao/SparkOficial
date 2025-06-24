@@ -126,27 +126,23 @@ const revenueRanges = [
 
 // Required documents for step 4 - must match credit-details.tsx
 const requiredDocuments = [
-  { key: "cnpj_certificate", name: "Certificado CNPJ", description: "Documento oficial da Receita Federal" },
-  { key: "articles_of_incorporation", name: "Contrato Social", description: "Documento de constituição da empresa" }
+  { key: "articles_of_incorporation", name: "Contrato Social", subtitle: "Articles of Association", description: "Documento que comprova a constituição da empresa, incluindo cláusulas societárias." },
+  { key: "cnpj_certificate", name: "Documentos dos Sócios (CPF e RG/CNH)", subtitle: "Legal Representative ID Copy", description: "Cópia legível dos documentos de identificação dos sócios (CPF e RG ou CNH)." }
 ];
 
 const optionalDocuments = [
-  { key: "business_license", name: "Licença Comercial", description: "Alvará de funcionamento ou licença municipal" },
-  { key: "financial_statements", name: "Demonstrações Financeiras", description: "Balanços e demonstrativos contábeis" },
-  { key: "bank_statements", name: "Extratos Bancários (6 meses)", description: "Movimentação bancária dos últimos 6 meses" },
-  { key: "board_resolution", name: "Ata de Assembleia", description: "Ata da última assembleia de sócios" },
-  { key: "tax_registration", name: "Inscrição Municipal/Estadual", description: "Documentos de inscrição fiscal" },
-  { key: "social_security_clearance", name: "Certidão INSS", description: "Certidão negativa de débitos do INSS" },
-  { key: "labor_clearance", name: "Certidão FGTS", description: "Certidão negativa de débitos do FGTS" },
-  { key: "income_tax_return", name: "Declaração Imposto de Renda", description: "Declaração do IR da empresa" },
-  { key: "tax_clearance", name: "Certidão Tributária", description: "Certidão negativa de tributos" },
-  { key: "commercial_references", name: "Referências Comerciais", description: "Cartas de referência de fornecedores" },
-  { key: "import_licenses", name: "Licenças de Importação", description: "Licenças específicas para importação" },
-  { key: "product_catalogs", name: "Catálogos de Produtos", description: "Catálogos dos produtos a importar" },
-  { key: "quality_certificates", name: "Certificados de Qualidade", description: "Certificados ISO e similares" },
-  { key: "insurance_policies", name: "Apólices de Seguro", description: "Apólices de seguro da empresa" },
-  { key: "bank_references", name: "Referências Bancárias", description: "Cartas de referência bancária" },
-  { key: "additional_documents", name: "Documentos Adicionais", description: "Outros documentos relevantes" }
+  { key: "business_license", name: "Licença de Funcionamento", subtitle: "Business License", description: "Documento que comprove atividade legal da empresa (cartão CNPJ ou documento da Junta Comercial)." },
+  { key: "quality_certificates", name: "Certificado de Constituição", subtitle: "Certificate of Incorporation", description: "Documento de registro formal da empresa." },
+  { key: "financial_statements", name: "Demonstrações Financeiras (últimos 3 anos)", subtitle: "Financial Statements (Last 3 Years)", description: "Balanço patrimonial e DRE dos últimos 3 anos." },
+  { key: "bank_references", name: "Carta de Referência Bancária", subtitle: "Bank Reference Letter", description: "Documento emitido pelo banco comprovando o relacionamento da empresa." },
+  { key: "commercial_references", name: "Relatório de Crédito da Empresa", subtitle: "Credit Report", description: "Emitido por entidades como Serasa, Boa Vista, etc." },
+  { key: "tax_clearance", name: "Certificado de Regularidade Fiscal", subtitle: "Tax Registration Certificate", description: "Certidões negativas (Receita Federal, Estadual, Municipal)." },
+  { key: "import_licenses", name: "Licença ou Registro de Importação", subtitle: "Export and Import License", description: "RADAR ou documento equivalente." },
+  { key: "tax_registration", name: "Registro Alfandegário", subtitle: "Customs Registration Certificate", description: "Caso aplicável, comprovação de operações de comércio exterior." },
+  { key: "product_catalogs", name: "Lista de Principais Clientes", subtitle: "Main Customers List", description: "Lista de clientes com país e volume médio." },
+  { key: "board_resolution", name: "Contratos ou Pedidos de Compra Recentes", subtitle: "Sales Contracts / Purchase Orders", description: "Exemplo de negociações recentes." },
+  { key: "bank_statements", name: "Modelo de Contrato com Clientes", subtitle: "Supplier Contract Sample", description: "Contrato tipo com clientes ou fornecedores." },
+  { key: "insurance_policies", name: "Histórico de Sinistros (se houver)", subtitle: "Insurance Claim Record (if any)", description: "Histórico de uso de seguro comercial." }
 ];
 
 export default function CreditApplicationPage() {

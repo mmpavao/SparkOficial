@@ -159,27 +159,23 @@ export default function CreditDetailsPage() {
   };
 
   const mandatoryDocuments = [
-    { key: 'cnpj_certificate', label: 'Certificado CNPJ', required: true },
-    { key: 'articles_of_incorporation', label: 'Contrato Social', required: true },
+    { key: 'articles_of_incorporation', label: 'Contrato Social', subtitle: 'Articles of Association', required: true },
+    { key: 'cnpj_certificate', label: 'Documentos dos Sócios (CPF e RG/CNH)', subtitle: 'Legal Representative ID Copy', required: true },
   ];
 
   const optionalDocuments = [
-    { key: 'business_license', label: 'Licença Comercial', required: false },
-    { key: 'financial_statements', label: 'Demonstrações Financeiras', required: false },
-    { key: 'bank_statements', label: 'Extratos Bancários (6 meses)', required: false },
-    { key: 'board_resolution', label: 'Ata de Assembleia', required: false },
-    { key: 'tax_registration', label: 'Inscrição Municipal/Estadual', required: false },
-    { key: 'social_security_clearance', label: 'Certidão INSS', required: false },
-    { key: 'labor_clearance', label: 'Certidão FGTS', required: false },
-    { key: 'income_tax_return', label: 'Declaração Imposto de Renda', required: false },
-    { key: 'tax_clearance', label: 'Certidão Tributária', required: false },
-    { key: 'commercial_references', label: 'Referências Comerciais', required: false },
-    { key: 'import_licenses', label: 'Licenças de Importação', required: false },
-    { key: 'product_catalogs', label: 'Catálogos de Produtos', required: false },
-    { key: 'quality_certificates', label: 'Certificados de Qualidade', required: false },
-    { key: 'insurance_policies', label: 'Apólices de Seguro', required: false },
-    { key: 'bank_references', label: 'Referências Bancárias', required: false },
-    { key: 'additional_documents', label: 'Documentos Adicionais', required: false },
+    { key: 'business_license', label: 'Licença de Funcionamento', subtitle: 'Business License', required: false },
+    { key: 'quality_certificates', label: 'Certificado de Constituição', subtitle: 'Certificate of Incorporation', required: false },
+    { key: 'financial_statements', label: 'Demonstrações Financeiras (últimos 3 anos)', subtitle: 'Financial Statements (Last 3 Years)', required: false },
+    { key: 'bank_references', label: 'Carta de Referência Bancária', subtitle: 'Bank Reference Letter', required: false },
+    { key: 'commercial_references', label: 'Relatório de Crédito da Empresa', subtitle: 'Credit Report', required: false },
+    { key: 'tax_clearance', label: 'Certificado de Regularidade Fiscal', subtitle: 'Tax Registration Certificate', required: false },
+    { key: 'import_licenses', label: 'Licença ou Registro de Importação', subtitle: 'Export and Import License', required: false },
+    { key: 'tax_registration', label: 'Registro Alfandegário', subtitle: 'Customs Registration Certificate', required: false },
+    { key: 'product_catalogs', label: 'Lista de Principais Clientes', subtitle: 'Main Customers List', required: false },
+    { key: 'board_resolution', label: 'Contratos ou Pedidos de Compra Recentes', subtitle: 'Sales Contracts / Purchase Orders', required: false },
+    { key: 'bank_statements', label: 'Modelo de Contrato com Clientes', subtitle: 'Supplier Contract Sample', required: false },
+    { key: 'insurance_policies', label: 'Histórico de Sinistros (se houver)', subtitle: 'Insurance Claim Record (if any)', required: false },
   ];
 
   if (!match) {
@@ -703,7 +699,7 @@ function DocumentUploadSection({
   uploadedDocuments,
   onValidation
 }: {
-  documentInfo: { key: string; label: string; required: boolean };
+  documentInfo: { key: string; label: string; subtitle?: string; required: boolean };
   applicationId: number;
   isUploading: boolean;
   onUpload: (file: File) => void;
@@ -716,6 +712,7 @@ function DocumentUploadSection({
     <SmartDocumentUpload
       documentKey={documentInfo.key}
       documentLabel={documentInfo.label}
+      documentSubtitle={documentInfo.subtitle}
       isRequired={documentInfo.required}
       isUploaded={isUploaded}
       isUploading={isUploading}

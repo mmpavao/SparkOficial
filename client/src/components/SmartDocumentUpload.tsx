@@ -34,6 +34,7 @@ interface ValidationResult {
 interface SmartDocumentUploadProps {
   documentKey: string;
   documentLabel: string;
+  documentSubtitle?: string;
   isRequired: boolean;
   isUploaded: boolean;
   isUploading: boolean;
@@ -45,6 +46,7 @@ interface SmartDocumentUploadProps {
 export function SmartDocumentUpload({ 
   documentKey,
   documentLabel,
+  documentSubtitle,
   isRequired,
   isUploaded,
   isUploading,
@@ -201,13 +203,18 @@ export function SmartDocumentUpload({
     <div className="space-y-3">
       {/* Cabeçalho com Download visível */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">{documentLabel}</label>
-          {isRequired && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
-          {!isUploaded && !validationResult && (
-            <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
-              Pendente
-            </Badge>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">{documentLabel}</label>
+            {isRequired && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
+            {!isUploaded && !validationResult && (
+              <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                Pendente
+              </Badge>
+            )}
+          </div>
+          {documentSubtitle && (
+            <span className="text-xs text-gray-500 italic">{documentSubtitle}</span>
           )}
         </div>
         

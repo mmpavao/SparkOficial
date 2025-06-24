@@ -1,0 +1,54 @@
+PROMPT PARA SUBSTITUIR A LISTA DE DOCUMENTOS NO FORMULÁRIO, POPUP E STATUS
+Objetivo: Substituir apenas os títulos e legendas dos documentos utilizados no sistema de solicitação de crédito, mantendo toda a estrutura, formulários, validações e campos de upload exatamente como estão.
+
+🔄 Atualizar os documentos obrigatórios:
+ANTES:
+
+Contrato Social
+
+Documentos dos Sócios (CPF e RG ou CNH)
+
+DEPOIS (mantendo campos de upload):
+
+Contrato Social
+Articles of Association
+Documento que comprova a constituição da empresa, incluindo cláusulas societárias.
+
+Documentos dos Sócios (CPF e RG/CNH)
+Legal Representative ID Copy
+Cópia legível dos documentos de identificação dos sócios (CPF e RG ou CNH).
+
+🔄 Atualizar os documentos complementares:
+Substituir os nomes atuais dos documentos complementares por estes abaixo, mantendo os respectivos campos de upload, status e estrutura do sistema.
+
+Novo Título (PT-BR)	Subtítulo (EN)	Descrição
+Licença de Funcionamento	Business License	Documento que comprove atividade legal da empresa (cartão CNPJ ou documento da Junta Comercial).
+Certificado de Constituição	Certificate of Incorporation	Documento de registro formal da empresa.
+Demonstrações Financeiras (últimos 3 anos)	Financial Statements (Last 3 Years)	Balanço patrimonial e DRE dos últimos 3 anos.
+Carta de Referência Bancária	Bank Reference Letter	Documento emitido pelo banco comprovando o relacionamento da empresa.
+Relatório de Crédito da Empresa	Credit Report	Emitido por entidades como Serasa, Boa Vista, etc.
+Certificado de Regularidade Fiscal	Tax Registration Certificate	Certidões negativas (Receita Federal, Estadual, Municipal).
+Licença ou Registro de Importação	Export and Import License	RADAR ou documento equivalente.
+Registro Alfandegário	Customs Registration Certificate	Caso aplicável, comprovação de operações de comércio exterior.
+Lista de Principais Clientes	Main Customers List	Lista de clientes com país e volume médio.
+Contratos ou Pedidos de Compra Recentes	Sales Contracts / Purchase Orders	Exemplo de negociações recentes.
+Modelo de Contrato com Clientes	Supplier Contract Sample	Contrato tipo com clientes ou fornecedores.
+Histórico de Sinistros (se houver)	Insurance Claim Record (if any)	Histórico de uso de seguro comercial.
+
+🟢 Importante:
+⚠️ Não alterar:
+
+Nome de variáveis, ids, slugs ou arquivos de upload.
+
+Estrutura de campos, estilos CSS ou eventos de clique.
+
+Regras de obrigatoriedade e upload condicional.
+
+✅ Apenas substituir:
+
+Títulos visíveis ao usuário
+
+Subtítulos em inglês (exibição)
+
+Descrições de orientação
+
