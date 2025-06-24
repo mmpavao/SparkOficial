@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { I18nProvider } from "@/contexts/I18nContext";
 
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
@@ -29,9 +30,9 @@ import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import AdminRoute from "@/components/AdminRoute";
 
 function Router() {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  if (isLoading) {
+  if (isAuthenticated === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -77,15 +78,15 @@ function Router() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <I18nProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;
