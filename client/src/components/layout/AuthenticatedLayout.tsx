@@ -36,7 +36,7 @@ import {
 
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useTranslation } from "@/contexts/I18nContext";
-import { LanguageSelector } from "@/components/ui/language-selector";
+import LanguageSelector from "@/components/ui/language-selector";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
