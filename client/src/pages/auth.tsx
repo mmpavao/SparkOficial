@@ -18,6 +18,8 @@ import { Shield, Clock, TrendingUp } from "lucide-react";
 
 import logo_spark_bco from "@assets/logo-spark-bco.jpg";
 
+import logo_spark_comex_green_bg from "@assets/logo spark comex green bg.png";
+
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
@@ -118,7 +120,7 @@ export default function AuthPage() {
         <div className="max-w-md text-center">
           <div className="mb-8">
             <img 
-              src={logo_spark_bco} 
+              src={logo_spark_comex_green_bg} 
               alt="Spark Comex" 
               className="h-20 w-auto mx-auto mb-4"
             />
