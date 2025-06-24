@@ -243,7 +243,7 @@ export default function AuthPage() {
                       <Checkbox 
                         checked={rememberMe}
                         onCheckedChange={setRememberMe}
-                        className="data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" 
+                        className="peer shrink-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 h-6 w-6 border-3 border-gray-600 rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md ml-[0px] mr-[0px] bg-[#e1e3e2]" 
                       />
                       <span className="ml-2 text-sm text-gray-600">{t.auth.rememberMe}</span>
                     </label>
