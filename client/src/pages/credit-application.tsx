@@ -941,7 +941,8 @@ export default function CreditApplicationPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Ex: Componentes eletrônicos, matérias-primas, etc."
-                          rows={3{...field}
+                          rows={3}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
