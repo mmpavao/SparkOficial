@@ -81,6 +81,23 @@
 .text-spark-700 { color: var(--spark-700); }
 .text-spark-900 { color: var(--spark-900); }
 
+.border-spark-600 { border-color: var(--spark-600); }
+.border-spark-700 { border-color: var(--spark-700); }
+
+.ring-spark-200 { --tw-ring-color: hsl(158, 64%, 89%); }
+.ring-spark-500 { --tw-ring-color: var(--spark-500); }
+
+/* Checkbox enhancement for better visibility */
+.checkbox-enhanced {
+  @apply border-2 border-gray-300 bg-white;
+}
+
+.checkbox-enhanced[data-state="checked"] {
+  @apply bg-spark-600 border-spark-600 text-white;
+}
+.text-spark-700 { color: var(--spark-700); }
+.text-spark-900 { color: var(--spark-900); }
+
 .border-spark-50 { border-color: var(--spark-50); }
 .border-spark-100 { border-color: var(--spark-100); }
 .border-spark-500 { border-color: var(--spark-500); }

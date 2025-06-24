@@ -295,6 +295,9 @@ export default function AuthPage() {
                             onBlur={field.onBlur}
                             name={field.name}
                             ref={field.ref}
+                            disabled={false}
+                            readOnly={false}
+                            autoComplete="name"
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
                         </FormControl>
@@ -408,7 +411,7 @@ export default function AuthPage() {
                           <Checkbox 
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="mt-1 data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" 
+                            className="mt-1 data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600 data-[state=checked]:text-white border-2" 
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
