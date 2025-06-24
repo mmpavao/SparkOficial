@@ -82,25 +82,49 @@ export default function AuthPage() {
       });
     },
     onError: (error: any) => {
+      console.log("Registration error:", error); // Debug log
+      
       const isConflict = error.status === 409;
       const errorData = error.data || {};
       
       if (isConflict && errorData.type === "cnpj_exists") {
         toast({
           title: "CNPJ já cadastrado",
-          description: errorData.suggestion || "Este CNPJ já possui uma conta cadastrada",
+          description: errorData.suggestion || "Este CNPJ já possui uma conta cadastrada. Verifique se sua empresa já possui conta ou entre em contato conosco.",
           variant: "default",
         });
       } else if (isConflict && errorData.type === "email_exists") {
         toast({
           title: "E-mail já cadastrado",
-          description: errorData.suggestion || "Este e-mail já possui uma conta cadastrada",
+          description: errorData.suggestion || "Este e-mail já possui uma conta cadastrada. Tente fazer login ou use a opção 'Esqueci minha senha'.",
           variant: "default",
         });
+      } else if (isConflict) {
+        // Generic conflict error (CNPJ or email exists but type not specified)
+        const message = error.message || errorData.message || "Dados já cadastrados";
+        if (message.toLowerCase().includes("cnpj")) {
+          toast({
+            title: "CNPJ já cadastrado",
+            description: "Este CNPJ já possui uma conta cadastrada. Verifique se sua empresa já possui conta ou entre em contato conosco.",
+            variant: "default",
+          });
+        } else if (message.toLowerCase().includes("email") || message.toLowerCase().includes("e-mail")) {
+          toast({
+            title: "E-mail já cadastrado", 
+            description: "Este e-mail já possui uma conta cadastrada. Tente fazer login ou use a opção 'Esqueci minha senha'.",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Dados já cadastrados",
+            description: message,
+            variant: "default",
+          });
+        }
       } else {
         toast({
-          title: t.errors.registrationFailed,
-          description: error.message || t.errors.registrationFailed,
+          title: "Falha no cadastro",
+          description: error.message || "Ocorreu um erro ao criar sua conta. Tente novamente.",
           variant: "destructive",
         });
       }

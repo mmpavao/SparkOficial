@@ -379,6 +379,8 @@ Changelog:
   * Added comprehensive CNPJ validation with mathematical verification algorithm in Zod schema
   * Improved user experience with contextual suggestions for existing accounts
   * Integrated server-side CNPJ validation to prevent invalid registrations
+  * Fixed "body stream already read" error in API response handling using response cloning
+  * Enhanced error message display with specific guidance for CNPJ/email conflicts
 ```
 
 ## User Preferences
