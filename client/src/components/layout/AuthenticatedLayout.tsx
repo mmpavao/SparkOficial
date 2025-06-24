@@ -314,14 +314,12 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       {user?.fullName && getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className={`ml-3 min-w-0 flex-1 text-left transition-opacity duration-300 ${
-                    sidebarCollapsed ? "lg:opacity-0 lg:w-0 lg:overflow-hidden" : "opacity-100"
-                  }`}>
+                  <div className="ml-3 min-w-0 flex-1 text-left">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {user?.fullName}
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {user?.email}
+                      {user?.role === "admin" ? "Administrador" : user?.role === "financeira" ? "Financeira" : "Importador"}
                     </p>
                   </div>
                 </div>
