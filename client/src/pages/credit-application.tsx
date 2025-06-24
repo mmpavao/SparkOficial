@@ -58,7 +58,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Minus
+  Minus,
+  Trash2,
+  X
 } from "lucide-react";
 
 // Multi-step form type definitions
