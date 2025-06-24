@@ -824,8 +824,12 @@ export default function CreditApplicationPage() {
                               <Input 
                                 type="number"
                                 placeholder="50"
-                                {...field}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                                onFocus={(e) => e.target.select()}
+                                min="0"
+                                max="100"
+                                step="1"
                               />
                             </FormControl>
                             <FormMessage />
