@@ -87,14 +87,31 @@
 .ring-spark-200 { --tw-ring-color: hsl(158, 64%, 89%); }
 .ring-spark-500 { --tw-ring-color: var(--spark-500); }
 
-/* Checkbox enhancement for better visibility */
-.checkbox-enhanced {
-  @apply border-2 border-gray-300 bg-white;
+/* Prevent browser autofill interference completely */
+input[data-form-type="other"]:-webkit-autofill,
+input[data-form-type="other"]:-webkit-autofill:hover,
+input[data-form-type="other"]:-webkit-autofill:focus,
+input[data-form-type="other"]:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: black !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
 
-.checkbox-enhanced[data-state="checked"] {
-  @apply bg-spark-600 border-spark-600 text-white;
+/* Force input styling */
+input[name="custom_full_name_field"] {
+    background: white !important;
+    color: black !important;
 }
+
+/* Enhanced checkbox visibility */
+.checkbox-visible {
+  @apply border-2 border-gray-400 bg-white;
+}
+
+.checkbox-visible[data-state="checked"] {
+  @apply bg-green-600 border-green-600 text-white;
+}
+
 .text-spark-700 { color: var(--spark-700); }
 .text-spark-900 { color: var(--spark-900); }
 

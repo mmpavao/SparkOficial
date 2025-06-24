@@ -293,11 +293,13 @@ export default function AuthPage() {
                             value={field.value || ""}
                             onChange={field.onChange}
                             onBlur={field.onBlur}
-                            name={field.name}
+                            name="custom_full_name_field"
                             ref={field.ref}
-                            disabled={false}
-                            readOnly={false}
-                            autoComplete="name"
+                            autoComplete="off"
+                            autoFill="off"
+                            data-lpignore="true"
+                            data-form-type="other"
+                            style={{ WebkitBoxShadow: 'none !important' }}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
                         </FormControl>
@@ -409,9 +411,9 @@ export default function AuthPage() {
                       <FormItem className="flex items-start space-x-2 space-y-0">
                         <FormControl>
                           <Checkbox 
-                            checked={field.value}
+                            checked={field.value || false}
                             onCheckedChange={field.onChange}
-                            className="mt-1 data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600 data-[state=checked]:text-white border-2" 
+                            className="mt-1 h-6 w-6 border-3 border-gray-600 bg-white rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md" 
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
