@@ -1180,7 +1180,7 @@ export default function CreditApplicationPage() {
                 <h3 className="text-lg font-semibold text-red-700">Documentos Obrigatórios</h3>
               </div>
               <p className="text-sm text-gray-600">
-                Para prosseguir com a solicitação, você deve anexar pelo menos <strong>2 documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
+                Para prosseguir com a solicitação, você deve anexar <strong>ambos os documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
               </p>
 
               {/* Progress indicator */}
@@ -1200,6 +1200,7 @@ export default function CreditApplicationPage() {
                   key={doc.key}
                   documentKey={doc.key}
                   documentLabel={doc.name}
+                  documentSubtitle={doc.subtitle}
                   isRequired={true}
                   isUploaded={!!uploadedDocuments[doc.key]}
                   isUploading={uploadingDocument === doc.key}
