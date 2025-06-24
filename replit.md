@@ -376,8 +376,9 @@ Changelog:
   * Fixed blocked fullName input field by replacing FormControl with direct HTML input
   * Enhanced checkbox visibility with emerald-600 color and proper border styling
   * Implemented intelligent error handling for duplicate CNPJ/email with informative messages
-  * Added real-time CNPJ validation using mathematical verification algorithm
+  * Added comprehensive CNPJ validation with mathematical verification algorithm in Zod schema
   * Improved user experience with contextual suggestions for existing accounts
+  * Integrated server-side CNPJ validation to prevent invalid registrations
 ```
 
 ## User Preferences

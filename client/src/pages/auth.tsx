@@ -292,16 +292,7 @@ export default function AuthPage() {
                               }}
                               onBlur={(e) => {
                                 field.onBlur();
-                                // Validação em tempo real do CNPJ
-                                const cnpjValue = e.target.value;
-                                if (cnpjValue && !validateCnpj(cnpjValue)) {
-                                  registerForm.setError("cnpj", {
-                                    type: "manual",
-                                    message: "CNPJ inválido. Verifique os números digitados."
-                                  });
-                                } else if (cnpjValue) {
-                                  registerForm.clearErrors("cnpj");
-                                }
+                                // Validação em tempo real do CNPJ já é feita pelo Zod schema
                               }}
                               name={field.name}
                               ref={field.ref}
