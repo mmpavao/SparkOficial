@@ -20,7 +20,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Access-Control-Allow-Origin', req.headers.origin);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
-    
+
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);
     } else {
@@ -58,7 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware
   const requireAuth = async (req: any, res: any, next: any) => {
     console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
-    
+
     if (!req.session?.userId) {
       console.log("Authentication failed - no session or user ID");
       return res.status(401).json({ message: "Não autorizado" });
@@ -72,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.destroy(() => {}); // Clear invalid session
         return res.status(401).json({ message: "Usuário não encontrado" });
       }
-      
+
       req.user = { id: user.id, email: user.email, role: user.role };
       console.log("Authentication successful for user:", req.session.userId, "Role:", user.role);
       next();
@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isSuperAdmin = user?.email === "pavaosmart@gmail.com";
       const isAdmin = user?.role === "admin" || isSuperAdmin;
       const isFinanceira = user?.role === "financeira";
-      
+
       switch (requiredRole) {
         case 'admin':
           if (!isAdmin) {
@@ -115,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUserByEmail = await storage.getUserByEmail(userData.email);
       if (existingUserByEmail) {
@@ -129,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password
       const hashedPassword = await bcrypt.hash(userData.password, 12);
-      
+
       // Create user (exclude confirmPassword)
       const { confirmPassword, ...userToCreate } = userData;
       const user = await storage.createUser({
@@ -160,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Login attempt for:", req.body.email);
       const { email, password } = loginSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         console.log("User not found:", email);
@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       req.session.userId = user.id;
       console.log("Session created for user ID:", user.id, "Session ID:", req.sessionID);
-      
+
       // Save session explicitly
       req.session.save((err: any) => {
         if (err) {
@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Erro ao salvar sessão" });
         }
         console.log("Session saved successfully");
-        
+
         // Return user without password
         const { password: _, ...userResponse } = user;
         res.json(userResponse);
@@ -222,14 +222,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Logout endpoint
   app.post("/api/auth/logout", (req: any, res) => {
     const sessionId = req.sessionID;
-    
+
     // Clear session regardless of destroy success
     req.session.destroy((err: any) => {
       if (err) {
         console.error("Logout error during session destroy:", err);
         // Continue with cookie clearing even if session destroy fails
       }
-      
+
       // Clear all possible cookie variations for production compatibility
       const cookieOptions = [
         // Standard cookie clearing
@@ -254,16 +254,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sameSite: 'lax' as const
         }
       ];
-      
+
       // Clear connect.sid cookie with multiple configurations
       cookieOptions.forEach(options => {
         res.clearCookie('connect.sid', options);
       });
-      
+
       // Also clear any potential session variations
       res.clearCookie('session');
       res.clearCookie('sessionid');
-      
+
       console.log("User logged out, session destroyed:", sessionId);
       res.json({ message: "Logout realizado com sucesso" });
     });
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const { fullName, email, phone, companyName, cnpj, avatar } = req.body;
-      
+
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
@@ -324,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/users", requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Verificar se é super admin
       if (currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas super admin" });
@@ -332,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userData = req.body;
       const { confirmPassword, ...userDataWithoutConfirm } = userData;
-      
+
       // Verificar se já existe usuário com este email
       const existingUserByEmail = await storage.getUserByEmail(userDataWithoutConfirm.email);
       if (existingUserByEmail) {
@@ -350,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           field: "cnpj"
         });
       }
-      
+
       const newUser = await storage.createUserByAdmin(userDataWithoutConfirm, currentUser.id);
       res.json(newUser);
     } catch (error) {
@@ -362,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/users/:id/role", requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Verificar se é super admin ou admin
       if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
@@ -370,7 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { id } = req.params;
       const { role } = req.body;
-      
+
       const updatedUser = await storage.updateUserRole(parseInt(id), role);
       res.json(updatedUser);
     } catch (error) {
@@ -382,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/users/:id", requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Verificar se é super admin
       if (currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas super admin" });
@@ -401,7 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Verificar se é super admin ou admin
       if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
@@ -420,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const applicationData = { ...req.body, userId };
-      
+
       const application = await storage.createCreditApplication(applicationData);
       res.status(201).json(application);
     } catch (error) {
@@ -444,24 +444,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const application = await storage.getCreditApplication(id);
-      
+
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-      
+
       // Get current user to check permissions
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Allow access if:
       // 1. User owns the application
       // 2. User is admin or super admin
       const isOwner = application.userId === req.session.userId;
       const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'pavaosmart@gmail.com';
-      
+
       if (!isOwner && !isAdmin) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       res.json(application);
     } catch (error) {
       console.error("Error fetching credit application:", error);
@@ -474,28 +474,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const application = await storage.getCreditApplication(id);
-      
+
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-      
+
       if (application.userId !== req.session.userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       // Only allow cancellation of pending applications
       if (application.status !== 'pending') {
         return res.status(400).json({ 
           message: "Apenas solicitações pendentes podem ser canceladas" 
         });
       }
-      
+
       const updatedApplication = await storage.updateCreditApplicationStatus(
         id, 
         'cancelled', 
         { cancelledAt: new Date(), cancelledBy: req.session.userId }
       );
-      
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error cancelling credit application:", error);
@@ -508,27 +508,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const application = await storage.getCreditApplication(id);
-      
+
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-      
+
       if (application.userId !== req.session.userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       // Only allow editing of pending applications
       if (application.status !== 'pending') {
         return res.status(400).json({ 
           message: "Apenas solicitações pendentes podem ser editadas" 
         });
       }
-      
+
       const updatedData = {
         ...req.body,
         updatedAt: new Date(),
       };
-      
+
       const updatedApplication = await storage.updateCreditApplication(id, updatedData);
       res.json(updatedApplication);
     } catch (error) {
@@ -543,17 +543,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
       const currentUser = await storage.getUser(userId);
-      
+
       // Only admins can approve
       if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
-      
+
       const application = await storage.getCreditApplication(applicationId);
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-      
+
       const updatedApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         'pre_approved',
@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           approvalReason: req.body.reason || 'Pré-aprovado pela administração'
         }
       );
-      
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error approving credit application:", error);
@@ -577,17 +577,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
       const currentUser = await storage.getUser(userId);
-      
+
       // Only admins can reject
       if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
-      
+
       const application = await storage.getCreditApplication(applicationId);
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-      
+
       const updatedApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         'rejected',
@@ -597,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rejectionReason: req.body.reason || 'Rejeitado pela administração'
         }
       );
-      
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error rejecting credit application:", error);
@@ -611,19 +611,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
       const currentUser = await storage.getUser(userId);
-      
+
       // Only admins can update analysis
       if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
-      
+
       const application = await storage.getCreditApplication(applicationId);
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
       const { status, data } = req.body;
-      
+
       const updatedApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         status,
@@ -632,7 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           analyzedBy: userId,
         }
       );
-      
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error updating analysis:", error);
@@ -645,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
-      
+
       // Clean and convert data to match the new schema
       const cleanedData: any = {
         userId,
@@ -663,7 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "planning",
         currentStage: "estimativa"
       };
-      
+
       const importRecord = await storage.createImport(cleanedData);
       res.status(201).json(importRecord);
     } catch (error) {
@@ -690,18 +690,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
       const isFinanceira = currentUser?.role === "financeira";
-      
+
       const importRecord = await storage.getImport(id);
-      
+
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
-      
+
       // Allow access if user owns the import, is admin, or is financeira
       if (!isAdmin && !isFinanceira && importRecord.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       res.json(importRecord);
     } catch (error) {
       console.error("Error fetching import:", error);
@@ -716,22 +716,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
-      
+
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
-      
+
       // Allow editing if user owns the import or is admin
       if (!isAdmin && importRecord.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       // Only allow editing if status is 'planejamento'
       if (importRecord.status !== 'planejamento') {
         return res.status(400).json({ message: "Só é possível editar importações em planejamento" });
       }
-      
+
       const updatedImport = await storage.updateImportStatus(id, importRecord.status, req.body);
       res.json(updatedImport);
     } catch (error) {
@@ -747,27 +747,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
-      
+
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
-      
+
       // Allow canceling if user owns the import or is admin
       if (!isAdmin && importRecord.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       // Don't allow canceling already finished or cancelled imports
       if (importRecord.status === 'cancelada' || importRecord.status === 'concluida') {
         return res.status(400).json({ message: "Esta importação não pode ser cancelada" });
       }
-      
+
       const cancelledImport = await storage.updateImportStatus(id, 'cancelada', {
         cancelledAt: new Date().toISOString(),
         cancelledBy: userId
       });
-      
+
       res.json(cancelledImport);
     } catch (error) {
       console.error("Error cancelling import:", error);
@@ -779,16 +779,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { status, ...updateData } = req.body;
-      
+
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
-      
+
       if (importRecord.userId !== req.session.userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       const updatedImport = await storage.updateImportStatus(id, status, updateData);
       res.json(updatedImport);
     } catch (error) {
@@ -805,17 +805,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
-      
+
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
-      
+
       // Allow access if user owns the import or is admin
       if (!isAdmin && importRecord.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       // Update the specific stage data and current stage
       const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
       const updateData = {
@@ -823,7 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentStage: currentStage,
         updatedAt: new Date()
       };
-      
+
       const updatedImport = await storage.updateImportStatus(id, importRecord.status, updateData);
       res.json(updatedImport);
     } catch (error) {
@@ -836,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Verificar se é admin ou super admin
       if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
@@ -852,22 +852,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/admin/imports/:id/status', requireAuth, async (req: any, res) => {
     try {
-      const currentUser = await storage.getUser(req.session.userId);
-      
-      // Verificar se é admin ou super admin
+      const currentUser = await storage.getUser(req.session.userId);      // Verificar se é admin ou super admin
       if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
       const id = parseInt(req.params.id);
       const { status, ...updateData } = req.body;
-      
+
       const updatedImport = await storage.updateImportStatus(id, status, {
         ...updateData,
         updatedBy: req.session.userId,
         updatedAt: new Date()
       });
-      
+
       res.json(updatedImport);
     } catch (error) {
       console.error("Error updating import status:", error);
@@ -882,12 +880,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({ message: "Usuário não encontrado" });
       }
-      
+
       // Check if user is admin (using email for now)
       if (user.email !== "pavaosmart@gmail.com" && user.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado - privilégios de administrador necessários" });
       }
-      
+
       next();
     } catch (error) {
       console.error("Admin check error:", error);
@@ -935,13 +933,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      
+
       const application = await storage.updateCreditApplicationStatus(
         parseInt(id), 
         status, 
         { updatedBy: req.session.userId, updatedAt: new Date() }
       );
-      
+
       res.json(application);
     } catch (error) {
       console.error("Error updating credit application status:", error);
@@ -954,7 +952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { preAnalysisStatus, riskAssessment, adminRecommendation } = req.body;
-      
+
       const reviewData = {
         preAnalysisStatus,
         riskAssessment,
@@ -962,13 +960,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         analyzedBy: req.session.userId,
         analyzedAt: new Date().toISOString()
       };
-      
+
       const application = await storage.updateCreditApplicationStatus(
         parseInt(id), 
         'under_review', 
         reviewData
       );
-      
+
       res.json(application);
     } catch (error) {
       console.error("Error updating pre-analysis:", error);
@@ -981,7 +979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      
+
       if (!['pending', 'approved', 'rejected', 'under_review'].includes(status)) {
         return res.status(400).json({ message: "Status inválido" });
       }
@@ -991,7 +989,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status, 
         { reviewedBy: req.session.userId, reviewedAt: new Date() }
       );
-      
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Update credit status error:", error);
@@ -1005,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
       const currentUser = await storage.getUser(userId);
-      
+
       // Only admins can finalize
       if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado" });
@@ -1024,7 +1022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes } = req.body;
-      
+
       const updatedApplication = await storage.updateCreditApplication(applicationId, {
         adminStatus: 'admin_finalized',
         finalCreditLimit,
@@ -1053,7 +1051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactPerson: req.body.contactName, // Map contactName to contactPerson for database
         contactName: req.body.contactName
       };
-      
+
       const supplier = await storage.createSupplier(supplierData);
       res.status(201).json(supplier);
     } catch (error) {
@@ -1080,18 +1078,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
       const isFinanceira = currentUser?.role === "financeira";
-      
+
       const supplier = await storage.getSupplier(id);
-      
+
       if (!supplier) {
         return res.status(404).json({ message: "Fornecedor não encontrado" });
       }
-      
+
       // Allow access if user owns the supplier, is admin, or is financeira
       if (!isAdmin && !isFinanceira && supplier.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       res.json(supplier);
     } catch (error) {
       console.error("Error fetching supplier:", error);
@@ -1104,15 +1102,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
       const supplier = await storage.getSupplier(id);
-      
+
       if (!supplier) {
         return res.status(404).json({ message: "Fornecedor não encontrado" });
       }
-      
+
       if (supplier.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       const updatedSupplier = await storage.updateSupplier(id, req.body);
       res.json(updatedSupplier);
     } catch (error) {
@@ -1126,15 +1124,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
       const supplier = await storage.getSupplier(id);
-      
+
       if (!supplier) {
         return res.status(404).json({ message: "Fornecedor não encontrado" });
       }
-      
+
       if (supplier.userId !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       await storage.deleteSupplier(id);
       res.json({ message: "Fornecedor removido com sucesso" });
     } catch (error) {
@@ -1148,12 +1146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      
+
       // Only admins can access all suppliers
       if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
-      
+
       const allSuppliers = await storage.getAllSuppliers();
       res.json(allSuppliers);
     } catch (error) {
@@ -1166,19 +1164,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      
+
       // Only admins can access supplier details
       if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
-      
+
       const id = parseInt(req.params.id);
       const supplier = await storage.getSupplier(id);
-      
+
       if (!supplier) {
         return res.status(404).json({ message: "Fornecedor não encontrado" });
       }
-      
+
       res.json(supplier);
     } catch (error) {
       console.error("Error fetching supplier details:", error);
@@ -1191,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const applicationId = parseInt(req.params.id);
       const application = await storage.getCreditApplication(applicationId);
-      
+
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
@@ -1230,7 +1228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/credit-applications/:id/submit-financial", requireAuth, requireAdmin, async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
-      
+
       const updatedApplication = await storage.updateCreditApplicationStatus(applicationId, 'submitted_to_financial', {
         submittedBy: req.session.userId,
         submittedAt: new Date().toISOString()
@@ -1244,13 +1242,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== FINANCEIRA ROUTES =====
-  
+
   // Middleware para verificar role financeira
   const requireFinanceira = (req: any, res: any, next: any) => {
     if (!req.session?.userId) {
       return res.status(401).json({ message: "Não autorizado" });
     }
-    
+
     storage.getUser(req.session.userId).then(user => {
       if (user?.role !== "financeira") {
         return res.status(403).json({ message: "Acesso negado - apenas financeira" });
@@ -1278,7 +1276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { status, creditLimit, approvedTerms, financialNotes } = req.body;
-      
+
       if (!['approved_financial', 'rejected_financial', 'needs_documents_financial'].includes(status)) {
         return res.status(400).json({ message: "Status inválido" });
       }
@@ -1295,7 +1293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status, 
         financialData
       );
-      
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error updating financial status:", error);
@@ -1330,7 +1328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const applicationId = parseInt(req.params.id);
       const application = await storage.getCreditApplication(applicationId);
-      
+
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
@@ -1348,7 +1346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const applicationId = parseInt(req.params.id);
       const { creditLimit, approvedTerms, financialNotes } = req.body;
-      
+
       if (!creditLimit) {
         return res.status(400).json({ message: "Limite de crédito é obrigatório" });
       }
@@ -1433,5 +1431,3 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
-
-

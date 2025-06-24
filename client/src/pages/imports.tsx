@@ -306,189 +306,181 @@ export default function ImportsPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Carregando importações...</p>
-          </div>
-        ) : filteredImports.length === 0 ? (
-          <div className="text-center py-8">
-            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">Nenhuma importação encontrada</p>
-            <p className="text-sm text-gray-400">
-              {searchTerm ? "Tente alterar o termo de busca" : "Clique em 'Nova Importação' para começar"}
-            </p>
-          </div>
-        ) : (
-          filteredImports.map((importItem: any) => (
-            <Card 
-              key={importItem.id} 
-              className="hover:shadow-md transition-all cursor-pointer"
-              onClick={() => setLocation(`/imports/details/${importItem.id}`)}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between gap-6">
-                  {/* Left Section - Main Info */}
-                  <div className="flex items-center gap-4 min-w-0 flex-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      <Package className="w-6 h-6" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
-                        {importItem.importName || "Produto não especificado"}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        ID: #{importItem.id} • {new Date(importItem.createdAt).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Center Section - Key Metrics */}
-                  <div className="hidden md:flex items-center gap-8">
-                    <div className="text-center">
-                      <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                        <Package className="w-4 h-4" />
-                        <span>Quantidade</span>
+            {filteredImports.map((importItem: any) => (
+              <Card 
+                key={importItem.id} 
+                className="hover:shadow-md transition-all"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between gap-6">
+                    {/* Left Section - Main Info */}
+                    <div 
+                      className="flex items-center gap-4 min-w-0 flex-1 cursor-pointer"
+                      onClick={() => setLocation(`/imports/details/${importItem.id}`)}
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                        <Package className="w-6 h-6" />
                       </div>
-                      <div className="font-semibold text-gray-900">
-                        {importItem.products?.length || 'N/A'}
+
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {importItem.importName || "Produto não especificado"}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          ID: #{importItem.id} • {new Date(importItem.createdAt).toLocaleDateString('pt-BR')}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="text-center">
-                      <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                        <DollarSign className="w-4 h-4" />
-                        <span>Valor Total</span>
+                    {/* Center Section - Key Metrics */}
+                    <div className="hidden md:flex items-center gap-8">
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <Package className="w-4 h-4" />
+                          <span>Quantidade</span>
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.products?.length || 'N/A'}
+                        </div>
                       </div>
-                      <div className="font-semibold text-green-600">
-                        {importItem.totalValue ? 
-                          `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                          'N/A'
-                        }
+
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <DollarSign className="w-4 h-4" />
+                          <span>Valor Total</span>
+                        </div>
+                        <div className="font-semibold text-green-600">
+                          {importItem.totalValue ? 
+                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
+                            'N/A'
+                          }
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <Truck className="w-4 h-4" />
+                          <span>Transporte</span>
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.cargoType || 'N/A'}
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>Prazo</span>
+                        </div>
+                        <div className="font-semibold text-blue-600">
+                          {importItem.estimatedDelivery ? 
+                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
+                            'N/A'
+                          }
+                        </div>
                       </div>
                     </div>
 
-                    <div className="text-center">
-                      <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                        <Truck className="w-4 h-4" />
-                        <span>Transporte</span>
-                      </div>
-                      <div className="font-semibold text-gray-900">
-                        {importItem.cargoType || 'N/A'}
-                      </div>
-                    </div>
+                    {/* Right Section - Status & Actions */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                       <Badge className={`flex items-center gap-1 text-xs ${getStatusColor(importItem.status)}`}>
+                              {getStatusIcon(importItem.status)}
+                              {getStatusLabel(importItem.status)}
+                            </Badge>
 
-                    <div className="text-center">
-                      <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Prazo</span>
-                      </div>
-                      <div className="font-semibold text-blue-600">
-                        {importItem.estimatedDelivery ? 
-                          new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                          'N/A'
-                        }
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Section - Status & Actions */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                     <Badge className={`flex items-center gap-1 text-xs ${getStatusColor(importItem.status)}`}>
-                            {getStatusIcon(importItem.status)}
-                            {getStatusLabel(importItem.status)}
-                          </Badge>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocation(`/imports/details/${importItem.id}`)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        {importItem.status === 'planning' && (
-                          <DropdownMenuItem onClick={() => setLocation(`/imports/edit/${importItem.id}`)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            setLocation(`/imports/details/${importItem.id}`);
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes
                           </DropdownMenuItem>
-                        )}
-                        {!['completed', 'cancelled'].includes(importItem.status) && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Cancelar
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Não, manter</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => cancelImportMutation.mutate(importItem.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Sim, cancelar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {(importItem.status === 'planning' || !isFinanceira) && (
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              setLocation(`/imports/edit/${importItem.id}`);
+                            }}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                          )}
+                          {!['completed', 'cancelled'].includes(importItem.status) && !isFinanceira && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Não, manter</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => cancelImportMutation.mutate(importItem.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Sim, cancelar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                </div>
 
-                {/* Mobile View - Additional Info */}
-                <div className="md:hidden mt-4 pt-4 border-t border-gray-100">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">Qtd:</span>
-                      <span className="font-medium">{importItem.products?.length || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">Valor:</span>
-                      <span className="font-medium text-green-600">
-                        {importItem.totalValue ? 
-                          `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                          'N/A'
-                        }
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">Transporte:</span>
-                      <span className="font-medium">{importItem.cargoType || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">Prazo:</span>
-                      <span className="font-medium text-blue-600">
-                        {importItem.estimatedDelivery ? 
-                          new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                          'N/A'
-                        }
-                      </span>
+                  {/* Mobile View - Additional Info */}
+                  <div className="md:hidden mt-4 pt-4 border-t border-gray-100">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Qtd:</span>
+                        <span className="font-medium">{importItem.products?.length || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Valor:</span>
+                        <span className="font-medium text-green-600">
+                          {importItem.totalValue ? 
+                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
+                            'N/A'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Transporte:</span>
+                        <span className="font-medium">{importItem.cargoType || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Prazo:</span>
+                        <span className="font-medium text-blue-600">
+                          {importItem.estimatedDelivery ? 
+                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
+                            'N/A'
+                          }
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                </CardContent>
+              </Card>
+            ))
           )}
         </CardContent>
       </Card>
