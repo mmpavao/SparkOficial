@@ -165,11 +165,12 @@ export default function ImportsPage() {
 
   // Update pipeline mutation
   const updatePipelineMutation = useMutation({
-    mutationFn: async ({ importId, stage }: { importId: number; stage: string }) => {
+    mutationFn: async ({ importId, stage, status }: { importId: number; stage: string; status?: string }) => {
       return apiRequest(`/api/imports/${importId}/pipeline`, "PUT", {
         stage,
         currentStage: stage,
-        data: { status: "in_progress", updatedAt: new Date().toISOString() }
+        status: status || "in_progress",
+        data: { status: status || "in_progress", updatedAt: new Date().toISOString() }
       });
     },
     onSuccess: () => {
@@ -420,30 +421,9 @@ export default function ImportsPage() {
                     </div>
                   </div>
 
-                  {/* Status Badges */}
+                  {/* Status Badge */}
                   <div className="flex items-center gap-2">
-                    {(() => {
-                        // Mapear status para pipeline stage apropriado
-                        let currentStage = importItem.status;
-                        if (currentStage === 'planning') currentStage = 'planning';
-                        else if (currentStage === 'in_progress') currentStage = importItem.currentStage || 'producao';
-                        else if (currentStage === 'shipped') currentStage = 'transporte';
-                        else if (currentStage === 'completed') currentStage = 'entrega';
-                        
-                        const currentStageInfo = pipelineStages.find(stage => stage.id === currentStage);
-                        const StageIcon = currentStageInfo?.icon || Clock;
-                        return (
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs border-blue-600/20 bg-blue-50 text-blue-700 flex items-center gap-1"
-                          >
-                            <StageIcon className="w-3 h-3" />
-                            {currentStageInfo?.name || 'Em Andamento'}
-                          </Badge>
-                        );
-                      })()}
-                      <span className="text-xs text-gray-500">•</span>
-                      {getStatusBadge(importItem.status)}
+                    {getStatusBadge(importItem.status)}</div>
 
                     {/* Action Dropdown */}
               <DropdownMenu>
@@ -478,24 +458,19 @@ export default function ImportsPage() {
                             key={stage.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Atualizar tanto o status quanto o currentStage
+                              
+                              // Determinar o novo status baseado na etapa
                               let newStatus = 'in_progress';
                               if (stage.id === 'planning') newStatus = 'planning';
                               else if (stage.id === 'transporte') newStatus = 'shipped';
                               else if (stage.id === 'entrega') newStatus = 'completed';
                               
+                              // Atualizar pipeline e status em uma única operação
                               updatePipelineMutation.mutate({
                                 importId: importItem.id,
-                                stage: stage.id
+                                stage: stage.id,
+                                status: newStatus
                               });
-                              
-                              // Atualizar status se necessário
-                              if (importItem.status !== newStatus) {
-                                updateStatusMutation.mutate({
-                                  importId: importItem.id,
-                                  newStatus: newStatus
-                                });
-                              }
                             }}
                             className="flex items-center gap-2"
                           >
@@ -601,11 +576,13 @@ export default function ImportsPage() {
                     </span>
                     <span className="font-semibold text-gray-900">
                       {(() => {
-                        let currentStage = importItem.status;
-                        if (currentStage === 'planning') currentStage = 'planning';
-                        else if (currentStage === 'in_progress') currentStage = importItem.currentStage || 'producao';
-                        else if (currentStage === 'shipped') currentStage = 'transporte';
-                        else if (currentStage === 'completed') currentStage = 'entrega';
+                        // Usar currentStage diretamente se disponível, senão mapear do status
+                        const currentStage = importItem.currentStage || (() => {
+                          if (importItem.status === 'planning') return 'planning';
+                          if (importItem.status === 'shipped') return 'transporte';
+                          if (importItem.status === 'completed') return 'entrega';
+                          return 'producao'; // default para in_progress
+                        })();
                         
                         const currentIndex = pipelineStages.findIndex(stage => stage.id === currentStage);
                         const progress = currentIndex >= 0 ? Math.round(((currentIndex + 1) / pipelineStages.length) * 100) : 0;
@@ -620,11 +597,13 @@ export default function ImportsPage() {
                         className="h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300" 
                         style={{ 
                           width: `${(() => {
-                            let currentStage = importItem.status;
-                            if (currentStage === 'planning') currentStage = 'planning';
-                            else if (currentStage === 'in_progress') currentStage = importItem.currentStage || 'producao';
-                            else if (currentStage === 'shipped') currentStage = 'transporte';
-                            else if (currentStage === 'completed') currentStage = 'entrega';
+                            // Usar currentStage diretamente se disponível, senão mapear do status
+                            const currentStage = importItem.currentStage || (() => {
+                              if (importItem.status === 'planning') return 'planning';
+                              if (importItem.status === 'shipped') return 'transporte';
+                              if (importItem.status === 'completed') return 'entrega';
+                              return 'producao'; // default para in_progress
+                            })();
                             
                             const currentIndex = pipelineStages.findIndex(stage => stage.id === currentStage);
                             return currentIndex >= 0 ? ((currentIndex + 1) / pipelineStages.length) * 100 : 0;
@@ -636,11 +615,13 @@ export default function ImportsPage() {
                     {/* Progress dots with icons */}
                     <div className="absolute top-1/2 transform -translate-y-1/2 w-full flex justify-between px-1">
                       {pipelineStages.map((stage, index) => {
-                        let currentStage = importItem.status;
-                        if (currentStage === 'planning') currentStage = 'planning';
-                        else if (currentStage === 'in_progress') currentStage = importItem.currentStage || 'producao';
-                        else if (currentStage === 'shipped') currentStage = 'transporte';
-                        else if (currentStage === 'completed') currentStage = 'entrega';
+                        // Usar currentStage diretamente se disponível, senão mapear do status
+                        const currentStage = importItem.currentStage || (() => {
+                          if (importItem.status === 'planning') return 'planning';
+                          if (importItem.status === 'shipped') return 'transporte';
+                          if (importItem.status === 'completed') return 'entrega';
+                          return 'producao'; // default para in_progress
+                        })();
                         
                         const currentIndex = pipelineStages.findIndex(s => s.id === currentStage);
                         const isActive = index <= currentIndex;
