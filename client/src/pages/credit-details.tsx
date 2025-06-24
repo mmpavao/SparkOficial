@@ -394,6 +394,16 @@ export default function CreditDetailsPage() {
                 <FileText className="w-5 h-5" />
                 Documentos
               </CardTitle>
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span>{Object.keys(application.requiredDocuments || {}).length} Enviados</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4 text-orange-600" />
+                  <span>{mandatoryDocuments.length - Object.keys(application.requiredDocuments || {}).length} Pendentes</span>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Mandatory Documents */}
@@ -421,7 +431,19 @@ export default function CreditDetailsPage() {
 
               {/* Optional Documents */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Documentos Opcionais</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Documentos Opcionais</h4>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>{Object.keys(application.optionalDocuments || {}).length} Enviados</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <span>{optionalDocuments.length - Object.keys(application.optionalDocuments || {}).length} Disponíveis</span>
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-3">
                   {optionalDocuments.map((doc) => (
                     <DocumentUploadSection

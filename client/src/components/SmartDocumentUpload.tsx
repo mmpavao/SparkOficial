@@ -199,22 +199,53 @@ export function SmartDocumentUpload({
 
   return (
     <div className="space-y-3">
+      {/* Cabeçalho com Download visível */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium">{documentLabel}</label>
           {isRequired && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
+          {!isUploaded && !validationResult && (
+            <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+              Pendente
+            </Badge>
+          )}
         </div>
-        {validationResult && (
-          <Badge 
-            className={
-              validationResult.score >= 90 ? "bg-green-100 text-green-800" :
-              validationResult.score >= 70 ? "bg-yellow-100 text-yellow-800" :
-              "bg-red-100 text-red-800"
-            }
-          >
-            Score: {validationResult.score}
-          </Badge>
-        )}
+        
+        <div className="flex items-center gap-2">
+          {/* Download Button - Mais visível */}
+          {isUploaded && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                const link = document.createElement('a');
+                link.href = `/api/documents/download/${documentKey}/${applicationId}`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              className="h-7 px-3 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-300"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              Download
+            </Button>
+          )}
+          
+          {/* Score Badge */}
+          {validationResult && (
+            <Badge 
+              className={
+                validationResult.score >= 90 ? "bg-green-100 text-green-800" :
+                validationResult.score >= 70 ? "bg-yellow-100 text-yellow-800" :
+                "bg-red-100 text-red-800"
+              }
+            >
+              Score: {validationResult.score}
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div
@@ -253,29 +284,10 @@ export function SmartDocumentUpload({
               </div>
             ) : isUploaded ? (
               <div className="w-full">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="text-sm font-medium text-green-700">Documento enviado</p>
-                    <p className="text-xs text-gray-500">Clique para substituir</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const link = document.createElement('a');
-                        link.href = `/api/documents/download/${documentKey}/${applicationId}`;
-                        link.target = '_blank';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                      className="h-8 px-3 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      Download
-                    </Button>
+                <div className="flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-green-700">✓ Documento enviado</p>
+                    <p className="text-xs text-gray-500">Clique aqui para substituir</p>
                   </div>
                 </div>
               </div>
