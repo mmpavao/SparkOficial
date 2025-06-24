@@ -381,6 +381,8 @@ Changelog:
   * Integrated server-side CNPJ validation to prevent invalid registrations
   * Fixed "body stream already read" error in API response handling using response cloning
   * Enhanced error message display with specific guidance for CNPJ/email conflicts
+  * Implemented real-time CNPJ validation with mathematical verification on blur event
+  * Added comprehensive CNPJ validation algorithm in Zod schema with proper error messages
 ```
 
 ## User Preferences

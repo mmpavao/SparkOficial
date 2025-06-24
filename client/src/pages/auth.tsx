@@ -314,9 +314,10 @@ export default function AuthPage() {
                                 const formatted = formatCnpj(e.target.value);
                                 field.onChange(formatted);
                               }}
-                              onBlur={(e) => {
+                              onBlur={async (e) => {
                                 field.onBlur();
-                                // Validação em tempo real do CNPJ já é feita pelo Zod schema
+                                // Trigger validation immediately when user finishes typing
+                                await registerForm.trigger("cnpj");
                               }}
                               name={field.name}
                               ref={field.ref}
