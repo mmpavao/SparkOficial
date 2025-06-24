@@ -30,10 +30,21 @@ import {
   Box,
   Scale
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ImportDetailsPage() {
   const [match, params] = useRoute("/imports/details/:id");
   const [location, setLocation] = useLocation();
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { isAdmin } = useUserPermissions();

@@ -176,6 +176,9 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
 export default function CreditPage() {
   const [showForm, setShowForm] = useState(false);
   const [filters, setFilters] = useState({});
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [confirmApprove, setConfirmApprove] = useState<number | null>(null);
+  const [confirmReject, setConfirmReject] = useState<number | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -217,16 +220,16 @@ export default function CreditPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       toast({
-        title: t.credit.applicationSuccess,
-        description: t.credit.applicationSent,
+        title: "Sucesso!",
+        description: "Solicitação de crédito enviada com sucesso.",
       });
       setShowForm(false);
       form.reset();
     },
     onError: (error: any) => {
       toast({
-        title: t.credit.applicationError,
-        description: error.message || t.common.error,
+        title: "Erro",
+        description: error.message || "Ocorreu um erro inesperado",
         variant: "destructive",
       });
     },
@@ -258,11 +261,7 @@ export default function CreditPage() {
     },
   });
 
-  const handleCancelApplication = (applicationId: number) => {
-    if (confirm("Tem certeza que deseja cancelar esta solicitação de crédito?")) {
-      cancelApplicationMutation.mutate(applicationId);
-    }
-  };
+  // This handler has been moved to the new confirmation system below
 
   // Administrative mutations for approval/rejection
   const approveApplicationMutation = useMutation({
@@ -309,15 +308,36 @@ export default function CreditPage() {
     },
   });
 
+  const handleCancelApplication = (applicationId: number) => {
+    setConfirmDelete(applicationId);
+  };
+
   const handleApproveApplication = (applicationId: number) => {
-    if (confirm("Tem certeza que deseja aprovar esta solicitação de crédito?")) {
-      approveApplicationMutation.mutate(applicationId);
-    }
+    setConfirmApprove(applicationId);
   };
 
   const handleRejectApplication = (applicationId: number) => {
-    if (confirm("Tem certeza que deseja rejeitar esta solicitação de crédito?")) {
-      rejectApplicationMutation.mutate(applicationId);
+    setConfirmReject(applicationId);
+  };
+
+  const confirmCancelApplication = () => {
+    if (confirmDelete) {
+      cancelApplicationMutation.mutate(confirmDelete);
+      setConfirmDelete(null);
+    }
+  };
+
+  const confirmApproveApplication = () => {
+    if (confirmApprove) {
+      approveApplicationMutation.mutate(confirmApprove);
+      setConfirmApprove(null);
+    }
+  };
+
+  const confirmRejectApplication = () => {
+    if (confirmReject) {
+      rejectApplicationMutation.mutate(confirmReject);
+      setConfirmReject(null);
     }
   };
 
@@ -331,10 +351,10 @@ export default function CreditPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      pending: { label: t.credit.status.pending, variant: "secondary" as const, icon: Clock },
-      under_review: { label: t.credit.status.under_review, variant: "default" as const, icon: FileText },
-      approved: { label: t.credit.status.approved, variant: "default" as const, icon: CheckCircle },
-      rejected: { label: t.credit.status.rejected, variant: "destructive" as const, icon: XCircle },
+      pending: { label: "Pendente", variant: "secondary" as const, icon: Clock },
+      under_review: { label: "Em Análise", variant: "default" as const, icon: FileText },
+      approved: { label: "Aprovado", variant: "default" as const, icon: CheckCircle },
+      rejected: { label: "Rejeitado", variant: "destructive" as const, icon: XCircle },
     };
 
     const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
