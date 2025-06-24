@@ -620,169 +620,75 @@ export default function CreditPage() {
                   const hasApprovedCredit = application.financialStatus === 'approved' && finalCreditAmount;
 
                   return (
-                    <Card key={application.id} className={`${statusInfo.bgColor} border-l-4 ${statusInfo.borderColor} hover:shadow-lg transition-all duration-300 relative overflow-hidden`}>
-                      {/* Background Pattern */}
-                      <div className="absolute top-0 right-0 w-32 h-32 opacity-5">
-                        <div className="w-full h-full bg-gradient-to-br from-spark-500 to-spark-700 rounded-full transform translate-x-16 -translate-y-16"></div>
-                      </div>
-
-                      <CardHeader className="pb-4">
-                        <div className="flex justify-between items-start">
+                    <Card key={application.id} className={`border-l-4 ${statusInfo.borderColor} hover:shadow-md transition-all duration-200`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          {/* Left Section - Main Info */}
                           <div className="flex items-center space-x-4">
-                            <div className="relative">
-                              <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center border-2 border-gray-100">
-                                <FileText className="w-6 h-6 text-spark-600" />
+                            <div className="relative flex-shrink-0">
+                              <div className="w-12 h-12 bg-spark-50 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-spark-600" />
                               </div>
-                              <div className="absolute -top-2 -right-2 w-6 h-6 bg-spark-500 rounded-full flex items-center justify-center">
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-spark-500 rounded-full flex items-center justify-center">
                                 <span className="text-xs font-bold text-white">#{application.id}</span>
                               </div>
                             </div>
-                            <div>
-                              <CardTitle className="text-xl font-bold text-gray-900 mb-1">
-                                Solicitação de Crédito
-                              </CardTitle>
-                              <div className="flex items-center space-x-3 text-sm text-gray-600">
-                                <div className="flex items-center space-x-1">
-                                  <Calendar className="w-4 h-4" />
-                                  <span>Criado: {new Date(application.createdAt).toLocaleDateString('pt-BR')}</span>
-                                </div>
-                                <div className="flex items-center space-x-1">
-                                  <Building className="w-4 h-4" />
-                                  <span>{application.legalCompanyName || application.tradingName || 'Empresa'}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className={`${statusInfo.color} font-semibold px-3 py-1`}>
-                            {statusInfo.label}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-
-                      <CardContent className="space-y-6">
-                        {/* Seção Principal de Valores */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {/* Valor Solicitado */}
-                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <DollarSign className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-medium text-gray-600">Valor Solicitado</span>
-                              </div>
-                            </div>
-                            <p className="text-2xl font-bold text-blue-600">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
-                            </p>
-                          </div>
-
-                          {/* Valor Aprovado (se houver) */}
-                          {hasApprovedCredit && (
-                            <div className="bg-white rounded-xl p-4 border border-green-200 shadow-sm">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
-                                  <span className="text-sm font-medium text-green-700">Valor Aprovado</span>
-                                </div>
-                              </div>
-                              <p className="text-2xl font-bold text-green-600">
-                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(finalCreditAmount))}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Setor de Negócio */}
-                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <Building className="w-4 h-4 text-purple-600" />
-                              <span className="text-sm font-medium text-gray-600">Setor</span>
-                            </div>
-                            <p className="text-lg font-semibold text-gray-900">
-                              {application.businessSector || 'Não informado'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Informações da Empresa */}
-                        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                          <div className="flex items-center space-x-2 mb-3">
-                            <Building className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium text-gray-700">Dados da Empresa</span>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-500">Razão Social:</span>
-                              <p className="font-medium text-gray-900">{application.legalCompanyName || 'Não informado'}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">CNPJ:</span>
-                              <p className="font-medium text-gray-900">{application.cnpj || 'Não informado'}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Receita Anual:</span>
-                              <p className="font-medium text-gray-900">{application.annualRevenue || 'Não informado'}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Volume Mensal:</span>
-                              <p className="font-medium text-gray-900">{application.monthlyImportVolume?.replace('_', ' - ') || 'Não informado'}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Finalidade e Justificativa */}
-                        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                          <div className="flex items-start space-x-2 mb-3">
-                            <FileText className="w-4 h-4 text-gray-600 mt-0.5" />
-                            <div className="flex-1">
-                              <span className="font-medium text-gray-700 block mb-2">Finalidade do Crédito</span>
-                              <p className="text-sm text-gray-800 leading-relaxed bg-gray-50 p-3 rounded-lg">
+                            
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-gray-900 mb-1">Solicitação #{application.id}</h3>
+                              <p className="text-sm text-gray-600 mb-2">Criado em {new Date(application.createdAt).toLocaleDateString('pt-BR')}</p>
+                              <div className="text-xs text-gray-500">
                                 {application.justification || application.purpose || '"Não especificado"'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Center Section - Values */}
+                          <div className="flex items-center space-x-6">
+                            <div className="text-center">
+                              <div className="flex items-center space-x-1 text-sm text-gray-600 mb-1">
+                                <DollarSign className="w-4 h-4 text-blue-600" />
+                                <span>Valor Solicitado</span>
+                              </div>
+                              <p className="text-xl font-bold text-blue-600">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
                               </p>
                             </div>
-                          </div>
-                        </div>
 
-                        {/* Produtos e Mercados */}
-                        {(application.mainImportedProducts || application.mainOriginMarkets) && (
-                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              {application.mainImportedProducts && (
-                                <div>
-                                  <span className="text-gray-500 font-medium block mb-1">Principais Produtos:</span>
-                                  <p className="text-gray-900 bg-gray-50 p-2 rounded text-xs leading-relaxed">
-                                    {application.mainImportedProducts}
-                                  </p>
+                            {hasApprovedCredit && (
+                              <div className="text-center">
+                                <div className="flex items-center space-x-1 text-sm text-green-700 mb-1">
+                                  <CheckCircle className="w-4 h-4" />
+                                  <span>Aprovado</span>
                                 </div>
-                              )}
-                              {application.mainOriginMarkets && (
-                                <div>
-                                  <span className="text-gray-500 font-medium block mb-1">Mercados de Origem:</span>
-                                  <p className="text-gray-900 bg-gray-50 p-2 rounded text-xs leading-relaxed">
-                                    {application.mainOriginMarkets}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                                <p className="text-xl font-bold text-green-600">
+                                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(finalCreditAmount))}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        )}
 
-                        {/* Footer com Ações */}
-                        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-4 h-4" />
-                              <span>Atualizado: {new Date(application.updatedAt).toLocaleDateString('pt-BR')}</span>
+                          {/* Right Section - Status & Actions */}
+                          <div className="flex items-center space-x-4">
+                            <div className="text-center">
+                              <Badge variant="outline" className={`${statusInfo.color} mb-2`}>
+                                {statusInfo.label}
+                              </Badge>
+                              <div className="text-xs text-gray-500">
+                                Atualizado {new Date(application.updatedAt).toLocaleDateString('pt-BR')}
+                              </div>
                             </div>
+                            
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setLocation(`/credit/details/${application.id}`)}
+                              className="hover:bg-spark-50 border-spark-200 text-spark-700"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Ver Detalhes
+                            </Button>
                           </div>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setLocation(`/credit/details/${application.id}`)}
-                            className="hover:bg-spark-50 border-spark-200 text-spark-700 hover:text-spark-800"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
