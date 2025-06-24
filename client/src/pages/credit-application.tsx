@@ -368,20 +368,46 @@ export default function CreditApplicationPage() {
                productTags.length > 0 &&
                creditData.monthlyImportVolume && creditData.justification;
       case 4:
-        return false; // Documents step requires actual document uploads
+        // Must have at least 2 mandatory documents uploaded to complete step 4
+        const mandatoryUploaded = requiredDocuments.filter(doc => 
+          uploadedDocuments[doc.key]
+        ).length;
+        return mandatoryUploaded >= 2;
       default:
         return false;
     }
   };
 
   const submitApplication = () => {
+    // Calculate documents status based on uploaded documents
+    const mandatoryUploaded = requiredDocuments.filter(doc => 
+      uploadedDocuments[doc.key]
+    ).length;
+    const totalMandatory = requiredDocuments.length;
+    
+    let documentsStatus = "pending";
+    let applicationStatus = "pending";
+    
+    if (mandatoryUploaded >= 2) {
+      if (mandatoryUploaded === totalMandatory) {
+        documentsStatus = "complete";
+        applicationStatus = "under_review"; // Auto move to analysis when all docs uploaded
+      } else {
+        documentsStatus = "partial";
+        applicationStatus = "pending"; // Stay pending until all mandatory docs
+      }
+    }
+
     const finalData = {
       ...formData,
       ...creditForm.getValues(),
-      status: "pending",
+      status: applicationStatus,
       currentStep: 4,
-      documentsStatus: "pending"
+      documentsStatus: documentsStatus,
+      requiredDocuments: uploadedDocuments, // Save uploaded documents
+      optionalDocuments: {} // Initialize optional docs
     };
+    
     submitApplicationMutation.mutate(finalData);
   };
 
@@ -1109,8 +1135,20 @@ export default function CreditApplicationPage() {
                 <h3 className="text-lg font-semibold text-red-700">Documentos Obrigatórios</h3>
               </div>
               <p className="text-sm text-gray-600">
-                Estes documentos são obrigatórios para análise da solicitação de crédito:
+                Para prosseguir com a solicitação, você deve anexar pelo menos <strong>2 documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
               </p>
+              
+              {/* Progress indicator */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-800">
+                    Documentos Obrigatórios Anexados: {requiredDocuments.filter(doc => uploadedDocuments[doc.key]).length} / {requiredDocuments.length}
+                  </span>
+                  <span className="text-xs text-blue-600">
+                    Mínimo: 2 para enviar solicitação
+                  </span>
+                </div>
+              </div>
               
               {requiredDocuments.map((doc) => (
                 <SmartDocumentUpload
@@ -1189,8 +1227,8 @@ export default function CreditApplicationPage() {
         ) : (
           <Button
             onClick={submitApplication}
-            disabled={submitApplicationMutation.isPending}
-            className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+            disabled={submitApplicationMutation.isPending || !getStepStatus(4)}
+            className="bg-green-600 hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitApplicationMutation.isPending ? (
               <>
