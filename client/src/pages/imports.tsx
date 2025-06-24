@@ -448,6 +448,100 @@ export default function ImportsPage() {
                               </DropdownMenuItem>
                             )}
 
+                            <DropdownMenuSeparator />
+                            
+                            {/* Alterar Status */}
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="flex items-center gap-2">
+                                <Palette className="w-4 h-4 text-blue-600" />
+                                Alterar Status
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateStatusMutation.mutate({ 
+                                      importId: importItem.id, 
+                                      newStatus: 'planning' 
+                                    });
+                                  }}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Clock className="w-4 h-4 text-blue-600" />
+                                  Planejamento
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateStatusMutation.mutate({ 
+                                      importId: importItem.id, 
+                                      newStatus: 'in_progress' 
+                                    });
+                                  }}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Play className="w-4 h-4 text-yellow-600" />
+                                  Em Andamento
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateStatusMutation.mutate({ 
+                                      importId: importItem.id, 
+                                      newStatus: 'shipped' 
+                                    });
+                                  }}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Ship className="w-4 h-4 text-purple-600" />
+                                  Enviado
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateStatusMutation.mutate({ 
+                                      importId: importItem.id, 
+                                      newStatus: 'completed' 
+                                    });
+                                  }}
+                                  className="flex items-center gap-2"
+                                >
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                  Concluído
+                                </DropdownMenuItem>
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+
+                            {/* Alterar Etapa do Pipeline */}
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-purple-600" />
+                                Alterar Etapa
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {pipelineStages.map((stage) => {
+                                  const StageIcon = stage.icon;
+                                  return (
+                                    <DropdownMenuItem
+                                      key={stage.id}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        updatePipelineMutation.mutate({
+                                          importId: importItem.id,
+                                          stage: stage.id,
+                                          status: 'in_progress'
+                                        });
+                                      }}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <StageIcon className="w-4 h-4 text-blue-600" />
+                                      {stage.name}
+                                    </DropdownMenuItem>
+                                  );
+                                })}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+
                             {["planejamento", "planning", "em_andamento", "in_progress"].includes(importItem.status) && (
                               <>
                                 <DropdownMenuSeparator />
