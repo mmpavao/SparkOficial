@@ -1,4 +1,3 @@
-
 /**
  * Internationalization Context for Spark Comex
  */
@@ -38,7 +37,6 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   ];
 
   const changeLanguage = (newLanguage: Language) => {
-    console.log('Changing language to:', newLanguage);
     setCurrentLanguage(newLanguage);
     setLanguage(newLanguage);
     
@@ -53,8 +51,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = language;
     }
-    console.log('I18nProvider initialized with language:', language);
-  }, [language]);
+  }, []);
 
   const contextValue: I18nContextType = {
     language,
@@ -63,8 +60,6 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     changeLanguage,
     availableLanguages,
   };
-
-  console.log('I18nProvider rendering with context:', contextValue);
 
   return (
     <I18nContext.Provider value={contextValue}>
