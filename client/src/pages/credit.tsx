@@ -17,6 +17,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -737,6 +748,58 @@ export default function CreditPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Confirmation Dialogs */}
+        <AlertDialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja cancelar esta solicitação de crédito? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmCancelApplication} className="bg-red-600 hover:bg-red-700">
+                Confirmar Cancelamento
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={!!confirmApprove} onOpenChange={() => setConfirmApprove(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Aprovação</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja aprovar esta solicitação de crédito?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmApproveApplication} className="bg-green-600 hover:bg-green-700">
+                Confirmar Aprovação
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={!!confirmReject} onOpenChange={() => setConfirmReject(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Rejeição</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja rejeitar esta solicitação de crédito? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmRejectApplication} className="bg-red-600 hover:bg-red-700">
+                Confirmar Rejeição
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }
