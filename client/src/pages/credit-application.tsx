@@ -232,29 +232,8 @@ export default function CreditApplicationPage() {
 
 
 
-  // Submit application mutation
-  const submitApplicationMutation = useMutation({
-    mutationFn: async (data: Partial<InsertCreditApplication>) => {
-      const response = await apiRequest("/api/credit/applications", "POST", data);
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
-      toast({
-        title: "Sucesso!",
-        description: "Solicitação de crédito enviada com sucesso.",
-      });
-      // Navigate to credit management page immediately
-      setLocation('/credit');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao enviar solicitação",
-        variant: "destructive",
-      });
-    },
-  });
+  // Submit application state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add/remove shareholders
   const addShareholder = () => {
@@ -296,31 +275,20 @@ export default function CreditApplicationPage() {
     }
   };
 
-  // Handle document upload in step 4
+  // Handle document upload in step 4 - Store metadata only, upload files on submit
   const handleDocumentUpload = async (documentKey: string, file: File) => {
     setUploadingDocument(documentKey);
 
     try {
-      // Convert file to base64 for storage (same format as details page)
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          const base64 = result.split(',')[1]; // Remove data:type;base64, prefix
-          resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
+      // Store file reference for later upload, not base64 data
       const documentInfo = {
         filename: file.name,
         originalName: file.name,
         size: file.size,
         type: file.type,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: 'temp_user', // Will be updated on submit
-        data: base64Data
+        uploadedBy: 'temp_user',
+        file: file // Store actual file object for later upload
       };
 
       setUploadedDocuments(prev => ({
@@ -330,14 +298,14 @@ export default function CreditApplicationPage() {
 
       setUploadingDocument(null);
       toast({
-        title: "Documento enviado!",
-        description: `${file.name} foi enviado com sucesso.`,
+        title: "Documento preparado!",
+        description: `${file.name} será enviado com a solicitação.`,
       });
     } catch (error) {
       setUploadingDocument(null);
       toast({
-        title: "Erro no upload",
-        description: "Não foi possível processar o documento.",
+        title: "Erro na preparação",
+        description: "Não foi possível preparar o documento.",
         variant: "destructive",
       });
     }
@@ -425,50 +393,80 @@ export default function CreditApplicationPage() {
     }
   };
 
-  const submitApplication = () => {
-    // Calculate documents status based on uploaded documents
-    const mandatoryUploaded = requiredDocuments.filter(doc => 
-      uploadedDocuments[doc.key]
-    ).length;
-    const totalMandatory = requiredDocuments.length;
+  const submitApplication = async () => {
+    setIsSubmitting(true);
+    try {
+      // Calculate documents status based on uploaded documents
+      const mandatoryUploaded = requiredDocuments.filter(doc => 
+        uploadedDocuments[doc.key]
+      ).length;
+      const totalMandatory = requiredDocuments.length;
 
-    let documentsStatus = "pending";
-    let applicationStatus = "pending";
+      let documentsStatus = "pending";
+      let applicationStatus = "pending";
 
-    if (mandatoryUploaded >= 2) {
-      if (mandatoryUploaded === totalMandatory) {
-        documentsStatus = "complete";
-        applicationStatus = "under_review"; // Auto move to analysis when all docs uploaded
-      } else {
-        documentsStatus = "partial";
-        applicationStatus = "pending"; // Stay pending until all mandatory docs
+      if (mandatoryUploaded >= 2) {
+        if (mandatoryUploaded === totalMandatory) {
+          documentsStatus = "complete";
+          applicationStatus = "under_review";
+        } else {
+          documentsStatus = "partial";
+          applicationStatus = "pending";
+        }
       }
+
+      // Create application data without documents first
+      const applicationData = {
+        ...formData,
+        ...creditForm.getValues(),
+        status: applicationStatus,
+        currentStep: 4,
+        documentsStatus: documentsStatus,
+        requiredDocuments: {}, // Will be updated after file uploads
+        optionalDocuments: {}
+      };
+
+      // Submit application first to get ID
+      const response = await apiRequest("/api/credit/applications", "POST", applicationData);
+      const applicationId = response.id;
+
+      // Upload documents separately using FormData
+      const mandatoryDocKeys = requiredDocuments.map(doc => doc.key);
+      const uploadPromises = [];
+
+      for (const [key, docInfo] of Object.entries(uploadedDocuments)) {
+        if (docInfo.file) {
+          const formData = new FormData();
+          formData.append('document', docInfo.file);
+          formData.append('documentType', key);
+          formData.append('isMandatory', mandatoryDocKeys.includes(key).toString());
+
+          const uploadPromise = fetch(`/api/credit/applications/${applicationId}/documents`, {
+            method: 'POST',
+            body: formData,
+          });
+          uploadPromises.push(uploadPromise);
+        }
+      }
+
+      // Wait for all document uploads to complete
+      await Promise.all(uploadPromises);
+
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação de crédito enviada com sucesso.",
+      });
+      setLocation('/credit');
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao enviar solicitação",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    // Separate mandatory and optional documents
-    const mandatoryDocKeys = requiredDocuments.map(doc => doc.key);
-    const requiredDocs: any = {};
-    const optionalDocs: any = {};
-
-    Object.entries(uploadedDocuments).forEach(([key, doc]) => {
-      if (mandatoryDocKeys.includes(key)) {
-        requiredDocs[key] = doc;
-      } else {
-        optionalDocs[key] = doc;
-      }
-    });
-
-    const finalData = {
-      ...formData,
-      ...creditForm.getValues(),
-      status: applicationStatus,
-      currentStep: 4,
-      documentsStatus: documentsStatus,
-      requiredDocuments: requiredDocs, // Only mandatory documents
-      optionalDocuments: optionalDocs // Optional documents
-    };
-
-    submitApplicationMutation.mutate(finalData);
   };
 
   // Interactive step indicator component
@@ -1288,10 +1286,10 @@ export default function CreditApplicationPage() {
         ) : (
           <Button
             onClick={submitApplication}
-            disabled={submitApplicationMutation.isPending || !getStepStatus(4)}
+            disabled={isSubmitting || !getStepStatus(4)}
             className="bg-green-600 hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitApplicationMutation.isPending ? (
+            {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Enviando...
