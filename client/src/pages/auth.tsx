@@ -24,6 +24,7 @@ import logo_spark_fundo_color_ from "@assets/logo spark fundo color .png";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -239,7 +240,11 @@ export default function AuthPage() {
 
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
-                      <Checkbox className="data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" />
+                      <Checkbox 
+                        checked={rememberMe}
+                        onCheckedChange={setRememberMe}
+                        className="data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" 
+                      />
                       <span className="ml-2 text-sm text-gray-600">{t.auth.rememberMe}</span>
                     </label>
                     <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0">
