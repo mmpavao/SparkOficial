@@ -16,6 +16,8 @@ import { formatCnpj, validateCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
 import { Shield, Clock, TrendingUp } from "lucide-react";
 
+import logo_spark_bco from "@assets/logo-spark-bco.jpg";
+
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
@@ -116,7 +118,7 @@ export default function AuthPage() {
         <div className="max-w-md text-center">
           <div className="mb-8">
             <img 
-              src="/spark-logo.png" 
+              src={logo_spark_bco} 
               alt="Spark Comex" 
               className="h-20 w-auto mx-auto mb-4"
             />
@@ -140,7 +142,6 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
-
       {/* Right Panel - Auth Forms */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-12">
         <div className="max-w-md mx-auto w-full">
@@ -241,12 +242,11 @@ export default function AuthPage() {
             </div>
           ) : (
             /* Register Form */
-            <div className="space-y-6">
+            (<div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.createAccount}</h2>
                 <p className="text-gray-600">{t.auth.createAccountDescription}</p>
               </div>
-
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -435,7 +435,7 @@ export default function AuthPage() {
                           <Checkbox 
                             checked={field.value || false}
                             onCheckedChange={field.onChange}
-                            className="mt-1 h-6 w-6 border-3 border-gray-600 bg-white rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md" 
+                            className="peer shrink-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 h-6 w-6 border-3 border-gray-600 rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md ml-[0px] mr-[0px] bg-[#e1e3e2]" 
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -464,7 +464,6 @@ export default function AuthPage() {
                   </Button>
                 </form>
               </Form>
-
               <div className="text-center">
                 <span className="text-gray-600">{t.auth.haveAccount} </span>
                 <Button 
@@ -475,7 +474,7 @@ export default function AuthPage() {
                   {t.auth.signInNow}
                 </Button>
               </div>
-            </div>
+            </div>)
           )}
         </div>
       </div>
