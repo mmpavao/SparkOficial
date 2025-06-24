@@ -119,12 +119,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists
       const existingUserByEmail = await storage.getUserByEmail(userData.email);
       if (existingUserByEmail) {
-        return res.status(400).json({ message: "Email já está em uso" });
+        return res.status(409).json({ 
+          message: "Este e-mail já possui uma conta cadastrada", 
+          type: "email_exists",
+          suggestion: "Tente fazer login ou use a opção 'Esqueci minha senha'"
+        });
       }
 
       const existingUserByCnpj = await storage.getUserByCnpj(userData.cnpj);
       if (existingUserByCnpj) {
-        return res.status(400).json({ message: "CNPJ já está cadastrado" });
+        return res.status(409).json({ 
+          message: "Este CNPJ já possui uma conta cadastrada", 
+          type: "cnpj_exists",
+          suggestion: "Verifique se sua empresa já possui conta ou entre em contato conosco"
+        });
       }
 
       // Hash password

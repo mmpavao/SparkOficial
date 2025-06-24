@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 import { insertUserSchema, loginSchema, type InsertUser, type LoginUser } from "@shared/schema";
-import { formatCnpj } from "@/lib/cnpj";
+import { formatCnpj, validateCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
 import { Shield, Clock, TrendingUp } from "lucide-react";
 
@@ -76,11 +76,28 @@ export default function AuthPage() {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: t.errors.registrationFailed,
-        description: error.message || t.errors.registrationFailed,
-        variant: "destructive",
-      });
+      const isConflict = error.status === 409;
+      const errorData = error.data || {};
+      
+      if (isConflict && errorData.type === "cnpj_exists") {
+        toast({
+          title: "CNPJ já cadastrado",
+          description: errorData.suggestion || "Este CNPJ já possui uma conta cadastrada",
+          variant: "default",
+        });
+      } else if (isConflict && errorData.type === "email_exists") {
+        toast({
+          title: "E-mail já cadastrado",
+          description: errorData.suggestion || "Este e-mail já possui uma conta cadastrada",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: t.errors.registrationFailed,
+          description: error.message || t.errors.registrationFailed,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -269,7 +286,19 @@ export default function AuthPage() {
                                 const formatted = formatCnpj(e.target.value);
                                 field.onChange(formatted);
                               }}
-                              onBlur={field.onBlur}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                // Validação em tempo real do CNPJ
+                                const cnpjValue = e.target.value;
+                                if (cnpjValue && !validateCnpj(cnpjValue)) {
+                                  registerForm.setError("cnpj", {
+                                    type: "manual",
+                                    message: "CNPJ inválido. Verifique os números digitados."
+                                  });
+                                } else if (cnpjValue) {
+                                  registerForm.clearErrors("cnpj");
+                                }
+                              }}
                               name={field.name}
                               ref={field.ref}
                               className="focus:ring-spark-500 focus:border-spark-500"
