@@ -322,8 +322,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {user?.fullName}
                     </p>
-                    <p className="text-xs text-gray-500 truncate capitalize">
-                      {user?.role === "admin" ? t.roles.admin : user?.role === "financeira" ? "Financeira" : t.roles.importer}
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email}
                     </p>
                   </div>
                 </div>
