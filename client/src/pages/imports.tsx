@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Import, type User } from "@shared/schema";
@@ -16,28 +16,40 @@ import AdminImportFilters from "@/components/AdminImportFilters";
 import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
 import { useAuth } from "@/hooks/useAuth";
 import { 
-  Truck, 
-  Package, 
-  MapPin, 
+  MoreVertical, 
+  Plus, 
+  Package,
+  Eye,
+  Edit,
+  X,
+  FileText,
+  CheckCircle,
+  Clock,
+  Palette,
+  Filter,
   Calendar,
   DollarSign,
+  Building2,
+  Truck,
   Ship,
-  Plane,
-  Plus,
-  Search,
-  Filter,
-  Trash2,
-  Eye,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  MoreVertical,
-  Edit,
-  Building,
-  Box,
-  TrendingUp,
-  FileText
+  AlertTriangle,
+  Anchor,
+  FileCheck,
+  Play
 } from "lucide-react";
+
+// Pipeline stages with icons
+const pipelineStages = [
+  { id: "estimativa", name: "Estimativa", icon: FileText },
+  { id: "invoice", name: "Invoice", icon: FileCheck },
+  { id: "producao", name: "Produção", icon: Package },
+  { id: "embarque", name: "Embarque", icon: Ship },
+  { id: "transporte", name: "Transporte Marítimo", icon: Ship },
+  { id: "atracacao", name: "Atracação", icon: Anchor },
+  { id: "desembaraco", name: "Desembaraço", icon: FileCheck },
+  { id: "transporte_terrestre", name: "Transporte Terrestre", icon: Truck },
+  { id: "entrega", name: "Entrega", icon: CheckCircle },
+];
 
 export default function ImportsPage() {
   const [, setLocation] = useLocation();
@@ -126,7 +138,7 @@ export default function ImportsPage() {
     },
   });
 
-  // Handle status update
+  // Update status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ importId, newStatus }: { importId: number; newStatus: string }) => {
       return apiRequest(`/api/imports/${importId}/status`, 'PUT', { status: newStatus });
@@ -141,6 +153,31 @@ export default function ImportsPage() {
     onError: (error: any) => {
       toast({
         title: "Erro ao atualizar status",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update pipeline mutation
+  const updatePipelineMutation = useMutation({
+    mutationFn: async ({ importId, stage }: { importId: number; stage: string }) => {
+      return apiRequest(`/api/imports/${importId}/pipeline`, "PUT", {
+        stage,
+        currentStage: stage,
+        data: { status: "in_progress", updatedAt: new Date().toISOString() }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pipeline atualizado!",
+        description: "A etapa do pipeline foi alterada com sucesso.",
+      });
+      invalidateAllRelatedQueries(queryClient, "imports");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar pipeline",
         description: error.message,
         variant: "destructive",
       });
@@ -178,6 +215,19 @@ export default function ImportsPage() {
       'cancelled': 'Cancelado'
     };
     return statusMap[status] || status;
+  };
+
+    const getStatusBadge = (status: string) => {
+    const statusColor = getStatusColor(status);
+    const statusLabel = getStatusLabel(status);
+    const statusIcon = getStatusIcon(status);
+
+    return (
+      <Badge className={`${statusColor} px-2 py-1 text-xs gap-1`}>
+        {statusIcon}
+        {statusLabel}
+      </Badge>
+    );
   };
 
   if (isLoading) {
@@ -353,7 +403,7 @@ export default function ImportsPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Building className="w-5 h-5 text-purple-600" />
+                      <Building2 className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">
@@ -368,98 +418,97 @@ export default function ImportsPage() {
 
                   {/* Status Badges */}
                   <div className="flex items-center gap-2">
-                    <Badge className={`${getStatusColor(importItem.status)} px-3 py-1`}>
-                      {getStatusLabel(importItem.status)}
-                    </Badge>
-                    <Badge variant="outline" className="text-blue-600 border-blue-200">
-                      No Prazo
-                    </Badge>
-                    
-                    {/* Actions Menu */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        {/* Status Change Submenu */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <div className="flex items-center px-2 py-1.5 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                              <div className="w-4 h-4 mr-2 rounded-full bg-green-500"></div>
-                              Alterar Status
-                              <span className="ml-auto">›</span>
-                            </div>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent side="left" className="w-48">
-                            {[
-                              { value: 'planning', label: 'Estimativa', icon: Clock, color: 'text-gray-600' },
-                              { value: 'in_progress', label: 'Invoice', icon: FileText, color: 'text-blue-600' },
-                              { value: 'shipped', label: 'Em Produção', icon: Box, color: 'text-purple-600' },
-                              { value: 'customs', label: 'Preparando Embarque', icon: Truck, color: 'text-orange-600' },
-                              { value: 'in_transit', label: 'Em Trânsito', icon: Ship, color: 'text-orange-600' },
-                              { value: 'delivered', label: 'Atracado', icon: MapPin, color: 'text-red-600' },
-                              { value: 'customs_clearance', label: 'Desembaraço', icon: CheckCircle, color: 'text-teal-600' },
-                              { value: 'transport', label: 'Transporte Terrestre', icon: Truck, color: 'text-green-600' },
-                              { value: 'completed', label: 'Finalizado', icon: CheckCircle, color: 'text-green-600' }
-                            ].map((statusOption) => {
-                              const Icon = statusOption.icon;
-                              return (
-                                <DropdownMenuItem
-                                  key={statusOption.value}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateStatusMutation.mutate({
-                                      importId: importItem.id,
-                                      newStatus: statusOption.value
-                                    });
-                                  }}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Icon className={`w-4 h-4 ${statusOption.color}`} />
-                                  {statusOption.label}
-                                </DropdownMenuItem>
-                              );
-                            })}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                    {(() => {
+                        const currentStageInfo = pipelineStages.find(stage => stage.id === importItem.currentStage);
+                        const StageIcon = currentStageInfo?.icon || Clock;
+                        return (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs border-blue-600/20 bg-blue-50 text-blue-700 flex items-center gap-1"
+                          >
+                            <StageIcon className="w-3 h-3" />
+                            {currentStageInfo?.name || 'Em Andamento'}
+                          </Badge>
+                        );
+                      })()}
+                      <span className="text-xs text-gray-500">•</span>
+                      {getStatusBadge(importItem.status)}
 
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setLocation(`/imports/details/${importItem.id}`);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <Ship className="w-4 h-4 text-blue-600" />
-                          Container Marítimo
-                          <span className="ml-auto">›</span>
-                        </DropdownMenuItem>
+                    {/* Action Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-green-600" />
+                      Alterar Status
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      {pipelineStages.map((stage) => {
+                        const Icon = stage.icon;
+                        if (stage.id === importItem.currentStage) return null;
 
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setLocation(`/imports/edit/${importItem.id}`);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <Edit className="w-4 h-4 text-gray-600" />
-                          Editar Importação
-                        </DropdownMenuItem>
+                        return (
+                          <DropdownMenuItem
+                            key={stage.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updatePipelineMutation.mutate({
+                                importId: importItem.id,
+                                stage: stage.id
+                              });
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Icon className="w-4 h-4 text-blue-600" />
+                            {stage.name}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
 
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle supplier linking
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <Building className="w-4 h-4 text-purple-600" />
-                          Vincular Despachante
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  {["planejamento", "planning"].includes(importItem.status) && (
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLocation(`/imports/edit/${importItem.id}`);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      Editar Importação
+                    </DropdownMenuItem>
+                  )}
+
+                  {["planejamento", "planning", "em_andamento", "in_progress"].includes(importItem.status) && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateStatusMutation.mutate({
+                            importId: importItem.id,
+                            newStatus: "cancelada"
+                          });
+                        }}
+                        className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancelar Importação
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
                   </div>
                 </div>
 
@@ -503,7 +552,7 @@ export default function ImportsPage() {
 
                   <div>
                     <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                      <Building className="w-4 h-4" />
+                      <Building2 className="w-4 h-4" />
                       Custo Total
                     </div>
                     <div className="font-semibold text-gray-900">
@@ -521,12 +570,12 @@ export default function ImportsPage() {
                     </span>
                     <span className="font-semibold text-gray-900">50%</span>
                   </div>
-                  
+
                   <div className="relative">
                     <div className="w-full h-2 bg-gray-200 rounded-full">
                       <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" style={{ width: '50%' }}></div>
                     </div>
-                    
+
                     {/* Progress dots */}
                     <div className="absolute top-1/2 transform -translate-y-1/2 w-full flex justify-between px-1">
                       {[
