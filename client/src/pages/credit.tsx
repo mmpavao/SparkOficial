@@ -581,31 +581,36 @@ export default function CreditPage() {
                       return { 
                         label: 'Aprovado', 
                         color: 'bg-green-100 text-green-800 border-green-200',
-                        icon: '✅'
+                        bgColor: 'bg-green-50',
+                        borderColor: 'border-l-green-500'
                       };
                     } else if (application.financialStatus === 'rejected') {
                       return { 
                         label: 'Rejeitado', 
                         color: 'bg-red-100 text-red-800 border-red-200',
-                        icon: '❌'
+                        bgColor: 'bg-red-50',
+                        borderColor: 'border-l-red-500'
                       };
                     } else if (application.preAnalysisStatus === 'pre_approved') {
                       return { 
                         label: 'Pré-aprovado', 
                         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                        icon: '⏳'
+                        bgColor: 'bg-yellow-50',
+                        borderColor: 'border-l-yellow-500'
                       };
                     } else if (application.preAnalysisStatus === 'under_review') {
                       return { 
                         label: 'Em Análise', 
                         color: 'bg-blue-100 text-blue-800 border-blue-200',
-                        icon: '🔍'
+                        bgColor: 'bg-blue-50',
+                        borderColor: 'border-l-blue-500'
                       };
                     } else {
                       return { 
                         label: 'Pendente', 
                         color: 'bg-gray-100 text-gray-800 border-gray-200',
-                        icon: '📋'
+                        bgColor: 'bg-gray-50',
+                        borderColor: 'border-l-gray-500'
                       };
                     }
                   };
@@ -615,144 +620,172 @@ export default function CreditPage() {
                   const hasApprovedCredit = application.financialStatus === 'approved' && finalCreditAmount;
 
                   return (
-                    <div key={application.id} className="border-2 border-gray-100 rounded-xl p-6 hover:border-spark-200 transition-all duration-200 hover:shadow-md bg-gradient-to-r from-white to-gray-50">
-                      {/* Header da Solicitação */}
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-spark-100 rounded-lg flex items-center justify-center">
-                            <span className="text-2xl">{statusInfo.icon}</span>
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-lg text-gray-900">
-                              Solicitação #{application.id}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              Criado em {new Date(application.createdAt).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
-
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
+                    <Card key={application.id} className={`${statusInfo.bgColor} border-l-4 ${statusInfo.borderColor} hover:shadow-lg transition-all duration-300 relative overflow-hidden`}>
+                      {/* Background Pattern */}
+                      <div className="absolute top-0 right-0 w-32 h-32 opacity-5">
+                        <div className="w-full h-full bg-gradient-to-br from-spark-500 to-spark-700 rounded-full transform translate-x-16 -translate-y-16"></div>
                       </div>
 
-                      {/* Informações Principais */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        {/* Valor Solicitado */}
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <CreditCard className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-gray-600">Valor Solicitado</span>
+                      <CardHeader className="pb-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center space-x-4">
+                            <div className="relative">
+                              <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center border-2 border-gray-100">
+                                <FileText className="w-6 h-6 text-spark-600" />
+                              </div>
+                              <div className="absolute -top-2 -right-2 w-6 h-6 bg-spark-500 rounded-full flex items-center justify-center">
+                                <span className="text-xs font-bold text-white">#{application.id}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <CardTitle className="text-xl font-bold text-gray-900 mb-1">
+                                Solicitação de Crédito
+                              </CardTitle>
+                              <div className="flex items-center space-x-3 text-sm text-gray-600">
+                                <div className="flex items-center space-x-1">
+                                  <Calendar className="w-4 h-4" />
+                                  <span>Criado: {new Date(application.createdAt).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <Building className="w-4 h-4" />
+                                  <span>{application.legalCompanyName || application.tradingName || 'Empresa'}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-xl font-bold text-gray-900">
-                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
-                          </p>
+                          <Badge variant="outline" className={`${statusInfo.color} font-semibold px-3 py-1`}>
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-6">
+                        {/* Seção Principal de Valores */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {/* Valor Solicitado */}
+                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <DollarSign className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-medium text-gray-600">Valor Solicitado</span>
+                              </div>
+                            </div>
+                            <p className="text-2xl font-bold text-blue-600">
+                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
+                            </p>
+                          </div>
+
+                          {/* Valor Aprovado (se houver) */}
+                          {hasApprovedCredit && (
+                            <div className="bg-white rounded-xl p-4 border border-green-200 shadow-sm">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                  <span className="text-sm font-medium text-green-700">Valor Aprovado</span>
+                                </div>
+                              </div>
+                              <p className="text-2xl font-bold text-green-600">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(finalCreditAmount))}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Setor de Negócio */}
+                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Building className="w-4 h-4 text-purple-600" />
+                              <span className="text-sm font-medium text-gray-600">Setor</span>
+                            </div>
+                            <p className="text-lg font-semibold text-gray-900">
+                              {application.businessSector || 'Não informado'}
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Valor Aprovado (se houver) */}
-                        {hasApprovedCredit && (
-                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                              <span className="text-sm font-medium text-green-700">Valor Aprovado</span>
+                        {/* Informações da Empresa */}
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Building className="w-4 h-4 text-gray-600" />
+                            <span className="font-medium text-gray-700">Dados da Empresa</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-500">Razão Social:</span>
+                              <p className="font-medium text-gray-900">{application.legalCompanyName || 'Não informado'}</p>
                             </div>
-                            <p className="text-xl font-bold text-green-800">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(finalCreditAmount))}
-                            </p>
+                            <div>
+                              <span className="text-gray-500">CNPJ:</span>
+                              <p className="font-medium text-gray-900">{application.cnpj || 'Não informado'}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Receita Anual:</span>
+                              <p className="font-medium text-gray-900">{application.annualRevenue || 'Não informado'}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Volume Mensal:</span>
+                              <p className="font-medium text-gray-900">{application.monthlyImportVolume?.replace('_', ' - ') || 'Não informado'}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Finalidade e Justificativa */}
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                          <div className="flex items-start space-x-2 mb-3">
+                            <FileText className="w-4 h-4 text-gray-600 mt-0.5" />
+                            <div className="flex-1">
+                              <span className="font-medium text-gray-700 block mb-2">Finalidade do Crédito</span>
+                              <p className="text-sm text-gray-800 leading-relaxed bg-gray-50 p-3 rounded-lg">
+                                {application.justification || application.purpose || '"Não especificado"'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Produtos e Mercados */}
+                        {(application.mainImportedProducts || application.mainOriginMarkets) && (
+                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              {application.mainImportedProducts && (
+                                <div>
+                                  <span className="text-gray-500 font-medium block mb-1">Principais Produtos:</span>
+                                  <p className="text-gray-900 bg-gray-50 p-2 rounded text-xs leading-relaxed">
+                                    {application.mainImportedProducts}
+                                  </p>
+                                </div>
+                              )}
+                              {application.mainOriginMarkets && (
+                                <div>
+                                  <span className="text-gray-500 font-medium block mb-1">Mercados de Origem:</span>
+                                  <p className="text-gray-900 bg-gray-50 p-2 rounded text-xs leading-relaxed">
+                                    {application.mainOriginMarkets}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
 
-                        {/* Tipo de Negócio */}
-                        {/* <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Building className="w-4 h-4 text-purple-600" />
-                            <span className="text-sm font-medium text-gray-600">Categoria</span>
+                        {/* Footer com Ações */}
+                        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>Atualizado: {new Date(application.updatedAt).toLocaleDateString('pt-BR')}</span>
+                            </div>
                           </div>
-                          <p className="text-sm font-bold text-gray-900 capitalize">
-                            {application.businessType?.replace('_', ' ') || 'Não informado'}
-                          </p>
-                        </div> */}
-                      </div>
-
-                      {/* Finalidade do Negócio */}
-                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <FileText className="w-4 h-4 text-gray-600" />
-                          <span className="text-sm font-medium text-gray-600">Finalidade</span>
-                        </div>
-                        <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">
-                          "{application.purpose || 'Não especificado'}"
-                        </p>
-                      </div>
-
-                      {/* Progresso e Informações Adicionais */}
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0">
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          {/* Progresso de Documentos */}
-                          {/* <div className="flex items-center space-x-2">
-                            <Upload className="w-4 h-4" />
-                            <span>
-                              {application.documents?.filter(doc => doc).length || 0} documentos
-                            </span>
-                          </div> */}
-
-                          {/* Data de Atualização */}
-                          <div className="flex items-center space-x-2">
-                            <Clock className="w-4 h-4" />
-                            <span>
-                              Atualizado {new Date(application.updatedAt).toLocaleDateString('pt-BR')}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Ações */}
-                        <div className="flex space-x-2">
+                          
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setLocation(`/credit/details/${application.id}`)}
-                            className="hover:bg-spark-50"
+                            className="hover:bg-spark-50 border-spark-200 text-spark-700 hover:text-spark-800"
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Detalhes
                           </Button>
-
-                          {/* {application.status === 'pending' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.location.href = `/credit/${application.id}/edit`}
-                              className="hover:bg-blue-50"
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </Button>
-                          )} */}
                         </div>
-                      </div>
-
-                      {/* Barra de Progresso do Status */}
-                      {/* <div className="mt-4 pt-4 border-t border-gray-200">
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                          <span>Progresso da Análise</span>
-                          <span>
-                            {application.financialStatus === 'approved' ? '100%' :
-                             application.preAnalysisStatus === 'pre_approved' ? '75%' :
-                             application.preAnalysisStatus === 'under_review' ? '50%' : '25%'}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full transition-all duration-500 ${
-                              application.financialStatus === 'approved' ? 'bg-green-500 w-full' :
-                              application.preAnalysisStatus === 'pre_approved' ? 'bg-yellow-500 w-3/4' :
-                              application.preAnalysisStatus === 'under_review' ? 'bg-blue-500 w-1/2' : 'bg-gray-400 w-1/4'
-                            }`}
-                          />
-                        </div>
-                      </div> */}
-                    </div>
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>
