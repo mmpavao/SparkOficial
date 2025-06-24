@@ -100,7 +100,7 @@ export default function ImportEditPage() {
             quantity: parseInt(product.quantity) || 1,
             unitPrice: parseFloat(product.unitPrice) || 0,
             supplierId: suppliers.find((s: any) => s.companyName === product.supplierName)?.id || 
-                       (suppliers.length > 0 ? suppliers[0].id : 1)
+                       (suppliers.length > 0 ? suppliers[0].id : 0)
           }));
         } else if (typeof importData.products === 'string') {
           const parsed = JSON.parse(importData.products);
@@ -109,15 +109,15 @@ export default function ImportEditPage() {
             quantity: parseInt(product.quantity) || 1,
             unitPrice: parseFloat(product.unitPrice) || 0,
             supplierId: suppliers.find((s: any) => s.companyName === product.supplierName)?.id || 
-                       (suppliers.length > 0 ? suppliers[0].id : 1)
-          })) : [{ name: "", quantity: 1, unitPrice: 0, supplierId: suppliers.length > 0 ? suppliers[0].id : 1 }];
+                       (suppliers.length > 0 ? suppliers[0].id : 0)
+          })) : [{ name: "", quantity: 1, unitPrice: 0, supplierId: suppliers.length > 0 ? suppliers[0].id : 0 }];
         } else {
           // Fallback for completely different format
           products = [{ 
             name: "Produto", 
             quantity: 1, 
             unitPrice: parseFloat(importData.totalValue) || 0, 
-            supplierId: suppliers.length > 0 ? suppliers[0].id : 1 
+            supplierId: suppliers.length > 0 ? suppliers[0].id : 0 
           }];
         }
       } catch (error) {
@@ -126,7 +126,7 @@ export default function ImportEditPage() {
           name: "Produto", 
           quantity: 1, 
           unitPrice: parseFloat(importData.totalValue) || 0, 
-          supplierId: suppliers.length > 0 ? suppliers[0].id : 1 
+          supplierId: suppliers.length > 0 ? suppliers[0].id : 0 
         }];
       }
 
