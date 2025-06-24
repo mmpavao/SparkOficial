@@ -10,7 +10,8 @@ import {
   XCircle, 
   Loader2,
   FileText,
-  Trash2
+  Trash2,
+  Download
 } from "lucide-react";
 
 interface ValidationResult {
@@ -249,9 +250,29 @@ export function SmartDocumentUpload({
                 </p>
               </div>
             ) : isUploaded ? (
-              <div>
-                <p className="text-sm font-medium">Documento enviado</p>
-                <p className="text-xs text-gray-500">Clique para substituir</p>
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <p className="text-sm font-medium">Documento enviado</p>
+                  <p className="text-xs text-gray-500">Clique para substituir</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Create download functionality
+                    const link = document.createElement('a');
+                    link.href = `/api/documents/download/${documentKey}`;
+                    link.download = `${documentLabel}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <Download className="w-3 h-3" />
+                  Download
+                </Button>
               </div>
             ) : (
               <div>
