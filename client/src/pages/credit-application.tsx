@@ -43,6 +43,7 @@ import {
   Upload,
   Loader2,
   AlertTriangle,
+  AlertCircle,
   MapPin,
   Mail,
   Phone,
@@ -60,7 +61,9 @@ import {
   Plus,
   Minus,
   Trash2,
-  X
+  X,
+  XCircle,
+  BarChart3
 } from "lucide-react";
 
 // Multi-step form type definitions
