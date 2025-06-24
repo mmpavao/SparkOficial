@@ -29,14 +29,19 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  confirmPassword: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
+export const insertUserSchema = z.object({
+  companyName: z.string().min(1, "Nome da empresa é obrigatório"),
+  cnpj: z.string().min(1, "CNPJ é obrigatório"),
+  fullName: z.string().min(1, "Nome completo é obrigatório"),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string(),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: "Você deve aceitar os termos de uso e política de privacidade",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
+  message: "Senhas não coincidem",
   path: ["confirmPassword"],
 });
 
@@ -63,7 +68,7 @@ export const loginSchema = z.object({
 export const creditApplications = pgTable("credit_applications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  
+
   // Company Information
   legalCompanyName: text("legal_company_name").notNull(),
   tradingName: text("trading_name"),
@@ -77,32 +82,32 @@ export const creditApplications = pgTable("credit_applications", {
   phone: text("phone").notNull(),
   email: text("email").notNull(),
   website: text("website"),
-  
+
   // Shareholders Information
   shareholders: jsonb("shareholders").notNull(), // Array of {name, cpf, percentage}
-  
+
   // Commercial Information
   businessSector: text("business_sector").notNull(),
   annualRevenue: text("annual_revenue").notNull(),
   mainImportedProducts: text("main_imported_products").notNull(),
   mainOriginMarkets: text("main_origin_markets").notNull(),
-  
+
   // Credit Information
   requestedAmount: text("requested_amount").notNull(), // USD amount
   currency: text("currency").notNull().default("USD"),
   productsToImport: text("products_to_import").array().notNull(),
   monthlyImportVolume: text("monthly_import_volume").notNull(),
   justification: text("justification").notNull(),
-  
+
   // Documents
   requiredDocuments: jsonb("required_documents"), // Track uploaded required docs
   optionalDocuments: jsonb("optional_documents"), // Track uploaded optional docs
   documentsStatus: text("documents_status").notNull().default("pending"), // pending, partial, complete
-  
+
   // Application Status
   status: text("status").notNull().default("draft"), // draft, pending, under_review, approved, rejected
   currentStep: integer("current_step").notNull().default(1), // 1-4 for form steps
-  
+
   // Review Information
   reviewedBy: integer("reviewed_by").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
@@ -110,7 +115,7 @@ export const creditApplications = pgTable("credit_applications", {
   interestRate: text("interest_rate"),
   paymentTerms: text("payment_terms"),
   reviewNotes: text("review_notes"),
-  
+
   // Administrative Analysis
   preAnalysisStatus: text("pre_analysis_status").default("pending"), // pending, under_review, pre_approved, needs_documents, needs_clarification
   riskLevel: text("risk_level").default("medium"), // low, medium, high
@@ -119,7 +124,7 @@ export const creditApplications = pgTable("credit_applications", {
   adminObservations: text("admin_observations"), // Observações para o importador
   analyzedBy: integer("analyzed_by").references(() => users.id),
   analyzedAt: timestamp("analyzed_at"),
-  
+
   // Financial Institution Analysis
   financialStatus: text("financial_status").default("pending_financial"), // pending_financial, approved_financial, rejected_financial, needs_documents_financial
   creditLimit: text("credit_limit"), // Limite de crédito aprovado pela financeira
@@ -127,7 +132,7 @@ export const creditApplications = pgTable("credit_applications", {
   financialNotes: text("financial_notes"), // Observações da financeira
   financialAnalyzedBy: integer("financial_analyzed_by").references(() => users.id),
   financialAnalyzedAt: timestamp("financial_analyzed_at"),
-  
+
   // Admin Final Terms (after financial approval)
   adminStatus: text("admin_status").default("pending_admin"), // pending_admin, admin_finalized
   finalCreditLimit: text("final_credit_limit"), // Limite final definido pelo admin
@@ -136,7 +141,7 @@ export const creditApplications = pgTable("credit_applications", {
   adminFinalNotes: text("admin_final_notes"), // Observações finais do admin
   adminFinalizedBy: integer("admin_finalized_by").references(() => users.id),
   adminFinalizedAt: timestamp("admin_finalized_at"),
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -145,47 +150,47 @@ export const creditApplications = pgTable("credit_applications", {
 export const suppliers = pgTable("suppliers", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  
+
   // Basic Information
   companyName: text("company_name").notNull(),
   contactPerson: text("contact_person"),
   contactName: text("contact_name"),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
-  
+
   // Location Information
   address: text("address").notNull(),
   city: text("city").notNull(),
   state: text("state"),
   country: text("country").notNull(),
   zipCode: text("zip_code"),
-  
+
   // Business Information
   businessRegistration: text("business_registration"),
   taxId: text("tax_id"),
   bankName: text("bank_name"),
   bankAccount: text("bank_account"),
   swiftCode: text("swift_code"),
-  
+
   // Categories and Specialization
   productCategories: text("product_categories").array(),
   specialization: text("specialization"),
   certifications: text("certifications").array(),
-  
+
   // Trading Terms
   preferredPaymentTerms: text("preferred_payment_terms"),
   minimumOrderValue: text("minimum_order_value"),
   leadTime: text("lead_time"),
-  
+
   // Quality and Compliance
   qualityStandards: text("quality_standards").array(),
   exportLicenses: text("export_licenses").array(),
-  
+
   // Relationship Status
   status: text("status").notNull().default("active"), // active, inactive, blacklisted
   rating: integer("rating").default(5), // 1-5 star rating
   notes: text("notes"),
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -196,41 +201,41 @@ export const imports = pgTable("imports", {
   userId: integer("user_id").references(() => users.id).notNull(),
   creditApplicationId: integer("credit_application_id").references(() => creditApplications.id),
   supplierId: integer("supplier_id").references(() => suppliers.id),
-  
+
   // Basic Import Information
   importName: text("import_name").notNull(), // Nome/código da importação para rastreamento
   importNumber: text("import_number").unique(),
-  
+
   // Cargo Type and Container Information
   cargoType: text("cargo_type").notNull().default("FCL"), // FCL (Full Container Load) ou LCL (Less than Container Load)
   containerNumber: text("container_number"), // Número do contêiner (se FCL)
   sealNumber: text("seal_number"), // Número do lacre
-  
+
   // Product Details - now supports multiple products for LCL
   products: jsonb("products").notNull(), // Array de produtos: [{name, description, hsCode, quantity, unitPrice, totalValue, supplierId}]
   totalValue: text("total_value").notNull(),
   currency: text("currency").notNull().default("USD"),
-  
+
   // Pricing Information
   fobPrice: text("fob_price"),
   cifPrice: text("cif_price"),
   freightCost: text("freight_cost"),
   insuranceCost: text("insurance_cost"),
-  
+
   // Physical Specifications
   weight: text("weight"), // in kg
   volume: text("volume"), // in m³
   dimensions: text("dimensions"), // LxWxH in cm
-  
+
   // Shipping Information
   shippingMethod: text("shipping_method"), // sea, air, land
   containerType: text("container_type"), // 20ft, 40ft, 40ft-hc, lcl
   incoterms: text("incoterms").default("FOB"), // FOB, CIF, EXW, etc.
-  
+
   // Pipeline Status and Tracking
   currentStage: text("current_stage").notNull().default("estimativa"), // estimativa, invoice, producao, embarque, transporte, atracacao, desembaraco, transporte_terrestre, entrega
   status: text("status").notNull().default("planning"), // planning, active, completed, cancelled
-  
+
   // Pipeline Stages with Timestamps
   stageEstimativa: jsonb("stage_estimativa"), // { status, startDate, endDate, notes, documents }
   stageInvoice: jsonb("stage_invoice"),
@@ -241,40 +246,40 @@ export const imports = pgTable("imports", {
   stageDesembaraco: jsonb("stage_desembaraco"),
   stageTransporteTerrestre: jsonb("stage_transporte_terrestre"),
   stageEntrega: jsonb("stage_entrega"),
-  
+
   // Dates
   estimatedDelivery: timestamp("estimated_delivery"),
   actualDelivery: timestamp("actual_delivery"),
   invoiceDate: timestamp("invoice_date"),
   productionStartDate: timestamp("production_start_date"),
   shippingDate: timestamp("shipping_date"),
-  
+
   // Tracking and Documentation
   trackingNumber: text("tracking_number"),
   bl_number: text("bl_number"), // Bill of Lading
   invoiceNumber: text("invoice_number"),
   customsDeclarationNumber: text("customs_declaration_number"),
-  
+
   // Port Information
   portOfLoading: text("port_of_loading"),
   portOfDischarge: text("port_of_discharge"),
   finalDestination: text("final_destination"),
-  
+
   // Customs and Compliance
   customsStatus: text("customs_status"),
   importLicense: text("import_license"),
   dutyRate: text("duty_rate"),
   taxesAmount: text("taxes_amount"),
-  
+
   // Documents and Files
   documents: text("documents").array(),
   requiredDocuments: jsonb("required_documents"),
-  
+
   // Additional Information
   notes: text("notes"),
   internalNotes: text("internal_notes"), // Only visible to admins
   riskLevel: text("risk_level").default("low"), // low, medium, high
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

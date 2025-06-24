@@ -40,6 +40,7 @@ export default function AuthPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      acceptTerms: false,
     },
   });
 
@@ -398,22 +399,34 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  <div className="flex items-start">
-                    <Checkbox 
-                      required 
-                      className="mt-1 data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" 
-                    />
-                    <span className="ml-2 text-sm text-gray-600">
-                      {t.auth.acceptTerms}{" "}
-                      <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                        {t.auth.termsOfUse}
-                      </Button>{" "}
-                      e{" "}
-                      <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                        {t.auth.privacyPolicy}
-                      </Button>
-                    </span>
-                  </div>
+                  <FormField
+                    control={registerForm.control}
+                    name="acceptTerms"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox 
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="mt-1 data-[state=checked]:bg-spark-600 data-[state=checked]:border-spark-600" 
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <span className="text-sm text-gray-600">
+                            {t.auth.acceptTerms}{" "}
+                            <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
+                              {t.auth.termsOfUse}
+                            </Button>{" "}
+                            e{" "}
+                            <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
+                              {t.auth.privacyPolicy}
+                            </Button>
+                          </span>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
                   <Button 
                     type="submit" 
