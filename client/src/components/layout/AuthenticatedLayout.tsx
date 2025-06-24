@@ -314,7 +314,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       {user?.fullName && getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="ml-3 min-w-0 flex-1 text-left">
+                  <div className={`ml-3 min-w-0 flex-1 text-left transition-opacity duration-300 ${
+                    sidebarCollapsed ? "lg:opacity-0 lg:w-0 lg:overflow-hidden" : "opacity-100"
+                  }`}>
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {user?.fullName}
                     </p>
