@@ -42,17 +42,17 @@ import {
   Box
 } from "lucide-react";
 
-// Pipeline stages with icons
+// Pipeline stages with icons - Sistema unificado de status
 const pipelineStages = [
-  { id: "planning", name: "Planejamento", icon: FileText },
-  { id: "invoice", name: "Invoice", icon: FileCheck },
-  { id: "producao", name: "Produção", icon: Package },
-  { id: "embarque", name: "Embarque", icon: Ship },
-  { id: "transporte", name: "Transporte Marítimo", icon: Ship },
-  { id: "atracacao", name: "Atracação", icon: Anchor },
-  { id: "desembaraco", name: "Desembaraço", icon: FileCheck },
-  { id: "transporte_terrestre", name: "Transporte Terrestre", icon: Truck },
-  { id: "entrega", name: "Entrega", icon: CheckCircle },
+  { id: "planejamento", name: "Planejamento", icon: FileText, status: "planning" },
+  { id: "invoice", name: "Invoice", icon: FileCheck, status: "in_progress" },
+  { id: "producao", name: "Produção", icon: Package, status: "in_progress" },
+  { id: "embarque", name: "Embarque", icon: Ship, status: "in_progress" },
+  { id: "transporte", name: "Transporte Marítimo", icon: Ship, status: "shipped" },
+  { id: "atracacao", name: "Atracação", icon: Anchor, status: "shipped" },
+  { id: "desembaraco", name: "Desembaraço", icon: FileCheck, status: "shipped" },
+  { id: "transporte_terrestre", name: "Transporte Terrestre", icon: Truck, status: "shipped" },
+  { id: "entrega", name: "Entrega", icon: CheckCircle, status: "completed" },
 ];
 
 export default function ImportsPage() {
@@ -82,6 +82,12 @@ export default function ImportsPage() {
     enabled: !!user
   });
 
+  // Get status from current stage
+  const getStatusFromStage = (currentStage: string) => {
+    const stage = pipelineStages.find(s => s.id === currentStage);
+    return stage?.status || 'planning';
+  };
+
   // Filter imports based on admin/financeira or regular user
   const filteredImports = Array.isArray(imports) ? imports.filter((importItem: any) => {
     if (isAdmin || isFinanceira) {
@@ -93,7 +99,8 @@ export default function ImportsPage() {
           product.name?.toLowerCase().includes(adminFilters.search.toLowerCase())
         ));
 
-      const matchesStatus = !adminFilters.status || importItem.status === adminFilters.status;
+      const currentStatus = getStatusFromStage(importItem.currentStage || 'planejamento');
+      const matchesStatus = !adminFilters.status || currentStatus === adminFilters.status;
       const matchesCargoType = !adminFilters.cargoType || importItem.cargoType === adminFilters.cargoType;
 
       return matchesSearch && matchesStatus && matchesCargoType;
@@ -105,19 +112,24 @@ export default function ImportsPage() {
           product.name?.toLowerCase().includes(searchTerm.toLowerCase())
         ));
 
-      const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
+      const currentStatus = getStatusFromStage(importItem.currentStage || 'planejamento');
+      const matchesStatus = !statusFilter || statusFilter === "all" || currentStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
     }
   }) : [];
 
-  // Calculate metrics
+  // Calculate metrics using stage-derived status
   const totalImports = Array.isArray(imports) ? imports.length : 0;
-  const activeImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
-    ['planning', 'in_progress', 'shipped'].includes(imp.status)
-  ).length : 0;
-  const completedImports = Array.isArray(imports) ? imports.filter((imp: Import) => imp.status === 'completed').length : 0;
-  const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: Import) => 
+  const activeImports = Array.isArray(imports) ? imports.filter((imp: any) => {
+    const status = getStatusFromStage(imp.currentStage || 'planejamento');
+    return ['planning', 'in_progress', 'shipped'].includes(status);
+  }).length : 0;
+  const completedImports = Array.isArray(imports) ? imports.filter((imp: any) => {
+    const status = getStatusFromStage(imp.currentStage || 'planejamento');
+    return status === 'completed';
+  }).length : 0;
+  const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: any) => 
     sum + (parseFloat(imp.totalValue) || 0), 0
   ) : 0;
 
@@ -189,48 +201,22 @@ export default function ImportsPage() {
     },
   });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'planning': return <Clock className="w-4 h-4" />;
-      case 'in_progress': return <Truck className="w-4 h-4" />;
-      case 'shipped': return <Ship className="w-4 h-4" />;
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'cancelled': return <AlertCircle className="w-4 h-4" />;
-      default: return <Package className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'planning': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'shipped': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      'planning': 'Planejamento',
-      'in_progress': 'Em Andamento',
-      'shipped': 'Enviado',
-      'completed': 'Concluído',
-      'cancelled': 'Cancelado'
+  const getStatusBadge = (currentStage: string) => {
+    const stage = pipelineStages.find(s => s.id === currentStage) || pipelineStages[0];
+    const StageIcon = stage.icon;
+    
+    // Define cores baseadas no status derivado
+    const getStageColor = (stageId: string) => {
+      if (stageId === 'entrega') return 'bg-green-100 text-green-800';
+      if (['transporte', 'atracacao', 'desembaraco', 'transporte_terrestre'].includes(stageId)) return 'bg-purple-100 text-purple-800';
+      if (['invoice', 'producao', 'embarque'].includes(stageId)) return 'bg-yellow-100 text-yellow-800';
+      return 'bg-blue-100 text-blue-800'; // planejamento
     };
-    return statusMap[status] || status;
-  };
-
-    const getStatusBadge = (status: string) => {
-    const statusColor = getStatusColor(status);
-    const statusLabel = getStatusLabel(status);
-    const statusIcon = getStatusIcon(status);
 
     return (
-      <Badge className={`${statusColor} px-2 py-1 text-xs gap-1`}>
-        {statusIcon}
-        {statusLabel}
+      <Badge className={`${getStageColor(stage.id)} px-2 py-1 text-xs gap-1`}>
+        <StageIcon className="w-4 h-4" />
+        {stage.name}
       </Badge>
     );
   };
@@ -350,12 +336,11 @@ export default function ImportsPage() {
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="all">Todas as Etapas</SelectItem>
                 <SelectItem value="planning">Planejamento</SelectItem>
                 <SelectItem value="in_progress">Em Andamento</SelectItem>
-                <SelectItem value="shipped">Enviado</SelectItem>
+                <SelectItem value="shipped">Em Trânsito</SelectItem>
                 <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -410,7 +395,7 @@ export default function ImportsPage() {
 
                       {/* Status Badge and Action Dropdown */}
                       <div className="flex items-center gap-2">
-                        {getStatusBadge(importItem.status)}
+                        {getStatusBadge(importItem.currentStage || 'planejamento')}
                         
                         {/* Action Dropdown */}
                         <DropdownMenu>
@@ -435,7 +420,7 @@ export default function ImportsPage() {
                               Ver Detalhes
                             </DropdownMenuItem>
 
-                            {["planejamento", "planning"].includes(importItem.status) && (
+                            {(importItem.currentStage === 'planejamento' || !importItem.currentStage) && (
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -450,69 +435,7 @@ export default function ImportsPage() {
 
                             <DropdownMenuSeparator />
                             
-                            {/* Alterar Status */}
-                            <DropdownMenuSub>
-                              <DropdownMenuSubTrigger className="flex items-center gap-2">
-                                <Palette className="w-4 h-4 text-blue-600" />
-                                Alterar Status
-                              </DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateStatusMutation.mutate({ 
-                                      importId: importItem.id, 
-                                      newStatus: 'planning' 
-                                    });
-                                  }}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Clock className="w-4 h-4 text-blue-600" />
-                                  Planejamento
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateStatusMutation.mutate({ 
-                                      importId: importItem.id, 
-                                      newStatus: 'in_progress' 
-                                    });
-                                  }}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Play className="w-4 h-4 text-yellow-600" />
-                                  Em Andamento
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateStatusMutation.mutate({ 
-                                      importId: importItem.id, 
-                                      newStatus: 'shipped' 
-                                    });
-                                  }}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Ship className="w-4 h-4 text-purple-600" />
-                                  Enviado
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateStatusMutation.mutate({ 
-                                      importId: importItem.id, 
-                                      newStatus: 'completed' 
-                                    });
-                                  }}
-                                  className="flex items-center gap-2"
-                                >
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
-                                  Concluído
-                                </DropdownMenuItem>
-                              </DropdownMenuSubContent>
-                            </DropdownMenuSub>
-
-                            {/* Alterar Etapa do Pipeline */}
+                            {/* Alterar Etapa (Status é derivado automaticamente) */}
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger className="flex items-center gap-2">
                                 <TrendingUp className="w-4 h-4 text-purple-600" />
@@ -521,6 +444,7 @@ export default function ImportsPage() {
                               <DropdownMenuSubContent>
                                 {pipelineStages.map((stage) => {
                                   const StageIcon = stage.icon;
+                                  const isCurrent = stage.id === (importItem.currentStage || 'planejamento');
                                   return (
                                     <DropdownMenuItem
                                       key={stage.id}
@@ -529,20 +453,22 @@ export default function ImportsPage() {
                                         updatePipelineMutation.mutate({
                                           importId: importItem.id,
                                           stage: stage.id,
-                                          status: 'in_progress'
+                                          status: stage.status
                                         });
                                       }}
-                                      className="flex items-center gap-2"
+                                      className={`flex items-center gap-2 ${isCurrent ? 'bg-blue-50' : ''}`}
+                                      disabled={isCurrent}
                                     >
                                       <StageIcon className="w-4 h-4 text-blue-600" />
                                       {stage.name}
+                                      {isCurrent && <span className="text-xs text-blue-600 ml-2">(Atual)</span>}
                                     </DropdownMenuItem>
                                   );
                                 })}
                               </DropdownMenuSubContent>
                             </DropdownMenuSub>
 
-                            {["planejamento", "planning", "em_andamento", "in_progress"].includes(importItem.status) && (
+                            {["planejamento", "invoice", "producao"].includes(importItem.currentStage || 'planejamento') && (
                               <>
                                 <DropdownMenuSeparator />
                                 <AlertDialog>
