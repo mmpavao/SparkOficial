@@ -194,6 +194,7 @@ export default function CreditPage() {
 
   const { data: applications = [], isLoading } = useQuery({
     queryKey: [getEndpoint()],
+    enabled: !!user,
   });
 
   // Create credit application mutation
@@ -564,17 +565,17 @@ export default function CreditPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
               <p className="text-gray-600">{t.common.loading}...</p>
             </div>
-          ) : !applications || !Array.isArray(applications) || applications.length === 0 ? (
+          ) : applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">{t.dashboard.noData}</p>
+              <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
               <p className="text-sm text-gray-400">
                 Suas solicitações de crédito aparecerão aqui.
               </p>
             </div>
           ) : (
             <div className="space-y-6">
-              {Array.isArray(applications) && applications.map((application: any) => {
+              {applications.map((application: any) => {
                   // Determinar status visual e cor
                   const getStatusInfo = () => {
                     if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
