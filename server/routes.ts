@@ -696,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
       const isFinanceira = currentUser?.role === "financeira";
 
       const importRecord = await storage.getImport(id);
@@ -723,7 +723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
 
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
 
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
@@ -812,7 +812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { stage, data, currentStage } = req.body;
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
 
       const importRecord = await storage.getImport(id);
       if (!importRecord) {
@@ -1084,7 +1084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
       const isFinanceira = currentUser?.role === "financeira";
 
       const supplier = await storage.getSupplier(id);
