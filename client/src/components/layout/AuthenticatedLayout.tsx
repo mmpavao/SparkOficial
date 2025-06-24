@@ -305,20 +305,16 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className={`w-full p-3 h-auto hover:bg-gray-50 ${
-                  sidebarCollapsed ? "lg:justify-center" : "justify-start"
-                }`}
+                className="w-full p-3 h-auto hover:bg-gray-50 justify-start"
               >
                 <div className="flex items-center w-full">
-                  <Avatar className="w-8 h-8">
+                  <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarImage src={user?.avatar ? user.avatar : undefined} />
                     <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
                       {user?.fullName && getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className={`ml-3 min-w-0 flex-1 text-left transition-opacity duration-300 ${
-                    sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"
-                  }`}>
+                  <div className="ml-3 min-w-0 flex-1 text-left">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {user?.fullName}
                     </p>
