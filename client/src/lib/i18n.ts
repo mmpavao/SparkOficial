@@ -1,9 +1,4 @@
-/**
- * Internationalization system for Spark Comex
- * Supports Portuguese (default), English, Simplified Chinese, and Spanish
- */
-
-export type Language = 'pt' | 'en' | 'zh' | 'es';
+// Sistema de internacionalização removido
 
 export interface Translations {
   // Navigation and Layout
