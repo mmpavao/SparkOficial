@@ -334,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
 
       // Verificar se é super admin
-      if (currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas super admin" });
       }
 
@@ -372,7 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
 
       // Verificar se é super admin ou admin
-      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -392,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
 
       // Verificar se é super admin
-      if (currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas super admin" });
       }
 
@@ -411,7 +411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
 
       // Verificar se é super admin ou admin
-      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -464,7 +464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 1. User owns the application
       // 2. User is admin or super admin
       const isOwner = application.userId === req.session.userId;
-      const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'pavaosmart@gmail.com';
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
 
       if (!isOwner && !isAdmin) {
         return res.status(403).json({ message: "Acesso negado" });
@@ -553,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
 
       // Only admins can approve
-      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
@@ -587,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
 
       // Only admins can reject
-      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
@@ -621,7 +621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
 
       // Only admins can update analysis
-      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
@@ -846,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
 
       // Verificar se é admin ou super admin
-      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -861,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/admin/imports/:id/status', requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);      // Verificar se é admin ou super admin
-      if (currentUser?.email !== "pavaosmart@gmail.com" && currentUser?.role !== "admin") {
+      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -890,7 +890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user is admin (using email for now)
-      if (user.email !== "pavaosmart@gmail.com" && user.role !== "admin") {
+      if (user.role !== "super_admin" && user.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado - privilégios de administrador necessários" });
       }
 
@@ -1013,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
 
       // Only admins can finalize
-      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -1156,7 +1156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
 
       // Only admins can access all suppliers
-      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
@@ -1174,7 +1174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(userId);
 
       // Only admins can access supplier details
-      if (currentUser?.role !== "admin" && currentUser?.email !== "pavaosmart@gmail.com") {
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
