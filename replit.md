@@ -385,6 +385,14 @@ Changelog:
   * Added comprehensive CNPJ validation algorithm in Zod schema with proper error messages
   * Fixed AdminAnalysisPanel visibility - now only shows for admin/financeira users, hidden from importers
   * Corrected role-based permissions in credit details page for proper interface separation
+  * Comprehensive document system fixes implemented:
+    - Fixed document upload system to properly save uploaded files to database
+    - Implemented automatic status progression (pending → under_review when all docs uploaded)
+    - Added minimum 2 mandatory documents requirement for form submission
+    - Fixed document display in details page to show all 10 mandatory + 8 optional categories
+    - Added progress indicators showing uploaded vs pending document counts
+    - Implemented proper document persistence from application form to details view
+    - Enhanced document status management with partial/complete tracking
 ```
 
 ## User Preferences

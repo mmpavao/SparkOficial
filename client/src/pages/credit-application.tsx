@@ -104,10 +104,18 @@ const revenueRanges = [
   "Acima de R$ 100 milhões"
 ];
 
-// Document requirements
+// Required documents for step 4 - must match credit-details.tsx
 const requiredDocuments = [
-  { key: "contractSocial", name: "Contrato Social", description: "Contrato social completo da empresa" },
-  { key: "shareholderDocs", name: "Documentos dos Sócios", description: "CPF e RG de todos os sócios" }
+  { key: "business_license", name: "Licença Comercial", description: "Alvará de funcionamento ou licença municipal" },
+  { key: "cnpj_certificate", name: "Certificado CNPJ", description: "Documento oficial da Receita Federal" },
+  { key: "financial_statements", name: "Demonstrações Financeiras", description: "Balanços e demonstrativos contábeis" },
+  { key: "bank_statements", name: "Extratos Bancários (6 meses)", description: "Movimentação bancária dos últimos 6 meses" },
+  { key: "articles_of_incorporation", name: "Contrato Social", description: "Documento de constituição da empresa" },
+  { key: "board_resolution", name: "Ata de Assembleia", description: "Ata da última assembleia de sócios" },
+  { key: "tax_registration", name: "Inscrição Municipal/Estadual", description: "Documentos de inscrição fiscal" },
+  { key: "social_security_clearance", name: "Certidão INSS", description: "Certidão negativa de débitos do INSS" },
+  { key: "labor_clearance", name: "Certidão FGTS", description: "Certidão negativa de débitos do FGTS" },
+  { key: "income_tax_return", name: "Declaração Imposto de Renda", description: "Declaração do IR da empresa" }
 ];
 
 const optionalDocuments = [
