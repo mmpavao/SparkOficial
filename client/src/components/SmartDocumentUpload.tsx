@@ -213,7 +213,7 @@ export function SmartDocumentUpload({
         
         <div className="flex items-center gap-2">
           {/* Download Button - Mais visível */}
-          {isUploaded && (
+          {isUploaded && applicationId && (
             <Button
               variant="outline"
               size="sm"

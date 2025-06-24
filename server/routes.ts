@@ -429,6 +429,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const applicationData = { ...req.body, userId };
 
+      // Update uploadedBy field in documents to actual user ID
+      if (applicationData.requiredDocuments) {
+        Object.keys(applicationData.requiredDocuments).forEach(key => {
+          if (applicationData.requiredDocuments[key]) {
+            applicationData.requiredDocuments[key].uploadedBy = userId;
+          }
+        });
+      }
+
+      if (applicationData.optionalDocuments) {
+        Object.keys(applicationData.optionalDocuments).forEach(key => {
+          if (applicationData.optionalDocuments[key]) {
+            applicationData.optionalDocuments[key].uploadedBy = userId;
+          }
+        });
+      }
+
       const application = await storage.createCreditApplication(applicationData);
       res.status(201).json(application);
     } catch (error) {

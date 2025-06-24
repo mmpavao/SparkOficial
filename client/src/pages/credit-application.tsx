@@ -11,17 +11,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
+import { formatCurrency } from "@/lib/formatters";
+import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
 import { formatPhone } from "@/lib/phone";
 import { formatUSDInput, parseUSDInput, validateUSDRange } from "@/lib/currency";
 import PreparationGuideModal from "@/components/credit/PreparationGuideModal";
-import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
 import { 
   companyInfoSchema, 
   commercialInfoSchema, 
@@ -29,21 +32,28 @@ import {
   type InsertCreditApplication 
 } from "@shared/schema";
 import { 
-  Building2, 
-  Users, 
-  BarChart3, 
-  DollarSign, 
-  FileText, 
-  Upload,
-  ChevronLeft,
-  ChevronRight,
+  ArrowLeft,
+  ArrowRight,
+  Building,
+  User,
+  CreditCard,
+  FileText,
   CheckCircle,
-  XCircle,
-  Plus,
-  Trash2,
-  AlertCircle,
-  Info,
-  Eye
+  Upload,
+  Loader2,
+  AlertTriangle,
+  MapPin,
+  Mail,
+  Phone,
+  Building2,
+  Globe,
+  DollarSign,
+  Package,
+  TrendingUp,
+  MessageSquare,
+  Calendar,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 // Multi-step form type definitions
@@ -141,8 +151,8 @@ export default function CreditApplicationPage() {
   const [formData, setFormData] = useState<Partial<InsertCreditApplication>>({});
   const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
-  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
-  const [uploadingDocuments, setUploadingDocuments] = useState<Record<string, boolean>>({});
+  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, any>>({});
+  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState("");
   const [, setLocation] = useLocation();
@@ -276,32 +286,51 @@ export default function CreditApplicationPage() {
     }
   };
 
-  // Document upload handler with uploading state management
-  const handleDocumentUpload = (documentKey: string, file: File) => {
-    // Set uploading state
-    setUploadingDocuments(prev => ({
-      ...prev,
-      [documentKey]: true
-    }));
+  // Handle document upload in step 4
+  const handleDocumentUpload = async (documentKey: string, file: File) => {
+    setUploadingDocument(documentKey);
 
-    // Simulate upload process (in real implementation this would be an API call)
-    setTimeout(() => {
+    try {
+      // Convert file to base64 for storage (same format as details page)
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const base64 = result.split(',')[1]; // Remove data:type;base64, prefix
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const documentInfo = {
+        filename: file.name,
+        originalName: file.name,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: 'temp_user', // Will be updated on submit
+        data: base64Data
+      };
+
       setUploadedDocuments(prev => ({
         ...prev,
-        [documentKey]: file
+        [documentKey]: documentInfo
       }));
 
-      // Clear uploading state
-      setUploadingDocuments(prev => ({
-        ...prev,
-        [documentKey]: false
-      }));
-
+      setUploadingDocument(null);
       toast({
-        title: "Sucesso",
-        description: `Documento "${file.name}" anexado com sucesso.`,
+        title: "Documento enviado!",
+        description: `${file.name} foi enviado com sucesso.`,
       });
-    }, 1000);
+    } catch (error) {
+      setUploadingDocument(null);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível processar o documento.",
+        variant: "destructive",
+      });
+    }
   };
 
   const removeDocument = (documentKey: string) => {
@@ -329,7 +358,7 @@ export default function CreditApplicationPage() {
 
   const nextStep = async () => {
     let isValid = false;
-    
+
     if (currentStep === 1) {
       isValid = await companyForm.trigger();
       if (isValid) {
@@ -346,7 +375,7 @@ export default function CreditApplicationPage() {
         setFormData(prev => ({ ...prev, ...creditForm.getValues() }));
       }
     }
-    
+
     if (isValid && currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
@@ -392,10 +421,10 @@ export default function CreditApplicationPage() {
       uploadedDocuments[doc.key]
     ).length;
     const totalMandatory = requiredDocuments.length;
-    
+
     let documentsStatus = "pending";
     let applicationStatus = "pending";
-    
+
     if (mandatoryUploaded >= 2) {
       if (mandatoryUploaded === totalMandatory) {
         documentsStatus = "complete";
@@ -405,6 +434,19 @@ export default function CreditApplicationPage() {
         applicationStatus = "pending"; // Stay pending until all mandatory docs
       }
     }
+    
+    // Separate mandatory and optional documents
+    const mandatoryDocKeys = requiredDocuments.map(doc => doc.key);
+    const requiredDocs: any = {};
+    const optionalDocs: any = {};
+
+    Object.entries(uploadedDocuments).forEach(([key, doc]) => {
+      if (mandatoryDocKeys.includes(key)) {
+        requiredDocs[key] = doc;
+      } else {
+        optionalDocs[key] = doc;
+      }
+    });
 
     const finalData = {
       ...formData,
@@ -412,10 +454,10 @@ export default function CreditApplicationPage() {
       status: applicationStatus,
       currentStep: 4,
       documentsStatus: documentsStatus,
-      requiredDocuments: uploadedDocuments, // Save uploaded documents
-      optionalDocuments: {} // Initialize optional docs
+      requiredDocuments: requiredDocs, // Only mandatory documents
+      optionalDocuments: optionalDocs // Optional documents
     };
-    
+
     submitApplicationMutation.mutate(finalData);
   };
 
@@ -426,7 +468,7 @@ export default function CreditApplicationPage() {
         const isCompleted = getStepStatus(step) || step < currentStep;
         const isCurrent = step === currentStep;
         const isClickable = step <= currentStep || isCompleted;
-        
+
         return (
           <div key={step} className="flex items-center">
             <button
@@ -490,7 +532,7 @@ export default function CreditApplicationPage() {
             <h1 className="text-2xl font-bold text-gray-900">Solicitação de Crédito</h1>
             <p className="text-gray-600 mt-1">Preencha todas as informações para solicitar seu crédito de importação</p>
           </div>
-          
+
           {/* Requirements Button */}
           <Button
             variant="outline"
@@ -537,7 +579,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="tradingName"
@@ -575,7 +617,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="stateRegistration"
@@ -589,7 +631,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="municipalRegistration"
@@ -622,7 +664,7 @@ export default function CreditApplicationPage() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="zipCode"
@@ -659,7 +701,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="state"
@@ -697,7 +739,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="email"
@@ -711,7 +753,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={companyForm.control}
                     name="website"
@@ -739,7 +781,7 @@ export default function CreditApplicationPage() {
                       Adicionar Sócio
                     </Button>
                   </div>
-                  
+
                   {companyForm.watch("shareholders").map((_, index) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-gray-50">
                       <FormField
@@ -755,7 +797,7 @@ export default function CreditApplicationPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={companyForm.control}
                         name={`shareholders.${index}.cpf`}
@@ -776,7 +818,7 @@ export default function CreditApplicationPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={companyForm.control}
                         name={`shareholders.${index}.percentage`}
@@ -795,7 +837,7 @@ export default function CreditApplicationPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="flex items-end">
                         <Button
                           type="button"
@@ -810,7 +852,7 @@ export default function CreditApplicationPage() {
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Percentage validation */}
                   <div className="text-sm text-gray-600">
                     Total de participação: {
@@ -861,7 +903,7 @@ export default function CreditApplicationPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={commercialForm.control}
                     name="annualRevenue"
@@ -887,7 +929,7 @@ export default function CreditApplicationPage() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={commercialForm.control}
                   name="mainImportedProducts"
@@ -897,15 +939,14 @@ export default function CreditApplicationPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Ex: Componentes eletrônicos, matérias-primas, etc."
-                          rows={3}
-                          {...field}
+                          rows={3{...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={commercialForm.control}
                   name="mainOriginMarkets"
@@ -949,7 +990,7 @@ export default function CreditApplicationPage() {
                     const currentValue = parseUSDInput(field.value || '0');
                     const validation = validateUSDRange(currentValue);
                     const isValid = validation.isValid && currentValue >= 100000;
-                    
+
                     return (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
@@ -1000,7 +1041,7 @@ export default function CreditApplicationPage() {
                 />
 
 
-                
+
                 {/* Products to Import - Tag System */}
                 <FormField
                   control={creditForm.control}
@@ -1011,7 +1052,7 @@ export default function CreditApplicationPage() {
                         <FileText className="w-4 h-4 text-blue-600" />
                         Produtos a Importar *
                       </FormLabel>
-                      
+
                       <div className="flex gap-2">
                         <Input
                           value={currentProduct}
@@ -1050,7 +1091,7 @@ export default function CreditApplicationPage() {
                           ))}
                         </div>
                       )}
-                      
+
                       {productTags.length === 0 && (
                         <p className="text-sm text-gray-500">Adicione pelo menos um produto</p>
                       )}
@@ -1088,7 +1129,7 @@ export default function CreditApplicationPage() {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Justification */}
                 <FormField
                   control={creditForm.control}
@@ -1145,7 +1186,7 @@ export default function CreditApplicationPage() {
               <p className="text-sm text-gray-600">
                 Para prosseguir com a solicitação, você deve anexar pelo menos <strong>2 documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
               </p>
-              
+
               {/* Progress indicator */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
@@ -1157,7 +1198,7 @@ export default function CreditApplicationPage() {
                   </span>
                 </div>
               </div>
-              
+
               {requiredDocuments.map((doc) => (
                 <SmartDocumentUpload
                   key={doc.key}
@@ -1165,8 +1206,9 @@ export default function CreditApplicationPage() {
                   documentLabel={doc.name}
                   isRequired={true}
                   isUploaded={!!uploadedDocuments[doc.key]}
-                  isUploading={!!uploadingDocuments[doc.key]}
+                  isUploading={uploadingDocument === doc.key}
                   onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                  applicationId={undefined} // Not saved yet, so no download available
                 />
               ))}
             </div>
@@ -1180,7 +1222,7 @@ export default function CreditApplicationPage() {
               <p className="text-sm text-gray-600">
                 Estes documentos podem ser anexados agora ou posteriormente. Quanto mais documentos fornecidos, mais rápida será a análise:
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {optionalDocuments.map((doc, index) => (
                   <SmartDocumentUpload
@@ -1223,7 +1265,7 @@ export default function CreditApplicationPage() {
           <ChevronLeft className="w-4 h-4" />
           Anterior
         </Button>
-        
+
         {currentStep < 4 ? (
           <Button
             onClick={nextStep}
