@@ -159,19 +159,19 @@ export default function CreditDetailsPage() {
   };
 
   const mandatoryDocuments = [
-    { key: 'business_license', label: 'Licença Comercial', required: true },
     { key: 'cnpj_certificate', label: 'Certificado CNPJ', required: true },
-    { key: 'financial_statements', label: 'Demonstrações Financeiras', required: true },
-    { key: 'bank_statements', label: 'Extratos Bancários (6 meses)', required: true },
     { key: 'articles_of_incorporation', label: 'Contrato Social', required: true },
-    { key: 'board_resolution', label: 'Ata de Assembleia', required: true },
-    { key: 'tax_registration', label: 'Inscrição Municipal/Estadual', required: true },
-    { key: 'social_security_clearance', label: 'Certidão INSS', required: true },
-    { key: 'labor_clearance', label: 'Certidão FGTS', required: true },
-    { key: 'income_tax_return', label: 'Declaração Imposto de Renda', required: true },
   ];
 
   const optionalDocuments = [
+    { key: 'business_license', label: 'Licença Comercial', required: false },
+    { key: 'financial_statements', label: 'Demonstrações Financeiras', required: false },
+    { key: 'bank_statements', label: 'Extratos Bancários (6 meses)', required: false },
+    { key: 'board_resolution', label: 'Ata de Assembleia', required: false },
+    { key: 'tax_registration', label: 'Inscrição Municipal/Estadual', required: false },
+    { key: 'social_security_clearance', label: 'Certidão INSS', required: false },
+    { key: 'labor_clearance', label: 'Certidão FGTS', required: false },
+    { key: 'income_tax_return', label: 'Declaração Imposto de Renda', required: false },
     { key: 'tax_clearance', label: 'Certidão Tributária', required: false },
     { key: 'commercial_references', label: 'Referências Comerciais', required: false },
     { key: 'import_licenses', label: 'Licenças de Importação', required: false },

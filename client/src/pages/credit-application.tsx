@@ -126,34 +126,27 @@ const revenueRanges = [
 
 // Required documents for step 4 - must match credit-details.tsx
 const requiredDocuments = [
-  { key: "business_license", name: "Licença Comercial", description: "Alvará de funcionamento ou licença municipal" },
   { key: "cnpj_certificate", name: "Certificado CNPJ", description: "Documento oficial da Receita Federal" },
+  { key: "articles_of_incorporation", name: "Contrato Social", description: "Documento de constituição da empresa" }
+];
+
+const optionalDocuments = [
+  { key: "business_license", name: "Licença Comercial", description: "Alvará de funcionamento ou licença municipal" },
   { key: "financial_statements", name: "Demonstrações Financeiras", description: "Balanços e demonstrativos contábeis" },
   { key: "bank_statements", name: "Extratos Bancários (6 meses)", description: "Movimentação bancária dos últimos 6 meses" },
-  { key: "articles_of_incorporation", name: "Contrato Social", description: "Documento de constituição da empresa" },
   { key: "board_resolution", name: "Ata de Assembleia", description: "Ata da última assembleia de sócios" },
   { key: "tax_registration", name: "Inscrição Municipal/Estadual", description: "Documentos de inscrição fiscal" },
   { key: "social_security_clearance", name: "Certidão INSS", description: "Certidão negativa de débitos do INSS" },
   { key: "labor_clearance", name: "Certidão FGTS", description: "Certidão negativa de débitos do FGTS" },
-  { key: "income_tax_return", name: "Declaração Imposto de Renda", description: "Declaração do IR da empresa" }
-];
-
-const optionalDocuments = [
-  { key: "businessLicense", name: "Alvará de Funcionamento", description: "Cópia atualizada da licença comercial da empresa" },
-  { key: "incorporationCert", name: "Certificado de Constituição", description: "Certificado de constituição da empresa" },
-  { key: "companyProfile", name: "Perfil da Empresa", description: "Apresentação institucional da empresa" },
-  { key: "financialStatements", name: "Demonstrações Financeiras (3 anos)", description: "Balanços, DRE e fluxo de caixa" },
-  { key: "bankReference", name: "Carta de Referência Bancária", description: "Carta do banco principal da empresa" },
-  { key: "creditReport", name: "Relatório de Crédito", description: "Relatório de crédito da empresa" },
-  { key: "taxCertificate", name: "Certificado Fiscal", description: "Comprovação de regularidade fiscal" },
-  { key: "importLicense", name: "Licença de Importação", description: "Licenças de importação (se aplicável)" },
-  { key: "customsRegistration", name: "Registro Alfandegário", description: "Certificado de registro alfandegário" },
-  { key: "operationCertificates", name: "Certificados Operacionais", description: "Certificados específicos do setor" },
-  { key: "legalRepId", name: "Documento do Representante Legal", description: "CPF e RG do representante legal" },
-  { key: "supplierContracts", name: "Contratos com Fornecedores", description: "Modelos de contrato com fornecedores" },
-  { key: "customerList", name: "Lista de Principais Clientes", description: "Lista com principais clientes e volumes" },
-  { key: "insuranceClaims", name: "Registro de Sinistros (3 anos)", description: "Histórico de sinistros de seguro" },
-  { key: "salesContracts", name: "Contratos de Venda", description: "Exemplos de contratos ou POs recentes" }
+  { key: "income_tax_return", name: "Declaração Imposto de Renda", description: "Declaração do IR da empresa" },
+  { key: "tax_clearance", name: "Certidão Tributária", description: "Certidão negativa de tributos" },
+  { key: "commercial_references", name: "Referências Comerciais", description: "Cartas de referência de fornecedores" },
+  { key: "import_licenses", name: "Licenças de Importação", description: "Licenças específicas para importação" },
+  { key: "product_catalogs", name: "Catálogos de Produtos", description: "Catálogos dos produtos a importar" },
+  { key: "quality_certificates", name: "Certificados de Qualidade", description: "Certificados ISO e similares" },
+  { key: "insurance_policies", name: "Apólices de Seguro", description: "Apólices de seguro da empresa" },
+  { key: "bank_references", name: "Referências Bancárias", description: "Cartas de referência bancária" },
+  { key: "additional_documents", name: "Documentos Adicionais", description: "Outros documentos relevantes" }
 ];
 
 export default function CreditApplicationPage() {
@@ -383,11 +376,11 @@ export default function CreditApplicationPage() {
                productTags.length > 0 &&
                creditData.monthlyImportVolume && creditData.justification;
       case 4:
-        // Must have at least 2 mandatory documents uploaded to complete step 4
+        // Must have all mandatory documents uploaded to complete step 4
         const mandatoryUploaded = requiredDocuments.filter(doc => 
           uploadedDocuments[doc.key]
         ).length;
-        return mandatoryUploaded >= 2;
+        return mandatoryUploaded >= requiredDocuments.length;
       default:
         return false;
     }
@@ -405,14 +398,12 @@ export default function CreditApplicationPage() {
       let documentsStatus = "pending";
       let applicationStatus = "pending";
 
-      if (mandatoryUploaded >= 2) {
-        if (mandatoryUploaded === totalMandatory) {
-          documentsStatus = "complete";
-          applicationStatus = "under_review";
-        } else {
-          documentsStatus = "partial";
-          applicationStatus = "pending";
-        }
+      if (mandatoryUploaded >= requiredDocuments.length) {
+        documentsStatus = "complete";
+        applicationStatus = "under_review";
+      } else if (mandatoryUploaded > 0) {
+        documentsStatus = "partial";
+        applicationStatus = "pending";
       }
 
       // Create application data without documents first

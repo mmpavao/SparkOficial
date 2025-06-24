@@ -393,6 +393,13 @@ Changelog:
     - Added progress indicators showing uploaded vs pending document counts
     - Implemented proper document persistence from application form to details view
     - Enhanced document status management with partial/complete tracking
+- June 24, 2025. Critical application stability and performance fixes:
+  * Fixed application crash due to missing React icon imports (Users, Plus, Minus, Trash2, BarChart3, AlertCircle, XCircle)
+  * Resolved PayloadTooLargeError by increasing Express body parser limits to 50MB
+  * Redesigned document upload architecture to use FormData instead of base64 JSON encoding
+  * Separated application submission from document uploads to prevent payload size issues
+  * Maintained backward compatibility while optimizing for large file handling
+  * Application now handles document uploads up to 10MB per file efficiently without server errors
 ```
 
 ## User Preferences
