@@ -384,269 +384,193 @@ export default function ImportsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Carregando importações...</p>
-          </div>
-        ) : filteredImports.length === 0 ? (
-          <div className="text-center py-8">
-            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">Nenhuma importação encontrada</p>
-            <p className="text-sm text-gray-400">
-              {searchTerm ? "Tente alterar o termo de busca" : "Clique em 'Nova Importação' para começar"}
-            </p>
-          </div>
-        ) : (
-          filteredImports.map((importItem: any) => (
-            <Card 
-              key={importItem.id} 
-              className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-200 cursor-pointer"
-              onClick={() => setLocation(`/imports/details/${importItem.id}`)}
-            >
-              <CardContent className="p-6">
-                {/* Header Section */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        IMP-{String(importItem.id).padStart(3, '0')}-2024
-                      </h3>
-                      <p className="text-sm text-gray-600 flex items-center gap-1">
-                        <Box className="w-4 h-4" />
-                        {importItem.importName || "Importação de produtos"}
-                      </p>
-                    </div>
-                  </div>
+              {filteredImports.map((importItem: any) => (
+                <Card 
+                  key={importItem.id} 
+                  className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  onClick={() => setLocation(`/imports/details/${importItem.id}`)}
+                >
+                  <CardContent className="p-6">
+                    {/* Header Section */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Building2 className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            IMP-{String(importItem.id).padStart(3, '0')}-2024
+                          </h3>
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <Box className="w-4 h-4" />
+                            {importItem.importName || "Importação de produtos"}
+                          </p>
+                        </div>
+                      </div>
 
-                  {/* Status Badge */}
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(importItem.status)}</div>
-
-                    {/* Action Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger className="flex items-center gap-2">
-                      <Palette className="w-4 h-4 text-green-600" />
-                      Alterar Etapa
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      {pipelineStages.map((stage) => {
-                        const Icon = stage.icon;
-                        let currentStage = importItem.status;
-                        if (currentStage === 'planning') currentStage = 'planning';
-                        else if (currentStage === 'in_progress') currentStage = importItem.currentStage || 'producao';
-                        else if (currentStage === 'shipped') currentStage = 'transporte';
-                        else if (currentStage === 'completed') currentStage = 'entrega';
+                      {/* Status Badge and Action Dropdown */}
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(importItem.status)}
                         
-                        if (stage.id === currentStage) return null;
+                        {/* Action Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLocation(`/imports/details/${importItem.id}`);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Eye className="w-4 h-4 text-blue-600" />
+                              Ver Detalhes
+                            </DropdownMenuItem>
 
-                        return (
-                          <DropdownMenuItem
-                            key={stage.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              
-                              // Determinar o novo status baseado na etapa
-                              let newStatus = 'in_progress';
-                              if (stage.id === 'planning') newStatus = 'planning';
-                              else if (stage.id === 'transporte') newStatus = 'shipped';
-                              else if (stage.id === 'entrega') newStatus = 'completed';
-                              
-                              // Atualizar pipeline e status em uma única operação
-                              updatePipelineMutation.mutate({
-                                importId: importItem.id,
-                                stage: stage.id,
-                                status: newStatus
-                              });
-                            }}
-                            className="flex items-center gap-2"
-                          >
-                            <Icon className="w-4 h-4 text-blue-600" />
-                            {stage.name}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
+                            {["planejamento", "planning"].includes(importItem.status) && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLocation(`/imports/edit/${importItem.id}`);
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <Edit className="w-4 h-4 text-gray-600" />
+                                Editar Importação
+                              </DropdownMenuItem>
+                            )}
 
-                  {["planejamento", "planning"].includes(importItem.status) && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLocation(`/imports/edit/${importItem.id}`);
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit className="w-4 h-4 text-gray-600" />
-                      Editar Importação
-                    </DropdownMenuItem>
-                  )}
-
-                  {["planejamento", "planning", "em_andamento", "in_progress"].includes(importItem.status) && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateStatusMutation.mutate({
-                            importId: importItem.id,
-                            newStatus: "cancelada"
-                          });
-                        }}
-                        className="flex items-center gap-2 text-red-600 hover:text-red-700"
-                      >
-                        <X className="w-4 h-4" />
-                        Cancelar Importação
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-                  </div>
-                </div>
-
-                {/* Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                      <Calendar className="w-4 h-4" />
-                      Data de Criação
+                            {["planejamento", "planning", "em_andamento", "in_progress"].includes(importItem.status) && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem
+                                      onSelect={(e) => e.preventDefault()}
+                                      className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                                    >
+                                      <X className="w-4 h-4" />
+                                      Cancelar Importação
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => cancelImportMutation.mutate(importItem.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Confirmar Cancelamento
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                    <div className="font-semibold text-gray-900">
-                      {new Date(importItem.createdAt).toLocaleDateString('pt-BR')}
-                    </div>
-                  </div>
 
-                  <div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                      <Calendar className="w-4 h-4" />
-                      Previsão de Entrega
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {importItem.estimatedDelivery ? 
-                        new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                        'Não informado'
-                      }
-                    </div>
-                  </div>
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                          <Calendar className="w-4 h-4" />
+                          Data de Criação
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {new Date(importItem.createdAt).toLocaleDateString('pt-BR')}
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                      <DollarSign className="w-4 h-4" />
-                      Valor FOB
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {importItem.totalValue ? 
-                        `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                        'Não informado'
-                      }
-                    </div>
-                  </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                          <Calendar className="w-4 h-4" />
+                          Previsão de Entrega
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.estimatedDelivery ? 
+                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
+                            'Não informado'
+                          }
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                      <Package className="w-4 h-4" />
-                      Tipo de Carga
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {importItem.cargoType || 'FCL'}
-                    </div>
-                  </div>
-                </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                          <DollarSign className="w-4 h-4" />
+                          Valor FOB
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.totalValue ? 
+                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
+                            'Não informado'
+                          }
+                        </div>
+                      </div>
 
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1 text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      Progresso da Importação
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {(() => {
-                        // Usar currentStage diretamente se disponível, senão mapear do status
-                        const currentStage = importItem.currentStage || (() => {
-                          if (importItem.status === 'planning') return 'planning';
-                          if (importItem.status === 'shipped') return 'transporte';
-                          if (importItem.status === 'completed') return 'entrega';
-                          return 'producao'; // default para in_progress
-                        })();
-                        
-                        const currentIndex = pipelineStages.findIndex(stage => stage.id === currentStage);
-                        const progress = currentIndex >= 0 ? Math.round(((currentIndex + 1) / pipelineStages.length) * 100) : 0;
-                        return `${progress}%`;
-                      })()}
-                    </span>
-                  </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                          <Package className="w-4 h-4" />
+                          Tipo de Carga
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.cargoType || 'FCL'}
+                        </div>
+                      </div>
+                    </div>
 
-                  <div className="relative">
-                    <div className="w-full h-2 bg-gray-200 rounded-full">
-                      <div 
-                        className="h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300" 
-                        style={{ 
-                          width: `${(() => {
-                            // Usar currentStage diretamente se disponível, senão mapear do status
-                            const currentStage = importItem.currentStage || (() => {
-                              if (importItem.status === 'planning') return 'planning';
-                              if (importItem.status === 'shipped') return 'transporte';
-                              if (importItem.status === 'completed') return 'entrega';
-                              return 'producao'; // default para in_progress
-                            })();
-                            
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-1 text-gray-600">
+                          <Clock className="w-4 h-4" />
+                          Progresso da Importação
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          {(() => {
+                            const currentStage = importItem.currentStage || 'planning';
                             const currentIndex = pipelineStages.findIndex(stage => stage.id === currentStage);
-                            return currentIndex >= 0 ? ((currentIndex + 1) / pipelineStages.length) * 100 : 0;
-                          })()}%` 
-                        }}
-                      ></div>
-                    </div>
+                            const progress = currentIndex >= 0 ? Math.round(((currentIndex + 1) / pipelineStages.length) * 100) : 0;
+                            return `${progress}%`;
+                          })()}
+                        </span>
+                      </div>
 
-                    {/* Progress dots with icons */}
-                    <div className="absolute top-1/2 transform -translate-y-1/2 w-full flex justify-between px-1">
-                      {pipelineStages.map((stage, index) => {
-                        // Usar currentStage diretamente se disponível, senão mapear do status
-                        const currentStage = importItem.currentStage || (() => {
-                          if (importItem.status === 'planning') return 'planning';
-                          if (importItem.status === 'shipped') return 'transporte';
-                          if (importItem.status === 'completed') return 'entrega';
-                          return 'producao'; // default para in_progress
-                        })();
-                        
-                        const currentIndex = pipelineStages.findIndex(s => s.id === currentStage);
-                        const isActive = index <= currentIndex;
-                        const StageIcon = stage.icon;
-                        
-                        return (
-                          <div
-                            key={index}
-                            className={`w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${
-                              isActive ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'
-                            }`}
-                            title={stage.name}
-                          >
-                            <StageIcon className="w-3 h-3" />
-                          </div>
-                        );
-                      })}
+                      <div className="relative">
+                        <div className="w-full h-2 bg-gray-200 rounded-full">
+                          <div 
+                            className="h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300" 
+                            style={{ 
+                              width: `${(() => {
+                                const currentStage = importItem.currentStage || 'planning';
+                                const currentIndex = pipelineStages.findIndex(stage => stage.id === currentStage);
+                                return currentIndex >= 0 ? ((currentIndex + 1) / pipelineStages.length) * 100 : 0;
+                              })()}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
