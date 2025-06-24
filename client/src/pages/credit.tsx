@@ -688,7 +688,7 @@ export default function CreditPage() {
                                   Ver Detalhes
                                 </DropdownMenuItem>
                                 
-                                {application.status === 'pending' && (
+                                {(application.status === 'pending' || application.status === 'under_review') && (
                                   <>
                                     <DropdownMenuItem
                                       onClick={() => setLocation(`/credit/edit/${application.id}`)}
