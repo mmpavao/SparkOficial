@@ -53,7 +53,9 @@ import {
   MessageSquare,
   Calendar,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 // Multi-step form type definitions
@@ -1231,7 +1233,7 @@ export default function CreditApplicationPage() {
                     documentLabel={doc.name}
                     isRequired={false}
                     isUploaded={!!uploadedDocuments[`optional_${index}`]}
-                    isUploading={!!uploadingDocuments[`optional_${index}`]}
+                    isUploading={uploadingDocument === `optional_${index}`}
                     onUpload={(file) => handleDocumentUpload(`optional_${index}`, file)}
                   />
                 ))}
