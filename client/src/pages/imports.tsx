@@ -308,11 +308,11 @@ export default function ImportsPage() {
           ) : (
             <div className="space-y-4">
               {filteredImports.map((importItem: Import) => (
-                <div key={importItem.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div key={importItem.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">
                           {importItem.importName || `Importação #${importItem.id}`}
                         </h3>
                         <Badge className={`flex items-center gap-1 ${getStatusColor(importItem.status)}`}>
@@ -326,70 +326,68 @@ export default function ImportsPage() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Produtos</span>
-                          <span className="font-medium text-gray-900">{Array.isArray(importItem.products) ? importItem.products.length : 0}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-4 h-4" />
+                          <span>Produtos: <strong>{Array.isArray(importItem.products) ? importItem.products.length : 0}</strong></span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Valor Total</span>
-                          <span className="font-medium text-gray-900">{formatCurrency(parseFloat(importItem.totalValue))}</span>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4" />
+                          <span>Valor: <strong>{formatCurrency(parseFloat(importItem.totalValue))}</strong></span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Tipo de Carga</span>
-                          <span className="font-medium text-gray-900">{importItem.cargoType}</span>
+                        <div className="flex items-center gap-2">
+                          <Box className="w-4 h-4" />
+                          <span>Tipo: <strong>{importItem.cargoType}</strong></span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="ml-6">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setLocation(`/imports/details/${importItem.id}`)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setLocation(`/imports/details/${importItem.id}`)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        {importItem.status === 'planning' && (
+                          <DropdownMenuItem onClick={() => setLocation(`/imports/edit/${importItem.id}`)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
                           </DropdownMenuItem>
-                          {importItem.status === 'planning' && (
-                            <DropdownMenuItem onClick={() => setLocation(`/imports/edit/${importItem.id}`)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                          )}
-                          {!['completed', 'cancelled'].includes(importItem.status) && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Cancelar
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Não, manter</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => cancelImportMutation.mutate(importItem.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Sim, cancelar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                        )}
+                        {!['completed', 'cancelled'].includes(importItem.status) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Cancelar
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Não, manter</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => cancelImportMutation.mutate(importItem.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Sim, cancelar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}

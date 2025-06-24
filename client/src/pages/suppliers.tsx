@@ -229,65 +229,63 @@ export default function SuppliersPage() {
           ) : (
             <div className="space-y-4">
               {filteredSuppliers.map((supplier: any) => (
-                <div key={supplier.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">
                           {supplier.companyName}
                         </h3>
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Badge variant="outline" className="text-xs">
                           Fornecedor Chinês
                         </Badge>
                         {(isAdmin || isFinanceira) && (supplier as any).importerCompanyName && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
                             {(supplier as any).importerCompanyName}
                           </Badge>
                         )}
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Localização</span>
-                          <span className="font-medium text-gray-900">{supplier.city}, {supplier.country}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          <span>Local: <strong>{supplier.city}, {supplier.country}</strong></span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Telefone</span>
-                          <span className="font-medium text-gray-900">{supplier.phone}</span>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span>Tel: <strong>{supplier.phone}</strong></span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Email</span>
-                          <span className="font-medium text-gray-900">{supplier.email}</span>
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          <span>Email: <strong>{supplier.email}</strong></span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="ml-6">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteSupplier(supplier)}
-                            className="text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteSupplier(supplier)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
