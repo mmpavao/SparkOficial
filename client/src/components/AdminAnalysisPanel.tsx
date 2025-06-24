@@ -22,6 +22,7 @@ import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare, DollarSig
 import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from "react-i18next";
 
 interface AdminAnalysisPanelProps {
   application: any;
@@ -29,7 +30,8 @@ interface AdminAnalysisPanelProps {
 
 export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelProps) {
   const permissions = useUserPermissions();
-  
+  const { t } = useTranslation();
+
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
     riskLevel: application.riskLevel || "medium",
@@ -66,7 +68,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   const updateStatusMutation = useMutation({
     mutationFn: async ({ status, data }: { status: string; data?: any }) => {
       let endpoint;
-      
+
       if (permissions.isFinanceira) {
         // Financeira endpoints for final approval/rejection
         endpoint = status === 'approved' 
@@ -82,14 +84,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           ? `/api/admin/credit/applications/${application.id}/reject`
           : `/api/admin/credit/applications/${application.id}/update-analysis`;
       }
-      
+
       return await apiRequest(endpoint, "PUT", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
-      
+
       // Clear form fields after successful submission
       setAnalysisData({
         status: "pending",
@@ -98,7 +100,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         requestedDocuments: "",
         observations: ""
       });
-      
+
       toast({
         title: "Sucesso!",
         description: "Status atualizado com sucesso.",
@@ -133,7 +135,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         });
         return;
       }
-      
+
       handleConfirmAction(
         "Aprovar Crédito",
         "Tem certeza que deseja aprovar esta solicitação de crédito com limite final?",
@@ -225,7 +227,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         preAnalysisStatus: 'needs_documents'
       }
     });
-    
+
     // Clear the field after sending
     setAnalysisData(prev => ({ ...prev, requestedDocuments: "" }));
   };
@@ -249,7 +251,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
         preAnalysisStatus: 'needs_clarification'
       }
     });
-    
+
     // Clear the field after sending
     setAnalysisData(prev => ({ ...prev, observations: "" }));
   };
@@ -264,7 +266,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       approved: { label: "Aprovado", variant: "default" as const, color: "bg-green-100 text-green-800" },
       rejected: { label: "Rejeitado", variant: "destructive" as const, color: "bg-red-100 text-red-800" },
     };
-    
+
     const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
     return (
       <Badge className={config.color}>
@@ -279,7 +281,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       medium: { label: "Médio", color: "bg-yellow-100 text-yellow-800" },
       high: { label: "Alto", color: "bg-red-100 text-red-800" },
     };
-    
+
     const config = riskMap[risk as keyof typeof riskMap] || riskMap.medium;
     return (
       <Badge className={config.color}>
@@ -417,7 +419,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   Aceitos: PDF, DOC, DOCX, JPG, PNG (máx. 10MB por arquivo)
                 </p>
               </div>
-              
+
               {financialData.attachments.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Arquivos Selecionados:</p>
@@ -455,14 +457,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Aprovar
                 </Button>
-                
+
                 <Button 
                   onClick={handleReject}
                   variant="destructive"
                   disabled={updateStatusMutation.isPending}
                 >
                   <XCircle className="w-4 h-4 mr-1" />
-                  Rejeitar
+                  {t.admin.reject}
                 </Button>
               </div>
             </div>
@@ -512,14 +514,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Pré-aprovar
                 </Button>
-                
+
                 <Button 
                   onClick={handleReject}
                   variant="destructive"
                   disabled={updateStatusMutation.isPending}
                 >
                   <XCircle className="w-4 h-4 mr-1" />
-                  Rejeitar
+                  {t.admin.reject}
                 </Button>
               </div>
             </div>
