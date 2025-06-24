@@ -97,10 +97,19 @@ input[data-form-type="other"]:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Force input styling */
-input[name="custom_full_name_field"] {
+/* Force input styling for name field */
+input[name="user_full_name_input"] {
     background: white !important;
     color: black !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+input[name="user_full_name_input"]:-webkit-autofill,
+input[name="user_full_name_input"]:-webkit-autofill:hover,
+input[name="user_full_name_input"]:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: black !important;
 }
 
 /* Enhanced checkbox visibility */
