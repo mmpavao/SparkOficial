@@ -775,7 +775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/imports/:id/status', requireAuth, async (req: any, res) => {
+  app.patch('/api/imports/:id/status', requireAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status, ...updateData } = req.body;
@@ -801,7 +801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/imports/:id/pipeline', requireAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { stage, data, currentStage, status } = req.body;
+      const { stage, data, currentStage } = req.body;
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       const isAdmin = currentUser?.email === "pavaosmart@gmail.com" || currentUser?.role === "admin";
@@ -816,7 +816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
-      // Update the specific stage data, current stage, and status if provided
+      // Update the specific stage data and current stage
       const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
       const updateData = {
         [stageKey]: data,
@@ -824,10 +824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date()
       };
       
-      // Use provided status or keep current status
-      const newStatus = status || importRecord.status;
-      
-      const updatedImport = await storage.updateImportStatus(id, newStatus, updateData);
+      const updatedImport = await storage.updateImportStatus(id, importRecord.status, updateData);
       res.json(updatedImport);
     } catch (error) {
       console.error("Error updating import pipeline:", error);

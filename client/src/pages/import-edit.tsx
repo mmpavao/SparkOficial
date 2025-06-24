@@ -69,7 +69,7 @@ export default function ImportEditPage() {
   const { data: suppliers = [] } = useQuery({
     queryKey: ["/api/suppliers"],
     queryFn: async () => {
-      const response = await apiRequest("/api/suppliers", "GET");
+      const response = await apiRequest("GET", "/api/suppliers");
       return response.json();
     },
   });
