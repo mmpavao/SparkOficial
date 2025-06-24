@@ -329,22 +329,71 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 mb-2">
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="flex items-center w-full">
-                  <Settings className="w-4 h-4 mr-3" />
-                  {t.nav.settings}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-                className="text-red-600 focus:text-red-600"
-              >
-                <LogOut className="w-4 h-4 mr-3" />
-                {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
-              </DropdownMenuItem>
+            <DropdownMenuContent align="start" className="w-64 mb-2">
+              {/* Header do usuário no dropdown */}
+              <div className="px-3 py-3 border-b">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={user?.avatar ? user.avatar : undefined} />
+                    <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
+                      {user?.fullName && getInitials(user.fullName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {user?.fullName}
+                    </p>
+                    <p className="text-xs text-gray-600 truncate">
+                      {user?.email}
+                    </p>
+                    <div className="flex items-center mt-1">
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        user?.role === "admin" 
+                          ? "bg-blue-100 text-blue-800" 
+                          : user?.role === "financeira" 
+                            ? "bg-purple-100 text-purple-800" 
+                            : "bg-green-100 text-green-800"
+                      }`}>
+                        {user?.role === "admin" ? (
+                          <>
+                            <Shield className="w-3 h-3 mr-1" />
+                            Spark Admin
+                          </>
+                        ) : user?.role === "financeira" ? (
+                          <>
+                            <BarChart3 className="w-3 h-3 mr-1" />
+                            Financeira
+                          </>
+                        ) : (
+                          <>
+                            <Truck className="w-3 h-3 mr-1" />
+                            Importador
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Menu Items */}
+              <div className="py-1">
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex items-center w-full px-3 py-2">
+                    <Settings className="w-4 h-4 mr-3" />
+                    {t.nav.settings}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                  className="text-red-600 focus:text-red-600 px-3 py-2"
+                >
+                  <LogOut className="w-4 h-4 mr-3" />
+                  {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
