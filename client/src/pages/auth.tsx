@@ -281,30 +281,25 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  <FormField
-                    control={registerForm.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.auth.fullName}</FormLabel>
-                        <FormControl>
-                          <input
-                            type="text"
-                            placeholder="Seu nome completo"
-                            value={field.value || ""}
-                            onChange={(e) => field.onChange(e.target.value)}
-                            onBlur={field.onBlur}
-                            name="user_full_name_input"
-                            ref={field.ref}
-                            autoComplete="off"
-                            data-lpignore="true"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:ring-spark-500 focus:border-spark-500"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      {t.auth.fullName}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={registerForm.watch("fullName") || ""}
+                      onChange={(e) => registerForm.setValue("fullName", e.target.value)}
+                      name="fullname_field"
+                      autoComplete="off"
+                      data-lpignore="true"
+                      spellCheck="false"
+                      className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    {registerForm.formState.errors.fullName && (
+                      <p className="text-sm text-red-600">{registerForm.formState.errors.fullName.message}</p>
                     )}
-                  />
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
