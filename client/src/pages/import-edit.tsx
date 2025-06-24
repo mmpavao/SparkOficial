@@ -229,8 +229,8 @@ export default function ImportEditPage() {
     return <div>Importação não encontrada</div>;
   }
 
-  // Check if import can be edited (accepting both Portuguese and English status)
-  const canEdit = ["planejamento", "planning", "em_andamento", "in_progress"].includes(importData.status);
+  // Check if import can be edited - allow editing for all statuses except completed and cancelled
+  const canEdit = !["concluida", "completed", "cancelada", "cancelled"].includes(importData.status);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -251,7 +251,7 @@ export default function ImportEditPage() {
         </div>
       </div>
 
-      {/* Warning for cancelled imports */}
+      {/* Warning for completed/cancelled imports */}
       {!canEdit && (
         <Card className="border-amber-200 bg-amber-50">
           <CardContent className="p-4">
@@ -262,7 +262,7 @@ export default function ImportEditPage() {
               </span>
             </div>
             <p className="text-sm text-amber-700 mt-1">
-              Apenas importações em "Planejamento" ou "Em Andamento" podem ser editadas. Status atual: {importData.status}
+              Importações "Concluídas" ou "Canceladas" não podem ser editadas. Status atual: {importData.status}
             </p>
           </CardContent>
         </Card>
