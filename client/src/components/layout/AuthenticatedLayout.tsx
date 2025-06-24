@@ -419,9 +419,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Spark Comex
-              </h1>
+              
             </div>
             <div className="flex items-center space-x-4">
               <LanguageSelector />
