@@ -21,6 +21,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   Building2, 
   MapPin, 
@@ -47,6 +57,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -173,8 +184,13 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Tem certeza que deseja remover este fornecedor?")) {
-      deleteSupplierMutation.mutate(id);
+    setConfirmDeleteId(id);
+  };
+
+  const confirmDeleteSupplier = () => {
+    if (confirmDeleteId) {
+      deleteSupplierMutation.mutate(confirmDeleteId);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -644,6 +660,24 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este fornecedor? Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteSupplier} className="bg-red-600 hover:bg-red-700">
+              Confirmar Remoção
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

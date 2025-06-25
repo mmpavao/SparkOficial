@@ -45,9 +45,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ImportsPage() {
   const [showNewImportForm, setShowNewImportForm] = useState(false);
+  const [confirmCancelId, setConfirmCancelId] = useState<number | null>(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [adminFilters, setAdminFilters] = useState({});
   const [products, setProducts] = useState([{
@@ -288,8 +299,13 @@ export default function ImportsPage() {
   };
 
   const handleCancelImport = (importId: number) => {
-    if (confirm("Tem certeza que deseja cancelar esta importação?")) {
-      cancelImportMutation.mutate(importId);
+    setConfirmCancelId(importId);
+  };
+
+  const confirmCancelImport = () => {
+    if (confirmCancelId) {
+      cancelImportMutation.mutate(confirmCancelId);
+      setConfirmCancelId(null);
     }
   };
 
@@ -1000,6 +1016,24 @@ export default function ImportsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={!!confirmCancelId} onOpenChange={() => setConfirmCancelId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancelImport} className="bg-red-600 hover:bg-red-700">
+              Confirmar Cancelamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
