@@ -444,28 +444,49 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
             <Separator />
 
-            {/* Final Approval Actions */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  onClick={handleApprove}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={updateStatusMutation.isPending}
-                >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Aprovar
-                </Button>
-                
-                <Button 
-                  onClick={handleReject}
-                  variant="destructive"
-                  disabled={updateStatusMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Rejeitar
-                </Button>
+            {/* Final Approval Actions - Only show if not already approved/rejected */}
+            {application.status !== 'approved' && application.status !== 'rejected' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    onClick={handleApprove}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Aprovar
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleReject}
+                    variant="destructive"
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Rejeitar
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Status Display for Already Processed Applications */}
+            {(application.status === 'approved' || application.status === 'rejected') && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-2">
+                  {application.status === 'approved' ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span className="font-medium">
+                    {application.status === 'approved' ? 'Aplicação Aprovada' : 'Aplicação Rejeitada'}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  Esta aplicação já foi processada e não pode ser alterada.
+                </p>
+              </div>
+            )}
           </>
         ) : (
           // Admin Interface - Pre-approval with Risk Analysis
