@@ -188,6 +188,9 @@ export const creditApplications = pgTable("credit_applications", {
   adminFinalizedBy: integer("admin_finalized_by").references(() => users.id),
   adminFinalizedAt: timestamp("admin_finalized_at"),
 
+  // Financial Institution Attachments (apólices and additional documents)
+  attachments: text("attachments"), // JSON array of attachment metadata
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
