@@ -1281,13 +1281,13 @@ export default function CreditApplicationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {optionalDocuments.map((doc, index) => (
                   <SmartDocumentUpload
-                    key={index}
-                    documentKey={`optional_${index}`}
+                    key={doc.key}
+                    documentKey={doc.key}
                     documentLabel={doc.name}
                     isRequired={false}
-                    isUploaded={!!uploadedDocuments[`optional_${index}`]}
-                    isUploading={uploadingDocument === `optional_${index}`}
-                    onUpload={(file) => handleDocumentUpload(`optional_${index}`, file)}
+                    isUploaded={!!uploadedDocuments[doc.key]}
+                    isUploading={uploadingDocument === doc.key}
+                    onUpload={(file) => handleDocumentUpload(doc.key, file)}
                   />
                 ))}
               </div>
