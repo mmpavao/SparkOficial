@@ -33,7 +33,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle
 } from "lucide-react";
 
 export default function CreditDetailsPage() {
