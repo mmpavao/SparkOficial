@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
+import { useAdminMetrics } from "@/hooks/useAdminMetrics";
 import { useTranslation } from "@/contexts/I18nContext";
 import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -15,13 +16,21 @@ import {
   PiggyBank,
   CreditCard,
   Truck,
-  BarChart3
+  BarChart3,
+  Users,
+  DollarSign,
+  TrendingUp,
+  Clock
 } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { metrics, creditApplications, imports } = useMetrics();
+  
+  // Only fetch admin metrics if user is admin
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics();
 
   // Debug logging
   console.log('Dashboard Debug Data:', {

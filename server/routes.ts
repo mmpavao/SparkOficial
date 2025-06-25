@@ -1617,6 +1617,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin dashboard metrics endpoint
+  app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Only admins can access dashboard metrics
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const metrics = await storage.getAdminDashboardMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching admin dashboard metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

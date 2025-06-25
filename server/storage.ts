@@ -62,6 +62,18 @@ export interface IStorage {
   updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication>;
   getSuppliersByPreApprovedUsers(): Promise<Supplier[]>;
   getImportsByPreApprovedUsers(): Promise<Import[]>;
+  
+  // Admin dashboard metrics
+  getAdminDashboardMetrics(): Promise<{
+    totalImporters: number;
+    totalApplications: number;
+    applicationsByStatus: { [key: string]: number };
+    totalCreditVolume: number;
+    approvedCreditVolume: number;
+    totalImports: number;
+    totalSuppliers: number;
+    recentActivity: any[];
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -443,6 +455,87 @@ export class DatabaseStorage implements IStorage {
       });
     
     return result as any[];
+  }
+
+  async getAdminDashboardMetrics() {
+    try {
+      // Get all data needed for metrics
+      const [allUsers, allApplications, allImports, allSuppliers] = await Promise.all([
+        this.getAllUsers(),
+        this.getAllCreditApplications(),
+        this.getAllImports(),
+        this.getAllSuppliers()
+      ]);
+
+      // Count importers (excluding admin/super_admin/financeira)
+      const totalImporters = allUsers.filter(user => 
+        user.role === 'importer' && user.status === 'active'
+      ).length;
+
+      // Count applications by status
+      const applicationsByStatus: { [key: string]: number } = {};
+      const statusLabels = {
+        'pre_analysis': 'Pré-Análise',
+        'pre_approved': 'Pré-Aprovado', 
+        'final_analysis': 'Análise Final',
+        'approved': 'Aprovado',
+        'rejected': 'Rejeitado',
+        'cancelled': 'Cancelado'
+      };
+
+      // Initialize counts
+      Object.keys(statusLabels).forEach(status => {
+        applicationsByStatus[statusLabels[status as keyof typeof statusLabels]] = 0;
+      });
+
+      // Count actual applications
+      allApplications.forEach(app => {
+        const statusLabel = statusLabels[app.status as keyof typeof statusLabels] || app.status;
+        applicationsByStatus[statusLabel] = (applicationsByStatus[statusLabel] || 0) + 1;
+      });
+
+      // Calculate credit volumes
+      const totalCreditVolume = allApplications.reduce((sum, app) => {
+        const amount = parseFloat(app.requestedAmount) || 0;
+        return sum + amount;
+      }, 0);
+
+      const approvedCreditVolume = allApplications
+        .filter(app => app.status === 'approved')
+        .reduce((sum, app) => {
+          const amount = parseFloat(app.requestedAmount) || 0;
+          return sum + amount;
+        }, 0);
+
+      // Get recent activity (last 10 applications)
+      const recentActivity = allApplications
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 10)
+        .map(app => {
+          const user = allUsers.find(u => u.id === app.userId);
+          return {
+            id: app.id,
+            companyName: user?.companyName || 'Empresa não encontrada',
+            status: app.status,
+            amount: app.requestedAmount,
+            createdAt: app.createdAt
+          };
+        });
+
+      return {
+        totalImporters,
+        totalApplications: allApplications.length,
+        applicationsByStatus,
+        totalCreditVolume,
+        approvedCreditVolume,
+        totalImports: allImports.length,
+        totalSuppliers: allSuppliers.length,
+        recentActivity
+      };
+    } catch (error) {
+      console.error('Error getting admin dashboard metrics:', error);
+      throw error;
+    }
   }
 }
 
