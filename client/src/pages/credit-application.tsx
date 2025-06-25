@@ -125,25 +125,25 @@ const revenueRanges = [
   "Acima de R$ 100 milhões"
 ];
 
-// Required documents for step 4 - must match credit-details.tsx
-const requiredDocuments = [
-  { key: "articles_of_incorporation", name: "Contrato Social", subtitle: "Articles of Association", description: "Documento que comprova a constituição da empresa, incluindo cláusulas societárias." },
-  { key: "cnpj_certificate", name: "Documentos dos Sócios (CPF e RG/CNH)", subtitle: "Legal Representative ID Copy", description: "Cópia legível dos documentos de identificação dos sócios (CPF e RG ou CNH)." }
+// Document definitions - must match credit-details.tsx exactly
+const mandatoryDocuments = [
+  { key: 'articles_of_incorporation', label: 'Contrato Social', subtitle: 'Articles of Association', required: true },
+  { key: 'cnpj_certificate', label: 'Documentos dos Sócios (CPF e RG/CNH)', subtitle: 'Legal Representative ID Copy', required: true },
 ];
 
 const optionalDocuments = [
-  { key: "business_license", name: "Licença de Funcionamento", subtitle: "Business License", description: "Documento que comprove atividade legal da empresa (cartão CNPJ ou documento da Junta Comercial)." },
-  { key: "quality_certificates", name: "Certificado de Constituição", subtitle: "Certificate of Incorporation", description: "Documento de registro formal da empresa." },
-  { key: "financial_statements", name: "Demonstrações Financeiras (últimos 3 anos)", subtitle: "Financial Statements (Last 3 Years)", description: "Balanço patrimonial e DRE dos últimos 3 anos." },
-  { key: "bank_references", name: "Carta de Referência Bancária", subtitle: "Bank Reference Letter", description: "Documento emitido pelo banco comprovando o relacionamento da empresa." },
-  { key: "commercial_references", name: "Relatório de Crédito da Empresa", subtitle: "Credit Report", description: "Emitido por entidades como Serasa, Boa Vista, etc." },
-  { key: "tax_clearance", name: "Certificado de Regularidade Fiscal", subtitle: "Tax Registration Certificate", description: "Certidões negativas (Receita Federal, Estadual, Municipal)." },
-  { key: "import_licenses", name: "Licença ou Registro de Importação", subtitle: "Export and Import License", description: "RADAR ou documento equivalente." },
-  { key: "tax_registration", name: "Registro Alfandegário", subtitle: "Customs Registration Certificate", description: "Caso aplicável, comprovação de operações de comércio exterior." },
-  { key: "product_catalogs", name: "Lista de Principais Clientes", subtitle: "Main Customers List", description: "Lista de clientes com país e volume médio." },
-  { key: "board_resolution", name: "Contratos ou Pedidos de Compra Recentes", subtitle: "Sales Contracts / Purchase Orders", description: "Exemplo de negociações recentes." },
-  { key: "bank_statements", name: "Modelo de Contrato com Clientes", subtitle: "Supplier Contract Sample", description: "Contrato tipo com clientes ou fornecedores." },
-  { key: "insurance_policies", name: "Histórico de Sinistros (se houver)", subtitle: "Insurance Claim Record (if any)", description: "Histórico de uso de seguro comercial." }
+  { key: 'business_license', label: 'Licença de Funcionamento', subtitle: 'Business License', required: false },
+  { key: 'quality_certificates', label: 'Certificado de Constituição', subtitle: 'Certificate of Incorporation', required: false },
+  { key: 'financial_statements', label: 'Demonstrações Financeiras (últimos 3 anos)', subtitle: 'Financial Statements (Last 3 Years)', required: false },
+  { key: 'bank_references', label: 'Carta de Referência Bancária', subtitle: 'Bank Reference Letter', required: false },
+  { key: 'commercial_references', label: 'Relatório de Crédito da Empresa', subtitle: 'Credit Report', required: false },
+  { key: 'tax_clearance', label: 'Certificado de Regularidade Fiscal', subtitle: 'Tax Registration Certificate', required: false },
+  { key: 'import_licenses', label: 'Licença ou Registro de Importação', subtitle: 'Export and Import License', required: false },
+  { key: 'tax_registration', label: 'Registro Alfandegário', subtitle: 'Customs Registration Certificate', required: false },
+  { key: 'product_catalogs', label: 'Lista de Principais Clientes', subtitle: 'Main Customers List', required: false },
+  { key: 'board_resolution', label: 'Contratos ou Pedidos de Compra Recentes', subtitle: 'Sales Contracts / Purchase Orders', required: false },
+  { key: 'bank_statements', label: 'Modelo de Contrato com Clientes', subtitle: 'Supplier Contract Sample', required: false },
+  { key: 'insurance_policies', label: 'Histórico de Sinistros (se houver)', subtitle: 'Insurance Claim Record (if any)', required: false },
 ];
 
 export default function CreditApplicationPage() {
@@ -385,10 +385,10 @@ export default function CreditApplicationPage() {
                creditData.monthlyImportVolume && creditData.justification;
       case 4:
         // Must have all mandatory documents uploaded to complete step 4
-        const mandatoryUploaded = requiredDocuments.filter(doc => 
+        const mandatoryUploaded = mandatoryDocuments.filter(doc => 
           uploadedDocuments[doc.key]
         ).length;
-        return mandatoryUploaded >= requiredDocuments.length;
+        return mandatoryUploaded >= mandatoryDocuments.length;
       default:
         return false;
     }
@@ -398,14 +398,14 @@ export default function CreditApplicationPage() {
     setIsSubmitting(true);
     try {
       // Calculate documents status based on uploaded documents
-      const mandatoryUploaded = requiredDocuments.filter(doc => 
+      const mandatoryUploaded = mandatoryDocuments.filter(doc => 
         uploadedDocuments[doc.key]
       ).length;
 
       let documentsStatus = "pending";
       let applicationStatus = "pending";
 
-      if (mandatoryUploaded >= requiredDocuments.length) {
+      if (mandatoryUploaded >= mandatoryDocuments.length) {
         documentsStatus = "complete";
         applicationStatus = "under_review";
       } else if (mandatoryUploaded > 0) {
@@ -430,7 +430,7 @@ export default function CreditApplicationPage() {
       const applicationId = response.id;
 
       // Upload documents separately using FormData with error handling
-      const mandatoryDocKeys = requiredDocuments.map(doc => doc.key);
+      const mandatoryDocKeys = mandatoryDocuments.map(doc => doc.key);
       const uploadPromises = [];
       let uploadErrors = [];
 
@@ -1245,7 +1245,7 @@ export default function CreditApplicationPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-blue-800">
-                    Documentos Obrigatórios Anexados: {requiredDocuments.filter(doc => uploadedDocuments[doc.key]).length} / {requiredDocuments.length}
+                    Documentos Obrigatórios Anexados: {mandatoryDocuments.filter(doc => uploadedDocuments[doc.key]).length} / {mandatoryDocuments.length}
                   </span>
                   <span className="text-xs text-blue-600">
                     Mínimo: 2 para enviar solicitação
@@ -1253,13 +1253,13 @@ export default function CreditApplicationPage() {
                 </div>
               </div>
 
-              {requiredDocuments.map((doc) => (
+              {mandatoryDocuments.map((doc) => (
                 <SmartDocumentUpload
                   key={doc.key}
                   documentKey={doc.key}
-                  documentLabel={doc.name}
+                  documentLabel={doc.label}
                   documentSubtitle={doc.subtitle}
-                  isRequired={true}
+                  isRequired={doc.required}
                   isUploaded={!!uploadedDocuments[doc.key]}
                   isUploading={uploadingDocument === doc.key}
                   onUpload={(file) => handleDocumentUpload(doc.key, file)}
@@ -1279,15 +1279,17 @@ export default function CreditApplicationPage() {
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {optionalDocuments.map((doc, index) => (
+                {optionalDocuments.map((doc) => (
                   <SmartDocumentUpload
                     key={doc.key}
                     documentKey={doc.key}
-                    documentLabel={doc.name}
-                    isRequired={false}
+                    documentLabel={doc.label}
+                    documentSubtitle={doc.subtitle}
+                    isRequired={doc.required}
                     isUploaded={!!uploadedDocuments[doc.key]}
                     isUploading={uploadingDocument === doc.key}
                     onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                    applicationId={undefined} // Not saved yet, so no download available
                   />
                 ))}
               </div>
