@@ -30,21 +30,10 @@ import {
   Box,
   Scale
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 export default function ImportDetailsPage() {
   const [match, params] = useRoute("/imports/details/:id");
   const [location, setLocation] = useLocation();
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { isAdmin } = useUserPermissions();
@@ -441,7 +430,11 @@ export default function ImportDetailsPage() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start text-red-600 hover:text-red-700"
-                  onClick={() => setShowCancelDialog(true)}
+                  onClick={() => {
+                    if (confirm("Tem certeza que deseja cancelar esta importação?")) {
+                      // Handle cancellation
+                    }
+                  }}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Cancelar Importação
@@ -524,31 +517,6 @@ export default function ImportDetailsPage() {
           )}
         </div>
       </div>
-
-      {/* Cancel Confirmation Dialog */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                // TODO: Implement actual cancellation logic
-                console.log("Cancelling import:", importId);
-                setShowCancelDialog(false);
-              }}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Confirmar Cancelamento
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

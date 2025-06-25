@@ -58,7 +58,7 @@ export default function AuthPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Login realizado com sucesso!",
+        title: t.auth.loginSuccess,
         description: "Bem-vindo de volta à Spark Comex.",
       });
     },
@@ -78,7 +78,7 @@ export default function AuthPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Conta criada com sucesso!",
+        title: t.auth.registerSuccess,
         description: "Bem-vindo à Spark Comex.",
       });
     },
@@ -153,20 +153,20 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-lg opacity-90 mb-8">
-            Plataforma completa para gestão de importações e crédito comercial do Brasil para a China
+            {t.auth.platformDescription}
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm opacity-75">
             <div className="flex items-center">
               <Shield className="w-4 h-4 mr-2" />
-              <span>Seguro</span>
+              <span>{t.auth.secure}</span>
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              <span>Rápido</span>
+              <span>{t.auth.fast}</span>
             </div>
             <div className="flex items-center">
               <TrendingUp className="w-4 h-4 mr-2" />
-              <span>Eficiente</span>
+              <span>{t.auth.efficient}</span>
             </div>
           </div>
         </div>
@@ -187,8 +187,8 @@ export default function AuthPage() {
           {isLogin ? (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo de volta!</h2>
-                <p className="text-gray-600">Faça login na sua conta Spark Comex</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.welcomeBack}</h2>
+                <p className="text-gray-600">{t.auth.loginDescription}</p>
               </div>
 
               <Form {...loginForm}>
@@ -198,7 +198,7 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t.auth.email}</FormLabel>
                         <FormControl>
                           <Input 
                             type="email" 
@@ -221,7 +221,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Senha</FormLabel>
+                        <FormLabel>{t.auth.password}</FormLabel>
                         <FormControl>
                           <PasswordInput 
                             placeholder="••••••••" 
@@ -245,10 +245,10 @@ export default function AuthPage() {
                         onCheckedChange={setRememberMe}
                         className="peer shrink-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 h-6 w-6 border-3 border-gray-600 rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md ml-[0px] mr-[0px] bg-[#e1e3e2]" 
                       />
-                      <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
+                      <span className="ml-2 text-sm text-gray-600">{t.auth.rememberMe}</span>
                     </label>
                     <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0">
-                      Esqueceu a senha?
+                      {t.auth.forgotPassword}
                     </Button>
                   </div>
 
@@ -257,19 +257,19 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? "Entrando..." : "Entrar"}
+                    {loginMutation.isPending ? t.auth.signingIn : t.auth.signIn}
                   </Button>
                 </form>
               </Form>
 
               <div className="text-center">
-                <span className="text-gray-600">Não tem uma conta? </span>
+                <span className="text-gray-600">{t.auth.dontHaveAccount} </span>
                 <Button 
                   variant="link" 
                   onClick={() => setIsLogin(false)}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  Cadastre-se
+                  {t.auth.registerButton}
                 </Button>
               </div>
             </div>
@@ -277,8 +277,8 @@ export default function AuthPage() {
             /* Register Form */
             (<div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Criar Conta</h2>
-                <p className="text-gray-600">Cadastre sua empresa na Spark Comex</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.createAccount}</h2>
+                <p className="text-gray-600">{t.auth.createAccountDescription}</p>
               </div>
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
@@ -288,7 +288,7 @@ export default function AuthPage() {
                       name="companyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome da Empresa</FormLabel>
+                          <FormLabel>{t.auth.companyName}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Sua Empresa Ltda" 
@@ -310,7 +310,7 @@ export default function AuthPage() {
                       name="cnpj"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>CNPJ</FormLabel>
+                          <FormLabel>{t.auth.cnpj}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="00.000.000/0000-00" 
@@ -337,7 +337,7 @@ export default function AuthPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Nome Completo
+                      {t.auth.fullName}
                     </label>
                     <input
                       type="text"
@@ -361,7 +361,7 @@ export default function AuthPage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefone</FormLabel>
+                          <FormLabel>{t.auth.phone}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="(11) 99999-9999" 
@@ -386,7 +386,7 @@ export default function AuthPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t.auth.email}</FormLabel>
                           <FormControl>
                             <Input 
                               type="email" 
@@ -411,7 +411,7 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Senha</FormLabel>
+                          <FormLabel>{t.auth.password}</FormLabel>
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••" 
@@ -433,7 +433,7 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirmar Senha</FormLabel>
+                          <FormLabel>{t.auth.confirmPassword}</FormLabel>
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••" 
@@ -465,13 +465,13 @@ export default function AuthPage() {
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <span className="text-sm text-gray-600">
-                            Aceito os{" "}
+                            {t.auth.acceptTerms}{" "}
                             <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                              Termos de Uso
+                              {t.auth.termsOfUse}
                             </Button>{" "}
                             e{" "}
                             <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                              Política de Privacidade
+                              {t.auth.privacyPolicy}
                             </Button>
                           </span>
                           <FormMessage />
@@ -485,18 +485,18 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={registerMutation.isPending}
                   >
-                    {registerMutation.isPending ? "Criando conta..." : "Criar Conta"}
+                    {registerMutation.isPending ? t.auth.creatingAccount : t.auth.createAccount}
                   </Button>
                 </form>
               </Form>
               <div className="text-center">
-                <span className="text-gray-600">Já tem uma conta? </span>
+                <span className="text-gray-600">{t.auth.haveAccount} </span>
                 <Button 
                   variant="link" 
                   onClick={() => setIsLogin(true)}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  Faça login
+                  {t.auth.signInNow}
                 </Button>
               </div>
             </div>)

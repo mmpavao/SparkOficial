@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-
+import { useTranslation } from "@/contexts/I18nContext";
+import LanguageSelector from "@/components/ui/language-selector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +44,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
-  
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -114,16 +115,16 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
   const navigation = [
-    { path: "/", icon: Home, label: "Dashboard" },
+    { path: "/", icon: Home, label: t.nav.dashboard },
     { 
       path: "/credit", 
       icon: CreditCard, 
-      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : "Crédito" 
+      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : t.nav.credit 
     },
     { 
       path: "/imports", 
       icon: Truck, 
-      label: (isAdmin || isFinanceira) ? "Importações" : "Importações",
+      label: (isAdmin || isFinanceira) ? "Importações" : t.nav.imports,
       submenu: [
         { 
           path: "/imports", 
@@ -143,7 +144,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         },
       ]
     },
-    { path: "/reports", icon: BarChart3, label: "Relatórios" },
+    { path: "/reports", icon: BarChart3, label: t.nav.reports },
   ];
 
   // Navegação adicional apenas para admins
@@ -378,7 +379,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex items-center w-full px-3 py-2">
                     <Settings className="w-4 h-4 mr-3" />
-                    Configurações
+                    {t.nav.settings}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -388,7 +389,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className="text-red-600 focus:text-red-600 px-3 py-2"
                 >
                   <LogOut className="w-4 h-4 mr-3" />
-                  {logoutMutation.isPending ? "Sair..." : "Sair"}
+                  {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
                 </DropdownMenuItem>
               </div>
             </DropdownMenuContent>
@@ -421,6 +422,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSelector />
               <Button variant="ghost" size="sm">
                 <Bell className="w-4 h-4" />
               </Button>

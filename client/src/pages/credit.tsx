@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { useTranslation } from "@/contexts/I18nContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,21 +17,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-
+import { useTranslation } from "@/contexts/I18nContext";
 import AdminFilters from "@/components/AdminFilters";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
@@ -55,7 +43,7 @@ import {
 } from "lucide-react";
 import { CreditApplication } from "@shared/schema";
 
-const createCreditApplicationSchema = z.object({
+const createCreditApplicationSchema = (t: any) => z.object({
   requestedAmount: z.string()
     .min(1, "Valor é obrigatório")
     .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
@@ -177,19 +165,15 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
 export default function CreditPage() {
   const [showForm, setShowForm] = useState(false);
   const [filters, setFilters] = useState({});
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
-  const [confirmApprove, setConfirmApprove] = useState<number | null>(null);
-  const [confirmReject, setConfirmReject] = useState<number | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
-  
   const permissions = useUserPermissions();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
   const form = useForm<CreditApplicationForm>({
-    resolver: zodResolver(createCreditApplicationSchema),
+    resolver: zodResolver(createCreditApplicationSchema(t)),
     defaultValues: {
       requestedAmount: "",
       purpose: "",
@@ -222,16 +206,16 @@ export default function CreditPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       toast({
-        title: "Sucesso!",
-        description: "Solicitação de crédito enviada com sucesso.",
+        title: t.credit.applicationSuccess,
+        description: t.credit.applicationSent,
       });
       setShowForm(false);
       form.reset();
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro inesperado",
+        title: t.credit.applicationError,
+        description: error.message || t.common.error,
         variant: "destructive",
       });
     },
@@ -263,7 +247,11 @@ export default function CreditPage() {
     },
   });
 
-  // This handler has been moved to the new confirmation system below
+  const handleCancelApplication = (applicationId: number) => {
+    if (confirm("Tem certeza que deseja cancelar esta solicitação de crédito?")) {
+      cancelApplicationMutation.mutate(applicationId);
+    }
+  };
 
   // Administrative mutations for approval/rejection
   const approveApplicationMutation = useMutation({
@@ -310,36 +298,15 @@ export default function CreditPage() {
     },
   });
 
-  const handleCancelApplication = (applicationId: number) => {
-    setConfirmDelete(applicationId);
-  };
-
   const handleApproveApplication = (applicationId: number) => {
-    setConfirmApprove(applicationId);
+    if (confirm("Tem certeza que deseja aprovar esta solicitação de crédito?")) {
+      approveApplicationMutation.mutate(applicationId);
+    }
   };
 
   const handleRejectApplication = (applicationId: number) => {
-    setConfirmReject(applicationId);
-  };
-
-  const confirmCancelApplication = () => {
-    if (confirmDelete) {
-      cancelApplicationMutation.mutate(confirmDelete);
-      setConfirmDelete(null);
-    }
-  };
-
-  const confirmApproveApplication = () => {
-    if (confirmApprove) {
-      approveApplicationMutation.mutate(confirmApprove);
-      setConfirmApprove(null);
-    }
-  };
-
-  const confirmRejectApplication = () => {
-    if (confirmReject) {
-      rejectApplicationMutation.mutate(confirmReject);
-      setConfirmReject(null);
+    if (confirm("Tem certeza que deseja rejeitar esta solicitação de crédito?")) {
+      rejectApplicationMutation.mutate(applicationId);
     }
   };
 
@@ -353,10 +320,10 @@ export default function CreditPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      pending: { label: "Pendente", variant: "secondary" as const, icon: Clock },
-      under_review: { label: "Em Análise", variant: "default" as const, icon: FileText },
-      approved: { label: "Aprovado", variant: "default" as const, icon: CheckCircle },
-      rejected: { label: "Rejeitado", variant: "destructive" as const, icon: XCircle },
+      pending: { label: t.credit.status.pending, variant: "secondary" as const, icon: Clock },
+      under_review: { label: t.credit.status.under_review, variant: "default" as const, icon: FileText },
+      approved: { label: t.credit.status.approved, variant: "default" as const, icon: CheckCircle },
+      rejected: { label: t.credit.status.rejected, variant: "destructive" as const, icon: XCircle },
     };
 
     const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
@@ -380,14 +347,14 @@ export default function CreditPage() {
               ? "Análise Financeira - Aprovação de Crédito" 
               : permissions.canViewAllApplications 
                 ? "Gestão de Crédito - Área Administrativa" 
-                : "Gestão de Crédito"}
+                : t.credit.title}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
               ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
               : permissions.canViewAllApplications 
                 ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
-                : "Solicitar Crédito"}
+                : t.credit.requestCredit}
           </p>
         </div>
         {!permissions.isFinanceira && (
@@ -596,7 +563,7 @@ export default function CreditPage() {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando...</p>
+              <p className="text-gray-600">{t.common.loading}...</p>
             </div>
           ) : applications.length === 0 ? (
             <div className="text-center py-8">
@@ -770,58 +737,6 @@ export default function CreditPage() {
             )}
           </CardContent>
         </Card>
-
-        {/* Confirmation Dialogs */}
-        <AlertDialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja cancelar esta solicitação de crédito? Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmCancelApplication} className="bg-red-600 hover:bg-red-700">
-                Confirmar Cancelamento
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={!!confirmApprove} onOpenChange={() => setConfirmApprove(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar Aprovação</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja aprovar esta solicitação de crédito?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmApproveApplication} className="bg-green-600 hover:bg-green-700">
-                Confirmar Aprovação
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={!!confirmReject} onOpenChange={() => setConfirmReject(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar Rejeição</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja rejeitar esta solicitação de crédito? Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmRejectApplication} className="bg-red-600 hover:bg-red-700">
-                Confirmar Rejeição
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
     </div>
   );
 }
