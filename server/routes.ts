@@ -460,7 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const now = Date.now();
       
       // Check cache first
-      if (userCreditCache[userId] && (now - userCreditCache[userId].time) < CREDIT_CACHE_DURATION) {
+      if (userCreditCache[userId] && (now - userCreditCache[userId].time) < CACHE_DURATION) {
         console.log(`Serving credit applications from cache for user ${userId}`);
         return res.json(userCreditCache[userId].data);
       }
@@ -481,6 +481,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credit/applications/:id', requireAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const now = Date.now();
+      
+      // Check cache first for performance
+      if (creditDetailsCache[id] && (now - creditDetailsCache[id].time) < DETAILS_CACHE_DURATION) {
+        console.log(`Serving credit application ${id} from cache`);
+        return res.json(creditDetailsCache[id].data);
+      }
+
+      console.log(`Fetching fresh credit application ${id}`);
       const application = await storage.getCreditApplication(id);
 
       if (!application) {
@@ -500,6 +509,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
+      // Cache the response for future requests
+      creditDetailsCache[id] = { data: application, time: now };
+      
       res.json(application);
     } catch (error) {
       console.error("Error fetching credit application:", error);
@@ -1674,7 +1686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
   
   const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
-  const CREDIT_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
+  const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
 
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
