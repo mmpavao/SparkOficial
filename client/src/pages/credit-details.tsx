@@ -630,10 +630,16 @@ export default function CreditDetailsPage() {
                     <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
                     <Badge variant="outline" className="bg-green-50 text-green-700">
                       {(() => {
-                        const finalTerms = application.adminStatus === 'admin_finalized' 
-                          ? application.finalApprovedTerms 
-                          : application.approvedTerms;
-                        return finalTerms || '30';
+                        // Sempre mostrar apenas os termos finais do Admin quando disponíveis
+                        if (application.adminStatus === 'admin_finalized' && application.finalApprovedTerms) {
+                          return application.finalApprovedTerms;
+                        }
+                        // Para importadores, mostrar apenas se não há termos finais definidos
+                        if (!permissions.canManageApplications && application.finalApprovedTerms) {
+                          return application.finalApprovedTerms;
+                        }
+                        // Fallback para casos onde não há termos finais
+                        return application.approvedTerms || '30';
                       })()} dias
                     </Badge>
                   </div>
@@ -662,11 +668,22 @@ export default function CreditDetailsPage() {
                   </div>
                 </div>
 
-                {application.financialNotes && (
+                {/* Mostrar observações finais do Admin para importadores, observações financeiras apenas para admin/financeira */}
+                {permissions.canManageApplications && application.financialNotes && (
                   <div className="space-y-1">
                     <span className="text-sm font-medium text-gray-600">Observações Financeiras:</span>
                     <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
                       {application.financialNotes}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Observações finais do Admin visíveis para importadores */}
+                {!permissions.canManageApplications && application.adminFinalNotes && (
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-gray-600">Observações:</span>
+                    <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                      {application.adminFinalNotes}
                     </p>
                   </div>
                 )}
