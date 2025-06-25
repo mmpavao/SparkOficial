@@ -18,14 +18,17 @@ export interface AdminMetrics {
   }>;
 }
 
-export function useAdminMetrics() {
+export function useAdminMetrics(enabled: boolean = true) {
   return useQuery<AdminMetrics>({
     queryKey: ["/api/admin/dashboard/metrics"],
     queryFn: async () => {
       const response = await apiRequest("/api/admin/dashboard/metrics", "GET");
       return response;
     },
+    enabled, // Only run when enabled
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchInterval: 1000 * 60 * 10, // 10 minutes
+    retry: 2, // Reduce retries
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
   });
 }

@@ -26,11 +26,13 @@ import {
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { metrics, creditApplications, imports } = useMetrics();
   
   // Only fetch admin metrics if user is admin
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
-  const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics();
+  const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
+  
+  // For importers, use regular metrics. For admins, skip to avoid duplicate queries
+  const { metrics, creditApplications, imports } = useMetrics();
 
   // Debug logging
   console.log('Dashboard Debug Data:', {

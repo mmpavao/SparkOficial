@@ -289,7 +289,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
-    return await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt));
+    try {
+      // Use JOIN instead of separate queries for better performance
+      const result = await db
+        .select({
+          ...getTableColumns(creditApplications),
+          companyName: users.companyName
+        })
+        .from(creditApplications)
+        .leftJoin(users, eq(creditApplications.userId, users.id))
+        .orderBy(desc(creditApplications.createdAt))
+        .limit(100); // Limit results for performance
+      
+      return result as any[];
+    } catch (error) {
+      console.error('Error in getAllCreditApplications:', error);
+      // Fallback to original method if JOIN fails
+      const allApplications = await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt)).limit(100);
+      const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+      
+      const result = allApplications.map(app => {
+        const user = allUsers.find(u => u.id === app.userId);
+        return {
+          ...app,
+          companyName: user?.companyName || 'Empresa não encontrada'
+        };
+      });
+      
+      return result as any[];
+    }
   }
 
   async getAllImports(): Promise<Import[]> {
@@ -459,12 +487,18 @@ export class DatabaseStorage implements IStorage {
 
   async getAdminDashboardMetrics() {
     try {
-      // Get all data needed for metrics
+      // Optimize queries - get only necessary data
       const [allUsers, allApplications, allImports, allSuppliers] = await Promise.all([
-        this.getAllUsers(),
-        this.getAllCreditApplications(),
-        this.getAllImports(),
-        this.getAllSuppliers()
+        db.select({ id: users.id, companyName: users.companyName, role: users.role, status: users.status }).from(users),
+        db.select({ 
+          id: creditApplications.id, 
+          userId: creditApplications.userId, 
+          status: creditApplications.status,
+          requestedAmount: creditApplications.requestedAmount,
+          createdAt: creditApplications.createdAt 
+        }).from(creditApplications).orderBy(desc(creditApplications.createdAt)),
+        db.select({ id: imports.id }).from(imports),
+        db.select({ id: suppliers.id }).from(suppliers)
       ]);
 
       // Count importers (excluding admin/super_admin/financeira)

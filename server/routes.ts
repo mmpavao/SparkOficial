@@ -1617,6 +1617,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cache for admin metrics to improve performance
+  let adminMetricsCache: any = null;
+  let adminMetricsCacheTime = 0;
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
     try {
@@ -1627,7 +1632,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
+      // Check cache first
+      const now = Date.now();
+      if (adminMetricsCache && (now - adminMetricsCacheTime) < CACHE_DURATION) {
+        console.log("Serving admin metrics from cache");
+        return res.json(adminMetricsCache);
+      }
+
+      console.log("Fetching fresh admin metrics");
       const metrics = await storage.getAdminDashboardMetrics();
+      
+      // Update cache
+      adminMetricsCache = metrics;
+      adminMetricsCacheTime = now;
+      
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching admin dashboard metrics:", error);
