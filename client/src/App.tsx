@@ -19,7 +19,6 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminUsersPage from "@/pages/admin-users";
 import AdminUserNewPage from "@/pages/admin-user-new";
-import AdminUserDetailsPage from "@/pages/admin-user-details";
 import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
@@ -67,7 +66,6 @@ function Router() {
             <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
             <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
-            <Route path="/admin/users/:id" component={() => <AdminRoute><AdminUserDetailsPage /></AdminRoute>} />
 
             <Route component={NotFound} />
           </Switch>
