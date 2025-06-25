@@ -24,6 +24,7 @@ import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
 import { formatPhone } from "@/lib/phone";
 import { formatUSDInput, parseUSDInput, validateUSDRange } from "@/lib/currency";
+import { normalizeUrl, isValidUrl } from "@/lib/url";
 import PreparationGuideModal from "@/components/credit/PreparationGuideModal";
 import { 
   companyInfoSchema, 
@@ -756,7 +757,19 @@ export default function CreditApplicationPage() {
                       <FormItem>
                         <FormLabel>Website</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://www.empresa.com" {...field} />
+                          <Input 
+                            placeholder="empresa.com, www.empresa.com ou https://www.empresa.com"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                            }}
+                            onBlur={(e) => {
+                              const normalizedUrl = normalizeUrl(e.target.value);
+                              if (normalizedUrl && isValidUrl(normalizedUrl)) {
+                                field.onChange(normalizedUrl);
+                              }
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
