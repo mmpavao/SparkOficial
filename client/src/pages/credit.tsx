@@ -726,7 +726,12 @@ export default function CreditPage() {
                                   Ver Detalhes
                                 </DropdownMenuItem>
                                 
-                                {(application.status === 'pending' || application.status === 'under_review') && (
+                                {/* Show edit/cancel actions only for importers on their own applications */}
+                                {!permissions.canViewAllApplications && (
+                                  application.financialStatus !== 'approved' && 
+                                  application.financialStatus !== 'rejected' &&
+                                  application.preAnalysisStatus !== 'pre_approved'
+                                ) && (
                                   <>
                                     <DropdownMenuItem
                                       onClick={() => setLocation(`/credit/edit/${application.id}`)}
