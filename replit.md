@@ -400,6 +400,13 @@ Changelog:
   * Separated application submission from document uploads to prevent payload size issues
   * Maintained backward compatibility while optimizing for large file handling
   * Application now handles document uploads up to 10MB per file efficiently without server errors
+- June 25, 2025. Payment terms duplication fix and insurance policy upload system:
+  * Fixed critical payment terms duplication issue where both Financeira and Admin terms were showing to importers
+  * Implemented logic to show only Admin-finalized terms when available, hiding Financeira terms from importers
+  * Added insurance policy upload system with attachments field in database schema
+  * Created secure upload endpoints for admin/financeira roles only with proper authentication
+  * Fixed AdminFinalizationPanel initialization to prevent terms concatenation from previous approvals
+  * Enhanced role-based visibility: importers see only admin final terms and notes, not financial observations
 ```
 
 ## User Preferences
