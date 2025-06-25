@@ -14,6 +14,13 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Multer setup for file uploads - moved to top to avoid initialization issues
+  const multer = await import('multer');
+  const upload = multer.default({ 
+    storage: multer.default.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  });
+
   // CORS configuration for cookies
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -1934,12 +1941,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =========== DOCUMENT UPLOAD ROUTES ===========
-  // Multer setup for file uploads
-  const multer = await import('multer');
-  const upload = multer.default({ 
-    storage: multer.default.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-  });
 
   // Upload document to credit application
   app.post('/api/credit/applications/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
