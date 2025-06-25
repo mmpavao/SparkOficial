@@ -474,8 +474,9 @@ export default function CreditDetailsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Step 1: Application Created - Always shown */}
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
                   <p className="text-sm font-medium">Solicitação Criada</p>
                   <p className="text-xs text-gray-500">
@@ -484,52 +485,81 @@ export default function CreditDetailsPage() {
                 </div>
               </div>
 
-              {application.status === 'under_review' && (
+              {/* Step 2: Under Review - Show if status progressed beyond pending */}
+              {(application.status === 'under_review' || 
+                application.status === 'pre_approved' || 
+                application.status === 'approved' || 
+                application.status === 'rejected') && (
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium">Em Análise</p>
-                    <p className="text-xs text-gray-500">Aguardando revisão</p>
+                    <p className="text-sm font-medium">Início da Pré-análise</p>
+                    <p className="text-xs text-gray-500">Análise administrativa iniciada</p>
                   </div>
                 </div>
               )}
 
-              {(application.preAnalysisStatus === 'pre_approved' || application.status === 'approved') && (
+              {/* Step 3: Pre-approved - Show if pre-approved */}
+              {(application.status === 'pre_approved' || 
+                application.status === 'approved') && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium">Pré-análise Completa</p>
+                    <p className="text-sm font-medium">Pré-aprovado</p>
                     <p className="text-xs text-gray-500">
                       {application.analyzedAt 
                         ? new Date(application.analyzedAt).toLocaleDateString('pt-BR')
-                        : 'Aprovado para análise financeira'
+                        : 'Enviado para análise financeira'
                       }
                     </p>
                   </div>
                 </div>
               )}
 
-              {application.financialStatus === 'approved' && (
+              {/* Step 4: Financial Analysis - Show if approved */}
+              {application.status === 'approved' && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium">Aprovado</p>
+                    <p className="text-sm font-medium">Aprovado pela Financeira</p>
                     <p className="text-xs text-gray-500">
                       {application.financialAnalyzedAt 
                         ? new Date(application.financialAnalyzedAt).toLocaleDateString('pt-BR')
-                        : 'Crédito liberado'
+                        : 'Crédito aprovado'
                       }
                     </p>
                   </div>
                 </div>
               )}
 
+              {/* Step 5: Admin Finalization - Show if admin finalized */}
+              {application.adminStatus === 'finalized' && (
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium">Finalizado</p>
+                    <p className="text-xs text-gray-500">
+                      {application.adminFinalizedAt 
+                        ? new Date(application.adminFinalizedAt).toLocaleDateString('pt-BR')
+                        : 'Termos finalizados'
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Rejection Step - Show if rejected */}
               {application.status === 'rejected' && (
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                   <div>
                     <p className="text-sm font-medium">Rejeitado</p>
-                    <p className="text-xs text-gray-500">Solicitação negada</p>
+                    <p className="text-xs text-gray-500">
+                      {application.rejectedAt 
+                        ? new Date(application.rejectedAt).toLocaleDateString('pt-BR')
+                        : 'Solicitação negada'
+                      }
+                    </p>
                   </div>
                 </div>
               )}
@@ -664,14 +694,32 @@ export default function CreditDetailsPage() {
                 <CardTitle>Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.location.href = `/credit/edit/${application.id}`}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Editar Solicitação
-                </Button>
+                {/* Só permite edição se status for pending ou under_review */}
+                {(application.status === 'pending' || application.status === 'under_review') && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => window.location.href = `/credit/edit/${application.id}`}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Editar Solicitação
+                  </Button>
+                )}
+
+                {/* Após pré-aprovação, mostra status e instrução sobre documentos */}
+                {(application.status === 'pre_approved' || application.status === 'approved') && (
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm">
+                        <p className="font-medium text-amber-800">Solicitação em análise</p>
+                        <p className="text-amber-700 mt-1">
+                          Você pode enviar documentos pendentes, mas não pode mais editar os dados da solicitação.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Button 
                   variant="outline" 

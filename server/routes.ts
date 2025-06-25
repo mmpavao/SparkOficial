@@ -542,10 +542,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      // Only allow editing of pending applications
-      if (application.status !== 'pending') {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // For importers, only allow editing of pending and under_review applications
+      if (currentUser?.role === 'importer' && 
+          application.status !== 'pending' && 
+          application.status !== 'under_review') {
         return res.status(400).json({ 
-          message: "Apenas solicitações pendentes podem ser editadas" 
+          message: "Apenas solicitações pendentes ou em análise podem ser editadas por importadores" 
+        });
+      }
+      
+      // Admins can edit any application (except approved/rejected by financeira)
+      if ((currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && 
+          (application.status === 'approved' || application.status === 'rejected')) {
+        return res.status(400).json({ 
+          message: "Solicitações já finalizadas pela financeira não podem ser editadas" 
         });
       }
 
