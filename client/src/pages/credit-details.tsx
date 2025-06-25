@@ -630,15 +630,11 @@ export default function CreditDetailsPage() {
                     <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
                     <Badge variant="outline" className="bg-green-50 text-green-700">
                       {(() => {
-                        // Sempre mostrar apenas os termos finais do Admin quando disponíveis
-                        if (application.adminStatus === 'admin_finalized' && application.finalApprovedTerms) {
+                        // Se existe finalApprovedTerms do Admin, mostrar apenas esses
+                        if (application.finalApprovedTerms) {
                           return application.finalApprovedTerms;
                         }
-                        // Para importadores, mostrar apenas se não há termos finais definidos
-                        if (!permissions.canManageApplications && application.finalApprovedTerms) {
-                          return application.finalApprovedTerms;
-                        }
-                        // Fallback para casos onde não há termos finais
+                        // Senão, mostrar os termos da Financeira
                         return application.approvedTerms || '30';
                       })()} dias
                     </Badge>
