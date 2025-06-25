@@ -1504,41 +1504,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: file.buffer.toString('base64'),
       };
 
-      // Update documents in database
-      const currentRequired = application.requiredDocuments || {};
-      const currentOptional = application.optionalDocuments || {};
+      // Get current documents - ensure they're objects
+      const currentRequired = typeof application.requiredDocuments === 'object' && application.requiredDocuments !== null 
+        ? application.requiredDocuments 
+        : {};
+      const currentOptional = typeof application.optionalDocuments === 'object' && application.optionalDocuments !== null 
+        ? application.optionalDocuments 
+        : {};
       
-      // Check if it's a mandatory document based on the requiredDocuments array
+      // Check if it's a mandatory document
       const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
       
-      if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
-        currentRequired[documentType] = documentInfo;
-        await storage.updateCreditApplication(applicationId, { 
-          requiredDocuments: currentRequired 
-        });
-      } else {
-        currentOptional[documentType] = documentInfo;
-        await storage.updateCreditApplication(applicationId, { 
-          optionalDocuments: currentOptional 
-        });
-      }
-
-      // Update documents status based on mandatory documents uploaded
-      const uploadedMandatory = Object.keys(currentRequired).length;
       let updateData: any = {};
       
-      if (uploadedMandatory >= mandatoryDocKeys.length) {
-        updateData.documentsStatus = 'complete';
-        if (application.status === 'pending' || application.status === 'draft') {
-          updateData.status = 'under_review';
+      if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
+        const updatedRequired = { ...currentRequired };
+        updatedRequired[documentType] = documentInfo;
+        updateData.requiredDocuments = updatedRequired;
+        
+        // Update status based on mandatory documents
+        const uploadedMandatory = Object.keys(updatedRequired).length;
+        if (uploadedMandatory >= mandatoryDocKeys.length) {
+          updateData.documentsStatus = 'complete';
+          if (application.status === 'pending' || application.status === 'draft') {
+            updateData.status = 'under_review';
+          }
+        } else if (uploadedMandatory > 0) {
+          updateData.documentsStatus = 'partial';
         }
-      } else if (uploadedMandatory > 0) {
-        updateData.documentsStatus = 'partial';
+      } else {
+        const updatedOptional = { ...currentOptional };
+        updatedOptional[documentType] = documentInfo;
+        updateData.optionalDocuments = updatedOptional;
       }
 
-      if (Object.keys(updateData).length > 0) {
-        await storage.updateCreditApplication(applicationId, updateData);
-      }
+      // Perform single database update with all changes
+      await storage.updateCreditApplication(applicationId, updateData);
 
       console.log(`Document uploaded successfully: ${documentInfo.originalName} for application ${applicationId}`);
       res.json({ 
