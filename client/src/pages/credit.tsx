@@ -646,8 +646,11 @@ export default function CreditPage() {
                                   {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                                 </p>
                                 {(() => {
-                                  // Calculate document counts
-                                  const totalDocuments = 18; // 2 mandatory + 16 optional based on your definitions
+                                  // Calculate document counts - 2 mandatory + 12 optional = 14 total
+                                  const mandatoryDocuments = 2;
+                                  const optionalDocuments = 12;
+                                  const totalDocuments = mandatoryDocuments + optionalDocuments;
+                                  
                                   const mandatoryCount = Object.keys(application.requiredDocuments || {}).length;
                                   const optionalCount = Object.keys(application.optionalDocuments || {}).length;
                                   const uploadedCount = mandatoryCount + optionalCount;

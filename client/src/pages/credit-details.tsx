@@ -436,7 +436,7 @@ export default function CreditDetailsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4 text-blue-600" />
-                      <span>{optionalDocuments.length - Object.keys(application.optionalDocuments || {}).length} Disponíveis</span>
+                      <span>{optionalDocuments.length - Object.keys(application.optionalDocuments || {}).length} Pendentes</span>
                     </div>
                   </div>
                 </div>
