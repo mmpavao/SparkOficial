@@ -194,6 +194,12 @@ export default function AdminUsersPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
+                                  onClick={() => setLocation(`/admin/users/${user.id}`)}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Ver Detalhes
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
                                     "Tornar Administrador",
                                     `Tem certeza que deseja tornar ${user.fullName} um administrador?`,
@@ -266,6 +272,12 @@ export default function AdminUsersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setLocation(`/admin/users/${user.id}`)}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Ver Detalhes
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleConfirmAction(
                               "Tornar Administrador",

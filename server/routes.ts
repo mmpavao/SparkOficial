@@ -423,6 +423,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/users/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID de usuário inválido" });
+      }
+
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Return user without password
+      const { password, ...userResponse } = user;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Credit application routes
   app.post('/api/credit/applications', requireAuth, async (req: any, res) => {
     try {
@@ -842,8 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update the specific stage data and current stage
-      const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
-      const updateData = {
+      const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;const updateData = {
         [stageKey]: data,
         currentStage: currentStage,
         updatedAt: new Date()
@@ -927,6 +949,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(sanitizedUsers);
     } catch (error) {
       console.error("Get all users error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/admin/users/:id", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID de usuário inválido" });
+      }
+
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Return user without password
+      const { password, ...userResponse } = user;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1496,14 +1541,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update documents in database
       const currentRequired = application.requiredDocuments || {};
       const currentOptional = application.optionalDocuments || {};
-      
+
       // Check if it's a mandatory document
       const mandatoryDocs = [
         'business_license', 'cnpj_certificate', 'financial_statements', 'bank_statements',
         'articles_of_incorporation', 'board_resolution', 'tax_registration', 
         'social_security_clearance', 'labor_clearance', 'income_tax_return'
       ];
-      
+
       if (mandatoryDocs.includes(documentType)) {
         currentRequired[documentType] = documentInfo;
         await storage.updateCreditApplication(applicationId, { 
@@ -1549,7 +1594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/documents/download/:documentKey/:applicationId', requireAuth, async (req: any, res) => {
     try {
       const { documentKey, applicationId } = req.params;
-      
+
       // Get the application to retrieve document data
       const application = await storage.getCreditApplication(parseInt(applicationId));
       if (!application) {
@@ -1573,7 +1618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'articles_of_incorporation', 'board_resolution', 'tax_registration', 
         'social_security_clearance', 'labor_clearance', 'income_tax_return'
       ];
-      
+
       if (mandatoryDocs.includes(documentKey)) {
         documentData = application.requiredDocuments?.[documentKey];
       } else {
@@ -1586,12 +1631,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use original filename if available, fallback to stored filename
       const filename = documentData.originalName || documentData.filename || `documento_${documentKey}`;
-      
+
       // Set proper headers for download with original filename
       res.setHeader('Content-Type', documentData.type || 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
       res.setHeader('Content-Length', documentData.size || 0);
-      
+
       // Send the actual file data
       const fileBuffer = Buffer.from(documentData.data, 'base64');
       console.log(`Document download: ${filename} for application ${applicationId} by user ${req.session.userId}`);
