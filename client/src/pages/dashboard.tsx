@@ -71,48 +71,176 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Importer Credit & Import Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Crédito Aprovado - Importador só vê valores finalizados pelo admin */}
-        <MetricsCard
-          title="Crédito Aprovado"
-          value={formatCurrency(
-            creditApplications
-              .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
-              .reduce((sum, app) => sum + Number(app.finalCreditLimit || 0), 0)
-          ).replace('R$', 'US$')}
-          icon={CreditCard}
-          iconColor="text-green-600"
-        />
+      {/* Conditional Metrics Based on User Role */}
+      {isAdmin ? (
+        /* Admin Dashboard Metrics */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {adminMetricsLoading ? (
+            <div className="col-span-4 text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Carregando métricas administrativas...</p>
+            </div>
+          ) : (
+            <>
+              {/* Total de Importadores */}
+              <MetricsCard
+                title="Total de Importadores"
+                value={adminMetrics?.totalImporters || 0}
+                icon={Users}
+                iconColor="text-blue-600"
+              />
 
-        {/* Em Uso - calculado das importações ativas */}
-        <MetricsCard
-          title="Em Uso"
-          value={formatCurrency(
-            imports
-              .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
-              .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0)
-          ).replace('R$', 'US$')}
-          icon={PiggyBank}
-          iconColor="text-blue-600"
-        />
+              {/* Total de Aplicações */}
+              <MetricsCard
+                title="Aplicações de Crédito"
+                value={adminMetrics?.totalApplications || 0}
+                icon={FileText}
+                iconColor="text-green-600"
+              />
 
-        {/* Importações Ativas */}
-        <MetricsCard
-          title="Importações Ativas"
-          value={imports.filter(imp => ['planning', 'ordered', 'in_transit', 'customs'].includes(imp.status)).length}
-          icon={Truck}
-          iconColor="text-orange-600"
-        />
+              {/* Volume Total de Crédito */}
+              <MetricsCard
+                title="Volume Total Solicitado"
+                value={formatCurrency(adminMetrics?.totalCreditVolume || 0).replace('R$', 'US$')}
+                icon={DollarSign}
+                iconColor="text-yellow-600"
+              />
 
-        {/* Total de Importações */}
-        <MetricsCard
-          title="Total de Importações"
-          value={imports.length}
-          icon={Package}
-          iconColor="text-purple-600"
-        />
-      </div>
+              {/* Volume Aprovado */}
+              <MetricsCard
+                title="Volume Aprovado"
+                value={formatCurrency(adminMetrics?.approvedCreditVolume || 0).replace('R$', 'US$')}
+                icon={TrendingUp}
+                iconColor="text-emerald-600"
+              />
+
+              {/* Total de Importações */}
+              <MetricsCard
+                title="Total de Importações"
+                value={adminMetrics?.totalImports || 0}
+                icon={Truck}
+                iconColor="text-orange-600"
+              />
+
+              {/* Total de Fornecedores */}
+              <MetricsCard
+                title="Total de Fornecedores"
+                value={adminMetrics?.totalSuppliers || 0}
+                icon={Package}
+                iconColor="text-purple-600"
+              />
+            </>
+          )}
+        </div>
+      ) : (
+        /* Importer Dashboard Metrics */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Crédito Aprovado - Importador só vê valores finalizados pelo admin */}
+          <MetricsCard
+            title="Crédito Aprovado"
+            value={formatCurrency(
+              creditApplications
+                .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+                .reduce((sum, app) => sum + Number(app.finalCreditLimit || 0), 0)
+            ).replace('R$', 'US$')}
+            icon={CreditCard}
+            iconColor="text-green-600"
+          />
+
+          {/* Em Uso - calculado das importações ativas */}
+          <MetricsCard
+            title="Em Uso"
+            value={formatCurrency(
+              imports
+                .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
+                .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0)
+            ).replace('R$', 'US$')}
+            icon={PiggyBank}
+            iconColor="text-blue-600"
+          />
+
+          {/* Importações Ativas */}
+          <MetricsCard
+            title="Importações Ativas"
+            value={imports.filter(imp => ['planning', 'ordered', 'in_transit', 'customs'].includes(imp.status)).length}
+            icon={Truck}
+            iconColor="text-orange-600"
+          />
+
+          {/* Total de Importações */}
+          <MetricsCard
+            title="Total de Importações"
+            value={imports.length}
+            icon={Package}
+            iconColor="text-purple-600"
+          />
+        </div>
+      )}
+
+      {/* Admin Status Overview */}
+      {isAdmin && !adminMetricsLoading && adminMetrics && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Aplicações por Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Aplicações por Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(adminMetrics.applicationsByStatus).map(([status, count]) => (
+                  <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={status.toLowerCase().replace(' ', '_').replace('-', '_')} />
+                      <span className="font-medium">{status}</span>
+                    </div>
+                    <span className="text-xl font-bold text-blue-600">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Atividade Recente */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Atividade Recente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {adminMetrics.recentActivity.length > 0 ? (
+                  adminMetrics.recentActivity.slice(0, 5).map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{activity.companyName}</p>
+                        <p className="text-xs text-gray-500">
+                          {formatCurrency(Number(activity.amount)).replace('R$', 'US$')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <StatusBadge status={activity.status} />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatDate(activity.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhuma atividade recente</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Credit Details and Pipeline */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
