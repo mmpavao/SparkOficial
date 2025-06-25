@@ -636,10 +636,43 @@ export default function CreditPage() {
                             </div>
                             
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1">Solicitação #{application.id}</h3>
-                              <p className="text-sm text-gray-600">
-                                {new Date(application.createdAt).toLocaleDateString('pt-BR')}
-                              </p>
+                              <h3 className="font-semibold text-gray-900 mb-1">
+                                {permissions.canViewAllApplications 
+                                  ? `${application.legalCompanyName || 'Empresa'} - #${application.id}` 
+                                  : `Solicitação #${application.id}`}
+                              </h3>
+                              <div className="flex flex-col space-y-1">
+                                <p className="text-sm text-gray-600">
+                                  {new Date(application.createdAt).toLocaleDateString('pt-BR')}
+                                </p>
+                                {(() => {
+                                  // Calculate document counts
+                                  const totalDocuments = 18; // 2 mandatory + 16 optional based on your definitions
+                                  const mandatoryCount = Object.keys(application.requiredDocuments || {}).length;
+                                  const optionalCount = Object.keys(application.optionalDocuments || {}).length;
+                                  const uploadedCount = mandatoryCount + optionalCount;
+                                  const pendingCount = totalDocuments - uploadedCount;
+                                  
+                                  return (
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <span className={`px-2 py-1 rounded-full ${
+                                        pendingCount === 0 
+                                          ? 'bg-green-100 text-green-700' 
+                                          : pendingCount <= 5 
+                                            ? 'bg-yellow-100 text-yellow-700'
+                                            : 'bg-orange-100 text-orange-700'
+                                      }`}>
+                                        {uploadedCount}/{totalDocuments} docs
+                                      </span>
+                                      {pendingCount > 0 && (
+                                        <span className="text-gray-500">
+                                          {pendingCount} pendentes
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           </div>
 
