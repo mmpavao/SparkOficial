@@ -637,7 +637,7 @@ export default function CreditPage() {
                             
                             <div className="min-w-0 flex-1">
                               <h3 className="font-semibold text-gray-900 mb-1">
-                                {permissions.canViewAllApplications 
+                                {(permissions.canViewAllApplications || permissions.isFinanceira)
                                   ? `${(application.legalCompanyName || 'Empresa').length > 25 
                                       ? (application.legalCompanyName || 'Empresa').substring(0, 25) + '...' 
                                       : (application.legalCompanyName || 'Empresa')} - #${application.id}` 
