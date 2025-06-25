@@ -589,6 +589,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
+      // Invalidate caches when data changes
+      creditApplicationsCache = null;
+      adminMetricsCache = null;
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error approving credit application:", error);
@@ -622,6 +626,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rejectionReason: req.body.reason || 'Rejeitado pela administração'
         }
       );
+
+      // Invalidate caches when data changes
+      creditApplicationsCache = null;
+      adminMetricsCache = null;
 
       res.json(updatedApplication);
     } catch (error) {
@@ -931,10 +939,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cache for credit applications to improve performance
+  let creditApplicationsCache: any = null;
+  let creditApplicationsCacheTime = 0;
+  const CREDIT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
   // Get all credit applications (admin only)
   app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
     try {
+      // Check cache first
+      const now = Date.now();
+      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CREDIT_CACHE_DURATION) {
+        console.log("Serving credit applications from cache");
+        return res.json(creditApplicationsCache);
+      }
+
+      console.log("Fetching fresh credit applications");
       const applications = await storage.getAllCreditApplications();
+      
+      // Update cache
+      creditApplicationsCache = applications;
+      creditApplicationsCacheTime = now;
+      
       res.json(applications);
     } catch (error) {
       console.error("Get all credit applications error:", error);
