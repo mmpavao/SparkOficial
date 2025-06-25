@@ -345,22 +345,19 @@ export const companyInfoSchema = z.object({
   email: z.string().email("Email inválido"),
   website: z.string().optional().refine((val) => {
     if (!val) return true; // Campo opcional
-    
-    // Aceita URLs completas com protocolo
+    // Importar a função de validação no frontend
     try {
+      // Aceita URLs em diferentes formatos
       if (val.startsWith('http://') || val.startsWith('https://')) {
-        const url = new URL(val);
-        // Valida se tem hostname válido
-        return url.hostname && url.hostname.includes('.');
+        new URL(val);
+        return true;
       }
+      // Testa se é um domínio válido
+      return /^(www\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(val);
     } catch {
-      // Se falhar como URL completa, testa como domínio
+      return false;
     }
-    
-    // Aceita domínios simples (empresa.com, www.empresa.com)
-    const domainPattern = /^(www\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    return domainPattern.test(val);
-  }, "Website deve ser uma URL válida (exemplo: empresa.com, www.empresa.com ou https://www.empresa.com)"),
+  }, "Website deve ser uma URL válida"),
   shareholders: z.array(z.object({
     name: z.string().min(2, "Nome do sócio é obrigatório"),
     cpf: z.string().min(11, "CPF inválido"),

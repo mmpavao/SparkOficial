@@ -761,27 +761,16 @@ export default function CreditApplicationPage() {
                             placeholder="empresa.com, www.empresa.com ou https://www.empresa.com"
                             {...field}
                             onChange={(e) => {
-                              // Allow typing without immediate normalization
                               field.onChange(e.target.value);
                             }}
                             onBlur={(e) => {
-                              const input = e.target.value.trim();
-                              if (input) {
-                                // Check if input can be converted to valid URL
-                                if (canBeValidUrl(input)) {
-                                  const normalizedUrl = normalizeUrl(input);
-                                  field.onChange(normalizedUrl);
-                                } else {
-                                  // Keep original input if cannot be normalized
-                                  field.onChange(input);
-                                }
+                              const normalizedUrl = normalizeUrl(e.target.value);
+                              if (normalizedUrl && isValidUrl(normalizedUrl)) {
+                                field.onChange(normalizedUrl);
                               }
                             }}
                           />
                         </FormControl>
-                        <div className="text-xs text-gray-500 mt-1">
-                          Aceita: empresa.com, www.empresa.com ou https://www.empresa.com
-                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
