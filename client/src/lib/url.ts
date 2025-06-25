@@ -1,43 +1,32 @@
-
-/**
- * Normaliza URLs para o formato completo com protocolo
- */
-export function normalizeUrl(url: string): string {
-  if (!url || url.trim() === '') {
-    return '';
-  }
-
-  let normalizedUrl = url.trim();
-
-  // Se já tem protocolo, retorna como está
-  if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
-    return normalizedUrl;
-  }
-
-  // Se começa com www., adiciona https://
-  if (normalizedUrl.startsWith('www.')) {
-    return `https://${normalizedUrl}`;
-  }
-
-  // Se não tem www. nem protocolo, adiciona https://www.
-  if (!normalizedUrl.includes('.')) {
-    return normalizedUrl; // Retorna como está se não parece ser uma URL válida
-  }
-
-  return `https://www.${normalizedUrl}`;
-}
-
-/**
- * Valida se uma URL está em formato válido após normalização
- */
-export function isValidUrl(url: string): boolean {
-  if (!url) return true; // Campo opcional
-
+function canBeValidUrl(input: string): boolean {
   try {
-    const normalizedUrl = normalizeUrl(url);
-    new URL(normalizedUrl);
-    return true;
+    const url = new URL(input);
+    return url.protocol === 'http:' || url.protocol === 'https:';
   } catch {
     return false;
   }
+}
+
+export function normalizeUrl(input: string): string {
+  if (!input) return '';
+
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  // Se já tem protocolo, valida e retorna
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return canBeValidUrl(trimmed) ? trimmed : '';
+  }
+
+  // Remove www. se existir para normalizar
+  const withoutWww = trimmed.replace(/^www\./, '');
+
+  // Adiciona https:// por padrão
+  const withProtocol = `https://www.${withoutWww}`;
+
+  return canBeValidUrl(withProtocol) ? withProtocol : '';
+}
+
+export function isValidUrl(url: string): boolean {
+  return canBeValidUrl(url);
 }

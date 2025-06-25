@@ -270,6 +270,17 @@ export default function CreditApplicationPage() {
     setUploadingDocument(documentKey);
 
     try {
+      // Validate file before storing
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        throw new Error('Arquivo muito grande (máximo 10MB)');
+      }
+
+      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (!validExtensions.includes(fileExtension)) {
+        throw new Error(`Formato não suportado. Use: ${validExtensions.join(', ')}`);
+      }
+
       // Store file reference for later upload, not base64 data
       const documentInfo = {
         filename: file.name,
@@ -277,7 +288,7 @@ export default function CreditApplicationPage() {
         size: file.size,
         type: file.type,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: 'temp_user',
+        uploadedBy: user?.id || 'temp_user',
         file: file // Store actual file object for later upload
       };
 
@@ -291,11 +302,11 @@ export default function CreditApplicationPage() {
         title: "Documento preparado!",
         description: `${file.name} será enviado com a solicitação.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       setUploadingDocument(null);
       toast({
         title: "Erro na preparação",
-        description: "Não foi possível preparar o documento.",
+        description: error.message || "Não foi possível preparar o documento.",
         variant: "destructive",
       });
     }
@@ -390,7 +401,6 @@ export default function CreditApplicationPage() {
       const mandatoryUploaded = requiredDocuments.filter(doc => 
         uploadedDocuments[doc.key]
       ).length;
-      const totalMandatory = requiredDocuments.length;
 
       let documentsStatus = "pending";
       let applicationStatus = "pending";
@@ -407,10 +417,11 @@ export default function CreditApplicationPage() {
       const applicationData = {
         ...formData,
         ...creditForm.getValues(),
+        userId: user?.id,
         status: applicationStatus,
         currentStep: 4,
         documentsStatus: documentsStatus,
-        requiredDocuments: {}, // Will be updated after file uploads
+        requiredDocuments: {},
         optionalDocuments: {}
       };
 
@@ -418,21 +429,37 @@ export default function CreditApplicationPage() {
       const response = await apiRequest("/api/credit/applications", "POST", applicationData);
       const applicationId = response.id;
 
-      // Upload documents separately using FormData
+      // Upload documents separately using FormData with error handling
       const mandatoryDocKeys = requiredDocuments.map(doc => doc.key);
       const uploadPromises = [];
+      let uploadErrors = [];
 
       for (const [key, docInfo] of Object.entries(uploadedDocuments)) {
         if (docInfo.file) {
-          const formData = new FormData();
-          formData.append('document', docInfo.file);
-          formData.append('documentType', key);
-          formData.append('isMandatory', mandatoryDocKeys.includes(key).toString());
+          const uploadPromise = (async () => {
+            try {
+              const formData = new FormData();
+              formData.append('document', docInfo.file);
+              formData.append('documentType', key);
+              formData.append('isMandatory', mandatoryDocKeys.includes(key).toString());
 
-          const uploadPromise = fetch(`/api/credit/applications/${applicationId}/documents`, {
-            method: 'POST',
-            body: formData,
-          });
+              const uploadResponse = await fetch(`/api/credit/applications/${applicationId}/documents`, {
+                method: 'POST',
+                body: formData,
+              });
+
+              if (!uploadResponse.ok) {
+                const errorData = await uploadResponse.json();
+                throw new Error(`Erro no upload de ${docInfo.filename}: ${errorData.message || 'Erro desconhecido'}`);
+              }
+
+              return await uploadResponse.json();
+            } catch (error: any) {
+              uploadErrors.push(error.message);
+              console.error(`Upload error for ${key}:`, error);
+            }
+          })();
+          
           uploadPromises.push(uploadPromise);
         }
       }
@@ -440,13 +467,27 @@ export default function CreditApplicationPage() {
       // Wait for all document uploads to complete
       await Promise.all(uploadPromises);
 
+      // Show warnings if some documents failed
+      if (uploadErrors.length > 0) {
+        toast({
+          title: "Atenção!",
+          description: `Solicitação criada, mas ${uploadErrors.length} documento(s) falharam no upload. Você pode fazer upload posteriormente.`,
+          variant: "destructive",
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
-      toast({
-        title: "Sucesso!",
-        description: "Solicitação de crédito enviada com sucesso.",
-      });
+      
+      if (uploadErrors.length === 0) {
+        toast({
+          title: "Sucesso!",
+          description: "Solicitação de crédito enviada com sucesso.",
+        });
+      }
+      
       setLocation('/credit');
     } catch (error: any) {
+      console.error("Application submission error:", error);
       toast({
         title: "Erro",
         description: error.message || "Erro ao enviar solicitação",

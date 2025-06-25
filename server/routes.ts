@@ -1465,11 +1465,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/credit/applications/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
-      const { documentType } = req.body;
+      const { documentType, isMandatory } = req.body;
       const file = req.file;
+
+      console.log(`Document upload attempt: ${documentType} for application ${applicationId}`);
 
       if (!file) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      if (!documentType) {
+        return res.status(400).json({ message: "Tipo de documento não especificado" });
+      }
+
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "Arquivo muito grande (máximo 10MB)" });
       }
 
       // Check if user owns the application
@@ -1485,26 +1496,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store document info with proper encoding
       const documentInfo = {
         filename: file.originalname,
-        originalName: file.originalname, // Preserve original name explicitly
+        originalName: file.originalname,
         size: file.size,
         type: file.mimetype,
         uploadedAt: new Date().toISOString(),
         uploadedBy: req.session.userId,
-        data: file.buffer.toString('base64'), // Store file as base64
+        data: file.buffer.toString('base64'),
       };
 
       // Update documents in database
       const currentRequired = application.requiredDocuments || {};
       const currentOptional = application.optionalDocuments || {};
       
-      // Check if it's a mandatory document
-      const mandatoryDocs = [
-        'business_license', 'cnpj_certificate', 'financial_statements', 'bank_statements',
-        'articles_of_incorporation', 'board_resolution', 'tax_registration', 
-        'social_security_clearance', 'labor_clearance', 'income_tax_return'
-      ];
+      // Check if it's a mandatory document based on the requiredDocuments array
+      const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
       
-      if (mandatoryDocs.includes(documentType)) {
+      if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
         currentRequired[documentType] = documentInfo;
         await storage.updateCreditApplication(applicationId, { 
           requiredDocuments: currentRequired 
@@ -1516,20 +1523,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if all mandatory documents are uploaded to auto-advance status
+      // Update documents status based on mandatory documents uploaded
       const uploadedMandatory = Object.keys(currentRequired).length;
-      if (uploadedMandatory === mandatoryDocs.length) {
-        await storage.updateCreditApplication(applicationId, { 
-          status: 'under_review',
-          documentsStatus: 'complete'
-        });
-      } else if (uploadedMandatory >= 2) {
-        await storage.updateCreditApplication(applicationId, { 
-          documentsStatus: 'partial'
-        });
+      let updateData: any = {};
+      
+      if (uploadedMandatory >= mandatoryDocKeys.length) {
+        updateData.documentsStatus = 'complete';
+        if (application.status === 'pending' || application.status === 'draft') {
+          updateData.status = 'under_review';
+        }
+      } else if (uploadedMandatory > 0) {
+        updateData.documentsStatus = 'partial';
       }
 
-      console.log(`Document uploaded: ${documentInfo.originalName} for application ${applicationId}`);
+      if (Object.keys(updateData).length > 0) {
+        await storage.updateCreditApplication(applicationId, updateData);
+      }
+
+      console.log(`Document uploaded successfully: ${documentInfo.originalName} for application ${applicationId}`);
       res.json({ 
         success: true, 
         document: {
@@ -1541,7 +1552,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error uploading document:", error);
-      res.status(500).json({ message: "Erro ao fazer upload do documento" });
+      res.status(500).json({ 
+        message: "Erro ao fazer upload do documento",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
     }
   });
 
