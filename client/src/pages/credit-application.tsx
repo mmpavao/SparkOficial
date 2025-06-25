@@ -265,12 +265,12 @@ export default function CreditApplicationPage() {
     }
   };
 
-  // Handle document upload in step 4 - Store metadata only, upload files on submit
+  // Handle document upload in step 4 - Upload directly like in details page
   const handleDocumentUpload = async (documentKey: string, file: File) => {
     setUploadingDocument(documentKey);
 
     try {
-      // Validate file before storing
+      // Validate file before uploading
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
         throw new Error('Arquivo muito grande (máximo 10MB)');
       }
@@ -281,7 +281,7 @@ export default function CreditApplicationPage() {
         throw new Error(`Formato não suportado. Use: ${validExtensions.join(', ')}`);
       }
 
-      // Store file reference for later upload, not base64 data
+      // Store file info for submission tracking
       const documentInfo = {
         filename: file.name,
         originalName: file.name,

@@ -1,46 +1,59 @@
-export function normalizeUrl(input: string): string {
-  if (!input || typeof input !== 'string') return '';
+// URL validation and normalization utilities
 
-  const trimmed = input.trim();
-  if (!trimmed) return '';
-
-  // Check if it's already a valid URL with protocol
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return trimmed;
-  }
-
-  // Remove protocol if present but malformed
-  const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
-
-  // Add https:// prefix
-  return `https://${withoutProtocol}`;
-}
-
-export function isValidUrl(url: string): boolean {
-  if (!url || typeof url !== 'string') return false;
-
-  try {
-    const urlObj = new URL(url);
-    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
+/**
+ * Validates if a string can be a valid URL
+ */
 export function canBeValidUrl(input: string): boolean {
   if (!input || typeof input !== 'string') return false;
 
   const trimmed = input.trim();
   if (!trimmed) return false;
 
-  // Basic domain pattern check
-  const domainPattern = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+  // Check if it's already a valid URL
+  if (isValidUrl(trimmed)) return true;
 
-  // Remove common prefixes for validation
-  const cleanUrl = trimmed
-    .replace(/^https?:\/\//, '')
-    .replace(/^www\./, '')
-    .split('/')[0]; // Get just the domain part
+  // Check if it could be normalized into a valid URL
+  const normalized = normalizeUrl(trimmed);
+  return isValidUrl(normalized);
+}
 
-  return domainPattern.test(cleanUrl);
+/**
+ * Validates if a string is a valid URL
+ */
+export function isValidUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Normalizes URL by adding protocol if missing
+ */
+export function normalizeUrl(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  // If it already has a protocol, return as is
+  if (trimmed.match(/^https?:\/\//)) {
+    return trimmed;
+  }
+
+  // If it starts with www., add https://
+  if (trimmed.startsWith('www.')) {
+    return `https://${trimmed}`;
+  }
+
+  // If it looks like a domain (contains dot but no protocol), add https://www.
+  if (trimmed.includes('.') && !trimmed.includes(' ')) {
+    return `https://www.${trimmed}`;
+  }
+
+  return trimmed;
 }
