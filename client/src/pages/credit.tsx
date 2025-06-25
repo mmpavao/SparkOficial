@@ -637,11 +637,9 @@ export default function CreditPage() {
                             
                             <div className="min-w-0 flex-1">
                               <h3 className="font-semibold text-gray-900 mb-1">
-                                {(permissions.canViewAllApplications || permissions.isFinanceira)
-                                  ? `${(application.legalCompanyName || 'Empresa').length > 25 
-                                      ? (application.legalCompanyName || 'Empresa').substring(0, 25) + '...' 
-                                      : (application.legalCompanyName || 'Empresa')} - #${application.id}` 
-                                  : `Solicitação #${application.id}`}
+                                {`${(application.legalCompanyName || 'Empresa').length > 25 
+                                    ? (application.legalCompanyName || 'Empresa').substring(0, 25) + '...' 
+                                    : (application.legalCompanyName || 'Empresa')} - #${application.id}`}
                               </h3>
                               <div className="flex flex-col space-y-1">
                                 <p className="text-sm text-gray-600">
