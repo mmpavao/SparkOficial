@@ -457,7 +457,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credit/applications', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
+      const now = Date.now();
+      
+      // Check cache first
+      if (userCreditCache[userId] && (now - userCreditCache[userId].time) < CREDIT_CACHE_DURATION) {
+        console.log(`Serving credit applications from cache for user ${userId}`);
+        return res.json(userCreditCache[userId].data);
+      }
+
+      console.log(`Fetching fresh credit applications for user ${userId}`);
       const applications = await storage.getCreditApplicationsByUser(userId);
+      
+      // Update cache
+      userCreditCache[userId] = { data: applications, time: now };
+      
       res.json(applications);
     } catch (error) {
       console.error("Error fetching credit applications:", error);
@@ -954,14 +967,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cache for credit applications to improve performance
   let creditApplicationsCache: any = null;
   let creditApplicationsCacheTime = 0;
-  const CREDIT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
   // Get all credit applications (admin only)
   app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
     try {
       // Check cache first
       const now = Date.now();
-      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CREDIT_CACHE_DURATION) {
+      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CACHE_DURATION) {
         console.log("Serving credit applications from cache");
         return res.json(creditApplicationsCache);
       }
@@ -1655,10 +1667,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cache for admin metrics to improve performance
+  // Enhanced caching system for performance optimization
   let adminMetricsCache: any = null;
   let adminMetricsCacheTime = 0;
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  let userCreditCache: { [userId: number]: { data: any, time: number } } = {};
+  let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
+  
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+  const CREDIT_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
 
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {

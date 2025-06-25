@@ -124,19 +124,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]> {
-    return await db
-      .select()
-      .from(creditApplications)
-      .where(eq(creditApplications.userId, userId))
-      .orderBy(desc(creditApplications.createdAt));
+    console.time(`getCreditApplicationsByUser-${userId}`);
+    try {
+      const applications = await db
+        .select()
+        .from(creditApplications)
+        .where(eq(creditApplications.userId, userId))
+        .orderBy(desc(creditApplications.createdAt))
+        .limit(50); // Limit to improve performance
+      console.timeEnd(`getCreditApplicationsByUser-${userId}`);
+      return applications;
+    } catch (error) {
+      console.timeEnd(`getCreditApplicationsByUser-${userId}`);
+      console.error('Error in getCreditApplicationsByUser:', error);
+      throw error;
+    }
   }
 
   async getCreditApplication(id: number): Promise<CreditApplication | undefined> {
-    const [application] = await db
-      .select()
-      .from(creditApplications)
-      .where(eq(creditApplications.id, id));
-    return application || undefined;
+    console.time(`getCreditApplication-${id}`);
+    try {
+      const [application] = await db
+        .select()
+        .from(creditApplications)
+        .where(eq(creditApplications.id, id))
+        .limit(1); // Explicit limit for performance
+      console.timeEnd(`getCreditApplication-${id}`);
+      return application || undefined;
+    } catch (error) {
+      console.timeEnd(`getCreditApplication-${id}`);
+      console.error('Error in getCreditApplication:', error);
+      throw error;
+    }
   }
 
   async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {
@@ -289,33 +308,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
+    console.time('getAllCreditApplications');
     try {
-      // Use JOIN instead of separate queries for better performance
+      // Simplified query with only essential fields for performance
       const result = await db
         .select({
-          ...getTableColumns(creditApplications),
+          id: creditApplications.id,
+          userId: creditApplications.userId,
+          legalCompanyName: creditApplications.legalCompanyName,
+          requestedAmount: creditApplications.requestedAmount,
+          currency: creditApplications.currency,
+          status: creditApplications.status,
+          createdAt: creditApplications.createdAt,
+          preAnalysisStatus: creditApplications.preAnalysisStatus,
+          riskLevel: creditApplications.riskLevel,
           companyName: users.companyName
         })
         .from(creditApplications)
         .leftJoin(users, eq(creditApplications.userId, users.id))
         .orderBy(desc(creditApplications.createdAt))
-        .limit(100); // Limit results for performance
+        .limit(50); // Reduced limit for better performance
       
+      console.timeEnd('getAllCreditApplications');
       return result as any[];
     } catch (error) {
+      console.timeEnd('getAllCreditApplications');
       console.error('Error in getAllCreditApplications:', error);
-      // Fallback to original method if JOIN fails
-      const allApplications = await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt)).limit(100);
-      const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
       
-      const result = allApplications.map(app => {
-        const user = allUsers.find(u => u.id === app.userId);
-        return {
-          ...app,
-          companyName: user?.companyName || 'Empresa não encontrada'
-        };
-      });
+      // Fast fallback without JOIN
+      console.time('getAllCreditApplications-fallback');
+      const allApplications = await db
+        .select({
+          id: creditApplications.id,
+          userId: creditApplications.userId,
+          legalCompanyName: creditApplications.legalCompanyName,
+          requestedAmount: creditApplications.requestedAmount,
+          currency: creditApplications.currency,
+          status: creditApplications.status,
+          createdAt: creditApplications.createdAt,
+          preAnalysisStatus: creditApplications.preAnalysisStatus,
+          riskLevel: creditApplications.riskLevel
+        })
+        .from(creditApplications)
+        .orderBy(desc(creditApplications.createdAt))
+        .limit(50);
       
+      const result = allApplications.map(app => ({
+        ...app,
+        companyName: app.legalCompanyName || 'Empresa não encontrada'
+      }));
+      
+      console.timeEnd('getAllCreditApplications-fallback');
       return result as any[];
     }
   }
