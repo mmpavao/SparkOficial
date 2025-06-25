@@ -115,15 +115,20 @@ export default function CreditDetailsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { 
+      pre_analysis: { 
         variant: "secondary" as const, 
         icon: Clock, 
-        label: "Pendente" 
+        label: "Pré-Análise" 
       },
       pre_approved: { 
         variant: "default" as const, 
         icon: CheckCircle, 
-        label: "Pré-análise" 
+        label: "Pré-Aprovado" 
+      },
+      final_analysis: { 
+        variant: "outline" as const, 
+        icon: AlertTriangle, 
+        label: "Análise Final" 
       },
       approved: { 
         variant: "default" as const, 
@@ -135,11 +140,6 @@ export default function CreditDetailsPage() {
         icon: XCircle, 
         label: "Rejeitado" 
       },
-      under_review: { 
-        variant: "outline" as const, 
-        icon: AlertTriangle, 
-        label: "Em Análise" 
-      },
       cancelled: { 
         variant: "secondary" as const, 
         icon: XCircle, 
@@ -147,7 +147,7 @@ export default function CreditDetailsPage() {
       }
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pre_analysis;
     const Icon = config.icon;
 
     return (

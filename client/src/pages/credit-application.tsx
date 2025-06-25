@@ -403,14 +403,14 @@ export default function CreditApplicationPage() {
       ).length;
 
       let documentsStatus = "pending";
-      let applicationStatus = "pending";
+      let applicationStatus = "pre_analysis";
 
       if (mandatoryUploaded >= mandatoryDocuments.length) {
         documentsStatus = "complete";
-        applicationStatus = "under_review";
+        applicationStatus = "pre_analysis";
       } else if (mandatoryUploaded > 0) {
         documentsStatus = "partial";
-        applicationStatus = "pending";
+        applicationStatus = "pre_analysis";
       }
 
       // Create application data without documents first

@@ -1527,7 +1527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (uploadedMandatory >= mandatoryDocKeys.length) {
           updateData.documentsStatus = 'complete';
           if (application.status === 'pending' || application.status === 'draft') {
-            updateData.status = 'under_review';
+            updateData.status = 'pre_analysis';
           }
         } else if (uploadedMandatory > 0) {
           updateData.documentsStatus = 'partial';

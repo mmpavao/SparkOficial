@@ -320,13 +320,15 @@ export default function CreditPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      pending: { label: t.credit.status.pending, variant: "secondary" as const, icon: Clock },
-      under_review: { label: t.credit.status.under_review, variant: "default" as const, icon: FileText },
-      approved: { label: t.credit.status.approved, variant: "default" as const, icon: CheckCircle },
-      rejected: { label: t.credit.status.rejected, variant: "destructive" as const, icon: XCircle },
+      pre_analysis: { label: "Pré-Análise", variant: "secondary" as const, icon: Clock },
+      pre_approved: { label: "Pré-Aprovado", variant: "default" as const, icon: CheckCircle },
+      final_analysis: { label: "Análise Final", variant: "outline" as const, icon: FileText },
+      approved: { label: "Aprovado", variant: "default" as const, icon: CheckCircle },
+      rejected: { label: "Rejeitado", variant: "destructive" as const, icon: XCircle },
+      cancelled: { label: "Cancelado", variant: "secondary" as const, icon: XCircle },
     };
 
-    const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
+    const config = statusMap[status as keyof typeof statusMap] || statusMap.pre_analysis;
     const Icon = config.icon;
 
     return (
@@ -592,23 +594,23 @@ export default function CreditPage() {
                         bgColor: 'bg-red-50',
                         borderColor: 'border-l-red-500'
                       };
-                    } else if (application.preAnalysisStatus === 'pre_approved') {
+                    } else if (application.financialStatus === 'approved') {
                       return { 
-                        label: 'Pré-aprovado', 
-                        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                        bgColor: 'bg-yellow-50',
-                        borderColor: 'border-l-yellow-500'
-                      };
-                    } else if (application.preAnalysisStatus === 'under_review') {
-                      return { 
-                        label: 'Em Análise', 
+                        label: 'Análise Final', 
                         color: 'bg-blue-100 text-blue-800 border-blue-200',
                         bgColor: 'bg-blue-50',
                         borderColor: 'border-l-blue-500'
                       };
+                    } else if (application.preAnalysisStatus === 'pre_approved') {
+                      return { 
+                        label: 'Pré-Aprovado', 
+                        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                        bgColor: 'bg-yellow-50',
+                        borderColor: 'border-l-yellow-500'
+                      };
                     } else {
                       return { 
-                        label: 'Pendente', 
+                        label: 'Pré-Análise', 
                         color: 'bg-gray-100 text-gray-800 border-gray-200',
                         bgColor: 'bg-gray-50',
                         borderColor: 'border-l-gray-500'
