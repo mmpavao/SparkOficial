@@ -173,7 +173,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             <img 
               src={sparkLogo} 
               alt="Spark Comex" 
-              className="h-8 w-auto"
+              className="h-8 w-auto ml-[12px] mr-[12px]"
             />
           </div>
           <div className="flex items-center space-x-2">
