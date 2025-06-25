@@ -808,9 +808,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
 
+      // Get user's approved credit application
+      const userApprovedCredit = await storage.db
+        .select()
+        .from(schema.creditApplications)
+        .where(
+          and(
+            eq(schema.creditApplications.userId, userId),
+            eq(schema.creditApplications.status, 'approved')
+          )
+        )
+        .limit(1);
+
+      if (!userApprovedCredit.length) {
+        return res.status(400).json({ 
+          message: "Você precisa ter um crédito aprovado para criar importações" 
+        });
+      }
+
+      const creditApp = userApprovedCredit[0];
+      const totalValue = parseFloat(data.totalValue);
+
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApp.id);
+      if (totalValue > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+        });
+      }
+
+      // Get admin fee for user
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 0;
+      const feeAmount = (totalValue * feeRate) / 100;
+      const totalWithFees = totalValue + feeAmount;
+
       // Clean and convert data to match the new schema
       const cleanedData: any = {
         userId,
+        creditApplicationId: creditApp.id,
         importName: data.importName,
         cargoType: data.cargoType || "FCL",
         containerNumber: data.containerNumber || null,
@@ -823,10 +859,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         containerType: data.containerType || null,
         estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
         status: "planning",
-        currentStage: "estimativa"
+        currentStage: "estimativa",
+        // Credit and fee information
+        creditUsed: totalValue.toString(),
+        adminFeeRate: feeRate.toString(),
+        adminFeeAmount: feeAmount.toString(),
+        totalWithFees: totalWithFees.toString(),
+        paymentStatus: "pending",
+        downPaymentRequired: ((totalWithFees * 10) / 100).toString(), // 10% default
+        paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
       };
 
       const importRecord = await storage.createImport(cleanedData);
+
+      // Reserve credit for this import
+      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+
+      // Update credit balances
+      const newUsed = creditData.used + totalValue;
+      const newAvailable = creditData.available - totalValue;
+      
+      await storage.updateCreditBalance(
+        creditApp.id, 
+        newUsed.toString(), 
+        newAvailable.toString()
+      );
+
       res.status(201).json(importRecord);
     } catch (error) {
       console.error("Error creating import:", error);
@@ -1103,6 +1161,274 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(imports);
     } catch (error) {
       console.error("Get all imports error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ADMIN FEES MANAGEMENT =====
+
+  // Get admin fees for all users
+  app.get('/api/admin/fees', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const fees = await storage.getAllAdminFees();
+      res.json(fees);
+    } catch (error) {
+      console.error("Error fetching admin fees:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Set admin fee for a user
+  app.post('/api/admin/fees/:userId', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const { feePercentage } = req.body;
+
+      if (!feePercentage || parseFloat(feePercentage) < 0 || parseFloat(feePercentage) > 100) {
+        return res.status(400).json({ message: "Taxa deve estar entre 0% e 100%" });
+      }
+
+      const result = await storage.setAdminFeeForUser(
+        parseInt(userId), 
+        feePercentage, 
+        req.session.userId
+      );
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error setting admin fee:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get admin fee for specific user
+  app.get('/api/admin/fees/:userId', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const fee = await storage.getAdminFeeForUser(parseInt(userId));
+      res.json(fee);
+    } catch (error) {
+      console.error("Error fetching user admin fee:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== CREDIT MANAGEMENT =====
+
+  // Get available credit for user
+  app.get('/api/credit/available/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const { applicationId } = req.params;
+      const application = await storage.getCreditApplication(parseInt(applicationId));
+      
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Check if user owns the application or is admin
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin && application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const creditData = await storage.calculateAvailableCredit(parseInt(applicationId));
+      res.json(creditData);
+    } catch (error) {
+      console.error("Error fetching available credit:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reserve credit for import
+  app.post('/api/imports/:id/reserve-credit', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { creditApplicationId, amount } = req.body;
+
+      const importRecord = await storage.getImport(parseInt(id));
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check if user owns the import
+      if (importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApplicationId);
+      const requestedAmount = parseFloat(amount);
+
+      if (requestedAmount > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}` 
+        });
+      }
+
+      // Reserve credit
+      await storage.reserveCredit(creditApplicationId, parseInt(id), amount);
+
+      // Update credit balances
+      const newUsed = creditData.used + requestedAmount;
+      const newAvailable = creditData.available - requestedAmount;
+      
+      await storage.updateCreditBalance(
+        creditApplicationId, 
+        newUsed.toString(), 
+        newAvailable.toString()
+      );
+
+      res.json({ success: true, reservedAmount: amount });
+    } catch (error) {
+      console.error("Error reserving credit:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== PAYMENT SCHEDULES =====
+
+  // Get payment schedule for import
+  app.get('/api/imports/:id/payments', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const importRecord = await storage.getImport(parseInt(id));
+      
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      
+      if (!isAdmin && !isFinanceira && importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const schedules = await storage.getPaymentScheduleByImport(parseInt(id));
+      const payments = await storage.getPaymentsByImport(parseInt(id));
+
+      res.json({ schedules, payments });
+    } catch (error) {
+      console.error("Error fetching payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Create payment schedule when import is approved
+  app.post('/api/imports/:id/create-payment-schedule', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { paymentTerms, downPaymentPercentage, totalAmount } = req.body;
+      
+      const importRecord = await storage.getImport(parseInt(id));
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Only admins can create payment schedules
+      const currentUser = await storage.getUser(req.session.userId);
+      if (currentUser?.role !== 'admin' && currentUser?.role !== 'super_admin') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const total = parseFloat(totalAmount);
+      const downPayment = total * (parseFloat(downPaymentPercentage) / 100);
+      const remainingAmount = total - downPayment;
+
+      // Create down payment schedule
+      await storage.createPaymentSchedule(parseInt(id), {
+        paymentType: 'down_payment',
+        dueDate: new Date(), // Due immediately
+        amount: downPayment.toString(),
+        currency: importRecord.currency,
+        status: 'pending',
+      });
+
+      // Create installment schedule based on payment terms
+      const installmentAmount = remainingAmount;
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + parseInt(paymentTerms));
+
+      await storage.createPaymentSchedule(parseInt(id), {
+        paymentType: 'installment',
+        dueDate,
+        amount: installmentAmount.toString(),
+        currency: importRecord.currency,
+        status: 'pending',
+        installmentNumber: 1,
+        totalInstallments: 1,
+      });
+
+      res.json({ success: true, message: "Cronograma de pagamento criado" });
+    } catch (error) {
+      console.error("Error creating payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Submit payment
+  app.post('/api/payments/submit', requireAuth, upload.single('proofDocument'), async (req: any, res) => {
+    try {
+      const { paymentScheduleId, importId, amount, paymentMethod, paymentReference } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Comprovante de pagamento é obrigatório" });
+      }
+
+      const paymentData = {
+        paymentScheduleId: parseInt(paymentScheduleId),
+        importId: parseInt(importId),
+        amount,
+        currency: 'USD',
+        paymentMethod,
+        paymentReference,
+        proofDocument: file.buffer.toString('base64'),
+        proofFilename: file.originalname,
+        status: 'pending',
+        paidAt: new Date(),
+      };
+
+      const payment = await storage.createPayment(paymentData);
+      res.json(payment[0]);
+    } catch (error) {
+      console.error("Error submitting payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Confirm payment (admin only)
+  app.put('/api/admin/payments/:id/confirm', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const confirmedPayment = await storage.confirmPayment(parseInt(id), req.session.userId);
+      
+      // Update payment schedule status
+      if (confirmedPayment[0]) {
+        await storage.updatePaymentScheduleStatus(confirmedPayment[0].paymentScheduleId, 'paid');
+      }
+
+      res.json(confirmedPayment[0]);
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reject payment (admin only)
+  app.put('/api/admin/payments/:id/reject', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { notes } = req.body;
+      
+      const rejectedPayment = await storage.rejectPayment(parseInt(id), notes, req.session.userId);
+      res.json(rejectedPayment[0]);
+    } catch (error) {
+      console.error("Error rejecting payment:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

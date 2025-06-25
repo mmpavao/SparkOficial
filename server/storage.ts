@@ -24,45 +24,45 @@ export interface IStorage {
   getUserByCnpj(cnpj: string): Promise<User | undefined>;
   createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User>;
   updateUser(id: number, data: Partial<User>): Promise<User>;
-  
+
   // Credit application operations
   createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication>;
   getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]>;
   getCreditApplication(id: number): Promise<CreditApplication | undefined>;
   updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication>;
   updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication>;
-  
+
   // Import operations
   createImport(importData: InsertImport): Promise<Import>;
   getImportsByUser(userId: number): Promise<Import[]>;
   getImport(id: number): Promise<Import | undefined>;
   updateImportStatus(id: number, status: string, updateData?: any): Promise<Import>;
-  
+
   // Supplier operations
   createSupplier(supplierData: InsertSupplier): Promise<Supplier>;
   getSuppliersByUser(userId: number): Promise<Supplier[]>;
   getSupplier(id: number): Promise<Supplier | undefined>;
   updateSupplier(id: number, data: Partial<InsertSupplier>): Promise<Supplier>;
   deleteSupplier(id: number): Promise<void>;
-  
+
   // Admin operations
   getAllUsers(): Promise<User[]>;
   getAllCreditApplications(): Promise<CreditApplication[]>;
   getAllImports(): Promise<Import[]>;
   getAllSuppliers(): Promise<Supplier[]>;
-  
+
   // User management operations
   createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User>;
   updateUserRole(userId: number, role: string): Promise<User>;
   deactivateUser(userId: number): Promise<User>;
   getUsersByRole(role: string): Promise<User[]>;
-  
+
   // Financial operations
   getPreApprovedCreditApplications(): Promise<CreditApplication[]>;
   updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication>;
   getSuppliersByPreApprovedUsers(): Promise<Supplier[]>;
   getImportsByPreApprovedUsers(): Promise<Import[]>;
-  
+
   // Admin dashboard metrics
   getAdminDashboardMetrics(): Promise<{
     totalImporters: number;
@@ -74,6 +74,30 @@ export interface IStorage {
     totalSuppliers: number;
     recentActivity: any[];
   }>;
+
+  // Credit management operations
+  getCreditUsageByApplication(creditApplicationId: number): Promise<any>;
+  reserveCredit(creditApplicationId: number, importId: number, amount: string): Promise<any>;
+  confirmCreditUsage(creditApplicationId: number, importId: number): Promise<any>;
+  releaseCredit(creditApplicationId: number, importId: number): Promise<any>;
+  updateCreditBalance(creditApplicationId: number, usedAmount: string, availableAmount: string): Promise<any>;
+  calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }>;
+
+  // Admin fees operations
+  getAdminFeeForUser(userId: number): Promise<any>;
+  setAdminFeeForUser(userId: number, feePercentage: string, createdBy: number): Promise<any>;
+  getAllAdminFees(): Promise<any>;
+
+  // Payment schedules operations
+  createPaymentSchedule(importId: number, paymentData: any): Promise<any>;
+  getPaymentScheduleByImport(importId: number): Promise<any>;
+  updatePaymentScheduleStatus(scheduleId: number, status: string): Promise<any>;
+
+  // Payments operations
+  createPayment(paymentData: any): Promise<any>;
+  getPaymentsByImport(importId: number): Promise<any>;
+  confirmPayment(paymentId: number, confirmedBy: number): Promise<any>;
+  rejectPayment(paymentId: number, notes: string, rejectedBy: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -105,7 +129,7 @@ export class DatabaseStorage implements IStorage {
       ...data,
       updatedAt: new Date()
     };
-    
+
     const [updatedUser] = await db
       .update(users)
       .set(updateData)
@@ -163,7 +187,7 @@ export class DatabaseStorage implements IStorage {
       status, 
       updatedAt: new Date() 
     };
-    
+
     if (reviewData) {
       if (reviewData.reviewedBy) updateData.reviewedBy = reviewData.reviewedBy;
       if (reviewData.approvedAmount) updateData.approvedAmount = reviewData.approvedAmount;
@@ -211,7 +235,7 @@ export class DatabaseStorage implements IStorage {
       ...importData,
       estimatedDelivery: importData.estimatedDelivery ? new Date(importData.estimatedDelivery) : null
     };
-    
+
     const [importRecord] = await db
       .insert(imports)
       .values([processedData as any])
@@ -240,7 +264,7 @@ export class DatabaseStorage implements IStorage {
       status, 
       updatedAt: new Date() 
     };
-    
+
     if (updateData) {
       if (updateData.trackingNumber) data.trackingNumber = updateData.trackingNumber;
       if (updateData.customsStatus) data.customsStatus = updateData.customsStatus;
@@ -255,6 +279,233 @@ export class DatabaseStorage implements IStorage {
       .where(eq(imports.id, id))
       .returning();
     return importRecord;
+  }
+
+  // ===== CREDIT MANAGEMENT =====
+
+  async getCreditUsageByApplication(creditApplicationId: number) {
+    return await db
+      .select()
+      .from(creditUsage)
+      .where(eq(creditUsage.creditApplicationId, creditApplicationId));
+  }
+
+  async reserveCredit(creditApplicationId: number, importId: number, amount: string) {
+    return await db
+      .insert(creditUsage)
+      .values({
+        creditApplicationId,
+        importId,
+        amountUsed: amount,
+        status: "reserved",
+        reservedAt: new Date(),
+      })
+      .returning();
+  }
+
+  async confirmCreditUsage(creditApplicationId: number, importId: number) {
+    return await db
+      .update(creditUsage)
+      .set({
+        status: "confirmed",
+        confirmedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.importId, importId)
+        )
+      )
+      .returning();
+  }
+
+  async releaseCredit(creditApplicationId: number, importId: number) {
+    return await db
+      .update(creditUsage)
+      .set({
+        status: "released",
+        releasedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.importId, importId)
+        )
+      )
+      .returning();
+  }
+
+  async updateCreditBalance(creditApplicationId: number, usedAmount: string, availableAmount: string) {
+    return await db
+      .update(creditApplications)
+      .set({
+        usedCredit: usedAmount,
+        availableCredit: availableAmount,
+        updatedAt: new Date(),
+      })
+      .where(eq(creditApplications.id, creditApplicationId))
+      .returning();
+  }
+
+  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
+    const application = await this.getCreditApplication(creditApplicationId);
+    if (!application) throw new Error("Credit application not found");
+
+    const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
+
+    // Get confirmed credit usage
+    const usageRecords = await db
+      .select()
+      .from(creditUsage)
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.status, "confirmed")
+        )
+      );
+
+    const usedCredit = usageRecords.reduce((total, record) => {
+      return total + parseFloat(record.amountUsed);
+    }, 0);
+
+    const availableCredit = creditLimit - usedCredit;
+
+    return {
+      used: usedCredit,
+      available: Math.max(0, availableCredit),
+      limit: creditLimit
+    };
+  }
+
+  // ===== ADMIN FEES =====
+
+  async getAdminFeeForUser(userId: number) {
+    const result = await db
+      .select()
+      .from(adminFees)
+      .where(
+        and(
+          eq(adminFees.userId, userId),
+          eq(adminFees.isActive, true)
+        )
+      )
+      .limit(1);
+
+    return result[0] || null;
+  }
+
+  async setAdminFeeForUser(userId: number, feePercentage: string, createdBy: number) {
+    // Deactivate existing fees
+    await db
+      .update(adminFees)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(adminFees.userId, userId));
+
+    // Create new fee
+    return await db
+      .insert(adminFees)
+      .values({
+        userId,
+        feePercentage,
+        isActive: true,
+        createdBy,
+      })
+      .returning();
+  }
+
+  async getAllAdminFees() {
+    return await db
+      .select({
+        id: adminFees.id,
+        userId: adminFees.userId,
+        feePercentage: adminFees.feePercentage,
+        isActive: adminFees.isActive,
+        createdAt: adminFees.createdAt,
+        user: {
+          id: users.id,
+          companyName: users.companyName,
+          email: users.email,
+        },
+      })
+      .from(adminFees)
+      .leftJoin(users, eq(adminFees.userId, users.id))
+      .where(eq(adminFees.isActive, true));
+  }
+
+  // ===== PAYMENT SCHEDULES =====
+
+  async createPaymentSchedule(importId: number, paymentData: any) {
+    return await db
+      .insert(paymentSchedules)
+      .values({
+        importId,
+        ...paymentData,
+      })
+      .returning();
+  }
+
+  async getPaymentScheduleByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
+
+  async updatePaymentScheduleStatus(scheduleId: number, status: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(paymentSchedules.id, scheduleId))
+      .returning();
+  }
+
+  // ===== PAYMENTS =====
+
+  async createPayment(paymentData: any) {
+    return await db
+      .insert(payments)
+      .values(paymentData)
+      .returning();
+  }
+
+  async getPaymentsByImport(importId: number) {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.importId, importId))
+      .orderBy(payments.createdAt);
+  }
+
+  async confirmPayment(paymentId: number, confirmedBy: number) {
+    return await db
+      .update(payments)
+      .set({
+        status: "confirmed",
+        confirmedAt: new Date(),
+        confirmedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, paymentId))
+      .returning();
+  }
+
+  async rejectPayment(paymentId: number, notes: string, rejectedBy: number) {
+    return await db
+      .update(payments)
+      .set({
+        status: "rejected",
+        notes,
+        confirmedBy: rejectedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, paymentId))
+      .returning();
   }
 
   // Supplier operations
@@ -328,13 +579,13 @@ export class DatabaseStorage implements IStorage {
         .leftJoin(users, eq(creditApplications.userId, users.id))
         .orderBy(desc(creditApplications.createdAt))
         .limit(50); // Reduced limit for better performance
-      
+
       console.timeEnd('getAllCreditApplications');
       return result as any[];
     } catch (error) {
       console.timeEnd('getAllCreditApplications');
       console.error('Error in getAllCreditApplications:', error);
-      
+
       // Fast fallback without JOIN
       console.time('getAllCreditApplications-fallback');
       const allApplications = await db
@@ -352,12 +603,12 @@ export class DatabaseStorage implements IStorage {
         .from(creditApplications)
         .orderBy(desc(creditApplications.createdAt))
         .limit(50);
-      
+
       const result = allApplications.map(app => ({
         ...app,
         companyName: app.legalCompanyName || 'Empresa não encontrada'
       }));
-      
+
       console.timeEnd('getAllCreditApplications-fallback');
       return result as any[];
     }
@@ -366,7 +617,7 @@ export class DatabaseStorage implements IStorage {
   async getAllImports(): Promise<Import[]> {
     const allImports = await db.select().from(imports).orderBy(desc(imports.createdAt));
     const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
+
     const result = allImports.map(importItem => {
       const user = allUsers.find(u => u.id === importItem.userId);
       return {
@@ -374,14 +625,14 @@ export class DatabaseStorage implements IStorage {
         companyName: user?.companyName || 'Empresa não encontrada'
       };
     });
-    
+
     return result as any[];
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
     const allSuppliers = await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
     const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
+
     const result = allSuppliers.map(supplier => {
       const user = allUsers.find(u => u.id === supplier.userId);
       return {
@@ -389,7 +640,7 @@ export class DatabaseStorage implements IStorage {
         companyName: user?.companyName || 'Empresa não encontrada'
       };
     });
-    
+
     return result as any[];
   }
 
@@ -472,17 +723,17 @@ export class DatabaseStorage implements IStorage {
       .select({ userId: creditApplications.userId })
       .from(creditApplications)
       .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
-    
+
     if (preApprovedApplications.length === 0) {
       return [];
     }
 
     const userIds = preApprovedApplications.map(app => app.userId);
-    
+
     // Get all suppliers
     const allSuppliers = await db.select().from(suppliers);
     const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
+
     // Filter suppliers by pre-approved users and add company name
     const result = allSuppliers
       .filter(supplier => userIds.includes(supplier.userId))
@@ -493,7 +744,7 @@ export class DatabaseStorage implements IStorage {
           importerCompanyName: user?.companyName || 'Empresa não encontrada'
         };
       });
-    
+
     return result as any[];
   }
 
@@ -503,17 +754,17 @@ export class DatabaseStorage implements IStorage {
       .select({ userId: creditApplications.userId })
       .from(creditApplications)
       .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
-    
+
     if (preApprovedApplications.length === 0) {
       return [];
     }
 
     const userIds = preApprovedApplications.map(app => app.userId);
-    
+
     // Get all imports
     const allImports = await db.select().from(imports);
     const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
+
     // Filter imports by pre-approved users and add company name
     const result = allImports
       .filter(importItem => userIds.includes(importItem.userId))
@@ -524,7 +775,592 @@ export class DatabaseStorage implements IStorage {
           companyName: user?.companyName || 'Empresa não encontrada'
         };
       });
-    
+
+    return result as any[];
+  }
+
+  async getAdminDashboardMetrics() {
+    try {
+      // Optimize queries - get only necessary data
+      const [allUsers, allApplications, allImports, allSuppliers] = await Promise.all([
+        db.select({ id: users.id, companyName: users.companyName, role: users.role, status: users.status }).from(users),
+        db.select({ 
+          id: creditApplications.id, 
+          userId: creditApplications.userId, 
+          status: creditApplications.status,
+          requestedAmount: creditApplications.requestedAmount,
+          createdAt: creditApplications.createdAt 
+        }).from(creditApplications).orderBy(desc(creditApplications.createdAt)),
+        db.select({ id: imports.id }).from(imports),
+        db.select({ id: suppliers.id }).from(suppliers)
+      ]);
+
+      // Count importers (excluding admin/super_admin/financeira)
+      const totalImporters = allUsers.filter(user => 
+        user.role === 'importer' && user.status === 'active'
+      ).length;
+
+      // Count applications by status
+      const applicationsByStatus: { [key: string]: number } = {};
+      const statusLabels = {
+        'pre_analysis': 'Pré-Análise',
+        'pre_approved': 'Pré-Aprovado', 
+        'final_analysis': 'Análise Final',
+        'approved': 'Aprovado',
+        'rejected': 'Rejeitado',
+        'cancelled': 'Cancelado'
+      };
+
+      // Initialize counts
+      Object.keys(statusLabels).forEach(status => {
+        applicationsByStatus[statusLabels[status as keyof typeof statusLabels]] = 0;
+      });
+
+      // Count actual applications
+      allApplications.forEach(app => {
+        const statusLabel = statusLabels[app.status as keyof typeof statusLabels] || app.status;
+        applicationsByStatus[statusLabel] = (applicationsByStatus[statusLabel] || 0) + 1;
+      });
+
+      // Calculate credit volumes
+      const totalCreditVolume = allApplications.reduce((sum, app) => {
+        const amount = parseFloat(app.requestedAmount) || 0;
+        return sum + amount;
+      }, 0);
+
+      const approvedCreditVolume = allApplications
+        .filter(app => app.status === 'approved')
+        .reduce((sum, app) => {
+          const amount = parseFloat(app.requestedAmount) || 0;
+          return sum + amount;
+        }, 0);
+
+      // Get recent activity (last 10 applications)
+      const recentActivity = allApplications
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 10)
+        .map(app => {
+          const user = allUsers.find(u => u.id === app.userId);
+          return {
+            id: app.id,
+            companyName: user?.companyName || 'Empresa não encontrada',
+            status: app.status,
+            amount: app.requestedAmount,
+            createdAt: app.createdAt
+          };
+        });
+
+      return {
+        totalImporters,
+        totalApplications: allApplications.length,
+        applicationsByStatus,
+        totalCreditVolume,
+        approvedCreditVolume,
+        totalImports: allImports.length,
+        totalSuppliers: allSuppliers.length,
+        recentActivity
+      };
+    } catch (error) {
+      console.error('Error getting admin dashboard metrics:', error);
+      throw error;
+    }
+  }
+
+  // ===== CREDIT MANAGEMENT =====
+
+  async getCreditUsageByApplication(creditApplicationId: number) {
+    return await db
+      .select()
+      .from(creditUsage)
+      .where(eq(creditUsage.creditApplicationId, creditApplicationId));
+  }
+
+  async reserveCredit(creditApplicationId: number, importId: number, amount: string) {
+    return await db
+      .insert(creditUsage)
+      .values({
+        creditApplicationId,
+        importId,
+        amountUsed: amount,
+        status: "reserved",
+        reservedAt: new Date(),
+      })
+      .returning();
+  }
+
+  async confirmCreditUsage(creditApplicationId: number, importId: number) {
+    return await db
+      .update(creditUsage)
+      .set({
+        status: "confirmed",
+        confirmedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.importId, importId)
+        )
+      )
+      .returning();
+  }
+
+  async releaseCredit(creditApplicationId: number, importId: number) {
+    return await db
+      .update(creditUsage)
+      .set({
+        status: "released",
+        releasedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.importId, importId)
+        )
+      )
+      .returning();
+  }
+
+  async updateCreditBalance(creditApplicationId: number, usedAmount: string, availableAmount: string) {
+    return await db
+      .update(creditApplications)
+      .set({
+        usedCredit: usedAmount,
+        availableCredit: availableAmount,
+        updatedAt: new Date(),
+      })
+      .where(eq(creditApplications.id, creditApplicationId))
+      .returning();
+  }
+
+  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
+    const application = await this.getCreditApplication(creditApplicationId);
+    if (!application) throw new Error("Credit application not found");
+
+    const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
+
+    // Get confirmed credit usage
+    const usageRecords = await db
+      .select()
+      .from(creditUsage)
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.status, "confirmed")
+        )
+      );
+
+    const usedCredit = usageRecords.reduce((total, record) => {
+      return total + parseFloat(record.amountUsed);
+    }, 0);
+
+    const availableCredit = creditLimit - usedCredit;
+
+    return {
+      used: usedCredit,
+      available: Math.max(0, availableCredit),
+      limit: creditLimit
+    };
+  }
+
+  // ===== ADMIN FEES =====
+
+  async getAdminFeeForUser(userId: number) {
+    const result = await db
+      .select()
+      .from(adminFees)
+      .where(
+        and(
+          eq(adminFees.userId, userId),
+          eq(adminFees.isActive, true)
+        )
+      )
+      .limit(1);
+
+    return result[0] || null;
+  }
+
+  async setAdminFeeForUser(userId: number, feePercentage: string, createdBy: number) {
+    // Deactivate existing fees
+    await db
+      .update(adminFees)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(adminFees.userId, userId));
+
+    // Create new fee
+    return await db
+      .insert(adminFees)
+      .values({
+        userId,
+        feePercentage,
+        isActive: true,
+        createdBy,
+      })
+      .returning();
+  }
+
+  async getAllAdminFees() {
+    return await db
+      .select({
+        id: adminFees.id,
+        userId: adminFees.userId,
+        feePercentage: adminFees.feePercentage,
+        isActive: adminFees.isActive,
+        createdAt: adminFees.createdAt,
+        user: {
+          id: users.id,
+          companyName: users.companyName,
+          email: users.email,
+        },
+      })
+      .from(adminFees)
+      .leftJoin(users, eq(adminFees.userId, users.id))
+      .where(eq(adminFees.isActive, true));
+  }
+
+  // ===== PAYMENT SCHEDULES =====
+
+  async createPaymentSchedule(importId: number, paymentData: any) {
+    return await db
+      .insert(paymentSchedules)
+      .values({
+        importId,
+        ...paymentData,
+      })
+      .returning();
+  }
+
+  async getPaymentScheduleByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
+
+  async updatePaymentScheduleStatus(scheduleId: number, status: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(paymentSchedules.id, scheduleId))
+      .returning();
+  }
+
+  // ===== PAYMENTS =====
+
+  async createPayment(paymentData: any) {
+    return await db
+      .insert(payments)
+      .values(paymentData)
+      .returning();
+  }
+
+  async getPaymentsByImport(importId: number) {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.importId, importId))
+      .orderBy(payments.createdAt);
+  }
+
+  async confirmPayment(paymentId: number, confirmedBy: number) {
+    return await db
+      .update(payments)
+      .set({
+        status: "confirmed",
+        confirmedAt: new Date(),
+        confirmedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, paymentId))
+      .returning();
+  }
+
+  async rejectPayment(paymentId: number, notes: string, rejectedBy: number) {
+    return await db
+      .update(payments)
+      .set({
+        status: "rejected",
+        notes,
+        confirmedBy: rejectedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, paymentId))
+      .returning();
+  }
+
+  // Supplier operations
+  async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
+    const [supplier] = await db
+      .insert(suppliers)
+      .values(supplierData)
+      .returning();
+    return supplier;
+  }
+
+  async getSuppliersByUser(userId: number): Promise<Supplier[]> {
+    return await db
+      .select()
+      .from(suppliers)
+      .where(eq(suppliers.userId, userId))
+      .orderBy(desc(suppliers.createdAt));
+  }
+
+  async getSupplier(id: number): Promise<Supplier | undefined> {
+    const [supplier] = await db
+      .select()
+      .from(suppliers)
+      .where(eq(suppliers.id, id));
+    return supplier || undefined;
+  }
+
+  async updateSupplier(id: number, data: Partial<InsertSupplier>): Promise<Supplier> {
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+
+    const [supplier] = await db
+      .update(suppliers)
+      .set(updateData)
+      .where(eq(suppliers.id, id))
+      .returning();
+    return supplier;
+  }
+
+  async deleteSupplier(id: number): Promise<void> {
+    await db
+      .delete(suppliers)
+      .where(eq(suppliers.id, id));
+  }
+
+  // Admin operations
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getAllCreditApplications(): Promise<CreditApplication[]> {
+    console.time('getAllCreditApplications');
+    try {
+      // Simplified query with only essential fields for performance
+      const result = await db
+        .select({
+          id: creditApplications.id,
+          userId: creditApplications.userId,
+          legalCompanyName: creditApplications.legalCompanyName,
+          requestedAmount: creditApplications.requestedAmount,
+          currency: creditApplications.currency,
+          status: creditApplications.status,
+          createdAt: creditApplications.createdAt,
+          preAnalysisStatus: creditApplications.preAnalysisStatus,
+          riskLevel: creditApplications.riskLevel,
+          companyName: users.companyName
+        })
+        .from(creditApplications)
+        .leftJoin(users, eq(creditApplications.userId, users.id))
+        .orderBy(desc(creditApplications.createdAt))
+        .limit(50); // Reduced limit for better performance
+
+      console.timeEnd('getAllCreditApplications');
+      return result as any[];
+    } catch (error) {
+      console.timeEnd('getAllCreditApplications');
+      console.error('Error in getAllCreditApplications:', error);
+
+      // Fast fallback without JOIN
+      console.time('getAllCreditApplications-fallback');
+      const allApplications = await db
+        .select({
+          id: creditApplications.id,
+          userId: creditApplications.userId,
+          legalCompanyName: creditApplications.legalCompanyName,
+          requestedAmount: creditApplications.requestedAmount,
+          currency: creditApplications.currency,
+          status: creditApplications.status,
+          createdAt: creditApplications.createdAt,
+          preAnalysisStatus: creditApplications.preAnalysisStatus,
+          riskLevel: creditApplications.riskLevel
+        })
+        .from(creditApplications)
+        .orderBy(desc(creditApplications.createdAt))
+        .limit(50);
+
+      const result = allApplications.map(app => ({
+        ...app,
+        companyName: app.legalCompanyName || 'Empresa não encontrada'
+      }));
+
+      console.timeEnd('getAllCreditApplications-fallback');
+      return result as any[];
+    }
+  }
+
+  async getAllImports(): Promise<Import[]> {
+    const allImports = await db.select().from(imports).orderBy(desc(imports.createdAt));
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+
+    const result = allImports.map(importItem => {
+      const user = allUsers.find(u => u.id === importItem.userId);
+      return {
+        ...importItem,
+        companyName: user?.companyName || 'Empresa não encontrada'
+      };
+    });
+
+    return result as any[];
+  }
+
+  async getAllSuppliers(): Promise<Supplier[]> {
+    const allSuppliers = await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+
+    const result = allSuppliers.map(supplier => {
+      const user = allUsers.find(u => u.id === supplier.userId);
+      return {
+        ...supplier,
+        companyName: user?.companyName || 'Empresa não encontrada'
+      };
+    });
+
+    return result as any[];
+  }
+
+  // User management operations
+  async createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User> {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        password: hashedPassword,
+      })
+      .returning();
+    return user;
+  }
+
+  async updateUserRole(userId: number, role: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async deactivateUser(userId: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role: "inactive", updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role));
+  }
+
+  // Financial operations
+  async getPreApprovedCreditApplications(): Promise<CreditApplication[]> {
+    return await db
+      .select()
+      .from(creditApplications)
+      .where(
+        inArray(creditApplications.status, ["pre_approved", "approved"])
+      );
+  }
+
+  async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
+    const updateData: any = {
+      financialStatus: status,
+      financialAnalyzedAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    if (financialData?.creditLimit) {
+      updateData.creditLimit = financialData.creditLimit;
+    }
+    if (financialData?.approvedTerms) {
+      updateData.approvedTerms = JSON.stringify(financialData.approvedTerms);
+    }
+    if (financialData?.financialNotes) {
+      updateData.financialNotes = financialData.financialNotes;
+    }
+    if (financialData?.financialAnalyzedBy) {
+      updateData.financialAnalyzedBy = financialData.financialAnalyzedBy;
+    }
+
+    const [application] = await db
+      .update(creditApplications)
+      .set(updateData)
+      .where(eq(creditApplications.id, id))
+      .returning();
+    return application;
+  }
+
+  async getSuppliersByPreApprovedUsers(): Promise<Supplier[]> {
+    // Get all users with pre-approved credit applications
+    const preApprovedApplications = await db
+      .select({ userId: creditApplications.userId })
+      .from(creditApplications)
+      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
+
+    if (preApprovedApplications.length === 0) {
+      return [];
+    }
+
+    const userIds = preApprovedApplications.map(app => app.userId);
+
+    // Get all suppliers
+    const allSuppliers = await db.select().from(suppliers);
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+
+    // Filter suppliers by pre-approved users and add company name
+    const result = allSuppliers
+      .filter(supplier => userIds.includes(supplier.userId))
+      .map(supplier => {
+        const user = allUsers.find(u => u.id === supplier.userId);
+        return {
+          ...supplier,
+          importerCompanyName: user?.companyName || 'Empresa não encontrada'
+        };
+      });
+
+    return result as any[];
+  }
+
+  async getImportsByPreApprovedUsers(): Promise<Import[]> {
+    // Get all users with pre-approved credit applications
+    const preApprovedApplications = await db
+      .select({ userId: creditApplications.userId })
+      .from(creditApplications)
+      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
+
+    if (preApprovedApplications.length === 0) {
+      return [];
+    }
+
+    const userIds = preApprovedApplications.map(app => app.userId);
+
+    // Get all imports
+    const allImports = await db.select().from(imports);
+    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+
+    // Filter imports by pre-approved users and add company name
+    const result = allImports
+      .filter(importItem => userIds.includes(importItem.userId))
+      .map(importItem => {
+        const user = allUsers.find(u => u.id === importItem.userId);
+        return {
+          ...importItem,
+          companyName: user?.companyName || 'Empresa não encontrada'
+        };
+      });
+
     return result as any[];
   }
 
