@@ -153,7 +153,7 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-lg opacity-90 mb-8">
-            {t.auth.platformDescription}
+            Plataforma completa para gestão de importações e crédito comercial do Brasil para a China
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm opacity-75">
             <div className="flex items-center">
@@ -187,8 +187,8 @@ export default function AuthPage() {
           {isLogin ? (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.welcomeBack}</h2>
-                <p className="text-gray-600">{t.auth.loginDescription}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo de volta!</h2>
+                <p className="text-gray-600">Faça login na sua conta Spark Comex</p>
               </div>
 
               <Form {...loginForm}>
@@ -198,7 +198,7 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.auth.email}</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input 
                             type="email" 
@@ -221,7 +221,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t.auth.password}</FormLabel>
+                        <FormLabel>Senha</FormLabel>
                         <FormControl>
                           <PasswordInput 
                             placeholder="••••••••" 
