@@ -44,7 +44,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     approvedTerms: application.approvedTerms ? application.approvedTerms.split(',') : [],
     financialNotes: application.financialNotes || "",
     downPayment: application.downPayment || "10",
-    attachments: []
+    attachments: [] as File[]
   });
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -61,6 +61,34 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Mutação para upload de apólices
+  const uploadAttachmentsMutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append(`attachment_${index}`, file);
+      });
+      formData.append('applicationId', application.id.toString());
+      
+      return await apiRequest(`/api/credit/applications/${application.id}/attachments`, "POST", formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
+      toast({
+        title: "Sucesso!",
+        description: "Apólices anexadas com sucesso.",
+      });
+      setFinancialData(prev => ({ ...prev, attachments: [] }));
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao anexar apólices. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Mutation para atualizar status da aplicação
   const updateStatusMutation = useMutation({
@@ -421,7 +449,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               {financialData.attachments.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Arquivos Selecionados:</p>
-                  {financialData.attachments.map((file, index) => (
+                  {financialData.attachments.map((file: File, index: number) => (
                     <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                       <span className="text-sm text-gray-700">{file.name}</span>
                       <Button
@@ -435,6 +463,38 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                         }}
                       >
                         ✕
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    onClick={() => {
+                      if (financialData.attachments.length > 0) {
+                        uploadAttachmentsMutation.mutate(financialData.attachments);
+                      }
+                    }}
+                    disabled={uploadAttachmentsMutation.isPending}
+                    className="w-full mt-2"
+                  >
+                    {uploadAttachmentsMutation.isPending ? "Enviando..." : "Anexar Arquivos"}
+                  </Button>
+                </div>
+              )}
+
+              {/* Display existing attachments (only for admin/financeira) */}
+              {(permissions.isAdmin || permissions.isFinanceira) && application.attachments && application.attachments.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm font-medium">Apólices Anexadas:</p>
+                  {application.attachments.map((attachment: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
+                      <span className="text-sm text-gray-700">{attachment.filename}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => window.open(`/api/credit/applications/${application.id}/attachments/${attachment.id}`, '_blank')}
+                        title="Baixar arquivo"
+                      >
+                        📥
                       </Button>
                     </div>
                   ))}

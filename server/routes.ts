@@ -519,6 +519,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload attachments to credit application (admin/financeira only)
+  app.post('/api/credit/applications/:id/attachments', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Only admin and financeira can upload attachments
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin' && currentUser.role !== 'financeira')) {
+        return res.status(403).json({ message: "Acesso negado - apenas admin/financeira podem anexar apólices" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Process uploaded files (assuming multer middleware handles file parsing)
+      const files = req.files || [];
+      const attachments = [];
+
+      for (let i = 0; i < 10; i++) {
+        const file = req.body[`attachment_${i}`];
+        if (file) {
+          // In a real implementation, you'd save to filesystem/cloud storage
+          // For now, we'll store metadata in the application
+          attachments.push({
+            id: Date.now() + i,
+            filename: `attachment_${i}`,
+            uploadedBy: currentUser.id,
+            uploadedAt: new Date().toISOString(),
+            data: file // In production, this would be a file path/URL
+          });
+        }
+      }
+
+      // Update application with new attachments
+      const existingAttachments = application.attachments || [];
+      const updatedAttachments = [...existingAttachments, ...attachments];
+      
+      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+        attachments: JSON.stringify(updatedAttachments)
+      });
+
+      res.json({ message: "Apólices anexadas com sucesso", attachments: updatedAttachments });
+    } catch (error) {
+      console.error("Error uploading attachments:", error);
+      res.status(500).json({ message: "Erro ao anexar apólices" });
+    }
+  });
+
+  // Download attachment (admin/financeira only)
+  app.get('/api/credit/applications/:id/attachments/:attachmentId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const attachmentId = parseInt(req.params.attachmentId);
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Only admin and financeira can download attachments
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin' && currentUser.role !== 'financeira')) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const attachments = application.attachments ? JSON.parse(application.attachments) : [];
+      const attachment = attachments.find((att: any) => att.id === attachmentId);
+      
+      if (!attachment) {
+        return res.status(404).json({ message: "Anexo não encontrado" });
+      }
+
+      // In production, you'd stream the actual file
+      res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename}"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.send(attachment.data);
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+      res.status(500).json({ message: "Erro ao baixar anexo" });
+    }
+  });
+
   // Delete credit application
   app.delete('/api/credit/applications/:id', requireAuth, async (req: any, res) => {
     try {
