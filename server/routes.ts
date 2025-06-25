@@ -14,6 +14,15 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check route
+  app.get("/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      env: process.env.NODE_ENV 
+    });
+  });
+
   // CORS configuration for cookies
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');

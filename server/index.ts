@@ -66,5 +66,7 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    log(`Server ready at http://0.0.0.0:${port}`);
+    log(`Environment: ${app.get("env")}`);
   });
 })();
