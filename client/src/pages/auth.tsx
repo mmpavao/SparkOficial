@@ -465,13 +465,13 @@ export default function AuthPage() {
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <span className="text-sm text-gray-600">
-                            {t.auth.acceptTerms}{" "}
+                            Aceito os{" "}
                             <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                              {t.auth.termsOfUse}
+                              Termos de Uso
                             </Button>{" "}
                             e{" "}
                             <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0 h-auto">
-                              {t.auth.privacyPolicy}
+                              Política de Privacidade
                             </Button>
                           </span>
                           <FormMessage />
@@ -485,18 +485,18 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={registerMutation.isPending}
                   >
-                    {registerMutation.isPending ? t.auth.creatingAccount : t.auth.createAccount}
+                    {registerMutation.isPending ? "Criando conta..." : "Criar Conta"}
                   </Button>
                 </form>
               </Form>
               <div className="text-center">
-                <span className="text-gray-600">{t.auth.haveAccount} </span>
+                <span className="text-gray-600">Já tem uma conta? </span>
                 <Button 
                   variant="link" 
                   onClick={() => setIsLogin(true)}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  {t.auth.signInNow}
+                  Faça login
                 </Button>
               </div>
             </div>)
