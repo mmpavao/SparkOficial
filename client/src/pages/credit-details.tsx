@@ -13,6 +13,7 @@ import { useTranslation } from "@/contexts/I18nContext";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
+import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
