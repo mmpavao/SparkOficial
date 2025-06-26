@@ -835,7 +835,7 @@ export default function CreditDetailsPage() {
             </>
           )}
 
-          {!(permissions.isAdmin || permissions.isFinanceira) && (
+          {!permissions.canPerformPreAnalysis && !permissions.canManageApplications && (
             <Card>
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>
