@@ -49,6 +49,11 @@ export default function NewImportPage() {
     queryKey: ["/api/suppliers"],
   });
 
+  // Fetch credit applications for financial preview
+  const { data: creditApplications } = useQuery({
+    queryKey: ["/api/credit/applications"],
+  });
+
   const form = useForm<InsertImport>({
     resolver: zodResolver(insertImportSchema),
     defaultValues: {
@@ -75,6 +80,33 @@ export default function NewImportPage() {
     },
   });
 
+  // Get approved credit application
+  const approvedCredit = Array.isArray(creditApplications) 
+    ? creditApplications.find((app: any) => app.financialStatus === 'approved')
+    : null;
+
+  // Fetch credit usage if we have approved credit
+  const { data: creditUsage } = useQuery({
+    queryKey: ['/api/credit/usage', approvedCredit?.id],
+    queryFn: () => apiRequest(`/api/credit/usage/${approvedCredit.id}`, 'GET'),
+    enabled: !!approvedCredit?.id,
+  });
+
+  // Calculate import value in real-time
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.cargoType === "LCL") {
+        const totalValue = products.reduce((sum, product) => {
+          return sum + (parseFloat(product.totalValue) || 0);
+        }, 0);
+        setCurrentImportValue(totalValue);
+      } else {
+        setCurrentImportValue(parseFloat(value.totalValue || "0"));
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, products]);
+
   const createImportMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log("Submitting data:", data);
@@ -100,9 +132,36 @@ export default function NewImportPage() {
   });
 
   const onSubmit = (data: InsertImport) => {
-    console.log("Form submitted with data:", data);
-    console.log("Form errors:", form.formState.errors);
-    console.log("Form values:", form.getValues());
+    if (!approvedCredit) {
+      toast({
+        title: "Crédito não encontrado",
+        description: "Você precisa ter um crédito aprovado para criar importações.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if exceeds credit limit
+    const importValue = currentImportValue;
+    const downPaymentPercent = approvedCredit.finalDownPayment || 30;
+    const financedAmount = importValue - (importValue * downPaymentPercent / 100);
+    const availableCredit = creditUsage?.available || 0;
+
+    if (financedAmount > availableCredit) {
+      toast({
+        title: "Limite de crédito insuficiente",
+        description: "O valor a financiar excede seu crédito disponível.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Show terms confirmation modal
+    setShowTermsModal(true);
+  };
+
+  const handleConfirmImport = () => {
+    const data = form.getValues();
     
     try {
       const cargoType = form.watch("cargoType");
@@ -112,7 +171,6 @@ export default function NewImportPage() {
       let finalTotalValue;
       
       if (cargoType === "LCL") {
-        // For LCL, use the products array from state
         if (products.length === 0) {
           toast({
             title: "Erro de validação",
@@ -126,15 +184,15 @@ export default function NewImportPage() {
           return sum + (parseFloat(product.totalValue) || 0);
         }, 0).toString();
       } else {
-        // For FCL, use existing products array from form
         productsArray = data.products || [];
         finalTotalValue = data.totalValue || "";
       }
       
-      // Prepare final submission data
+      // Prepare final submission data with credit information
       const submissionData = {
         importName: data.importName,
         cargoType: data.cargoType,
+        creditApplicationId: approvedCredit?.id,
         products: productsArray,
         totalValue: finalTotalValue,
         currency: data.currency || "USD",
@@ -148,10 +206,9 @@ export default function NewImportPage() {
         currentStage: "estimativa"
       };
       
-      console.log("Prepared submission data:", submissionData);
       createImportMutation.mutate(submissionData);
     } catch (error) {
-      console.error("Error in onSubmit:", error);
+      console.error("Error in handleConfirmImport:", error);
       toast({
         title: "Erro de validação",
         description: "Por favor, verifique os campos obrigatórios.",
@@ -179,12 +236,15 @@ export default function NewImportPage() {
         </div>
       </div>
 
-      {/* New Import Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Formulário de Nova Importação</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Form */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Formulário de Nova Importação</CardTitle>
+            </CardHeader>
+            <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Informações Básicas */}
