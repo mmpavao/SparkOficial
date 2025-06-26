@@ -21,7 +21,9 @@ import {
   ShoppingCart,
   CheckCircle,
   AlertCircle,
-  Factory
+  Factory,
+  BarChart3,
+  Plus
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -87,6 +89,16 @@ export default function Dashboard() {
             <div className="flex items-center">
               <Users className="w-4 h-4 mr-2" />
               <span className="text-sm font-medium">Cadastrar Fornecedor</span>
+            </div>
+          </button>
+
+          <button
+            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
+            onClick={() => window.location.href = '/imports/new'}
+          >
+            <div className="flex items-center">
+              <Plus className="w-4 h-4 mr-2" />
+              <span className="text-sm font-medium">Iniciar Importação</span>
             </div>
           </button>
 
@@ -158,12 +170,40 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Volume Total Importado</p>
+                  <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCompactCurrency(importerData?.creditMetrics?.approvedAmount || 0)}
+                  </p>
+                </div>
+                <DollarSign className="w-8 h-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCompactCurrency(importerData?.creditMetrics?.availableAmount || 0)}
+                  </p>
+                </div>
+                <CreditCard className="w-8 h-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Volume Importado</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {formatCompactCurrency(importerData?.importMetrics?.totalValue || 0)}
                   </p>
                 </div>
-                <DollarSign className="w-8 h-8 text-green-600" />
+                <Package className="w-8 h-8 text-orange-600" />
               </div>
             </CardContent>
           </Card>
@@ -177,35 +217,7 @@ export default function Dashboard() {
                     {importerData?.importMetrics?.totalImports || 0}
                   </p>
                 </div>
-                <Package className="w-8 h-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Importações Ativas</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {importerData?.importMetrics?.activeImports || 0}
-                  </p>
-                </div>
-                <Truck className="w-8 h-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total de Fornecedores</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {importerData?.supplierMetrics?.totalSuppliers || 0}
-                  </p>
-                </div>
-                <Building2 className="w-8 h-8 text-purple-600" />
+                <BarChart3 className="w-8 h-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
