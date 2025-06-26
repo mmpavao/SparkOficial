@@ -14,7 +14,7 @@ import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
 import NewImportPage from "@/pages/import-new";
 import ImportDetailsPage from "@/pages/import-details";
-import ImportEditPage from "@/pages/import-edit";
+import ImportEdit from "@/pages/import-edit";
 
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
@@ -62,7 +62,7 @@ function Router() {
             <Route path="/imports" component={ImportsPage} />
             <Route path="/imports/new" component={NewImportPage} />
             <Route path="/imports/:id" component={ImportDetailsPage} />
-            <Route path="/imports/:id/edit" component={ImportEditPage} />
+            <Route path="/imports/:id/edit" component={ImportEdit} />
 
             <Route path="/suppliers" component={SuppliersPage} />
             <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />

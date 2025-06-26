@@ -227,6 +227,50 @@ export class DatabaseStorage {
       ));
   }
 
+  // Add missing storage methods for payments and credit management
+  async updateCreditBalance(creditApplicationId: number, usedAmount: string, availableAmount: string): Promise<void> {
+    await db
+      .update(creditApplications)
+      .set({ 
+        creditUsed: usedAmount,
+        updatedAt: new Date()
+      })
+      .where(eq(creditApplications.id, creditApplicationId));
+  }
+
+  async getPaymentsByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
+
+  async confirmPayment(paymentId: number, confirmationData: any) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: "paid",
+        paidAt: new Date(),
+        receiptData: confirmationData.receiptData,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
+
+  async rejectPayment(paymentId: number, reason: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: "rejected",
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
+
   // ===== SUPPLIER OPERATIONS =====
 
   async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
@@ -358,16 +402,7 @@ export class DatabaseStorage {
       .returning();
   }
 
-  async releaseCredit(creditApplicationId: number, importId: number) {
-    return await db
-      .delete(creditUsage)
-      .where(
-        and(
-          eq(creditUsage.creditApplicationId, creditApplicationId),
-          eq(creditUsage.importId, importId)
-        )
-      );
-  }
+
 
   // Generate payment schedule for import based on credit terms
   async generatePaymentSchedule(importId: number, totalValue: string, creditApplicationId: number) {
