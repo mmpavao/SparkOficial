@@ -318,77 +318,11 @@ export class DatabaseStorage {
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
-    const applications = await db
-      .select()
-      .from(creditApplications)
-      .orderBy(desc(creditApplications.createdAt));
-
-    return applications;
-  }
-
-  async getAllCreditApplicationsOptimized(): Promise<CreditApplication[]> {
-    // Query otimizada sem dados pesados desnecessários
-    const applications = await db
-      .select({
-        id: creditApplications.id,
-        userId: creditApplications.userId,
-        legalCompanyName: creditApplications.legalCompanyName,
-        requestedAmount: creditApplications.requestedAmount,
-        status: creditApplications.status,
-        preAnalysisStatus: creditApplications.preAnalysisStatus,
-        financialStatus: creditApplications.financialStatus,
-        adminStatus: creditApplications.adminStatus,
-        createdAt: creditApplications.createdAt,
-        updatedAt: creditApplications.updatedAt,
-        finalCreditLimit: creditApplications.finalCreditLimit,
-        creditLimit: creditApplications.creditLimit,
-        approvedTerms: creditApplications.approvedTerms,
-        finalApprovedTerms: creditApplications.finalApprovedTerms
-      })
-      .from(creditApplications)
-      .orderBy(desc(creditApplications.createdAt));
-
-    return applications;
+    return await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt));
   }
 
   async getAllImports(): Promise<Import[]> {
-    const importsTable = imports;
-    const importsList = await db
-      .select()
-      .from(importsTable)
-      .orderBy(desc(importsTable.createdAt));
-
-    return importsList;
-  }
-
-  async getAllImportsOptimized(): Promise<Import[]> {
-    const importsTable = imports;
-    // Query otimizada sem dados JSON pesados
-    const importsList = await db
-      .select({
-        id: importsTable.id,
-        userId: importsTable.userId,
-        creditApplicationId: importsTable.creditApplicationId,
-        importName: importsTable.importName,
-        importNumber: importsTable.importNumber,
-        cargoType: importsTable.cargoType,
-        totalValue: importsTable.totalValue,
-        currency: importsTable.currency,
-        status: importsTable.status,
-        currentStage: importsTable.currentStage,
-        estimatedDelivery: importsTable.estimatedDelivery,
-        createdAt: importsTable.createdAt,
-        updatedAt: importsTable.updatedAt,
-        incoterms: importsTable.incoterms,
-        shippingMethod: importsTable.shippingMethod,
-        containerType: importsTable.containerType,
-        paymentStatus: importsTable.paymentStatus,
-        downPaymentStatus: importsTable.downPaymentStatus
-      })
-      .from(importsTable)
-      .orderBy(desc(importsTable.createdAt));
-
-    return importsList;
+    return await db.select().from(imports).orderBy(desc(imports.createdAt));
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
