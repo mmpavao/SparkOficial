@@ -350,8 +350,8 @@ export class DatabaseStorage {
     
     // Get down payment percentage from credit application (admin finalized or financial terms)
     const downPaymentPercent = creditApp.adminStatus === 'admin_finalized' 
-      ? (parseFloat(creditApp.finalDownPayment) || 30) / 100
-      : (parseFloat(creditApp.downPayment) || 30) / 100;
+      ? (parseFloat((creditApp as any).finalDownPayment || "30")) / 100
+      : (parseFloat((creditApp as any).downPayment || "30")) / 100;
       
     const downPaymentAmount = totalAmount * downPaymentPercent;
     const remainingAmount = totalAmount - downPaymentAmount;

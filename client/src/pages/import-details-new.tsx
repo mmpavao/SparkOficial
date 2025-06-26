@@ -142,10 +142,10 @@ function ImportPayments({ importId }: { importId: number }) {
     return <div>Carregando cronograma de pagamentos...</div>;
   }
 
-  const getPaymentTypeLabel = (type: string) => {
+  const getPaymentTypeLabel = (type: string, payment: any) => {
     switch (type) {
-      case 'down_payment': return 'Down Payment (10%)';
-      case 'installment': return 'Parcela';
+      case 'down_payment': return `Down Payment (30%)`;
+      case 'installment': return `Parcela ${payment.installmentNumber}/${payment.totalInstallments}`;
       default: return type;
     }
   };
@@ -207,8 +207,7 @@ function ImportPayments({ importId }: { importId: number }) {
                       {getStatusIcon(payment.status)}
                       <div>
                         <p className="font-medium">
-                          {getPaymentTypeLabel(payment.paymentType)}
-                          {payment.installmentNumber && ` ${payment.installmentNumber}/${payment.totalInstallments}`}
+                          {getPaymentTypeLabel(payment.paymentType, payment)}
                         </p>
                         <p className="text-sm text-gray-500">
                           Vencimento: {formatDate(payment.dueDate)}
