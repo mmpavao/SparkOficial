@@ -725,8 +725,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      // Invalidate all admin caches when data changes
-      invalidateAdminCaches();
+      // Invalidate caches when data changes
+      creditApplicationsCache = null;
+      adminMetricsCache = null;
 
       res.json(updatedApplication);
     } catch (error) {
@@ -1306,46 +1307,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let creditApplicationsCache: any = null;
   let creditApplicationsCacheTime = 0;
 
-  // Get all credit applications (admin only) with pagination
+  // Get all credit applications (admin only)
   app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = (page - 1) * limit;
-      
-      // Check cache for first page only
+      // Check cache first
       const now = Date.now();
-      const cacheKey = `${page}-${limit}`;
-      
-      if (page === 1 && adminCreditListCache && (now - adminCreditListCacheTime) < LIST_CACHE_DURATION) {
+      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CACHE_DURATION) {
         console.log("Serving credit applications from cache");
-        return res.json(adminCreditListCache);
+        return res.json(creditApplicationsCache);
       }
 
-      console.log(`Fetching credit applications page ${page}`);
-      const applications = await storage.getAllCreditApplications(limit, offset);
-      
-      // Get total count for pagination
-      const totalCountResult = await db.select({ count: sql<number>`count(*)` }).from(creditApplications);
-      const totalCount = totalCountResult[0].count;
-      
-      const response = {
-        data: applications,
-        pagination: {
-          page,
-          limit,
-          total: totalCount,
-          totalPages: Math.ceil(totalCount / limit)
-        }
-      };
+      console.log("Fetching fresh credit applications");
+      const applications = await storage.getAllCreditApplications();
 
-      // Cache first page only
-      if (page === 1) {
-        adminCreditListCache = response;
-        adminCreditListCacheTime = now;
-      }
+      // Update cache
+      creditApplicationsCache = applications;
+      creditApplicationsCacheTime = now;
 
-      res.json(response);
+      res.json(applications);
     } catch (error) {
       console.error("Get all credit applications error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -2070,7 +2049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Also update main status to approved
-      const updatedMainApplication = await storage.updateCreditApplicationStatus(
+      const updatedApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         'approved',
         {}
@@ -2078,7 +2057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create notification for user
       await storage.notifyCreditStatusChange(
-        updatedApplication.userId,
+        application.userId,
         applicationId,
         'approved',
         { creditLimit, approvedTerms }
@@ -2502,22 +2481,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced caching system for performance optimization
   let adminMetricsCache: any = null;
   let adminMetricsCacheTime = 0;
-  let adminCreditListCache: any = null;
-  let adminCreditListCacheTime = 0;
   let userCreditCache: { [userId: number]: { data: any, time: number } } = {};
   let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
 
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for admin data
-  const LIST_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes for lists
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
   const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
-
-  // Cache invalidation helper
-  const invalidateAdminCaches = () => {
-    adminMetricsCache = null;
-    adminCreditListCache = null;
-    adminMetricsCacheTime = 0;
-    adminCreditListCacheTime = 0;
-  };
 
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {

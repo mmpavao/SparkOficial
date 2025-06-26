@@ -253,28 +253,8 @@ export class DatabaseStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async getAllCreditApplications(limit: number = 50, offset: number = 0): Promise<CreditApplication[]> {
-    // Optimized query with only essential fields for admin listing
-    return await db
-      .select({
-        id: creditApplications.id,
-        userId: creditApplications.userId,
-        legalCompanyName: creditApplications.legalCompanyName,
-        requestedAmount: creditApplications.requestedAmount,
-        currency: creditApplications.currency,
-        status: creditApplications.status,
-        financialStatus: creditApplications.financialStatus,
-        adminStatus: creditApplications.adminStatus,
-        preAnalysisStatus: creditApplications.preAnalysisStatus,
-        riskLevel: creditApplications.riskLevel,
-        createdAt: creditApplications.createdAt,
-        updatedAt: creditApplications.updatedAt,
-        // Exclude heavy fields like requiredDocuments, optionalDocuments
-      })
-      .from(creditApplications)
-      .orderBy(desc(creditApplications.createdAt))
-      .limit(limit)
-      .offset(offset);
+  async getAllCreditApplications(): Promise<CreditApplication[]> {
+    return await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt));
   }
 
   async getAllImports(): Promise<Import[]> {
@@ -739,49 +719,10 @@ export class DatabaseStorage {
     totalSuppliers: number;
     recentActivity: any[];
   }> {
-    // Optimized parallel queries with aggregation
-    const [
-      importersCount,
-      applicationsStats,
-      importsCount,
-      suppliersCount,
-      recentApps
-    ] = await Promise.all([
-      // Count importers only
-      db.select({ count: sql<number>`count(*)` })
-        .from(users)
-        .where(eq(users.role, 'importer')),
-      
-      // Aggregate applications data in single query
-      db.select({
-        count: sql<number>`count(*)`,
-        status: creditApplications.status,
-        totalRequested: sql<number>`sum(cast(${creditApplications.requestedAmount} as decimal))`,
-        approvedSum: sql<number>`sum(case when ${creditApplications.status} = 'approved' then cast(${creditApplications.finalCreditLimit} as decimal) else 0 end)`
-      })
-        .from(creditApplications)
-        .groupBy(creditApplications.status),
-      
-      // Count imports
-      db.select({ count: sql<number>`count(*)` })
-        .from(imports),
-      
-      // Count suppliers  
-      db.select({ count: sql<number>`count(*)` })
-        .from(suppliers),
-      
-      // Recent activity (lightweight)
-      db.select({
-        id: creditApplications.id,
-        legalCompanyName: creditApplications.legalCompanyName,
-        requestedAmount: creditApplications.requestedAmount,
-        status: creditApplications.status,
-        createdAt: creditApplications.createdAt
-      })
-        .from(creditApplications)
-        .orderBy(desc(creditApplications.createdAt))
-        .limit(10)
-    ]);
+    const allUsers = await this.getAllUsers();
+    const allApplications = await this.getAllCreditApplications();
+    const allImports = await this.getAllImports();
+    const allSuppliers = await this.getAllSuppliers();
 
     const totalImporters = allUsers.filter(u => u.role === 'importer').length;
     const totalApplications = allApplications.length;
@@ -822,7 +763,32 @@ export class DatabaseStorage {
     };
   }
 
+  // Credit usage calculation
+  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
+    const application = await this.getCreditApplication(creditApplicationId);
+    if (!application) throw new Error("Credit application not found");
 
+    const creditLimit = parseFloat(application.finalCreditLimit || application.requestedAmount || "0");
+
+    // Get imports linked to this credit application
+    const linkedImports = await db
+      .select()
+      .from(imports)
+      .where(eq(imports.creditApplicationId, creditApplicationId));
+
+    // Calculate used credit from active imports
+    const usedCredit = linkedImports
+      .filter(imp => ['planning', 'in_transit', 'production'].includes(imp.status))
+      .reduce((total, imp) => total + parseFloat(imp.totalValue || "0"), 0);
+
+    const availableCredit = creditLimit - usedCredit;
+
+    return {
+      used: usedCredit,
+      available: Math.max(0, availableCredit),
+      limit: creditLimit
+    };
+  }
 
   // Get imports by credit application
   async getImportsByCreditApplication(creditApplicationId: number) {
@@ -849,6 +815,67 @@ export class DatabaseStorage {
         confirmedAt: new Date(),
       })
       .returning();
+  }
+
+  // Create payment schedule for an import
+  async createPaymentSchedule(importId: number, totalValue: number) {
+    const downPayment = totalValue * 0.1; // 10% down payment
+    const remainingAmount = totalValue - downPayment;
+    const installmentAmount = remainingAmount / 3; // 3 equal installments
+
+    const schedules = [
+      {
+        importId,
+        paymentType: 'down_payment',
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        amount: downPayment.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 1,
+        totalInstallments: 4,
+      },
+      {
+        importId,
+        paymentType: 'installment',
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        amount: installmentAmount.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 2,
+        totalInstallments: 4,
+      },
+      {
+        importId,
+        paymentType: 'installment',
+        dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+        amount: installmentAmount.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 3,
+        totalInstallments: 4,
+      },
+      {
+        importId,
+        paymentType: 'installment',
+        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
+        amount: installmentAmount.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 4,
+        totalInstallments: 4,
+      },
+    ];
+
+    return await db.insert(paymentSchedules).values(schedules).returning();
+  }
+
+  // Get payment schedules for an import
+  async getPaymentSchedulesByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
   }
 
   // Get individual payment by ID
@@ -893,55 +920,6 @@ export class DatabaseStorage {
         .select()
         .from(suppliers);
     }
-  }
-
-  // Get payments by import ID
-  async getPaymentsByImport(importId: number) {
-    return await db
-      .select()
-      .from(paymentSchedules)
-      .where(eq(paymentSchedules.importId, importId))
-      .orderBy(paymentSchedules.dueDate);
-  }
-
-  // Update credit balance
-  async updateCreditBalance(applicationId: number, newBalance: number) {
-    return await db
-      .update(creditApplications)
-      .set({ 
-        creditUsed: newBalance.toString(),
-        updatedAt: new Date()
-      })
-      .where(eq(creditApplications.id, applicationId))
-      .returning();
-  }
-
-  // Confirm payment
-  async confirmPayment(paymentId: number, data: any) {
-    return await db
-      .update(paymentSchedules)
-      .set({
-        status: 'paid',
-        paidAt: new Date(),
-        receiptUrl: data.receiptUrl,
-        paymentMethod: data.paymentMethod,
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
-  }
-
-  // Reject payment
-  async rejectPayment(paymentId: number, reason: string) {
-    return await db
-      .update(paymentSchedules)
-      .set({
-        status: 'rejected',
-        rejectionReason: reason,
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
   }
 }
 

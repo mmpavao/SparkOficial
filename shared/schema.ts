@@ -578,4 +578,3 @@ export const notifications = pgTable("notifications", {
 
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
-export type PaymentSchedule = typeof paymentSchedules.$inferSelect;

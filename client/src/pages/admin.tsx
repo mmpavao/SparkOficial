@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, CreditCard, Package, TrendingUp } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import type { User, CreditApplication, Import } from "@shared/schema";
-import { useState } from "react";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -18,24 +17,10 @@ export default function AdminPage() {
     enabled: isAdmin,
   }) as { data: User[] };
 
-  // Fetch credit applications with pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const { data: creditApplicationsResponse, isLoading: isLoadingApplications } = useQuery({
-    queryKey: ['admin-credit-applications', currentPage],
-    queryFn: async () => {
-      const response = await fetch(`/api/admin/credit-applications?page=${currentPage}&limit=25`, {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch applications');
-      return response.json();
-    },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnWindowFocus: false,
-    keepPreviousData: true, // Keep previous data while loading new page
-  });
-
-  const allCreditApplications = creditApplicationsResponse?.data || [];
-  const pagination = creditApplicationsResponse?.pagination;
+  const { data: allCreditApplications = [] } = useQuery({
+    queryKey: ["/api/admin/credit-applications"],
+    enabled: isAdmin,
+  }) as { data: CreditApplication[] };
 
   const { data: allImports = [] } = useQuery({
     queryKey: ["/api/admin/imports"],
@@ -143,15 +128,6 @@ export default function AdminPage() {
             <CardTitle>Status das Aplicações de Crédito</CardTitle>
           </CardHeader>
           <CardContent>
-           {isLoadingApplications ? (
-        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <div className="text-center">
-            <span className="text-gray-600 block">Carregando aplicações...</span>
-            <span className="text-gray-400 text-sm">Otimizando consulta no banco de dados</span>
-          </div>
-        </div>
-      ) : (
             {(() => {
               const statusCounts = {
                 pending: allCreditApplications.filter(app => app.status === 'pending').length,
@@ -195,7 +171,6 @@ export default function AdminPage() {
                 </div>
               );
             })()}
-            )}
           </CardContent>
         </Card>
 
@@ -349,3 +324,4 @@ export default function AdminPage() {
     </div>
   );
 }
+```

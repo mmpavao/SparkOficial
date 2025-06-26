@@ -137,7 +137,7 @@ export default function NotificationCenter() {
             <div className="p-4 text-center text-sm text-gray-500">
               Carregando notificações...
             </div>
-          ) : !Array.isArray(notifications) || notifications.length === 0 ? (
+          ) : notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-gray-500">
               Nenhuma notificação encontrada
             </div>

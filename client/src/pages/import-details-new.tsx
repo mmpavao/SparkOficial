@@ -459,11 +459,6 @@ function ImportPayments({ importId }: { importId: number }) {
     }
   };
 
-  const handleCancelPayment = (paymentId: number) => {
-    // Implementar cancelamento com confirmação
-    console.log(`Cancelar pagamento ${paymentId}`);
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -505,6 +500,11 @@ function ImportPayments({ importId }: { importId: number }) {
       </CardContent>
     </Card>
   );
+
+  function handleCancelPayment(paymentId: number) {
+    // Implementar cancelamento com confirmação
+    console.log(`Cancelar pagamento ${paymentId}`);
+  }
 }
 
 // Componente de documentos
