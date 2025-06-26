@@ -224,7 +224,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {importerData?.creditMetrics?.approvedAmount > 0 ? (
+            {(importerData?.creditMetrics?.approvedAmount || 0) > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-3">
@@ -353,9 +353,9 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {importerData?.recentActivity?.imports?.length > 0 ? (
+              {(importerData?.recentActivity?.imports?.length || 0) > 0 ? (
                 <div className="space-y-3">
-                  {importerData.recentActivity.imports.map((import_) => (
+                  {importerData?.recentActivity?.imports?.map((import_) => (
                     <div key={import_.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -409,9 +409,9 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {importerData?.recentActivity?.creditApplications?.length > 0 ? (
+              {(importerData?.recentActivity?.creditApplications?.length || 0) > 0 ? (
                 <div className="space-y-3">
-                  {importerData.recentActivity.creditApplications.map((app) => (
+                  {importerData?.recentActivity?.creditApplications?.map((app) => (
                     <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
