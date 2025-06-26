@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/contexts/I18nContext";
-// import LanguageSelector from "@/components/ui/language-selector";
+import LanguageSelector from "@/components/ui/language-selector";
 import NotificationCenter from "@/components/NotificationCenter";
 import {
   DropdownMenu,
@@ -426,6 +426,80 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               <LanguageSelector />
               <NotificationCenter />
               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="relative">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.avatar || undefined} />
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                          {user?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="hidden md:block text-left">
+                        <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <div className="p-3 border-b">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={user?.avatar || undefined} />
+                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                          {user?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{user?.fullName}</p>
+                        <p className="text-sm text-gray-500">{user?.companyName}</p>
+                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                          user?.role === "admin" 
+                            ? "bg-blue-100 text-blue-800" 
+                            : user?.role === "financeira" 
+                              ? "bg-purple-100 text-purple-800" 
+                              : "bg-green-100 text-green-800"
+                        }`}>
+                          {user?.role === "admin" ? (
+                            <>
+                              <Shield className="w-3 h-3 mr-1" />
+                              Spark Admin
+                            </>
+                          ) : user?.role === "financeira" ? (
+                            <>
+                              <BarChart3 className="w-3 h-3 mr-1" />
+                              Financeira
+                            </>
+                          ) : (
+                            <>
+                              <Truck className="w-3 h-3 mr-1" />
+                              Importador
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="py-1">
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="flex items-center w-full px-3 py-2">
+                        <Settings className="w-4 h-4 mr-3" />
+                        {t.nav.settings}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      disabled={logoutMutation.isPending}
+                      className="text-red-600 focus:text-red-600 px-3 py-2"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      {logoutMutation.isPending ? `${t.nav.logout}...` : t.nav.logout}
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>

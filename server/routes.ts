@@ -2049,7 +2049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Also update main status to approved
-      const updatedApplication = await storage.updateCreditApplicationStatus(
+      const updatedMainApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         'approved',
         {}
