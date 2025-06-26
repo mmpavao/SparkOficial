@@ -845,9 +845,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
+      // Invalidate caches when data changes
+      invalidateAdminCaches();
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error updating analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Submit to financeira endpoint
+  app.put('/api/admin/credit/applications/:id/submit-to-financeira', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(userId);
+
+      // Only admins can submit to financeira
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Only allow submission if pre-approved
+      if (application.status !== 'pre_approved') {
+        return res.status(400).json({ 
+          message: "Apenas aplicações pré-aprovadas podem ser enviadas à financeira" 
+        });
+      }
+
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId, 
+        'submitted_to_financial',
+        {
+          submittedToFinanceira: true,
+          submittedAt: new Date(),
+          submittedBy: userId,
+        }
+      );
+
+      // Invalidate caches when data changes
+      invalidateAdminCaches();
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error submitting to financeira:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

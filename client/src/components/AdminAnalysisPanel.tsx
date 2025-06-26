@@ -584,25 +584,69 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
             {/* Ações Principais */}
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+              {/* Show submit to financeira button if pre-approved but not yet submitted */}
+              {(application.status === 'pre_approved' && application.status !== 'submitted_to_financial') ? (
                 <Button 
-                  onClick={handleApprove}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    handleConfirmAction(
+                      "Submeter à Financeira",
+                      "Tem certeza que deseja enviar esta solicitação para análise financeira?",
+                      async () => {
+                        try {
+                          await apiRequest(`/api/admin/credit/applications/${application.id}/submit-to-financeira`, "PUT");
+                          queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
+                          queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
+                          toast({
+                            title: "Sucesso!",
+                            description: "Aplicação enviada para financeira com sucesso.",
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "Erro",
+                            description: error.message || "Erro ao enviar para financeira",
+                            variant: "destructive",
+                          });
+                        }
+                      }
+                    );
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                   disabled={updateStatusMutation.isPending}
                 >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Pré-aprovar
+                  <FileText className="w-4 h-4 mr-1" />
+                  Submeter à Financeira
                 </Button>
+              ) : application.status === 'submitted_to_financial' ? (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-800">Enviado para Financeira</span>
+                  </div>
+                  <p className="text-sm text-blue-600 mt-1">
+                    Esta aplicação foi enviada para análise financeira.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    onClick={handleApprove}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Pré-aprovar
+                  </Button>
 
-                <Button 
-                  onClick={handleReject}
-                  variant="destructive"
-                  disabled={updateStatusMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Rejeitar
-                </Button>
-              </div>
+                  <Button 
+                    onClick={handleReject}
+                    variant="destructive"
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Rejeitar
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Separator />
