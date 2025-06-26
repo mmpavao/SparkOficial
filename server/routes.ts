@@ -2883,6 +2883,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Importer dashboard endpoint
+  app.get('/api/dashboard/importer', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Get user's credit applications
+      const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
+      const approvedApplication = creditApplications.find(app => app.adminStatus === 'finalized');
+
+      // Get user's imports
+      const imports = await storage.getImportsByUser(req.session.userId);
+      
+      // Get user's suppliers
+      const suppliers = await storage.getSuppliersByUser(req.session.userId);
+
+      // Calculate credit metrics
+      let creditMetrics = {
+        approvedAmount: 0,
+        usedAmount: 0,
+        availableAmount: 0,
+        utilizationRate: 0
+      };
+
+      if (approvedApplication) {
+        const creditLimit = parseFloat(approvedApplication.finalCreditLimit || '0');
+        
+        // Calculate used credit from active imports (not in planning stage)
+        const activeImports = imports.filter(imp => 
+          imp.status !== 'planejamento' && 
+          imp.status !== 'cancelado' && 
+          imp.creditApplicationId === approvedApplication.id
+        );
+        
+        const usedAmount = activeImports.reduce((sum, imp) => {
+          return sum + parseFloat(imp.totalValue || '0');
+        }, 0);
+
+        creditMetrics = {
+          approvedAmount: creditLimit,
+          usedAmount: usedAmount,
+          availableAmount: creditLimit - usedAmount,
+          utilizationRate: creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0
+        };
+      }
+
+      // Calculate import metrics
+      const totalValue = imports.reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
+      const activeImports = imports.filter(imp => 
+        imp.status !== 'concluido' && imp.status !== 'cancelado'
+      ).length;
+      const completedImports = imports.filter(imp => imp.status === 'concluido').length;
+
+      // Status breakdown
+      const statusBreakdown = {
+        planning: imports.filter(imp => imp.status === 'planejamento').length,
+        production: imports.filter(imp => imp.status === 'producao').length,
+        shipping: imports.filter(imp => 
+          imp.status === 'transporte_maritimo' || 
+          imp.status === 'transporte_aereo' ||
+          imp.status === 'entregue_agente' ||
+          imp.status === 'desembaraco' ||
+          imp.status === 'transporte_nacional'
+        ).length,
+        completed: completedImports
+      };
+
+      // Recent activity - last 5 imports and credit applications
+      const recentImports = imports
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5)
+        .map(imp => ({
+          id: imp.id,
+          name: imp.importName || `Importação #${imp.id}`,
+          status: imp.status,
+          value: imp.totalValue || '0',
+          date: imp.createdAt
+        }));
+
+      const recentCreditApplications = creditApplications
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 3)
+        .map(app => ({
+          id: app.id,
+          status: app.adminStatus || app.status,
+          amount: app.finalCreditLimit || app.creditAmount || '0',
+          date: app.createdAt
+        }));
+
+      const dashboardData = {
+        creditMetrics,
+        importMetrics: {
+          totalImports: imports.length,
+          activeImports,
+          completedImports,
+          totalValue
+        },
+        supplierMetrics: {
+          totalSuppliers: suppliers.length,
+          activeSuppliers: suppliers.filter(s => s.status === 'active').length
+        },
+        recentActivity: {
+          imports: recentImports,
+          creditApplications: recentCreditApplications
+        },
+        statusBreakdown
+      };
+
+      res.json(dashboardData);
+
+    } catch (error) {
+      console.error("Error fetching importer dashboard data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
