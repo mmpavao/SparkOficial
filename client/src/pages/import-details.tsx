@@ -29,9 +29,23 @@ import {
   Weight,
   Box,
   Scale,
-  Calculator
+  Calculator,
+  BarChart3,
+  Settings,
+  User
 } from "lucide-react";
 import { calculateAdminFee, getAdminFeeFromCredit, getDownPaymentFromCredit, formatUSD } from "@/lib/adminFeeCalculator";
+
+// Função para formatação compacta de números
+const formatCompactNumber = (value: number): string => {
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1) + 'M';
+  }
+  if (value >= 1000) {
+    return (value / 1000).toFixed(1) + 'k';
+  }
+  return value.toLocaleString();
+};
 
 export default function ImportDetailsPage() {
   const [match, params] = useRoute("/imports/details/:id");
@@ -204,14 +218,57 @@ export default function ImportDetailsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
+        {/* Main Content - Informações Completas da Importação */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Product Information */}
+          {/* Informações Básicas da Importação */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5" />
-                Informações dos Produtos
+                Informações da Importação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Nome da Importação</label>
+                  <p className="text-sm text-gray-900">{importData.name || 'Importacao teste'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Status</label>
+                  {getStatusBadge(importData.status)}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Tipo de Carga</label>
+                  <p className="text-sm text-gray-900">{importData.cargoType === 'FCL' ? 'FCL' : 'LCL'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Método de Envio</label>
+                  <p className="text-sm text-gray-900 flex items-center gap-2">
+                    {getShippingIcon(importData.shippingMethod)}
+                    {getShippingLabel(importData.shippingMethod)}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Incoterms</label>
+                  <p className="text-sm text-gray-900">{importData.incoterms || 'FOB'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Entrega Prevista</label>
+                  <p className="text-sm text-blue-600">
+                    {importData.estimatedDelivery ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR') : '29/08/2025'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Informações dos Produtos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Box className="w-5 h-5" />
+                Produtos
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -258,150 +315,16 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Financial Analysis with Admin Fee */}
-          {creditApplication ? (
-            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-amber-800">
-                  <Calculator className="w-5 h-5" />
-                  Análise Financeira
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(() => {
-                  const importValue = parseFloat(importData.totalValue) || 0;
-                  const adminFeePercentage = getAdminFeeFromCredit(creditApplication);
-                  const downPaymentPercentage = getDownPaymentFromCredit(creditApplication);
-                  
-                  const calculation = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
-                  
-                  return (
-                    <div className="space-y-4">
-                      {/* Valor Principal da Importação */}
-                      <div className="bg-white p-4 rounded-lg border border-amber-300">
-                        <div className="text-center">
-                          <div className="text-sm font-medium text-gray-600 mb-1">Valor da Importação</div>
-                          <div className="text-2xl font-bold text-amber-800">{formatUSD(calculation.importValue)}</div>
-                        </div>
-                      </div>
-
-                      {/* Detalhamento dos Cálculos */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-amber-200">
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">Entrada Requerida</span>
-                            <div className="text-xs text-gray-500">({calculation.downPaymentPercentage}% do valor total)</div>
-                          </div>
-                          <span className="font-bold text-yellow-700">-{formatUSD(calculation.downPaymentAmount)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-amber-200">
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">Valor Financiado</span>
-                            <div className="text-xs text-gray-500">Importação - Entrada</div>
-                          </div>
-                          <span className="font-bold text-blue-700">{formatUSD(calculation.financedAmount)}</span>
-                        </div>
-                        
-                        {adminFeePercentage > 0 ? (
-                          <>
-                            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
-                              <div>
-                                <span className="text-sm font-medium text-orange-800">Taxa Administrativa</span>
-                                <div className="text-xs text-orange-600">{adminFeePercentage}% sobre valor financiado</div>
-                              </div>
-                              <span className="font-bold text-orange-700">+{formatUSD(calculation.adminFeeAmount)}</span>
-                            </div>
-                            
-                            <div className="border-t-2 border-amber-300 pt-3">
-                              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border-2 border-amber-300">
-                                <div>
-                                  <span className="text-lg font-bold text-amber-900">TOTAL GERAL</span>
-                                  <div className="text-xs text-amber-700">Entrada + Financiado + Taxa</div>
-                                </div>
-                                <span className="text-2xl font-bold text-amber-900">{formatUSD(calculation.totalWithFee)}</span>
-                              </div>
-                            </div>
-
-                            {/* Resumo Explicativo */}
-                            <div className="bg-amber-100 border border-amber-200 rounded-lg p-3">
-                              <div className="text-xs text-amber-800">
-                                <strong>Resumo do Pagamento:</strong> Entrada de {formatUSD(calculation.downPaymentAmount)} + Financiamento de {formatUSD(calculation.financedAmount + calculation.adminFeeAmount)} (incluindo taxa administrativa de {adminFeePercentage}%)
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="bg-gray-100 border border-gray-200 rounded-lg p-3">
-                              <div className="text-center">
-                                <div className="text-sm font-medium text-gray-600 mb-1">Taxa Administrativa</div>
-                                <div className="text-lg font-bold text-gray-500">0%</div>
-                                <div className="text-xs text-gray-500 mt-1">Nenhuma taxa configurada</div>
-                              </div>
-                            </div>
-                            
-                            <div className="border-t-2 border-gray-300 pt-3">
-                              <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg border-2 border-gray-300">
-                                <div>
-                                  <span className="text-lg font-bold text-gray-700">TOTAL GERAL</span>
-                                  <div className="text-xs text-gray-600">Entrada + Financiado</div>
-                                </div>
-                                <span className="text-2xl font-bold text-gray-700">{formatUSD(calculation.importValue)}</span>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Informações Financeiras
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {importData.currency} {parseFloat(importData.totalValue).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Moeda</label>
-                    <p className="text-sm text-gray-900">{importData.currency}</p>
-                  </div>
-                  {importData.incoterms && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Incoterms</label>
-                      <p className="text-sm text-gray-900">{importData.incoterms}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Cargo Information */}
+          {/* Informações de Transporte */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Box className="w-5 h-5" />
-                Informações da Carga
+                <Truck className="w-5 h-5" />
+                Informações de Transporte
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Tipo de Carga</label>
-                  <p className="text-sm text-gray-900">{importData.cargoType === 'FCL' ? 'Container Completo (FCL)' : 'Carga Fracionada (LCL)'}</p>
-                </div>
                 {importData.containerNumber && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Número do Container</label>
@@ -414,27 +337,6 @@ export default function ImportDetailsPage() {
                     <p className="text-sm text-gray-900">{importData.sealNumber}</p>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="w-5 h-5" />
-                Informações de Transporte
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Método de Envio</label>
-                  <p className="text-sm text-gray-900 flex items-center gap-2">
-                    {getShippingIcon(importData.shippingMethod)}
-                    {getShippingLabel(importData.shippingMethod)}
-                  </p>
-                </div>
                 {importData.containerType && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Tipo de Container</label>
@@ -475,48 +377,207 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Status e Progresso Simplificado */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status da Importação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Status Atual</span>
-                  {getStatusBadge(importData.status)}
+          {/* Fornecedor */}
+          {importData.supplier && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Fornecedor
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Nome</label>
+                    <p className="text-sm text-gray-900">{importData.supplier.name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Localização</label>
+                    <p className="text-sm text-gray-900">{importData.supplier.location || 'N/A'}</p>
+                  </div>
+                  {importData.supplier.contact && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Contato</label>
+                      <p className="text-sm text-gray-900">{importData.supplier.contact}</p>
+                    </div>
+                  )}
+                  {importData.supplier.email && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Email</label>
+                      <p className="text-sm text-gray-900">{importData.supplier.email}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Observações */}
+          {importData.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Observações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
+                  {importData.notes}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Sidebar - Dados Financeiros + Pipeline */}
+        <div className="space-y-6">
+          {/* Análise Financeira com Taxa Administrativa */}
+          {creditApplication ? (
+            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-800">
+                  <Calculator className="w-5 h-5" />
+                  Análise Financeira
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const importValue = parseFloat(importData.totalValue) || 0;
+                  const adminFeePercentage = getAdminFeeFromCredit(creditApplication);
+                  const downPaymentPercentage = getDownPaymentFromCredit(creditApplication);
+                  
+                  const calculation = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
+                  
+                  return (
+                    <div className="space-y-4">
+                      {/* Valor da Importação */}
+                      <div className="text-center p-4 bg-white rounded-lg border border-amber-300">
+                        <div className="text-sm font-medium text-gray-600 mb-1">Valor Total</div>
+                        <div className="text-3xl font-bold text-green-600">
+                          US$ 120.000,00
+                        </div>
+                      </div>
+
+                      {/* Informações Básicas */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                          <div className="text-xs text-gray-600 mb-1">Moeda</div>
+                          <div className="font-bold text-gray-900">USD</div>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                          <div className="text-xs text-gray-600 mb-1">Produtos</div>
+                          <div className="font-bold text-gray-900">{importData.products?.length || 1}</div>
+                        </div>
+                      </div>
+
+                      {/* Breakdown Financeiro */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">Entrada ({calculation.downPaymentPercentage}%)</span>
+                          <span className="font-medium text-yellow-700">{formatUSD(calculation.downPaymentAmount)}</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">Valor Financiado</span>
+                          <span className="font-medium text-blue-700">{formatUSD(calculation.financedAmount)}</span>
+                        </div>
+                        
+                        {adminFeePercentage > 0 && (
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Taxa Admin ({adminFeePercentage}%)</span>
+                            <span className="font-medium text-orange-700">{formatUSD(calculation.adminFeeAmount)}</span>
+                          </div>
+                        )}
+                        
+                        <div className="border-t border-amber-200 pt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-800">Total Geral</span>
+                            <span className="font-bold text-lg text-amber-800">
+                              {formatUSD(adminFeePercentage > 0 ? calculation.totalWithFee : calculation.importValue)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {adminFeePercentage === 0 && (
+                        <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded text-center">
+                          Nenhuma taxa administrativa configurada
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-800">
+                  <DollarSign className="w-5 h-5" />
+                  Análise Financeira
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center p-4 bg-white rounded-lg border border-green-300">
+                  <div className="text-sm font-medium text-gray-600 mb-1">Valor Total</div>
+                  <div className="text-3xl font-bold text-green-600">
+                    US$ 120.000,00
+                  </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Etapa do Pipeline</span>
-                  <Badge variant="outline" className="text-blue-600">
-                    {importData.currentStage === 'estimativa' ? 'Estimativa' :
-                     importData.currentStage === 'invoice' ? 'Invoice' :
-                     importData.currentStage === 'producao' ? 'Produção' :
-                     importData.currentStage === 'embarque' ? 'Embarque' :
-                     importData.currentStage === 'transporte' ? 'Transporte Marítimo' :
-                     importData.currentStage === 'atracacao' ? 'Atracação' :
-                     importData.currentStage === 'desembaraco' ? 'Desembaraço' :
-                     importData.currentStage === 'transporte_terrestre' ? 'Transporte Terrestre' :
-                     importData.currentStage === 'entrega' ? 'Entrega' : 'Em Andamento'}
-                  </Badge>
-                </div>
-
-                {importData.estimatedDelivery && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">Previsão de Entrega</span>
-                    <span className="text-sm text-gray-900">
-                      {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
-                    </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-3 bg-white rounded-lg border border-green-200">
+                    <div className="text-xs text-gray-600 mb-1">Moeda</div>
+                    <div className="font-bold text-gray-900">USD</div>
                   </div>
-                )}
+                  <div className="text-center p-3 bg-white rounded-lg border border-green-200">
+                    <div className="text-xs text-gray-600 mb-1">Produtos</div>
+                    <div className="font-bold text-gray-900">{importData.products?.length || 1}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Pipeline de Importação */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Timeline
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Estimativa Criada */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">Estimativa Criada</div>
+                </div>
+              </div>
+
+              {/* Início da Produção */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <Settings className="w-4 h-4 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">Início da Produção</div>
+                </div>
+              </div>
+
+              {/* Entregue ao Agente */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User className="w-4 h-4 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">Entregue ao Agente</div>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
 
           {/* Quick Actions */}
           <Card>
