@@ -821,6 +821,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Payment schedules routes
+  app.get('/api/payments/schedule/:importId', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.importId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(importId)
+        : await storage.getImportByIdAndUser(importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const payments = await storage.getPaymentSchedulesByImport(importId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payment schedules:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import documents routes
+  app.get('/api/import-documents/:importId', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.importId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(importId)
+        : await storage.getImportByIdAndUser(importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const documents = await storage.getImportDocuments(importId);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching import documents:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/import-documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      const { importId, documentType } = req.body;
+      const file = req.file;
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(parseInt(importId))
+        : await storage.getImportByIdAndUser(parseInt(importId), userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Convert file to base64
+      const fileBuffer = file.buffer;
+      const fileBase64 = fileBuffer.toString('base64');
+
+      const document = await storage.createImportDocument({
+        importId: parseInt(importId),
+        documentType,
+        fileName: file.originalname,
+        fileData: fileBase64,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadedBy: userId
+      });
+
+      res.json(document);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get('/api/import-documents/download/:documentId', requireAuth, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.documentId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      const document = await storage.getImportDocumentById(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(document.importId)
+        : await storage.getImportByIdAndUser(document.importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Acesso negado" });
+      }
+
+      // Convert base64 back to buffer
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+
+      res.setHeader('Content-Type', document.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {

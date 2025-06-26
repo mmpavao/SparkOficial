@@ -13,7 +13,7 @@ import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
 import NewImportPage from "@/pages/import-complete";
-import ImportDetailsPage from "@/pages/import-details";
+import ImportDetailsPage from "@/pages/import-details-new";
 import ImportEditPage from "@/pages/import-edit";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";

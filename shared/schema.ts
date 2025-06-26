@@ -308,6 +308,21 @@ export const payments = pgTable("payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Import documents table
+export const importDocuments = pgTable("import_documents", {
+  id: serial("id").primaryKey(),
+  importId: integer("import_id").references(() => imports.id).notNull(),
+  documentType: text("document_type").notNull(), // proforma_invoice, bill_of_lading, etc
+  fileName: text("file_name").notNull(),
+  fileData: text("file_data").notNull(), // Base64 encoded file
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  uploadedBy: integer("uploaded_by").references(() => users.id).notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Import tracking table with enhanced pipeline tracking
 export const imports = pgTable("imports", {
   id: serial("id").primaryKey(),

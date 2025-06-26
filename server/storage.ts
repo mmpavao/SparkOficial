@@ -132,6 +132,71 @@ export class DatabaseStorage {
     return result[0];
   }
 
+  // Get import by ID (admin access)
+  async getImportById(importId: number) {
+    const result = await this.db.select()
+      .from(imports)
+      .where(eq(imports.id, importId))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  // Get import by ID and user (user access control)
+  async getImportByIdAndUser(importId: number, userId: number) {
+    const result = await this.db.select()
+      .from(imports)
+      .where(and(eq(imports.id, importId), eq(imports.userId, userId)))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  // Payment schedules methods
+  async getPaymentSchedulesByImport(importId: number) {
+    const result = await this.db.select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+    return result;
+  }
+
+  // Import documents methods
+  async getImportDocuments(importId: number) {
+    const result = await this.db.select()
+      .from(importDocuments)
+      .where(eq(importDocuments.importId, importId))
+      .orderBy(desc(importDocuments.uploadedAt));
+    return result;
+  }
+
+  async createImportDocument(data: {
+    importId: number;
+    documentType: string;
+    fileName: string;
+    fileData: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedBy: number;
+  }) {
+    const result = await this.db.insert(importDocuments).values({
+      importId: data.importId,
+      documentType: data.documentType,
+      fileName: data.fileName,
+      fileData: data.fileData,
+      fileSize: data.fileSize,
+      mimeType: data.mimeType,
+      uploadedBy: data.uploadedBy,
+    }).returning();
+    return result[0];
+  }
+
+  async getImportDocumentById(documentId: number) {
+    const result = await this.db.select()
+      .from(importDocuments)
+      .where(eq(importDocuments.id, documentId))
+      .limit(1);
+    return result[0] || null;
+  }
+
   async updateImportStatus(id: number, status: string, updateData?: any): Promise<Import> {
     const [importRecord] = await db
       .update(imports)
