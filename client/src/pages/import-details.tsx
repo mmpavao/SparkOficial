@@ -28,8 +28,10 @@ import {
   Building2,
   Weight,
   Box,
-  Scale
+  Scale,
+  Calculator
 } from "lucide-react";
+import { calculateAdminFee, getAdminFeeFromCredit, getDownPaymentFromCredit, formatUSD } from "@/lib/adminFeeCalculator";
 
 export default function ImportDetailsPage() {
   const [match, params] = useRoute("/imports/details/:id");
@@ -55,6 +57,20 @@ export default function ImportDetailsPage() {
       }
     },
     enabled: !!importId,
+  });
+
+  // Fetch credit application associated with this import
+  const { data: creditApplication } = useQuery({
+    queryKey: ["/api/credit/applications", importData?.creditApplicationId],
+    queryFn: async () => {
+      if (!importData?.creditApplicationId) return null;
+      if (isAdmin) {
+        return await apiRequest(`/api/admin/credit-applications/${importData.creditApplicationId}`, "GET");
+      } else {
+        return await apiRequest(`/api/credit/applications/${importData.creditApplicationId}`, "GET");
+      }
+    },
+    enabled: !!importData?.creditApplicationId,
   });
   
   console.log("Query state:", { importData, isLoading, error });
@@ -400,6 +416,68 @@ export default function ImportDetailsPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Financial Analysis with Admin Fee */}
+          {creditApplication && (
+            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-800">
+                  <Calculator className="w-5 h-5" />
+                  Análise Financeira
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const importValue = parseFloat(importData.totalValue) || 0;
+                  const adminFeePercentage = getAdminFeeFromCredit(creditApplication);
+                  const downPaymentPercentage = getDownPaymentFromCredit(creditApplication);
+                  
+                  const calculation = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Valor da Importação</span>
+                        <span className="font-semibold text-gray-900">{formatUSD(calculation.importValue)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Entrada ({calculation.downPaymentPercentage}%)</span>
+                        <span className="font-medium text-blue-700">-{formatUSD(calculation.downPaymentAmount)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Valor a Financiar</span>
+                        <span className="font-medium text-gray-700">{formatUSD(calculation.financedAmount)}</span>
+                      </div>
+                      
+                      {adminFeePercentage > 0 && (
+                        <>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Taxa Admin ({adminFeePercentage}%)</span>
+                            <span className="font-medium text-orange-600">+{formatUSD(calculation.adminFeeAmount)}</span>
+                          </div>
+                          
+                          <div className="border-t border-amber-200 pt-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-semibold text-gray-800">Total Geral</span>
+                              <span className="font-bold text-lg text-amber-800">{formatUSD(calculation.totalWithFee)}</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {adminFeePercentage === 0 && (
+                        <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                          Nenhuma taxa administrativa configurada para este crédito
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Quick Actions */}
           <Card>
             <CardHeader>
