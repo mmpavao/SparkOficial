@@ -514,7 +514,10 @@ const productSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
   hsCode: z.string().optional(),
-  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
+  quantity: z.union([z.string(), z.number()]).transform((val) => {
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? 0 : num;
+  }).refine((val) => val > 0, "Quantidade deve ser maior que 0"),
   unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   supplierId: z.number().min(1, "Fornecedor é obrigatório"),
