@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/contexts/I18nContext";
-import LanguageSelector from "@/components/ui/language-selector";
+
 import NotificationCenter from "@/components/NotificationCenter";
 import {
   DropdownMenu,
@@ -420,7 +420,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
             </div>
             <div className="flex items-center space-x-4">
-              <LanguageSelector />
               <NotificationCenter />
             </div>
           </div>
