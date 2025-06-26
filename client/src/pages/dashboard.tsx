@@ -35,7 +35,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Section with Quick Actions */}
-      <div className="bg-gradient-to-r from-spark-500 to-spark-600 rounded-xl p-6 text-white">
+      <div className="from-spark-500 to-spark-600 rounded-xl p-6 text-white bg-[#15ad7a]">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-1">
@@ -93,7 +93,6 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-
       {/* Main Metrics Row */}
       {isAdmin ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -172,7 +171,6 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
-
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Detalhes do Crédito / Resumo de Crédito */}
@@ -315,7 +313,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Atividade Recente */}
