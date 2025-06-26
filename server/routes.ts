@@ -726,10 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Invalidate caches when data changes
-      creditApplicationsCache = null;
-      adminMetricsCache = null;
-
-      res.json(updatedApplication);
+      invalidateAdminCaches();
     } catch (error) {
       console.error("Error approving credit application:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -764,10 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Invalidate caches when data changes
-      creditApplicationsCache = null;
-      adminMetricsCache = null;
-
-      res.json(updatedApplication);
+      invalidateAdminCaches();
     } catch (error) {
       console.error("Error rejecting credit application:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -869,6 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  ```
   app.post('/api/import-documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const { importId, documentType } = req.body;
@@ -1860,11 +1855,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const adminFee = await storage.getAdminFeeForUser(userId);
-      
+
       if (!adminFee) {
         return res.json({ feePercentage: "10" }); // Default 10% if no fee configured
       }
-      
+
       res.json(adminFee);
     } catch (error) {
       console.error("Error fetching admin fee:", error);
@@ -1876,11 +1871,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/user/credit-info', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      
+
       // Get user's approved credit applications
       const creditApps = await storage.getCreditApplicationsByUser(userId);
       const approvedCredit = creditApps.find(app => app.status === 'approved');
-      
+
       if (!approvedCredit) {
         return res.json({
           totalCredit: 0,
@@ -2709,6 +2704,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
   const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
 
+  // Function to invalidate admin caches
+  function invalidateAdminCaches() {
+    creditApplicationsCache = null;
+    adminMetricsCache = null;
+    adminMetricsCacheTime = 0;
+    console.log("Admin caches invalidated");
+  }
+
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
     try {
@@ -2838,12 +2841,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Convert base64 back to buffer
       const buffer = Buffer.from(document.data, 'base64');
-      
+
       res.set({
         'Content-Type': document.mimeType,
         'Content-Disposition': `attachment; filename="${document.filename}"`
       });
-      
+
       res.send(buffer);
 
     } catch (error) {
@@ -2912,7 +2915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user's imports
       const imports = await storage.getImportsByUser(req.session.userId);
-      
+
       // Get user's suppliers
       const suppliers = await storage.getSuppliersByUser(req.session.userId);
 
@@ -2930,7 +2933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           approvedApplication.requestedAmount || 
           '0'
         );
-        
+
         // Calculate used credit from active imports (not in planning stage)
         // Credit usage is the full FOB value of imports, not just financed amount
         const activeImports = imports.filter(imp => 
@@ -2938,7 +2941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imp.status !== 'cancelado' && 
           imp.creditApplicationId === approvedApplication.id
         );
-        
+
         const usedAmount = activeImports.reduce((sum, imp) => {
           return sum + parseFloat(imp.totalValue || '0');
         }, 0);
