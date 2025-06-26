@@ -8,6 +8,7 @@ import {
   paymentSchedules,
   payments,
   importDocuments,
+  notifications,
   type User, 
   type InsertUser,
   type CreditApplication,

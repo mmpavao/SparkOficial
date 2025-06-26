@@ -12,7 +12,7 @@ import CreditApplicationPage from "@/pages/credit-application";
 import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
-import NewImportPage from "@/pages/import-complete";
+import NewImportPage from "@/pages/import-new";
 import ImportDetailsPage from "@/pages/import-details-new";
 import ImportEditPage from "@/pages/import-edit";
 import ReportsPage from "@/pages/reports";

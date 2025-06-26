@@ -17,9 +17,12 @@ export function ImportFinancialPreview({
 }: ImportFinancialPreviewProps) {
   
   const financialCalculation = useMemo(() => {
-    if (!importValue || !creditApplication) {
+    if (!creditApplication) {
       return null;
     }
+    
+    // Show preview even with zero value to guide user
+    const calculationValue = importValue || 0;
 
     const downPaymentPercent = creditApplication.finalDownPayment || 30;
     const adminFeePercent = parseFloat(creditApplication.adminFee || '0');

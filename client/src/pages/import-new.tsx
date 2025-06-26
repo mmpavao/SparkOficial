@@ -120,7 +120,9 @@ export default function NewImportPage() {
     console.log("Approved credit:", approvedCredit);
     console.log("Credit usage:", creditUsage);
     console.log("User role:", user?.role);
-  }, [currentImportValue, approvedCredit, creditUsage, user]);
+    console.log("Should show preview:", user?.role === 'importer' && !!approvedCredit);
+    console.log("Products:", products);
+  }, [currentImportValue, approvedCredit, creditUsage, user, products]);
 
   const createImportMutation = useMutation({
     mutationFn: (data: any) => {
