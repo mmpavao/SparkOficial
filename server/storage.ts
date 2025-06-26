@@ -517,6 +517,41 @@ export class DatabaseStorage {
       recentActivity,
     };
   }
+
+  // Credit usage calculation
+  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
+    const application = await this.getCreditApplicationById(creditApplicationId);
+    if (!application) throw new Error("Credit application not found");
+
+    const creditLimit = parseFloat(application.finalCreditLimit || application.requestedAmount || "0");
+
+    // Get imports linked to this credit application
+    const linkedImports = await db
+      .select()
+      .from(imports)
+      .where(eq(imports.creditApplicationId, creditApplicationId));
+
+    // Calculate used credit from active imports
+    const usedCredit = linkedImports
+      .filter(imp => ['planning', 'in_transit', 'production'].includes(imp.status))
+      .reduce((total, imp) => total + parseFloat(imp.totalValue || "0"), 0);
+
+    const availableCredit = creditLimit - usedCredit;
+
+    return {
+      used: usedCredit,
+      available: Math.max(0, availableCredit),
+      limit: creditLimit
+    };
+  }
+
+  // Get imports by credit application
+  async getImportsByCreditApplication(creditApplicationId: number) {
+    return await db
+      .select()
+      .from(imports)
+      .where(eq(imports.creditApplicationId, creditApplicationId));
+  }
 }
 
 export const storage = new DatabaseStorage();
