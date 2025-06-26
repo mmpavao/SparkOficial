@@ -123,27 +123,13 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       label: (isAdmin || isFinanceira) ? "Análise de Crédito" : t.nav.credit 
     },
     { 
-      path: "/imports", 
-      icon: Truck, 
-      label: (isAdmin || isFinanceira) ? "Importações" : t.nav.imports,
-      submenu: [
-        { 
-          path: "/imports", 
-          label: isFinanceira 
-            ? "Importações" 
-            : isAdmin 
-              ? "Importações" 
-              : "Minhas Importações" 
-        },
-        { 
-          path: "/suppliers", 
-          label: isFinanceira 
-            ? "Todos Fornecedores" 
-            : isAdmin 
-              ? "Todos Fornecedores" 
-              : "Fornecedores" 
-        },
-      ]
+      path: "/suppliers", 
+      icon: Building, 
+      label: isFinanceira 
+        ? "Todos Fornecedores" 
+        : isAdmin 
+          ? "Todos Fornecedores" 
+          : "Fornecedores"
     },
     { path: "/reports", icon: BarChart3, label: t.nav.reports },
   ];
