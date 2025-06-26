@@ -8,12 +8,14 @@ interface ImportFinancialPreviewProps {
   importValue: number;
   creditApplication: any;
   creditUsage: any;
+  adminFee?: any;
 }
 
 export function ImportFinancialPreview({ 
   importValue, 
   creditApplication, 
-  creditUsage 
+  creditUsage,
+  adminFee 
 }: ImportFinancialPreviewProps) {
   
   const financialCalculation = useMemo(() => {
@@ -25,7 +27,7 @@ export function ImportFinancialPreview({
     const calculationValue = importValue || 0;
 
     const downPaymentPercent = creditApplication.finalDownPayment || 30;
-    const adminFeePercent = parseFloat(creditApplication.adminFee || '0');
+    const adminFeePercent = parseFloat(adminFee?.feePercentage || '0');
     const paymentTerms = (creditApplication.finalApprovedTerms || '30').split(',').map((term: string) => parseInt(term.trim()));
 
     const downPayment = (calculationValue * downPaymentPercent) / 100;
@@ -77,7 +79,7 @@ export function ImportFinancialPreview({
     downPayment, 
     downPaymentPercent,
     financedAmount, 
-    adminFee, 
+    adminFee: calculatedAdminFee, 
     adminFeePercent,
     totalAmount, 
     installmentAmount,

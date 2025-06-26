@@ -97,8 +97,8 @@ export default function NewImportPage() {
 
   // Fetch admin fee for the user
   const { data: adminFee } = useQuery({
-    queryKey: ['/api/admin/fees', user?.id],
-    queryFn: () => apiRequest(`/api/admin/fees/${user?.id}`, 'GET'),
+    queryKey: ['/api/user/admin-fee'],
+    queryFn: () => apiRequest('/api/user/admin-fee', 'GET'),
     enabled: !!user?.id,
   });
 
@@ -693,6 +693,7 @@ export default function NewImportPage() {
                 importValue={currentImportValue}
                 creditApplication={approvedCredit}
                 creditUsage={creditUsage}
+                adminFee={adminFee}
               />
             </div>
           </div>

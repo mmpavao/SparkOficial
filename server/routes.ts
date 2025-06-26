@@ -1724,6 +1724,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get admin fee for current user
+  app.get('/api/user/admin-fee', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      
+      if (!adminFee) {
+        return res.json({ feePercentage: "0" }); // Default 0% if no fee configured
+      }
+      
+      res.json(adminFee);
+    } catch (error) {
+      console.error("Error fetching admin fee:", error);
+      res.status(500).json({ message: "Erro ao buscar taxa administrativa" });
+    }
+  });
+
   // Supplier routes
   app.post('/api/suppliers', requireAuth, async (req: any, res) => {
     try {
