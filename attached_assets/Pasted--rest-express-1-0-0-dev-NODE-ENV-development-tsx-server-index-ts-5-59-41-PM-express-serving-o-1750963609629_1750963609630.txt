@@ -1,0 +1,497 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+5:59:41 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+Authentication successful for user: 24 Role: admin
+5:59:54 PM [express] GET /api/auth/user 304 in 184ms :: {"id":24,"companyName":"Spark Comex Admin2",…
+5:59:55 PM [express] GET /api/notifications 200 in 51ms
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+Authentication successful for user: 24 Role: admin
+5:59:55 PM [express] GET /api/notifications/unread-count 200 in 52ms
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+5:59:56 PM [express] GET /api/admin/dashboard/metrics 500 in 1077ms :: {"message":"Erro interno do s…
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+6:00:40 PM [express] GET /api/notifications/unread-count 200 in 58ms
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:00:40 PM [express] GET /api/admin/dashboard/metrics 500 in 1118ms :: {"message":"Erro interno do s…
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+Authentication successful for user: 24 Role: admin
+6:00:57 PM [express] GET /api/auth/user 304 in 166ms :: {"id":24,"companyName":"Spark Comex Admin2",…
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+6:00:57 PM [express] GET /api/notifications 200 in 50ms
+6:00:57 PM [express] GET /api/notifications/unread-count 200 in 45ms
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:00:58 PM [express] GET /api/admin/dashboard/metrics 500 in 893ms :: {"message":"Erro interno do se…
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:01:00 PM [express] GET /api/admin/dashboard/metrics 500 in 808ms :: {"message":"Erro interno do se…
+6:01:13 PM [express] GET /api/notifications/unread-count 200 in 214ms
+Auth check - Session ID: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh credit applications
+6:01:28 PM [express] GET /api/notifications 200 in 55ms
+6:01:28 PM [express] GET /api/notifications/unread-count 200 in 50ms
+6:01:28 PM [express] GET /api/admin/credit-applications 200 in 4994ms :: [{"id":37,"userId":26,"lega…
+6:01:59 PM [express] GET /api/notifications/unread-count 200 in 198ms
+User logged out, session destroyed: fOLu-exdx4qoVqdExn-_hSWZUZkFyI_Y
+6:02:06 PM [express] POST /api/auth/logout 200 in 43ms :: {"message":"Logout realizado com sucesso"}
+6:02:06 PM [express] GET /api/notifications 200 in 5ms
+Auth check - Session ID: OxA80rK3Z0bqnPceSSXYVzDlpGqDjSbh User ID: undefined
+Authentication failed - no session or user ID
+6:02:06 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+6:02:06 PM [express] GET /api/notifications/unread-count 200 in 9ms
+Auth check - Session ID: Aeco7fL-RB6OOxOTZEny9pBKDRVUkCh- User ID: undefined
+Authentication failed - no session or user ID
+6:02:08 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+Login attempt for: importador@sparkcomex.com
+Session created for user ID: 23 Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po
+Session saved successfully
+6:02:12 PM [express] POST /api/auth/login 200 in 360ms :: {"id":23,"companyName":"Empresa Importador…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:02:12 PM [express] GET /api/auth/user 200 in 108ms :: {"id":23,"companyName":"Empresa Importadora …
+6:02:12 PM [express] GET /api/notifications 200 in 47ms
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:02:12 PM [express] GET /api/notifications/unread-count 200 in 199ms
+6:02:13 PM [express] GET /api/dashboard/importer 304 in 480ms :: {"creditMetrics":{"approvedAmount":…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+Fetching fresh credit applications for user 23
+6:02:18 PM [express] GET /api/credit/applications 200 in 309ms :: [{"id":30,"userId":23,"legalCompan…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+Fetching fresh credit application 30
+6:02:21 PM [express] GET /api/credit/applications/30 200 in 314ms :: {"id":30,"userId":23,"legalComp…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+Credit calculation for app 30: {
+  creditLimit: 150000,
+  activeImports: 1,
+  usedCredit: 50000,
+  availableCredit: 100000
+}
+6:02:22 PM [express] GET /api/credit/usage/30 304 in 224ms :: {"used":50000,"available":100000,"limi…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:02:30 PM [express] GET /api/auth/user 200 in 87ms :: {"id":23,"companyName":"Empresa Importadora L…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+6:02:30 PM [express] GET /api/notifications 200 in 44ms
+Authentication successful for user: 23 Role: importer
+Serving credit application 30 from cache
+6:02:30 PM [express] GET /api/notifications/unread-count 200 in 75ms
+6:02:30 PM [express] GET /api/credit/applications/30 200 in 85ms :: {"id":30,"userId":23,"legalCompa…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+Credit calculation for app 30: {
+  creditLimit: 150000,
+  activeImports: 1,
+  usedCredit: 50000,
+  availableCredit: 100000
+}
+6:02:31 PM [express] GET /api/credit/usage/30 304 in 276ms :: {"used":50000,"available":100000,"limi…
+6:02:42 PM [express] GET /api/notifications 200 in 170ms
+6:02:43 PM [express] GET /api/notifications/unread-count 200 in 45ms
+Auth check - Session ID: sCQoGONAO4opedqKsTFSQtPF_7TkCsUV User ID: undefined
+Authentication failed - no session or user ID
+6:02:49 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+Auth check - Session ID: nZNoketsn4k_ODFbdwVLlVnaf2CaGrO4 User ID: undefined
+Authentication failed - no session or user ID
+6:03:10 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+Auth check - Session ID: Iwc7jKKpfTq84OnkpYRwFFIrnuhqEczk User ID: undefined
+Authentication failed - no session or user ID
+6:03:18 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+6:04:13 PM [express] GET /api/notifications 200 in 182ms
+6:04:13 PM [express] GET /api/notifications/unread-count 200 in 164ms
+6:04:28 PM [express] GET /api/notifications/unread-count 200 in 182ms
+6:04:43 PM [express] GET /api/notifications 200 in 175ms
+6:04:43 PM [express] GET /api/notifications/unread-count 200 in 44ms
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:04:55 PM [express] GET /api/imports 200 in 288ms :: [{"id":23,"userId":23,"creditApplicationId":30…
+6:04:58 PM [express] GET /api/notifications/unread-count 200 in 42ms
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:04:59 PM [express] GET /api/imports/23 200 in 106ms :: {"id":23,"userId":23,"creditApplicationId":…
+6:05:13 PM [express] GET /api/notifications 200 in 196ms
+6:05:13 PM [express] GET /api/notifications/unread-count 200 in 55ms
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:05:21 PM [express] GET /api/suppliers 304 in 198ms :: [{"id":13,"userId":23,"companyName":"TalkMak…
+6:05:28 PM [express] GET /api/notifications/unread-count 200 in 52ms
+6:05:44 PM [express] GET /api/notifications 200 in 209ms
+6:05:44 PM [express] GET /api/notifications/unread-count 200 in 219ms
+6:05:59 PM [express] GET /api/notifications/unread-count 200 in 285ms
+6:06:14 PM [express] GET /api/notifications 200 in 183ms
+6:06:14 PM [express] GET /api/notifications/unread-count 200 in 46ms
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:06:23 PM [express] GET /api/suppliers/13 304 in 225ms :: {"id":13,"userId":23,"companyName":"TalkM…
+6:06:29 PM [express] GET /api/notifications/unread-count 200 in 47ms
+6:06:44 PM [express] GET /api/notifications 200 in 422ms
+6:06:44 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:07:00 PM [express] GET /api/notifications/unread-count 200 in 221ms
+6:07:15 PM [express] GET /api/notifications 200 in 183ms
+6:07:15 PM [express] GET /api/notifications/unread-count 200 in 43ms
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+Fetching fresh credit applications for user 23
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:07:20 PM [express] GET /api/credit/applications 304 in 374ms :: [{"id":30,"userId":23,"legalCompan…
+6:07:20 PM [express] GET /api/auth/user 304 in 396ms :: {"id":23,"companyName":"Empresa Importadora …
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+6:07:22 PM [express] GET /api/dashboard/importer 304 in 321ms :: {"creditMetrics":{"approvedAmount":…
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Auth check - Session ID: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po User ID: 23
+Authentication successful for user: 23 Role: importer
+Fetching fresh credit application 30
+Authentication successful for user: 23 Role: importer
+Credit calculation for app 30: {
+  creditLimit: 150000,
+  activeImports: 1,
+  usedCredit: 50000,
+  availableCredit: 100000
+}
+6:07:26 PM [express] GET /api/credit/applications/30 304 in 299ms :: {"id":30,"userId":23,"legalComp…
+6:07:26 PM [express] GET /api/credit/usage/30 304 in 294ms :: {"used":50000,"available":100000,"limi…
+6:07:30 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:07:45 PM [express] GET /api/notifications 200 in 176ms
+6:07:45 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:08:00 PM [express] GET /api/notifications/unread-count 200 in 185ms
+6:08:15 PM [express] GET /api/notifications 200 in 175ms
+6:08:15 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:08:30 PM [express] GET /api/notifications/unread-count 200 in 187ms
+6:08:45 PM [express] GET /api/notifications 200 in 198ms
+6:08:46 PM [express] GET /api/notifications/unread-count 200 in 49ms
+6:09:01 PM [express] GET /api/notifications/unread-count 200 in 223ms
+6:09:15 PM [express] GET /api/notifications 200 in 193ms
+6:09:16 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:09:31 PM [express] GET /api/notifications/unread-count 200 in 189ms
+6:09:46 PM [express] GET /api/notifications 200 in 176ms
+6:09:46 PM [express] GET /api/notifications/unread-count 200 in 43ms
+User logged out, session destroyed: G1xkJ_gvvvXIS-bgWAOvB7dOuZikA-po
+6:09:50 PM [express] POST /api/auth/logout 200 in 40ms :: {"message":"Logout realizado com sucesso"}
+6:09:50 PM [express] GET /api/notifications 200 in 3ms
+Auth check - Session ID: U-pOz0TX-lgZGkgzD_tVw3jPY5WXstjq User ID: undefined
+Authentication failed - no session or user ID
+6:09:52 PM [express] GET /api/auth/user 401 in 0ms :: {"message":"Não autorizado"}
+Login attempt for: admin@sparkcomex.com
+Session created for user ID: 24 Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z
+Session saved successfully
+6:09:59 PM [express] POST /api/auth/login 200 in 376ms :: {"id":24,"companyName":"Spark Comex Admin2…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+6:09:59 PM [express] GET /api/auth/user 200 in 85ms :: {"id":24,"companyName":"Spark Comex Admin2","…
+6:09:59 PM [express] GET /api/notifications 200 in 44ms
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+6:09:59 PM [express] GET /api/notifications/unread-count 200 in 174ms
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:10:00 PM [express] GET /api/admin/dashboard/metrics 500 in 1062ms :: {"message":"Erro interno do s…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:10:02 PM [express] GET /api/admin/dashboard/metrics 500 in 831ms :: {"message":"Erro interno do se…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh credit applications
+6:10:04 PM [express] GET /api/admin/credit-applications 304 in 1264ms :: [{"id":37,"userId":26,"lega…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:10:11 PM [express] GET /api/admin/dashboard/metrics 500 in 864ms :: {"message":"Erro interno do se…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:10:13 PM [express] GET /api/admin/dashboard/metrics 500 in 857ms :: {"message":"Erro interno do se…
+6:10:14 PM [express] GET /api/notifications/unread-count 200 in 47ms
+6:11:48 PM [express] GET /api/notifications/unread-count 200 in 2610ms
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+6:11:48 PM [express] GET /api/notifications 200 in 3167ms
+Authentication successful for user: 24 Role: admin
+6:11:48 PM [express] GET /api/dashboard/importer 200 in 1253ms :: {"creditMetrics":{"approvedAmount"…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+6:11:49 PM [express] GET /api/auth/user 200 in 2228ms :: {"id":24,"companyName":"Spark Comex Admin2"…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:11:52 PM [express] GET /api/admin/dashboard/metrics 500 in 2512ms :: {"message":"Erro interno do s…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:11:54 PM [express] GET /api/admin/dashboard/metrics 500 in 779ms :: {"message":"Erro interno do se…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Serving credit applications from cache
+6:12:01 PM [express] GET /api/admin/credit-applications 200 in 4241ms :: [{"id":37,"userId":26,"lega…
+6:12:03 PM [express] GET /api/notifications/unread-count 200 in 48ms
+6:12:18 PM [express] GET /api/notifications/unread-count 200 in 187ms
+6:12:29 PM [express] GET /api/notifications 200 in 188ms
+6:12:33 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:12:48 PM [express] GET /api/notifications/unread-count 200 in 185ms
+6:12:59 PM [express] GET /api/notifications 200 in 168ms
+6:13:04 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:13:19 PM [express] GET /api/notifications/unread-count 200 in 174ms
+6:13:29 PM [express] GET /api/notifications 200 in 181ms
+6:13:34 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:13:49 PM [express] GET /api/notifications/unread-count 200 in 169ms
+6:16:19 PM [express] GET /api/notifications/unread-count 200 in 271ms
+6:16:32 PM [express] GET /api/notifications 200 in 2203ms
+6:16:34 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:16:50 PM [express] GET /api/notifications/unread-count 200 in 187ms
+6:17:02 PM [express] GET /api/notifications 200 in 180ms
+6:17:05 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:17:20 PM [express] GET /api/notifications/unread-count 200 in 180ms
+6:17:32 PM [express] GET /api/notifications 200 in 173ms
+6:17:35 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:17:50 PM [express] GET /api/notifications/unread-count 200 in 181ms
+6:18:03 PM [express] GET /api/notifications 200 in 179ms
+6:18:05 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:18:21 PM [express] GET /api/notifications/unread-count 200 in 198ms
+6:18:33 PM [express] GET /api/notifications 200 in 192ms
+6:18:36 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:18:51 PM [express] GET /api/notifications/unread-count 200 in 180ms
+6:19:03 PM [express] GET /api/notifications 200 in 166ms
+6:19:06 PM [express] GET /api/notifications/unread-count 200 in 42ms
+6:19:21 PM [express] GET /api/notifications/unread-count 200 in 171ms
+6:19:33 PM [express] GET /api/notifications 200 in 167ms
+6:19:36 PM [express] GET /api/notifications/unread-count 200 in 41ms
+6:19:52 PM [express] GET /api/notifications/unread-count 200 in 165ms
+6:20:03 PM [express] GET /api/notifications 200 in 189ms
+6:20:07 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:20:22 PM [express] GET /api/notifications/unread-count 200 in 173ms
+6:20:34 PM [express] GET /api/notifications 200 in 167ms
+6:20:37 PM [express] GET /api/notifications/unread-count 200 in 47ms
+6:20:52 PM [express] GET /api/notifications/unread-count 200 in 190ms
+6:21:04 PM [express] GET /api/notifications 200 in 198ms
+6:21:07 PM [express] GET /api/notifications/unread-count 200 in 50ms
+6:21:22 PM [express] GET /api/notifications/unread-count 200 in 184ms
+6:21:34 PM [express] GET /api/notifications 200 in 170ms
+6:21:38 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:21:53 PM [express] GET /api/notifications/unread-count 200 in 195ms
+6:22:04 PM [express] GET /api/notifications 200 in 173ms
+6:22:08 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:22:23 PM [express] GET /api/notifications/unread-count 200 in 179ms
+6:22:35 PM [express] GET /api/notifications 200 in 184ms
+6:22:38 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:22:53 PM [express] GET /api/notifications/unread-count 200 in 183ms
+6:23:05 PM [express] GET /api/notifications 200 in 168ms
+6:23:09 PM [express] GET /api/notifications/unread-count 200 in 48ms
+6:23:24 PM [express] GET /api/notifications/unread-count 200 in 174ms
+6:23:35 PM [express] GET /api/notifications 200 in 177ms
+6:23:39 PM [express] GET /api/notifications/unread-count 200 in 42ms
+6:23:54 PM [express] GET /api/notifications/unread-count 200 in 197ms
+6:24:05 PM [express] GET /api/notifications 200 in 175ms
+6:24:09 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:24:24 PM [express] GET /api/notifications/unread-count 200 in 166ms
+6:24:36 PM [express] GET /api/notifications 200 in 179ms
+6:24:39 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:24:55 PM [express] GET /api/notifications/unread-count 200 in 182ms
+6:25:06 PM [express] GET /api/notifications 200 in 175ms
+6:25:10 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:25:25 PM [express] GET /api/notifications/unread-count 200 in 162ms
+6:25:36 PM [express] GET /api/notifications 200 in 275ms
+6:25:40 PM [express] GET /api/notifications/unread-count 200 in 53ms
+6:25:55 PM [express] GET /api/notifications/unread-count 200 in 181ms
+6:26:06 PM [express] GET /api/notifications 200 in 172ms
+6:26:10 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:26:26 PM [express] GET /api/notifications/unread-count 200 in 196ms
+6:26:37 PM [express] GET /api/notifications 200 in 175ms
+6:26:41 PM [express] GET /api/notifications/unread-count 200 in 42ms
+6:26:56 PM [express] GET /api/notifications/unread-count 200 in 169ms
+6:27:07 PM [express] GET /api/notifications 200 in 175ms
+6:27:11 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:27:26 PM [express] GET /api/notifications/unread-count 200 in 182ms
+6:27:37 PM [express] GET /api/notifications 200 in 176ms
+6:27:41 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:27:57 PM [express] GET /api/notifications/unread-count 200 in 331ms
+6:28:07 PM [express] GET /api/notifications 200 in 44ms
+6:28:12 PM [express] GET /api/notifications/unread-count 200 in 41ms
+6:28:27 PM [express] GET /api/notifications/unread-count 200 in 190ms
+6:28:37 PM [express] GET /api/notifications 200 in 173ms
+6:28:42 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:28:57 PM [express] GET /api/notifications/unread-count 200 in 177ms
+6:29:08 PM [express] GET /api/notifications 200 in 181ms
+6:29:12 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:29:28 PM [express] GET /api/notifications/unread-count 200 in 189ms
+6:29:38 PM [express] GET /api/notifications 200 in 44ms
+6:29:43 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:29:58 PM [express] GET /api/notifications/unread-count 200 in 171ms
+6:30:08 PM [express] GET /api/notifications 200 in 48ms
+6:30:13 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:30:28 PM [express] GET /api/notifications/unread-count 200 in 182ms
+6:30:39 PM [express] GET /api/notifications 200 in 200ms
+6:30:44 PM [express] GET /api/notifications/unread-count 200 in 50ms
+6:30:59 PM [express] GET /api/notifications/unread-count 200 in 188ms
+6:31:09 PM [express] GET /api/notifications 200 in 179ms
+6:31:14 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:31:29 PM [express] GET /api/notifications/unread-count 200 in 187ms
+6:31:39 PM [express] GET /api/notifications 200 in 174ms
+6:31:44 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:31:59 PM [express] GET /api/notifications/unread-count 200 in 173ms
+6:32:10 PM [express] GET /api/notifications 200 in 170ms
+6:32:14 PM [express] GET /api/notifications/unread-count 200 in 42ms
+6:32:30 PM [express] GET /api/notifications/unread-count 200 in 199ms
+6:32:40 PM [express] GET /api/notifications 200 in 176ms
+6:32:45 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:33:00 PM [express] GET /api/notifications/unread-count 200 in 200ms
+6:33:10 PM [express] GET /api/notifications 200 in 58ms
+6:33:15 PM [express] GET /api/notifications/unread-count 200 in 56ms
+6:33:30 PM [express] GET /api/notifications/unread-count 200 in 192ms
+6:33:40 PM [express] GET /api/notifications 200 in 45ms
+6:33:45 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:34:01 PM [express] GET /api/notifications/unread-count 200 in 180ms
+6:34:10 PM [express] GET /api/notifications 200 in 41ms
+6:34:16 PM [express] GET /api/notifications/unread-count 200 in 42ms
+6:34:31 PM [express] GET /api/notifications/unread-count 200 in 175ms
+6:34:40 PM [express] GET /api/notifications 200 in 43ms
+6:34:46 PM [express] GET /api/notifications/unread-count 200 in 41ms
+6:35:01 PM [express] GET /api/notifications/unread-count 200 in 172ms
+6:35:10 PM [express] GET /api/notifications 200 in 47ms
+6:35:16 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:35:32 PM [express] GET /api/notifications/unread-count 200 in 191ms
+6:35:40 PM [express] GET /api/notifications 200 in 44ms
+6:35:47 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:36:03 PM [express] GET /api/notifications/unread-count 200 in 184ms
+6:36:10 PM [express] GET /api/notifications 200 in 44ms
+6:36:18 PM [express] GET /api/notifications/unread-count 200 in 47ms
+6:36:33 PM [express] GET /api/notifications/unread-count 200 in 234ms
+6:36:41 PM [express] GET /api/notifications 200 in 49ms
+6:36:48 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:37:03 PM [express] GET /api/notifications/unread-count 200 in 178ms
+6:37:11 PM [express] GET /api/notifications 200 in 43ms
+6:37:18 PM [express] GET /api/notifications/unread-count 200 in 41ms
+6:37:34 PM [express] GET /api/notifications/unread-count 200 in 178ms
+6:37:41 PM [express] GET /api/notifications 200 in 47ms
+6:37:49 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:38:04 PM [express] GET /api/notifications/unread-count 200 in 184ms
+6:38:11 PM [express] GET /api/notifications 200 in 47ms
+6:38:19 PM [express] GET /api/notifications/unread-count 200 in 49ms
+6:38:34 PM [express] GET /api/notifications/unread-count 200 in 167ms
+6:38:41 PM [express] GET /api/notifications 200 in 41ms
+6:38:49 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:39:05 PM [express] GET /api/notifications/unread-count 200 in 174ms
+6:39:11 PM [express] GET /api/notifications 200 in 42ms
+6:39:20 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:39:35 PM [express] GET /api/notifications/unread-count 200 in 215ms
+6:39:41 PM [express] GET /api/notifications 200 in 43ms
+6:39:50 PM [express] GET /api/notifications/unread-count 200 in 45ms
+6:40:05 PM [express] GET /api/notifications/unread-count 200 in 203ms
+6:40:11 PM [express] GET /api/notifications 200 in 47ms
+6:40:20 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:40:36 PM [express] GET /api/notifications/unread-count 200 in 173ms
+6:40:41 PM [express] GET /api/notifications 200 in 60ms
+6:40:51 PM [express] GET /api/notifications/unread-count 200 in 44ms
+6:41:06 PM [express] GET /api/notifications/unread-count 200 in 175ms
+6:41:11 PM [express] GET /api/notifications 200 in 47ms
+6:41:21 PM [express] GET /api/notifications/unread-count 200 in 43ms
+6:41:36 PM [express] GET /api/notifications/unread-count 200 in 172ms
+6:41:41 PM [express] GET /api/notifications 200 in 45ms
+6:41:51 PM [express] GET /api/notifications/unread-count 200 in 42ms
+6:42:07 PM [express] GET /api/notifications/unread-count 200 in 224ms
+6:42:12 PM [express] GET /api/notifications 200 in 48ms
+6:42:22 PM [express] GET /api/notifications/unread-count 200 in 181ms
+6:42:37 PM [express] GET /api/notifications/unread-count 200 in 182ms
+6:42:42 PM [express] GET /api/notifications 200 in 45ms
+6:42:52 PM [express] GET /api/notifications/unread-count 200 in 177ms
+6:43:07 PM [express] GET /api/notifications/unread-count 200 in 194ms
+6:43:12 PM [express] GET /api/notifications 200 in 47ms
+6:43:23 PM [express] GET /api/notifications/unread-count 200 in 165ms
+6:43:38 PM [express] GET /api/notifications/unread-count 200 in 219ms
+6:43:42 PM [express] GET /api/notifications 200 in 44ms
+6:43:53 PM [express] GET /api/notifications/unread-count 200 in 182ms
+6:44:08 PM [express] GET /api/notifications/unread-count 200 in 174ms
+6:44:12 PM [express] GET /api/notifications 200 in 45ms
+6:44:24 PM [express] GET /api/notifications/unread-count 200 in 188ms
+6:44:39 PM [express] GET /api/notifications/unread-count 200 in 195ms
+6:44:42 PM [express] GET /api/notifications 200 in 44ms
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+6:45:40 PM [express] GET /api/auth/user 304 in 235ms :: {"id":24,"companyName":"Spark Comex Admin2",…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+6:45:40 PM [express] GET /api/notifications 200 in 46ms
+Authentication successful for user: 24 Role: admin
+6:45:40 PM [express] GET /api/notifications/unread-count 200 in 50ms
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:45:41 PM [express] GET /api/admin/dashboard/metrics 500 in 1442ms :: {"message":"Erro interno do s…
+Auth check - Session ID: Re-6zxOuO_EyhuEKeH9C8arhcGCKa_1z User ID: 24
+Authentication successful for user: 24 Role: admin
+Fetching fresh admin metrics
+Error fetching admin dashboard metrics: ReferenceError: Cannot access 'imports2' before initialization
+    at DatabaseStorage.getAllImports (/home/runner/workspace/server/storage.ts:355:26)
+    at DatabaseStorage.getAdminDashboardMetrics (/home/runner/workspace/server/storage.ts:1013:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:2732:23)
+6:45:43 PM [express] GET /api/admin/dashboard/metrics 500 in 748ms :: {"message":"Erro interno do se…
+6:45:55 PM [express] GET /api/notifications/unread-count 200 in 173ms
+6:46:10 PM [express] GET /api/notifications 200 in 183ms
+6:46:10 PM [express] GET /api/notifications/unread-count 200 in 46ms
+6:46:25 PM [express] GET /api/notifications/unread-count 200 in 175ms
+6:46:40 PM [express] GET /api/notifications 200 in 172ms
+6:46:40 PM [express] GET /api/notifications/unread-count 200 in 165ms
