@@ -1495,6 +1495,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all credit applications (admin only)
   app.get('/api/admin/credit-applications', requireAuth, async (req: any, res) => {
     try {
+      console.log(`Admin credit applications request - User: ${req.session.userId}`);
+      
+      const currentUser = await storage.getUser(req.session.userId);
+      console.log(`Current user role: ${currentUser?.role}`);
+
+      // Verificar se é admin, financeira ou super admin
+      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin" && currentUser?.role !== "financeira") {
+        console.log("Access denied - insufficient role");
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
       // Check cache first
       const now = Date.now();
       if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CACHE_DURATION) {
@@ -2142,7 +2153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/credit-applications/:id/analysis", requireAuth, requireAdmin, async (req: any, res) => {
+  app.put("/api/admin/credit-applications/:id/analysis", requireAuth, async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
       const { adminNotes, preAnalysisStatus, adminRecommendation, riskAssessment } = req.body;
@@ -2166,7 +2177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/credit-applications/:id/submit-financial", requireAuth, requireAdmin, async (req: any, res) => {
+  app.post("/api/admin/credit-applications/:id/submit-financial", requireAuth, async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
 
