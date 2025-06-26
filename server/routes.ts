@@ -52,10 +52,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     name: 'connect.sid',
     cookie: {
-      httpOnly: false, // Allow JavaScript access for debugging
+      httpOnly: true, // Secure cookie access
       secure: false, // HTTP for development
       maxAge: sessionTtl,
-      sameSite: 'lax',
+      sameSite: 'strict', // Prevent CSRF attacks
       path: '/',
       domain: undefined, // Let browser set domain automatically
     },
