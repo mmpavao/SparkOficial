@@ -562,4 +562,19 @@ export type Import = typeof imports.$inferSelect;
 export type InsertImport = z.infer<typeof insertImportSchema>;
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // credit_approved, credit_rejected, import_status_change, payment_due, etc.
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data"), // Additional context data
+  status: text("status").notNull().default("unread"), // unread, read
+  priority: text("priority").notNull().default("normal"), // low, normal, high, urgent
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
+export type Notification = typeof notifications.$inferSelect;

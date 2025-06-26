@@ -18,12 +18,12 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
   // ===== USER OPERATIONS =====
-  
+
   async getUser(id: number): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return result[0];
@@ -347,12 +347,12 @@ export class DatabaseStorage {
     if (!creditApp) throw new Error("Credit application not found");
 
     const totalAmount = parseFloat(totalValue);
-    
+
     // Get down payment percentage from credit application (admin finalized or financial terms)
     const downPaymentPercent = creditApp.adminStatus === 'admin_finalized' 
       ? (parseFloat((creditApp as any).finalDownPayment || "30")) / 100
       : (parseFloat((creditApp as any).downPayment || "30")) / 100;
-      
+
     const downPaymentAmount = totalAmount * downPaymentPercent;
     const remainingAmount = totalAmount - downPaymentAmount;
 
@@ -360,12 +360,12 @@ export class DatabaseStorage {
     const paymentTerms = creditApp.adminStatus === 'admin_finalized'
       ? (creditApp as any).finalApprovedTerms || (creditApp as any).approvedTerms || "30,60,90,120"
       : (creditApp as any).approvedTerms || "30,60,90,120";
-      
+
     const termsDays = paymentTerms.split(',').map((term: string) => parseInt(term.trim()));
     const installmentAmount = remainingAmount / termsDays.length;
 
     const schedules = [];
-    
+
     // Down payment - due when import status changes to "entregue_agente"
     schedules.push({
       importId,
@@ -382,7 +382,7 @@ export class DatabaseStorage {
     for (let i = 0; i < termsDays.length; i++) {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + termsDays[i]);
-      
+
       schedules.push({
         importId,
         paymentType: "installment",
@@ -564,9 +564,9 @@ export class DatabaseStorage {
   async getSuppliersByPreApprovedUsers(): Promise<Supplier[]> {
     const preApprovedApps = await this.getPreApprovedCreditApplications();
     const userIds = preApprovedApps.map(app => app.userId);
-    
+
     if (userIds.length === 0) return [];
-    
+
     return await db
       .select()
       .from(suppliers)
@@ -577,14 +577,134 @@ export class DatabaseStorage {
   async getImportsByPreApprovedUsers(): Promise<Import[]> {
     const preApprovedApps = await this.getPreApprovedCreditApplications();
     const userIds = preApprovedApps.map(app => app.userId);
-    
+
     if (userIds.length === 0) return [];
-    
+
     return await db
       .select()
       .from(imports)
       .where(inArray(imports.userId, userIds))
       .orderBy(desc(imports.createdAt));
+  }
+
+  // ===== NOTIFICATIONS =====
+
+  async createNotification(notificationData: {
+    userId: number;
+    type: string;
+    title: string;
+    message: string;
+    data?: any;
+    priority?: string;
+  }) {
+    return await db
+      .insert(notifications)
+      .values({
+        ...notificationData,
+        priority: notificationData.priority || "normal",
+      })
+      .returning();
+  }
+
+  async getUserNotifications(userId: number, limit: number = 10) {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async getUnreadNotificationsCount(userId: number) {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.status, "unread")
+        )
+      );
+    return result[0]?.count || 0;
+  }
+
+  async markNotificationAsRead(notificationId: number, userId: number) {
+    return await db
+      .update(notifications)
+      .set({
+        status: "read",
+        readAt: new Date(),
+      })
+      .where(
+        and(
+          eq(notifications.id, notificationId),
+          eq(notifications.userId, userId)
+        )
+      )
+      .returning();
+  }
+
+  async markAllNotificationsAsRead(userId: number) {
+    return await db
+      .update(notifications)
+      .set({
+        status: "read",
+        readAt: new Date(),
+      })
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.status, "unread")
+        )
+      )
+      .returning();
+  }
+
+  // Helper function to create notifications for credit events
+  async notifyCreditStatusChange(
+    userId: number,
+    applicationId: number,
+    newStatus: string,
+    additionalData?: any
+  ) {
+    const statusMessages = {
+      approved: {
+        title: "Crédito Aprovado! 🎉",
+        message: "Sua solicitação de crédito foi aprovada. Você já pode criar importações.",
+        priority: "high",
+      },
+      rejected: {
+        title: "Solicitação de Crédito",
+        message: "Sua solicitação de crédito foi rejeitada. Entre em contato conosco para mais informações.",
+        priority: "high",
+      },
+      under_review: {
+        title: "Análise em Andamento",
+        message: "Sua solicitação de crédito está sendo analisada por nossa equipe.",
+        priority: "normal",
+      },
+      needs_documents: {
+        title: "Documentos Necessários",
+        message: "Documentos adicionais são necessários para sua solicitação de crédito.",
+        priority: "high",
+      },
+    };
+
+    const config = statusMessages[newStatus as keyof typeof statusMessages];
+    if (config) {
+      await this.createNotification({
+        userId,
+        type: "credit_status_change",
+        title: config.title,
+        message: config.message,
+        priority: config.priority,
+        data: {
+          applicationId,
+          status: newStatus,
+          ...additionalData,
+        },
+      });
+    }
   }
 
   // ===== ADMIN DASHBOARD METRICS =====

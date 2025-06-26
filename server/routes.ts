@@ -465,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const now = Date.now();
-      
+
       // Check cache first
       if (userCreditCache[userId] && (now - userCreditCache[userId].time) < CACHE_DURATION) {
         console.log(`Serving credit applications from cache for user ${userId}`);
@@ -474,10 +474,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Fetching fresh credit applications for user ${userId}`);
       const applications = await storage.getCreditApplicationsByUser(userId);
-      
+
       // Update cache
       userCreditCache[userId] = { data: applications, time: now };
-      
+
       res.json(applications);
     } catch (error) {
       console.error("Error fetching credit applications:", error);
@@ -489,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const now = Date.now();
-      
+
       // Check cache first for performance
       if (creditDetailsCache[id] && (now - creditDetailsCache[id].time) < DETAILS_CACHE_DURATION) {
         console.log(`Serving credit application ${id} from cache`);
@@ -518,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Cache the response for future requests
       creditDetailsCache[id] = { data: application, time: now };
-      
+
       res.json(application);
     } catch (error) {
       console.error("Error fetching credit application:", error);
@@ -531,10 +531,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const applicationId = parseInt(req.params.id);
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       console.log(`Attachment upload attempt for application ${applicationId} by user ${currentUser?.id}`);
       console.log('Request body keys:', Object.keys(req.body));
-      
+
       // Only admin and financeira can upload attachments
       if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin' && currentUser.role !== 'financeira')) {
         return res.status(403).json({ message: "Acesso negado - apenas admin/financeira podem anexar apólices" });
@@ -567,10 +567,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Error parsing existing attachments, starting fresh');
         existingAttachments = [];
       }
-      
+
       const updatedAttachments = [...existingAttachments, ...attachments];
       console.log('Updated attachments array:', updatedAttachments);
-      
+
       const updatedApplication = await storage.updateCreditApplication(applicationId, {
         attachments: JSON.stringify(updatedAttachments)
       });
@@ -590,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const applicationId = parseInt(req.params.id);
       const attachmentId = parseInt(req.params.attachmentId);
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Only admin and financeira can download attachments
       if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin' && currentUser.role !== 'financeira')) {
         return res.status(403).json({ message: "Acesso negado" });
@@ -603,7 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const attachments = application.attachments ? JSON.parse(application.attachments) : [];
       const attachment = attachments.find((att: any) => att.id === attachmentId);
-      
+
       if (!attachment) {
         return res.status(404).json({ message: "Anexo não encontrado" });
       }
@@ -667,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // For importers, only allow editing of pending and under_review applications
       if (currentUser?.role === 'importer' && 
           application.status !== 'pending' && 
@@ -676,7 +676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Apenas solicitações pendentes ou em análise podem ser editadas por importadores" 
         });
       }
-      
+
       // Admins can edit any application (except approved/rejected by financeira)
       if ((currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && 
           (application.status === 'approved' || application.status === 'rejected')) {
@@ -1243,7 +1243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(imports);
     } catch (error) {
       console.error("Error fetching all imports:", error);
-      res.status(500).json({ message: "Erro ao buscar importações" });
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
@@ -1319,11 +1319,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Fetching fresh credit applications");
       const applications = await storage.getAllCreditApplications();
-      
+
       // Update cache
       creditApplicationsCache = applications;
       creditApplicationsCacheTime = now;
-      
+
       res.json(applications);
     } catch (error) {
       console.error("Get all credit applications error:", error);
@@ -1397,7 +1397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { applicationId } = req.params;
       const application = await storage.getCreditApplication(parseInt(applicationId));
-      
+
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
@@ -1405,7 +1405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user owns the application or is admin
       const currentUser = await storage.getUser(req.session.userId);
       const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
-      
+
       if (!isAdmin && application.userId !== req.session.userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
@@ -1450,7 +1450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update credit balances
       const newUsed = creditData.used + requestedAmount;
       const newAvailable = creditData.available - requestedAmount;
-      
+
       await storage.updateCreditBalance(
         creditApplicationId, 
         newUsed.toString(), 
@@ -1471,7 +1471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const importRecord = await storage.getImport(parseInt(id));
-      
+
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
       }
@@ -1480,7 +1480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
       const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
       const isFinanceira = currentUser?.role === 'financeira';
-      
+
       if (!isAdmin && !isFinanceira && importRecord.userId !== req.session.userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
@@ -1500,7 +1500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { paymentTerms, downPaymentPercentage, totalAmount } = req.body;
-      
+
       const importRecord = await storage.getImport(parseInt(id));
       if (!importRecord) {
         return res.status(404).json({ message: "Importação não encontrada" });
@@ -1583,7 +1583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const confirmedPayment = await storage.confirmPayment(parseInt(id), req.session.userId);
-      
+
       // Update payment schedule status
       if (confirmedPayment[0]) {
         await storage.updatePaymentScheduleStatus(confirmedPayment[0].paymentScheduleId, 'paid');
@@ -1601,7 +1601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { notes } = req.body;
-      
+
       const rejectedPayment = await storage.rejectPayment(parseInt(id), notes, req.session.userId);
       res.json(rejectedPayment[0]);
     } catch (error) {
@@ -2049,10 +2049,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Also update main status to approved
-      await storage.updateCreditApplicationStatus(
-        applicationId,
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId, 
         'approved',
         {}
+      );
+
+      // Create notification for user
+      await storage.notifyCreditStatusChange(
+        application.userId,
+        applicationId,
+        'approved',
+        { creditLimit, approvedTerms }
       );
 
       res.json(updatedApplication);
@@ -2162,17 +2170,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentOptional = typeof application.optionalDocuments === 'object' && application.optionalDocuments !== null 
         ? application.optionalDocuments 
         : {};
-      
+
       // Check if it's a mandatory document
       const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
-      
+
       let updateData: any = {};
-      
+
       if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
         const updatedRequired = { ...currentRequired };
         updatedRequired[documentType] = documentInfo;
         updateData.requiredDocuments = updatedRequired;
-        
+
         // Update status based on mandatory documents
         const uploadedMandatory = Object.keys(updatedRequired).length;
         if (uploadedMandatory >= mandatoryDocKeys.length) {
@@ -2212,13 +2220,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment endpoints
-  
+
   // Get individual payment details
   app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
     try {
       const paymentId = parseInt(req.params.id);
       const payment = await storage.getPaymentById(paymentId);
-      
+
       if (!payment) {
         return res.status(404).json({ message: "Pagamento não encontrado" });
       }
@@ -2227,7 +2235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = await storage.getUser(req.session.userId);
       const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
       const isFinanceira = currentUser?.role === "financeira";
-      
+
       // Get import to check ownership
       const importData = await storage.getImport(payment.importId);
       const isOwner = importData?.userId === req.session.userId;
@@ -2248,7 +2256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const paymentId = parseInt(req.params.id);
       const payment = await storage.getPaymentById(paymentId);
-      
+
       if (!payment) {
         return res.status(404).json({ message: "Pagamento não encontrado" });
       }
@@ -2296,7 +2304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const paymentId = parseInt(req.params.id);
       const { paymentMethod, notes } = req.body;
-      
+
       const payment = await storage.getPaymentById(paymentId);
       if (!payment) {
         return res.status(404).json({ message: "Pagamento não encontrado" });
@@ -2347,7 +2355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const paymentId = parseInt(req.params.id);
       const { dueDate, amount, notes } = req.body;
-      
+
       const payment = await storage.getPaymentById(paymentId);
       if (!payment) {
         return res.status(404).json({ message: "Pagamento não encontrado" });
@@ -2384,7 +2392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/payments/:id', requireAuth, async (req: any, res) => {
     try {
       const paymentId = parseInt(req.params.id);
-      
+
       const payment = await storage.getPaymentById(paymentId);
       if (!payment) {
         return res.status(404).json({ message: "Pagamento não encontrado" });
@@ -2417,7 +2425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/documents/download/:documentKey/:applicationId', requireAuth, async (req: any, res) => {
     try {
       const { documentKey, applicationId } = req.params;
-      
+
       // Get the application to retrieve document data
       const application = await storage.getCreditApplication(parseInt(applicationId));
       if (!application) {
@@ -2441,7 +2449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'articles_of_incorporation', 'board_resolution', 'tax_registration', 
         'social_security_clearance', 'labor_clearance', 'income_tax_return'
       ];
-      
+
       if (mandatoryDocs.includes(documentKey)) {
         documentData = application.requiredDocuments?.[documentKey];
       } else {
@@ -2454,12 +2462,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use original filename if available, fallback to stored filename
       const filename = documentData.originalName || documentData.filename || `documento_${documentKey}`;
-      
+
       // Set proper headers for download with original filename
       res.setHeader('Content-Type', documentData.type || 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
       res.setHeader('Content-Length', documentData.size || 0);
-      
+
       // Send the actual file data
       const fileBuffer = Buffer.from(documentData.data, 'base64');
       console.log(`Document download: ${filename} for application ${applicationId} by user ${req.session.userId}`);
@@ -2475,7 +2483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let adminMetricsCacheTime = 0;
   let userCreditCache: { [userId: number]: { data: any, time: number } } = {};
   let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
-  
+
   const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
   const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
 
@@ -2483,7 +2491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Only admins can access dashboard metrics
       if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
@@ -2498,11 +2506,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Fetching fresh admin metrics");
       const metrics = await storage.getAdminDashboardMetrics();
-      
+
       // Update cache
       adminMetricsCache = metrics;
       adminMetricsCacheTime = now;
-      
+
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching admin dashboard metrics:", error);

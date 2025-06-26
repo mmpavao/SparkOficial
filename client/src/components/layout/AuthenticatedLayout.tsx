@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/contexts/I18nContext";
 // import LanguageSelector from "@/components/ui/language-selector";
+import NotificationCenter from "@/components/NotificationCenter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,29 +62,29 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     onSuccess: () => {
       // Clear React Query cache
       queryClient.clear();
-      
+
       // Clear any localStorage/sessionStorage data
       localStorage.clear();
       sessionStorage.clear();
-      
+
       // Redirect to home page
       window.location.href = "/";
     },
     onError: (error) => {
       console.error("Logout error:", error);
-      
+
       // Even on error, clear client-side data and redirect
       queryClient.clear();
       localStorage.clear();
       sessionStorage.clear();
-      
+
       // Show error but still redirect after a short delay
       toast({
         title: "Logout",
         description: "Logout realizado (sessão pode persistir no servidor)",
         variant: "default",
       });
-      
+
       // Force redirect after 1 second
       setTimeout(() => {
         window.location.href = "/";
@@ -212,7 +213,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const active = isActiveRoute(item.path);
-                
+
                 return (
                   <div key={item.path}>
                     <Button
@@ -233,7 +234,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                         {item.label}
                       </span>
                     </Button>
-                    
+
                     {/* Submenu */}
                     {item.submenu && !sidebarCollapsed && (
                       <div className="ml-6 mt-1 space-y-1">
@@ -274,7 +275,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 {adminOnlyNavigation.map((item) => {
                   const Icon = item.icon;
                   const active = isActiveRoute(item.path);
-                  
+
                   return (
                     <Button
                       key={item.path}
@@ -373,7 +374,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   </div>
                 </div>
               </div>
-              
+
               {/* Menu Items */}
               <div className="py-1">
                 <DropdownMenuItem asChild>
@@ -419,13 +420,12 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              
+
             </div>
             <div className="flex items-center space-x-4">
-              {/* <LanguageSelector /> */}
-              <Button variant="ghost" size="sm">
-                <Bell className="w-4 h-4" />
-              </Button>
+              <LanguageSelector />
+              <NotificationCenter />
+              <DropdownMenu>
             </div>
           </div>
         </header>
