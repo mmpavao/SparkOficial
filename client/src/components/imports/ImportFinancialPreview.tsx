@@ -42,9 +42,9 @@ export default function ImportFinancialPreview({
   const totalImportCost = fobValue + adminFee;
   const totalCreditNeeded = financedAmount + adminFee;
 
-  // Credit validation
+  // Credit validation - using total FOB value as per business rule
   const availableCredit = creditInfo?.availableCredit || 0;
-  const hasEnoughCredit = totalCreditNeeded <= availableCredit;
+  const hasEnoughCredit = fobValue <= availableCredit;
 
   return (
     <div className="space-y-4">
@@ -119,8 +119,8 @@ export default function ImportFinancialPreview({
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Crédito necessário:</span>
-                <span className="font-medium">{formatCurrency(totalCreditNeeded, currency)}</span>
+                <span className="text-gray-600">Valor necessário:</span>
+                <span className="font-medium">{formatCurrency(fobValue, currency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Crédito disponível:</span>
@@ -131,14 +131,14 @@ export default function ImportFinancialPreview({
                 <Alert className="border-green-200 bg-green-50">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    Crédito suficiente para esta importação
+                    Crédito suficiente. Sobrando: {formatCurrency(availableCredit - fobValue, currency)} disponíveis
                   </AlertDescription>
                 </Alert>
               ) : (
                 <Alert className="border-red-200 bg-red-50">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-800">
-                    Crédito insuficiente. Necessário: {formatCurrency(totalCreditNeeded - availableCredit, currency)} adicional
+                    Crédito insuficiente. Necessário: {formatCurrency(fobValue - availableCredit, currency)} adicional
                   </AlertDescription>
                 </Alert>
               )}
