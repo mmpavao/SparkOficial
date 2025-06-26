@@ -768,18 +768,20 @@ export default function CreditDetailsPage() {
                         />
                       </div>
 
-                      {/* Taxa Administrativa */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Taxa Administrativa (%)</Label>
-                        <Input
-                          type="number"
-                          value={editCreditData.adminFee}
-                          onChange={(e) => setEditCreditData(prev => ({ ...prev, adminFee: parseFloat(e.target.value) || 0 }))}
-                          min="0"
-                          step="0.1"
-                          className="w-full"
-                        />
-                      </div>
+                      {/* Taxa Administrativa - Ocultar para Financeira */}
+                      {!permissions.isFinanceira && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Taxa Administrativa (%)</Label>
+                          <Input
+                            type="number"
+                            value={editCreditData.adminFee}
+                            onChange={(e) => setEditCreditData(prev => ({ ...prev, adminFee: parseFloat(e.target.value) || 0 }))}
+                            min="0"
+                            step="0.1"
+                            className="w-full"
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -788,7 +790,11 @@ export default function CreditDetailsPage() {
                         <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
                         <Badge variant="outline" className="bg-green-50 text-green-700">
                           {(() => {
-                            // Se existe finalApprovedTerms do Admin, mostrar apenas esses
+                            // Para Financeira, mostrar apenas os termos que ela própria configurou
+                            if (permissions.isFinanceira) {
+                              return application.approvedTerms || '30';
+                            }
+                            // Para outros usuários, mostrar termos finais do Admin se existirem
                             if (application.finalApprovedTerms) {
                               return application.finalApprovedTerms;
                             }
@@ -802,17 +808,26 @@ export default function CreditDetailsPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Entrada Requerida</span>
                         <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                          {application.finalDownPayment || 30}% do valor do pedido
+                          {(() => {
+                            // Para Financeira, mostrar apenas o que ela configurou
+                            if (permissions.isFinanceira) {
+                              return (application.downPayment || 30);
+                            }
+                            // Para outros usuários, mostrar configuração final do Admin
+                            return (application.finalDownPayment || 30);
+                          })()}% do valor do pedido
                         </Badge>
                       </div>
 
-                      {/* Taxa Administrativa */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Taxa Admin</span>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                          {application.adminFee || 0}%
-                        </Badge>
-                      </div>
+                      {/* Taxa Administrativa - Ocultar para Financeira */}
+                      {!permissions.isFinanceira && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Taxa Admin</span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                            {application.adminFee || 0}%
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
