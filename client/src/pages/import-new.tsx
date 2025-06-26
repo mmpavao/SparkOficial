@@ -52,6 +52,7 @@ export default function NewImportPage() {
   // Fetch credit applications for financial preview
   const { data: creditApplications } = useQuery({
     queryKey: ["/api/credit/applications"],
+    enabled: user?.role === 'importer', // Only fetch for importers
   });
 
   const form = useForm<InsertImport>({
@@ -770,8 +771,48 @@ export default function NewImportPage() {
               </div>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Financial Preview */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <ImportFinancialPreview
+              importValue={currentImportValue}
+              creditApplication={approvedCredit}
+              creditUsage={creditUsage}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Terms Confirmation Modal */}
+      <ImportTermsConfirmation
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onConfirm={handleConfirmImport}
+        importData={{
+          value: currentImportValue,
+          cargoType: form.watch("cargoType"),
+          products: form.watch("cargoType") === "LCL" ? products : [form.getValues()]
+        }}
+        financialData={{
+          fobValue: currentImportValue,
+          downPayment: currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100),
+          downPaymentPercent: approvedCredit?.finalDownPayment || 30,
+          financedAmount: currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100)),
+          adminFee: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) * (parseFloat(approvedCredit?.adminFee || '0') / 100),
+          adminFeePercent: parseFloat(approvedCredit?.adminFee || '0'),
+          totalAmount: currentImportValue + ((currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) * (parseFloat(approvedCredit?.adminFee || '0') / 100)),
+          installmentAmount: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) / ((approvedCredit?.finalApprovedTerms || '30').split(',').length),
+          paymentTerms: (approvedCredit?.finalApprovedTerms || '30').split(',').map((term: string) => parseInt(term.trim())),
+          availableCredit: creditUsage?.available || 0,
+          exceedsLimit: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) > (creditUsage?.available || 0)
+        }}
+        isLoading={createImportMutation.isPending}
+      />
     </div>
   );
+}
 }
