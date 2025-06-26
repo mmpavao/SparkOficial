@@ -3023,6 +3023,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Production diagnostics endpoint (admin only)
+  app.get('/api/diagnostics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Only admins can access diagnostics
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { ProductionDiagnostics } = await import('./diagnostics');
+      const diagnosticResults = await ProductionDiagnostics.runFullDiagnostic();
+      
+      res.json(diagnosticResults);
+    } catch (error) {
+      console.error("Error running diagnostics:", error);
+      res.status(500).json({ 
+        message: "Erro ao executar diagnóstico", 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  // Simple health check endpoint
+  app.get('/api/health', async (req, res) => {
+    try {
+      // Basic database connectivity test
+      const testUser = await storage.getUser(1);
+      res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database: 'connected'
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        status: 'ERROR', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database: 'disconnected',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
