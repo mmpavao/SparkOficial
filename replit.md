@@ -509,6 +509,14 @@ Changelog:
   * Corrected duplicate variable naming conflicts causing component crashes
   * Fixed quantity input validation error preventing proper number handling in product forms
   * System now uses 100% authentic data with no mock values throughout financial calculations
+- June 26, 2025. Sprint 2.1 completion - Import system core components implemented:
+  * Created ImportCard component with professional visual design and dropdown actions menu
+  * Built ImportFilters component with comprehensive search, status, cargo type, supplier, value range, and date filters
+  * Implemented ImportMetrics component with 8 real-time metrics cards (Total, Active, Completed, Value, Planning, Production, Transport, Success Rate)
+  * Added formatCompactNumber utility for professional large number display (10k, 1M format)
+  * Created imports-new-integrated.tsx page combining all Sprint 2.1 components into functional interface
+  * Integrated role-based permissions system (Financeira view-only, Admin/Importer full access)
+  * Established complete filtering logic with real-time data processing and authenticated API integration
 ```
 
 ## User Preferences
