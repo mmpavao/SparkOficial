@@ -802,7 +802,7 @@ export default function CreditDetailsPage() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={(){() => window.print()}
+                  onClick={() => window.print()}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Imprimir Detalhes
