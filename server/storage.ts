@@ -608,6 +608,23 @@ export class DatabaseStorage {
       .orderBy(desc(creditApplications.createdAt));
   }
 
+  async getSubmittedCreditApplications(): Promise<CreditApplication[]> {
+    return await db
+      .select()
+      .from(creditApplications)
+      .where(
+        or(
+          eq(creditApplications.preAnalysisStatus, "pre_approved"),
+          eq(creditApplications.status, "submitted_to_financial"),
+          eq(creditApplications.financialStatus, "approved"),
+          eq(creditApplications.financialStatus, "rejected"),
+          eq(creditApplications.status, "approved"),
+          eq(creditApplications.status, "rejected")
+        )
+      )
+      .orderBy(desc(creditApplications.createdAt));
+  }
+
   async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
     const [creditApp] = await db
       .update(creditApplications)
@@ -658,19 +675,7 @@ export class DatabaseStorage {
     try {
       // Get all applications that were submitted to financeira (pre-approved or higher)
       const [submittedApplications, allUsers, allImports] = await Promise.all([
-        db.select({
-          id: creditApplications.id,
-          userId: creditApplications.userId,
-          status: creditApplications.status,
-          preAnalysisStatus: creditApplications.preAnalysisStatus,
-          financialStatus: creditApplications.financialStatus,
-          requestedAmount: creditApplications.requestedAmount,
-          creditLimit: creditApplications.creditLimit,
-          finalCreditLimit: creditApplications.finalCreditLimit,
-          createdAt: creditApplications.createdAt,
-          submittedToFinancialAt: creditApplications.submittedToFinancialAt,
-          financialAnalyzedAt: creditApplications.financialAnalyzedAt
-        }).from(creditApplications)
+        db.select().from(creditApplications)
         .where(
           or(
             eq(creditApplications.preAnalysisStatus, "pre_approved"),
@@ -683,23 +688,17 @@ export class DatabaseStorage {
         )
         .orderBy(desc(creditApplications.createdAt)),
 
-        db.select({
-          id: users.id,
-          companyName: users.companyName
-        }).from(users),
+        db.select().from(users),
 
-        db.select({
-          creditApplicationId: imports.creditApplicationId,
-          totalValue: imports.totalValue,
-          status: imports.status
-        }).from(imports).where(isNotNull(imports.creditApplicationId))
+        db.select().from(imports).where(isNotNull(imports.creditApplicationId))
       ]);
 
       // Calculate metrics
       const totalApplicationsSubmitted = submittedApplications.length;
-      const totalCreditRequested = submittedApplications.reduce((sum, app) => 
-        sum + parseFloat(app.requestedAmount || '0'), 0
-      );
+      const totalCreditRequested = submittedApplications.reduce((sum, app) => {
+        const amount = app.requestedAmount || '0';
+        return sum + parseFloat(amount.toString());
+      }, 0);
 
       // Calculate approved applications and total credit approved
       const approvedApplications = submittedApplications.filter(app => 
@@ -707,7 +706,7 @@ export class DatabaseStorage {
       );
       const totalCreditApproved = approvedApplications.reduce((sum, app) => {
         const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
-        return sum + parseFloat(approvedAmount);
+        return sum + parseFloat(approvedAmount.toString());
       }, 0);
 
       // Calculate credit in use from active imports
@@ -763,21 +762,22 @@ export class DatabaseStorage {
         .map(app => {
           const user = allUsers.find(u => u.id === app.userId);
           return {
-            id: app.id,
+            id: app.id || 0,
             companyName: user?.companyName || 'Empresa não encontrada',
             status: app.financialStatus || app.status || 'pending',
-            requestedAmount: app.requestedAmount || '0',
-            approvedAmount: app.finalCreditLimit || app.creditLimit,
-            submittedAt: app.submittedToFinancialAt || app.createdAt || new Date().toISOString()
+            requestedAmount: (app.requestedAmount || '0').toString(),
+            approvedAmount: (app.finalCreditLimit || app.creditLimit || '0').toString(),
+            submittedAt: (app.submittedToFinancialAt || app.createdAt || new Date()).toString()
           };
         });
 
       // Monthly stats (current month)
       const currentMonth = new Date();
       const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const monthlyApplications = submittedApplications.filter(app => 
-        new Date(app.createdAt || 0) >= monthStart
-      );
+      const monthlyApplications = submittedApplications.filter(app => {
+        const appDate = app.createdAt ? new Date(app.createdAt) : new Date(0);
+        return appDate >= monthStart;
+      });
 
       const monthlyApprovals = monthlyApplications.filter(app => 
         app.financialStatus === 'approved' || app.status === 'approved'
@@ -785,7 +785,7 @@ export class DatabaseStorage {
 
       const monthlyVolume = monthlyApprovals.reduce((sum, app) => {
         const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
-        return sum + parseFloat(approvedAmount);
+        return sum + parseFloat(approvedAmount.toString());
       }, 0);
 
       return {
