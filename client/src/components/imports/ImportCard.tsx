@@ -53,7 +53,7 @@ const getStatusColor = (status: string) => {
   const colors = {
     planejamento: "bg-blue-100 text-blue-800 border-blue-200",
     producao: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    entregue_agente: "bg-purple-100 text-purple-800 border-purple-200",
+    entregue_agente: "bg-green-100 text-green-800 border-green-200",
     transporte_maritimo: "bg-orange-100 text-orange-800 border-orange-200",
     transporte_aereo: "bg-orange-100 text-orange-800 border-orange-200",
     desembaraco: "bg-indigo-100 text-indigo-800 border-indigo-200",
@@ -83,7 +83,7 @@ const getBorderColor = (status: string) => {
   const colors = {
     planejamento: "border-l-blue-500",
     producao: "border-l-yellow-500",
-    entregue_agente: "border-l-purple-500",
+    entregue_agente: "border-l-green-500",
     transporte_maritimo: "border-l-orange-500",
     transporte_aereo: "border-l-orange-500",
     desembaraco: "border-l-indigo-500",
@@ -92,6 +92,21 @@ const getBorderColor = (status: string) => {
     cancelado: "border-l-red-500",
   };
   return colors[status as keyof typeof colors] || "border-l-gray-300";
+};
+
+const getIconColor = (status: string) => {
+  const colors = {
+    planejamento: "bg-blue-500",
+    producao: "bg-yellow-500",
+    entregue_agente: "bg-green-500",
+    transporte_maritimo: "bg-orange-500",
+    transporte_aereo: "bg-orange-500",
+    desembaraco: "bg-indigo-500",
+    transporte_nacional: "bg-teal-500",
+    concluido: "bg-emerald-500",
+    cancelado: "bg-red-500",
+  };
+  return colors[status as keyof typeof colors] || "bg-gray-500";
 };
 
 export default function ImportCard({ importData }: ImportCardProps) {
@@ -150,86 +165,64 @@ export default function ImportCard({ importData }: ImportCardProps) {
   return (
     <>
       <Card className={`hover:shadow-md transition-shadow border-l-4 ${getBorderColor(importData.status)}`}>
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            {/* Left side - Icon and Info */}
-            <div className="flex items-start gap-4">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            {/* Left side - Icon and Basic Info */}
+            <div className="flex items-center gap-3">
               {/* Status Icon */}
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                importData.status === 'planejamento' ? 'bg-blue-500' :
-                importData.status === 'producao' ? 'bg-yellow-500' :
-                importData.status === 'entregue_agente' ? 'bg-purple-500' :
-                importData.status === 'transporte_maritimo' ? 'bg-orange-500' :
-                importData.status === 'transporte_aereo' ? 'bg-orange-500' :
-                importData.status === 'desembaraco' ? 'bg-indigo-500' :
-                importData.status === 'transporte_nacional' ? 'bg-teal-500' :
-                importData.status === 'concluido' ? 'bg-emerald-500' :
-                importData.status === 'cancelado' ? 'bg-red-500' : 'bg-gray-500'
-              }`}>
-                <Package className="w-6 h-6 text-white" />
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconColor(importData.status)}`}>
+                <Package className="w-5 h-5 text-white" />
               </div>
 
               {/* Import Info */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 text-base">
                     {importData.importName || `Cadeiras AMS`}
                   </h3>
-
                 </div>
                 
                 <p className="text-sm text-gray-600 mb-2">{createdDate}</p>
                 
-                <div className="flex items-center gap-2 mb-3">
+                {/* Mini info cards */}
+                <div className="flex items-center gap-2">
                   <Badge 
-                    className={`${getStatusColor(importData.status)} border font-medium text-xs`}
+                    className={`${getStatusColor(importData.status)} text-xs px-2 py-1`}
                   >
                     {getStatusLabel(importData.status)}
                   </Badge>
-                  <span className="text-xs text-gray-500">
-                    {importData.incoterms || 'Estimativa'}
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    {importData.incoterms || 'FOB'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                     {importData.cargoType || 'FCL'}
                   </span>
-                </div>
-
-                {/* Products Preview */}
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Produtos</span>
-                  <div className="mt-1">
-                    {products.length > 0 ? (
-                      products.slice(0, 2).map((product: any, index: number) => (
-                        <span key={index} className="text-gray-700">
-                          {product.name || product.description || 'Produto'}
-                          {index < Math.min(products.length - 1, 1) && ', '}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-700">tennis</span>
-                    )}
-                    {products.length > 2 && (
-                      <span className="text-gray-500"> +{products.length - 2} mais</span>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* Right side - Value and Actions */}
-            <div className="flex flex-col items-end gap-4">
-              {/* Status and Value */}
+            <div className="flex items-center gap-4">
+              {/* Products Mini Card */}
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">Produtos</p>
+                <p className="text-sm font-medium text-gray-700">
+                  {products.length > 0 ? (
+                    products.slice(0, 1).map((product: any) => 
+                      product.name || product.description || 'tennis'
+                    )[0]
+                  ) : (
+                    'tennis'
+                  )}
+                </p>
+              </div>
+
+              {/* Value Card */}
               <div className="text-right">
-                <div className="text-sm text-gray-600 mb-1">Valor Total</div>
-                <div className="text-xl font-bold text-gray-900">
+                <div className="text-xs text-gray-500 mb-1">Valor Total</div>
+                <div className="text-lg font-bold text-gray-900">
                   {formatCurrency(totalValue, importData.currency || "USD")}
                 </div>
-                {importData.estimatedDelivery && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    <Calendar className="w-3 h-3 inline mr-1" />
-                    {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
-                  </div>
-                )}
               </div>
 
               {/* Actions Menu */}
