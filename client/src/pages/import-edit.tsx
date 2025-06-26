@@ -96,9 +96,10 @@ export default function ImportEdit() {
 
   // Update form when import data is loaded
   useEffect(() => {
-    if (importData && importData.status === 'planning') {
-      const products = Array.isArray(importData.products) && importData.products.length > 0 
-        ? importData.products 
+    if (importData && (importData as any).status === 'planejamento') {
+      const typedImportData = importData as any;
+      const products = Array.isArray(typedImportData.products) && typedImportData.products.length > 0 
+        ? typedImportData.products 
         : [{
             name: "",
             description: "",
@@ -110,22 +111,22 @@ export default function ImportEdit() {
           }];
 
       form.reset({
-        importName: importData.importName || "",
-        cargoType: importData.cargoType || "FCL",
-        containerNumber: importData.containerNumber || "",
-        sealNumber: importData.sealNumber || "",
+        importName: typedImportData.importName || "",
+        cargoType: typedImportData.cargoType || "FCL",
+        containerNumber: typedImportData.containerNumber || "",
+        sealNumber: typedImportData.sealNumber || "",
         products: products,
-        totalValue: importData.totalValue || "",
-        currency: importData.currency || "USD",
-        incoterms: importData.incoterms || "FOB",
-        shippingMethod: importData.shippingMethod || "Maritime",
-        containerType: importData.containerType || "",
-        weight: importData.weight || "",
-        volume: importData.volume || "",
-        estimatedDelivery: importData.estimatedDelivery 
-          ? new Date(importData.estimatedDelivery).toISOString().split('T')[0]
+        totalValue: typedImportData.totalValue || "",
+        currency: typedImportData.currency || "USD",
+        incoterms: typedImportData.incoterms || "FOB",
+        shippingMethod: typedImportData.shippingMethod || "sea",
+        containerType: typedImportData.containerType || "",
+        weight: typedImportData.weight || "",
+        volume: typedImportData.volume || "",
+        estimatedDelivery: typedImportData.estimatedDelivery 
+          ? new Date(typedImportData.estimatedDelivery).toISOString().split('T')[0]
           : "",
-        notes: importData.notes || "",
+        notes: typedImportData.notes || "",
       });
     }
   }, [importData, form]);
