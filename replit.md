@@ -480,6 +480,13 @@ Changelog:
   * Fixed suppliers count from 4 to 1 (real user data)
   * Fixed volume from US$ 180k to US$ 120k (calculated from user's real imports)
   * Dashboard now displays authentic data reflecting actual user state, not admin aggregates
+- June 26, 2025. Complete import details page redesign with admin fee system:
+  * Reorganized layout with complete import information in left column
+  * Added comprehensive sidebar with financial analysis and timeline
+  * Implemented admin fee calculation system (10% on financed amount only)
+  * Added detailed breakdown: US$ 120k → 30% entry (US$ 36k) → financed US$ 84k → admin fee US$ 8.4k → total US$ 128.4k
+  * Created professional financial analysis card with authentic calculations
+  * Enhanced import details with complete product information, transport details, and supplier data
 ```
 
 ## User Preferences

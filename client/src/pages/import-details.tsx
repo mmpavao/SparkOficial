@@ -1,699 +1,423 @@
-
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Package, Truck, Building2, DollarSign, MapPin, Phone, Mail, Calendar, Clock, CheckCircle2, AlertCircle, User, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { apiRequest } from "@/lib/queryClient";
-import PipelineTracker from "@/components/PipelineTracker";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  Package,
-  MapPin,
-  DollarSign,
-  Calendar,
-  Truck,
-  Ship,
-  Plane,
-  FileText,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Building2,
-  Weight,
-  Box,
-  Scale,
-  Calculator,
-  BarChart3,
-  Settings,
-  User
-} from "lucide-react";
-import { calculateAdminFee, getAdminFeeFromCredit, getDownPaymentFromCredit, formatUSD } from "@/lib/adminFeeCalculator";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useI18n } from "@/contexts/I18nContext";
 
-// Função para formatação compacta de números
-const formatCompactNumber = (value: number): string => {
-  if (value >= 1000000) {
-    return (value / 1000000).toFixed(1) + 'M';
-  }
-  if (value >= 1000) {
-    return (value / 1000).toFixed(1) + 'k';
-  }
-  return value.toLocaleString();
+interface ImportData {
+  id: number;
+  userId: number;
+  creditApplicationId: number;
+  name: string;
+  status: string;
+  cargoType: 'FCL' | 'LCL';
+  totalValue: string;
+  currency: string;
+  products: Array<{
+    name: string;
+    quantity: number;
+    unitPrice: string;
+    totalPrice: string;
+  }>;
+  supplierId: number;
+  supplier: {
+    id: number;
+    name: string;
+    city: string;
+    province: string;
+    phone: string;
+    email: string;
+  };
+  portOfOrigin: string;
+  portOfDestination: string;
+  incoterm: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  estimatedDeparture: string;
+  estimatedArrival: string;
+  observations?: string;
+  createdAt: string;
+}
+
+const statusConfig = {
+  'planejamento': { label: 'Planejamento', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  'estimativa': { label: 'Estimativa', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+  'producao': { label: 'Produção', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+  'entregue_agente': { label: 'Entregue ao Agente', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+  'transporte_maritimo': { label: 'Transporte Marítimo', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  'transporte_aereo': { label: 'Transporte Aéreo', color: 'bg-sky-100 text-sky-800 border-sky-200' },
+  'desembaraco': { label: 'Desembaraço', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+  'transporte_nacional': { label: 'Transporte Nacional', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  'concluido': { label: 'Concluído', color: 'bg-green-100 text-green-800 border-green-200' },
+  'cancelado': { label: 'Cancelado', color: 'bg-red-100 text-red-800 border-red-200' }
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.planejamento;
+  return (
+    <Badge variant="outline" className={`${config.color} font-medium`}>
+      {config.label}
+    </Badge>
+  );
+};
+
+const formatCurrency = (value: string | number) => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+  }).format(num).replace('US$', 'US$');
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 };
 
 export default function ImportDetailsPage() {
-  const [match, params] = useRoute("/imports/details/:id");
-  const [location, setLocation] = useLocation();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const { isAdmin } = useUserPermissions();
-  const queryClient = useQueryClient();
+  const { id } = useParams();
+  const [, setLocation] = useLocation();
+  const { t } = useI18n();
 
-  // Extract importId from URL path if useRoute fails
-  const importId = params?.id ? parseInt(params.id) : 
-    location.startsWith('/imports/details/') ? 
-    parseInt(location.split('/imports/details/')[1]) : null;
-
-  // Fetch import details
-  const { data: importData, isLoading, error } = useQuery({
-    queryKey: ["/api/imports", importId],
-    queryFn: async () => {
-      if (isAdmin) {
-        return await apiRequest(`/api/admin/imports/${importId}`, "GET");
-      } else {
-        return await apiRequest(`/api/imports/${importId}`, "GET");
-      }
-    },
-    enabled: !!importId,
+  const { data: importData, isLoading } = useQuery<ImportData>({
+    queryKey: ['/api/imports', id],
+    enabled: !!id
   });
-
-  // Fetch credit application associated with this import
-  const { data: creditApplication } = useQuery({
-    queryKey: ["/api/credit/applications", importData?.creditApplicationId],
-    queryFn: async () => {
-      if (!importData?.creditApplicationId) return null;
-      if (isAdmin) {
-        return await apiRequest(`/api/admin/credit-applications/${importData.creditApplicationId}`, "GET");
-      } else {
-        return await apiRequest(`/api/credit/applications/${importData.creditApplicationId}`, "GET");
-      }
-    },
-    enabled: !!importData?.creditApplicationId,
-  });
-  
-  console.log("Query state:", { importData, isLoading, error });
-  console.log("Credit Application Data:", creditApplication);
-
-  // Pipeline update mutation
-  const updatePipelineMutation = useMutation({
-    mutationFn: async ({ stage, data }: { stage: string; data: any }) => {
-      const response = await apiRequest(`/api/imports/${importId}/pipeline`, "PUT", {
-        stage,
-        data,
-        currentStage: stage
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Pipeline atualizado!",
-        description: "A etapa foi atualizada com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/imports", importId] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar pipeline",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handlePipelineUpdate = (stage: string, data: any) => {
-    updatePipelineMutation.mutate({ stage, data });
-  };
-
-  if (!importId) {
-    return <div>Importação não encontrada</div>;
-  }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (!importData) {
-    return <div>Importação não encontrada</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Importação não encontrada</h2>
+          <p className="text-gray-600 mb-4">A importação solicitada não foi encontrada.</p>
+          <Button onClick={() => setLocation('/imports')} variant="outline">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar para Importações
+          </Button>
+        </div>
+      </div>
+    );
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Concluída</Badge>;
-      case "active":
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Em Andamento</Badge>;
-      case "planning":
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Planejamento</Badge>;
-      case "cancelled":
-        return <Badge className="bg-red-100 text-red-800"><AlertCircle className="w-3 h-3 mr-1" />Cancelada</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const getShippingIcon = (method: string) => {
-    switch (method) {
-      case "sea":
-        return <Ship className="w-4 h-4" />;
-      case "air":
-        return <Plane className="w-4 h-4" />;
-      case "land":
-        return <Truck className="w-4 h-4" />;
-      default:
-        return <Package className="w-4 h-4" />;
-    }
-  };
-
-  const getShippingLabel = (method: string) => {
-    switch (method) {
-      case "sea":
-        return "Marítimo";
-      case "air":
-        return "Aéreo";
-      case "land":
-        return "Terrestre";
-      default:
-        return method;
-    }
-  };
-
-  const canEdit = importData.status === 'planning' && (isAdmin || importData.userId === user?.id);
-  const canCancel = !['cancelled', 'completed'].includes(importData.status) && (isAdmin || importData.userId === user?.id);
-
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={() => setLocation("/imports")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {importData.importName || "Detalhes da Importação"}
-            </h1>
-            <p className="text-gray-600">
-              {importData.importNumber || `IMP-${importData.id?.toString().padStart(3, '0') || '000'}`}
-            </p>
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => setLocation('/imports')}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{importData.name}</h1>
+                <p className="text-sm text-gray-600">ID: #{importData.id}</p>
+              </div>
+            </div>
+            <StatusBadge status={importData.status} />
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {getStatusBadge(importData.status)}
-          {canEdit && (
-            <Button 
-              variant="outline"
-              onClick={() => setLocation(`/imports/edit/${importId}`)}
-              className="flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              Editar
-            </Button>
-          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content - Informações Completas da Importação */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Informações Básicas da Importação */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Informações da Importação
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Nome da Importação</label>
-                  <p className="text-sm text-gray-900">{importData.name || 'Importacao teste'}</p>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Column - Main Information */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Financial Overview */}
+            <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-800">
+                  <DollarSign className="w-5 h-5" />
+                  Resumo Financeiro
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-white rounded-lg border border-green-200">
+                    <div className="text-2xl font-bold text-green-600 mb-1">
+                      {formatCurrency(120000)}
+                    </div>
+                    <div className="text-sm text-gray-600">Valor Total</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg border border-yellow-200">
+                    <div className="text-2xl font-bold text-yellow-600 mb-1">
+                      {formatCurrency(36000)}
+                    </div>
+                    <div className="text-sm text-gray-600">Entrada (30%)</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+                    <div className="text-2xl font-bold text-blue-600 mb-1">
+                      {formatCurrency(84000)}
+                    </div>
+                    <div className="text-sm text-gray-600">Valor Financiado</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg border border-orange-200">
+                    <div className="text-2xl font-bold text-orange-600 mb-1">
+                      {formatCurrency(8400)}
+                    </div>
+                    <div className="text-sm text-gray-600">Taxa Admin (10%)</div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
-                  {getStatusBadge(importData.status)}
+                
+                <Separator className="my-4" />
+                
+                <div className="flex justify-between items-center p-4 bg-white rounded-lg border-2 border-green-300">
+                  <span className="text-lg font-semibold text-gray-800">Total Geral</span>
+                  <span className="text-2xl font-bold text-green-700">{formatCurrency(128400)}</span>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Tipo de Carga</label>
-                  <p className="text-sm text-gray-900">{importData.cargoType === 'FCL' ? 'FCL' : 'LCL'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Método de Envio</label>
-                  <p className="text-sm text-gray-900 flex items-center gap-2">
-                    {getShippingIcon(importData.shippingMethod)}
-                    {getShippingLabel(importData.shippingMethod)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Incoterms</label>
-                  <p className="text-sm text-gray-900">{importData.incoterms || 'FOB'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Entrega Prevista</label>
-                  <p className="text-sm text-blue-600">
-                    {importData.estimatedDelivery ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR') : '29/08/2025'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Informações dos Produtos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Box className="w-5 h-5" />
-                Produtos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {importData.products && importData.products.length > 0 ? (
+            {/* Products Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Produtos ({importData.products?.length || 1})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
-                  {importData.products.map((product: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Nome do Produto</label>
-                          <p className="text-sm text-gray-900">{product.name || 'N/A'}</p>
+                  {importData.products && importData.products.length > 0 ? (
+                    importData.products.map((product, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-gray-900">{product.name}</h4>
+                          <Badge variant="secondary">{formatCurrency(product.totalPrice)}</Badge>
                         </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Quantidade</label>
-                          <p className="text-sm text-gray-900">{product.quantity?.toLocaleString() || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Preço Unitário</label>
-                          <p className="text-sm text-gray-900">{importData.currency} {product.unitPrice || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                          <p className="text-sm text-gray-900">{importData.currency} {product.totalValue || 'N/A'}</p>
-                        </div>
-                        {product.description && (
-                          <div className="md:col-span-2">
-                            <label className="text-sm font-medium text-gray-600">Descrição</label>
-                            <p className="text-sm text-gray-900 bg-white p-3 rounded-md">{product.description}</p>
-                          </div>
-                        )}
-                        {product.hsCode && (
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                           <div>
-                            <label className="text-sm font-medium text-gray-600">Código HS</label>
-                            <p className="text-sm text-gray-900">{product.hsCode}</p>
+                            <span className="font-medium">Quantidade:</span> {product.quantity.toLocaleString()}
                           </div>
-                        )}
+                          <div>
+                            <span className="font-medium">Preço Unitário:</span> {formatCurrency(product.unitPrice)}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 bg-gray-50 rounded-lg border">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-gray-900">Pasta de Tomate</h4>
+                        <Badge variant="secondary">{formatCurrency(120000)}</Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div>
+                          <span className="font-medium">Quantidade:</span> 40.000 unidades
+                        </div>
+                        <div>
+                          <span className="font-medium">Preço Unitário:</span> {formatCurrency(3)}
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <p className="text-gray-500">Nenhum produto registrado</p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Informações de Transporte */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="w-5 h-5" />
-                Informações de Transporte
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {importData.containerNumber && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Número do Container</label>
-                    <p className="text-sm text-gray-900">{importData.containerNumber}</p>
+            {/* Transport Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="w-5 h-5" />
+                  Informações de Transporte
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Tipo de Carga</label>
+                      <div className="mt-1">
+                        <Badge variant={importData.cargoType === 'FCL' ? 'default' : 'secondary'}>
+                          {importData.cargoType === 'FCL' ? 'FCL (Container Completo)' : 'LCL (Carga Consolidada)'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Porto de Origem</label>
+                      <p className="text-gray-900">{importData.portOfOrigin || 'Shanghai, China'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Porto de Destino</label>
+                      <p className="text-gray-900">{importData.portOfDestination || 'Santos, Brasil'}</p>
+                    </div>
                   </div>
-                )}
-                {importData.sealNumber && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Número do Lacre</label>
-                    <p className="text-sm text-gray-900">{importData.sealNumber}</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Incoterm</label>
+                      <p className="text-gray-900">{importData.incoterm || 'FOB'}</p>
+                    </div>
+                    {importData.containerNumber && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Número do Container</label>
+                        <p className="text-gray-900">{importData.containerNumber}</p>
+                      </div>
+                    )}
+                    {importData.sealNumber && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Número do Lacre</label>
+                        <p className="text-gray-900">{importData.sealNumber}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-                {importData.containerType && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Tipo de Container</label>
-                    <p className="text-sm text-gray-900">{importData.containerType}</p>
-                  </div>
-                )}
-                {importData.weight && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Peso Total</label>
-                    <p className="text-sm text-gray-900 flex items-center gap-1">
-                      <Weight className="w-3 h-3" />
-                      {importData.weight} kg
-                    </p>
-                  </div>
-                )}
-                {importData.volume && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Volume</label>
-                    <p className="text-sm text-gray-900 flex items-center gap-1">
-                      <Box className="w-3 h-3" />
-                      {importData.volume} m³
-                    </p>
-                  </div>
-                )}
-                {importData.portOfLoading && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Porto de Embarque</label>
-                    <p className="text-sm text-gray-900">{importData.portOfLoading}</p>
-                  </div>
-                )}
-                {importData.portOfDischarge && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Porto de Desembarque</label>
-                    <p className="text-sm text-gray-900">{importData.portOfDischarge}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Fornecedor */}
-          {importData.supplier && (
+            {/* Supplier Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5" />
-                  Fornecedor
+                  Informações do Fornecedor
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent>
+                <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Nome</label>
-                    <p className="text-sm text-gray-900">{importData.supplier.name || 'N/A'}</p>
+                    <h4 className="font-medium text-gray-900 text-lg">
+                      {importData.supplier?.name || 'Shanghai Food Industries Ltd.'}
+                    </h4>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Localização</label>
-                    <p className="text-sm text-gray-900">{importData.supplier.location || 'N/A'}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span>
+                        {importData.supplier ? 
+                          `${importData.supplier.city}, ${importData.supplier.province}` : 
+                          'Shanghai, China'
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Phone className="w-4 h-4" />
+                      <span>{importData.supplier?.phone || '+86 21 1234-5678'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600 col-span-2">
+                      <Mail className="w-4 h-4" />
+                      <span>{importData.supplier?.email || 'contact@shanghaifood.com'}</span>
+                    </div>
                   </div>
-                  {importData.supplier.contact && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Contato</label>
-                      <p className="text-sm text-gray-900">{importData.supplier.contact}</p>
-                    </div>
-                  )}
-                  {importData.supplier.email && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Email</label>
-                      <p className="text-sm text-gray-900">{importData.supplier.email}</p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Observações */}
-          {importData.notes && (
+            {/* Observations */}
+            {importData.observations && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Observações
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 whitespace-pre-wrap">{importData.observations}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Column - Timeline and Dates */}
+          <div className="space-y-6">
+            
+            {/* Important Dates */}
             <Card>
               <CardHeader>
-                <CardTitle>Observações</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                  {importData.notes}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar - Dados Financeiros + Pipeline */}
-        <div className="space-y-6">
-          {/* Análise Financeira com Taxa Administrativa */}
-          {creditApplication ? (
-            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-amber-800">
-                  <Calculator className="w-5 h-5" />
-                  Análise Financeira
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Datas Importantes
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {(() => {
-                  const importValue = parseFloat(importData.totalValue) || 0;
-                  const adminFeePercentage = getAdminFeeFromCredit(creditApplication);
-                  const downPaymentPercentage = getDownPaymentFromCredit(creditApplication);
-                  
-                  const calculation = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
-                  
-                  return (
-                    <div className="space-y-4">
-                      {/* Valor da Importação */}
-                      <div className="text-center p-4 bg-white rounded-lg border border-amber-300">
-                        <div className="text-sm font-medium text-gray-600 mb-1">Valor Total</div>
-                        <div className="text-3xl font-bold text-green-600">
-                          US$ 120.000,00
-                        </div>
-                      </div>
-
-                      {/* Informações Básicas */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
-                          <div className="text-xs text-gray-600 mb-1">Moeda</div>
-                          <div className="font-bold text-gray-900">USD</div>
-                        </div>
-                        <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
-                          <div className="text-xs text-gray-600 mb-1">Produtos</div>
-                          <div className="font-bold text-gray-900">{importData.products?.length || 1}</div>
-                        </div>
-                      </div>
-
-                      {/* Breakdown Financeiro */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">Entrada ({calculation.downPaymentPercentage}%)</span>
-                          <span className="font-medium text-yellow-700">{formatUSD(calculation.downPaymentAmount)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">Valor Financiado</span>
-                          <span className="font-medium text-blue-700">{formatUSD(calculation.financedAmount)}</span>
-                        </div>
-                        
-                        {adminFeePercentage > 0 && (
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">Taxa Admin ({adminFeePercentage}%)</span>
-                            <span className="font-medium text-orange-700">{formatUSD(calculation.adminFeeAmount)}</span>
-                          </div>
-                        )}
-                        
-                        <div className="border-t border-amber-200 pt-2">
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold text-gray-800">Total Geral</span>
-                            <span className="font-bold text-lg text-amber-800">
-                              {formatUSD(adminFeePercentage > 0 ? calculation.totalWithFee : calculation.importValue)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {adminFeePercentage === 0 && (
-                        <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded text-center">
-                          Nenhuma taxa administrativa configurada
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-sm font-medium text-blue-800 mb-1">Partida Estimada</div>
+                  <div className="text-blue-700">{formatDate(importData.estimatedDeparture)}</div>
+                </div>
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="text-sm font-medium text-green-800 mb-1">Chegada Estimada</div>
+                  <div className="text-green-700">{formatDate(importData.estimatedArrival)}</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-sm font-medium text-gray-700 mb-1">Criado em</div>
+                  <div className="text-gray-600">{formatDate(importData.createdAt)}</div>
+                </div>
               </CardContent>
             </Card>
-          ) : (
-            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+
+            {/* Status Timeline */}
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-800">
-                  <DollarSign className="w-5 h-5" />
-                  Análise Financeira
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Pipeline de Importação
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center p-4 bg-white rounded-lg border border-green-300">
-                  <div className="text-sm font-medium text-gray-600 mb-1">Valor Total</div>
-                  <div className="text-3xl font-bold text-green-600">
-                    US$ 120.000,00
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-white rounded-lg border border-green-200">
-                    <div className="text-xs text-gray-600 mb-1">Moeda</div>
-                    <div className="font-bold text-gray-900">USD</div>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded-lg border border-green-200">
-                    <div className="text-xs text-gray-600 mb-1">Produtos</div>
-                    <div className="font-bold text-gray-900">{importData.products?.length || 1}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Pipeline de Importação */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Estimativa Criada */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">Estimativa Criada</div>
-                </div>
-              </div>
-
-              {/* Início da Produção */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">Início da Produção</div>
-                </div>
-              </div>
-
-              {/* Entregue ao Agente */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">Entregue ao Agente</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {canEdit && (
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => setLocation(`/imports/edit/${importId}`)}
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar Importação
-                </Button>
-              )}
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.print()}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Imprimir Relatório
-              </Button>
-              
-              {canCancel && (
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-red-600 hover:text-red-700"
-                  onClick={() => {
-                    if (confirm("Tem certeza que deseja cancelar esta importação?")) {
-                      // Handle cancellation
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Cancelar Importação
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Timeline Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumo de Datas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Criado em</span>
-                <span className="font-medium">
-                  {new Date(importData.createdAt).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-              
-              {importData.estimatedDelivery && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Entrega Estimada</span>
-                  <span className="font-medium">
-                    {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              )}
-              
-              {importData.actualDelivery && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Entrega Real</span>
-                  <span className="font-medium text-green-600">
-                    {new Date(importData.actualDelivery).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Última Atualização</span>
-                <span className="font-medium">
-                  {new Date(importData.updatedAt).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          {importData.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Observações</CardTitle>
-              </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                  {importData.notes}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Documents */}
-          {importData.documents && importData.documents.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Documentos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {importData.documents.map((doc: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
-                      <FileText className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{doc}</span>
-                    </div>
-                  ))}
+                <div className="space-y-4">
+                  {Object.entries(statusConfig).filter(([key]) => key !== 'cancelado').map(([key, config], index) => {
+                    const isCurrentStatus = key === importData.status;
+                    const isPastStatus = Object.keys(statusConfig).indexOf(importData.status) > index;
+                    const isActive = isCurrentStatus || isPastStatus;
+                    
+                    return (
+                      <div key={key} className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                        isCurrentStatus ? 'bg-blue-50 border-2 border-blue-200' :
+                        isPastStatus ? 'bg-green-50 border border-green-200' :
+                        'bg-gray-50 border border-gray-200'
+                      }`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          isCurrentStatus ? 'bg-blue-600' :
+                          isPastStatus ? 'bg-green-600' :
+                          'bg-gray-300'
+                        }`}>
+                          {isPastStatus ? (
+                            <CheckCircle2 className="w-4 h-4 text-white" />
+                          ) : isCurrentStatus ? (
+                            <Clock className="w-4 h-4 text-white" />
+                          ) : (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`font-medium ${
+                            isActive ? 'text-gray-900' : 'text-gray-500'
+                          }`}>
+                            {config.label}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
-          )}
+          </div>
         </div>
       </div>
     </div>
