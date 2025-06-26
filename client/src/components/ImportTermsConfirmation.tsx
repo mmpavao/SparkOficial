@@ -154,7 +154,7 @@ export function ImportTermsConfirmation({
                 <div className="text-sm">
                   <p className="font-medium text-amber-800 mb-2">Importantes Condições:</p>
                   <ul className="text-amber-700 space-y-1 list-disc list-inside">
-                    <li>A entrada será debitada imediatamente do seu crédito aprovado</li>
+                    <li>A entrada deve ser paga antecipadamente em até 5 dias úteis</li>
                     <li>Taxa administrativa incide apenas sobre o valor financiado</li>
                     <li>Parcelas seguem os prazos estabelecidos no seu contrato de crédito</li>
                     <li>Cancelamento após confirmação está sujeito a taxas contratuais</li>
@@ -200,8 +200,8 @@ export function ImportTermsConfirmation({
                   className="mt-1"
                 />
                 <Label htmlFor="payment" className="text-sm leading-relaxed">
-                  Eu autorizo o <strong>débito imediato</strong> da entrada de 
-                  US$ {financialData.downPayment.toLocaleString()} do meu crédito aprovado.
+                  Eu confirmo que farei o <strong>pagamento da entrada</strong> de 
+                  US$ {financialData.downPayment.toLocaleString()} em até <strong>5 dias úteis</strong> após aprovação desta importação.
                 </Label>
               </div>
             </div>
