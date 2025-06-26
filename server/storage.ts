@@ -353,18 +353,18 @@ export class DatabaseStorage {
 
   async getAllImports(): Promise<Import[]> {
     const importsTable = imports;
-    const imports = await db
+    const importsList = await db
       .select()
       .from(importsTable)
       .orderBy(desc(importsTable.createdAt));
 
-    return imports;
+    return importsList;
   }
 
   async getAllImportsOptimized(): Promise<Import[]> {
     const importsTable = imports;
     // Query otimizada sem dados JSON pesados
-    const imports = await db
+    const importsList = await db
       .select({
         id: importsTable.id,
         userId: importsTable.userId,
@@ -388,7 +388,7 @@ export class DatabaseStorage {
       .from(importsTable)
       .orderBy(desc(importsTable.createdAt));
 
-    return imports;
+    return importsList;
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
