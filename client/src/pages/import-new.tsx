@@ -95,6 +95,13 @@ export default function NewImportPage() {
     enabled: !!approvedCredit?.id,
   });
 
+  // Fetch admin fee for the user
+  const { data: adminFee } = useQuery({
+    queryKey: ['/api/admin/fees', user?.id],
+    queryFn: () => apiRequest(`/api/admin/fees/${user?.id}`, 'GET'),
+    enabled: !!user?.id,
+  });
+
   // Calculate import value in real-time
   useEffect(() => {
     const subscription = form.watch((value) => {
