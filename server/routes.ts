@@ -815,45 +815,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
 
-      // Get user's approved credit application
-      const userApprovedCredit = await storage.db
-        .select()
-        .from(schema.creditApplications)
-        .where(
-          and(
-            eq(schema.creditApplications.userId, userId),
-            eq(schema.creditApplications.status, 'approved')
-          )
-        )
-        .limit(1);
-
-      if (!userApprovedCredit.length) {
-        return res.status(400).json({ 
-          message: "Você precisa ter um crédito aprovado para criar importações" 
-        });
-      }
-
-      const creditApp = userApprovedCredit[0];
-      const totalValue = parseFloat(data.totalValue);
-
-      // Check available credit
-      const creditData = await storage.calculateAvailableCredit(creditApp.id);
-      if (totalValue > creditData.available) {
-        return res.status(400).json({ 
-          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
-        });
-      }
-
-      // Get admin fee for user
-      const adminFee = await storage.getAdminFeeForUser(userId);
-      const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 0;
-      const feeAmount = (totalValue * feeRate) / 100;
-      const totalWithFees = totalValue + feeAmount;
-
       // Clean and convert data to match the new schema
       const cleanedData: any = {
         userId,
-        creditApplicationId: creditApp.id,
         importName: data.importName,
         cargoType: data.cargoType || "FCL",
         containerNumber: data.containerNumber || null,
@@ -867,30 +831,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
         status: "planning",
         currentStage: "estimativa",
-        // Credit and fee information
-        creditUsed: totalValue.toString(),
-        adminFeeRate: feeRate.toString(),
-        adminFeeAmount: feeAmount.toString(),
-        totalWithFees: totalWithFees.toString(),
-        paymentStatus: "pending",
-        downPaymentRequired: ((totalWithFees * 10) / 100).toString(), // 10% default
-        paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
       };
 
       const importRecord = await storage.createImport(cleanedData);
-
-      // Reserve credit for this import
-      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
-
-      // Update credit balances
-      const newUsed = creditData.used + totalValue;
-      const newAvailable = creditData.available - totalValue;
-      
-      await storage.updateCreditBalance(
-        creditApp.id, 
-        newUsed.toString(), 
-        newAvailable.toString()
-      );
 
       res.status(201).json(importRecord);
     } catch (error) {
