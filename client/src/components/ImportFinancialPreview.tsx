@@ -15,7 +15,7 @@ export function ImportFinancialPreview({
   importValue, 
   creditApplication, 
   creditUsage,
-  adminFee 
+  adminFee: adminFeeData 
 }: ImportFinancialPreviewProps) {
   
   const financialCalculation = useMemo(() => {
@@ -27,13 +27,13 @@ export function ImportFinancialPreview({
     const calculationValue = importValue || 0;
 
     const downPaymentPercent = creditApplication.finalDownPayment || 30;
-    const adminFeePercent = parseFloat(adminFee?.feePercentage || '0');
+    const adminFeePercent = parseFloat(adminFeeData?.feePercentage || '0');
     const paymentTerms = (creditApplication.finalApprovedTerms || '30').split(',').map((term: string) => parseInt(term.trim()));
 
     const downPayment = (calculationValue * downPaymentPercent) / 100;
     const financedAmount = calculationValue - downPayment;
-    const adminFee = (financedAmount * adminFeePercent) / 100;
-    const totalAmount = calculationValue + adminFee;
+    const calculatedAdminFee = (financedAmount * adminFeePercent) / 100;
+    const totalAmount = calculationValue + calculatedAdminFee;
     const installmentAmount = financedAmount / paymentTerms.length;
 
     const availableCredit = creditUsage ? creditUsage.available : 0;
@@ -44,7 +44,7 @@ export function ImportFinancialPreview({
       downPayment,
       downPaymentPercent,
       financedAmount,
-      adminFee,
+      adminFee: calculatedAdminFee,
       adminFeePercent,
       totalAmount,
       installmentAmount,
@@ -53,7 +53,7 @@ export function ImportFinancialPreview({
       exceedsLimit,
       remainingCredit: availableCredit - financedAmount
     };
-  }, [importValue, creditApplication, creditUsage]);
+  }, [importValue, creditApplication, creditUsage, adminFeeData]);
 
   if (!financialCalculation) {
     return (
@@ -139,7 +139,7 @@ export function ImportFinancialPreview({
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Taxa Admin ({adminFeePercent}%)</span>
               <span className="font-medium text-red-600">
-                US$ {adminFee.toLocaleString()}
+                US$ {calculatedAdminFee.toLocaleString()}
               </span>
             </div>
           )}
