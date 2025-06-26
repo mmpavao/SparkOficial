@@ -49,10 +49,10 @@ export default function NewImportPage() {
     queryKey: ["/api/suppliers"],
   });
 
-  // Fetch credit applications for financial preview
+  // Fetch credit applications for financial preview (only for importers)
   const { data: creditApplications } = useQuery({
     queryKey: ["/api/credit/applications"],
-    enabled: user?.role === 'importer', // Only fetch for importers
+    enabled: user?.role === 'importer',
   });
 
   const form = useForm<InsertImport>({
@@ -69,11 +69,12 @@ export default function NewImportPage() {
         totalValue: "",
         hsCode: ""
       }],
+      supplierId: 0,
       totalValue: "",
       currency: "USD",
       incoterms: "FOB",
       shippingMethod: "sea",
-      containerType: "20ft",
+      containerType: "",
       containerNumber: "",
       sealNumber: "",
       status: "planejamento",
@@ -109,31 +110,31 @@ export default function NewImportPage() {
   }, [form, products]);
 
   const createImportMutation = useMutation({
-    mutationFn: async (data: any) => {
-      console.log("Submitting data:", data);
-      return apiRequest('/api/imports', 'POST', data);
+    mutationFn: (data: any) => {
+      console.log("Making API request with data:", data);
+      return apiRequest("/api/imports", "POST", data);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Import created successfully:", data);
       toast({
-        title: "Importação criada!",
-        description: "A nova importação foi criada com sucesso.",
+        title: "Importação criada com sucesso!",
+        description: "Sua nova importação foi registrada.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/imports"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/imports"] });
-      setLocation('/imports');
+      setLocation("/imports");
     },
     onError: (error: any) => {
       console.error("Error creating import:", error);
       toast({
         title: "Erro ao criar importação",
-        description: error.message || "Erro desconhecido",
+        description: error?.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: InsertImport) => {
-    if (!approvedCredit) {
+    if (!approvedCredit && user?.role === 'importer') {
       toast({
         title: "Crédito não encontrado",
         description: "Você precisa ter um crédito aprovado para criar importações.",
@@ -142,23 +143,28 @@ export default function NewImportPage() {
       return;
     }
 
-    // Check if exceeds credit limit
-    const importValue = currentImportValue;
-    const downPaymentPercent = approvedCredit.finalDownPayment || 30;
-    const financedAmount = importValue - (importValue * downPaymentPercent / 100);
-    const availableCredit = creditUsage?.available || 0;
+    // For importers, check credit limit
+    if (user?.role === 'importer') {
+      const importValue = currentImportValue;
+      const downPaymentPercent = approvedCredit.finalDownPayment || 30;
+      const financedAmount = importValue - (importValue * downPaymentPercent / 100);
+      const availableCredit = creditUsage?.available || 0;
 
-    if (financedAmount > availableCredit) {
-      toast({
-        title: "Limite de crédito insuficiente",
-        description: "O valor a financiar excede seu crédito disponível.",
-        variant: "destructive",
-      });
-      return;
+      if (financedAmount > availableCredit) {
+        toast({
+          title: "Limite de crédito insuficiente",
+          description: "O valor a financiar excede seu crédito disponível.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Show terms confirmation modal for importers
+      setShowTermsModal(true);
+    } else {
+      // For admins, create import directly
+      handleConfirmImport();
     }
-
-    // Show terms confirmation modal
-    setShowTermsModal(true);
   };
 
   const handleConfirmImport = () => {
@@ -208,6 +214,7 @@ export default function NewImportPage() {
       };
       
       createImportMutation.mutate(submissionData);
+      setShowTermsModal(false);
     } catch (error) {
       console.error("Error in handleConfirmImport:", error);
       toast({
@@ -217,6 +224,58 @@ export default function NewImportPage() {
       });
     }
   };
+
+  const suppliers = suppliersQuery.data || [];
+
+  const addProduct = () => {
+    setProducts([...products, {
+      name: "",
+      description: "",
+      hsCode: "",
+      quantity: 1,
+      unitPrice: "",
+      totalValue: ""
+    }]);
+  };
+
+  const removeProduct = (index: number) => {
+    if (products.length > 1) {
+      setProducts(products.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateProduct = (index: number, field: string, value: any) => {
+    const updatedProducts = [...products];
+    (updatedProducts[index] as any)[field] = value;
+    
+    // Auto-calculate total value if quantity or unit price changes
+    if (field === 'quantity' || field === 'unitPrice') {
+      const quantity = parseFloat(updatedProducts[index].quantity.toString()) || 0;
+      const unitPrice = parseFloat(updatedProducts[index].unitPrice) || 0;
+      updatedProducts[index].totalValue = (quantity * unitPrice).toString();
+    }
+    
+    setProducts(updatedProducts);
+  };
+
+  // Redirect non-importers for now (can be expanded later)
+  if (user && user.role !== 'importer' && user.role !== 'admin') {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <h2 className="text-xl font-semibold mb-4">Acesso Restrito</h2>
+            <p className="text-gray-600 mb-4">
+              Apenas importadores podem criar novas importações.
+            </p>
+            <Button onClick={() => setLocation('/imports')}>
+              Voltar para Importações
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -246,405 +305,44 @@ export default function NewImportPage() {
               <CardTitle>Formulário de Nova Importação</CardTitle>
             </CardHeader>
             <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Informações Básicas */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  Informações Básicas
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="importName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome/Código da Importação *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: IMP-2025-001 ou Eletrônicos Janeiro" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="cargoType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Carga *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value || "FCL"}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo de carga" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="FCL">FCL - Contêiner Inteiro</SelectItem>
-                            <SelectItem value="LCL">LCL - Carga Fracionada</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                {/* Container Info - Only for FCL */}
-                {form.watch("cargoType") === "FCL" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
-                    <FormField
-                      control={form.control}
-                      name="containerNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Número do Contêiner</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: TCLU1234567" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="sealNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Número do Lacre</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: 123456" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Informações do Fornecedor */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Building className="w-5 h-5" />
-                  Informações do Fornecedor
-                </h3>
-                
-                <div className="grid grid-cols-1 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="supplierId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fornecedor *</FormLabel>
-                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um fornecedor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {(suppliersQuery.data as any[])?.map((supplier: any) => (
-                              <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                                {supplier.companyName} - {supplier.city}, {supplier.province}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Products Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Box className="w-5 h-5" />
-                  {form.watch("cargoType") === "LCL" ? "Produtos da Carga" : "Produto Principal"}
-                </h3>
-                
-                {form.watch("cargoType") === "LCL" ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Basic Information */}
                   <div className="space-y-4">
-                    <div className="p-4 bg-yellow-50 rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-yellow-800">
-                          <strong>Carga Fracionada (LCL):</strong> Adicione múltiplos produtos que compartilharão o mesmo contêiner.
-                        </p>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setProducts([...products, { name: "", description: "", hsCode: "", quantity: 1, unitPrice: "", totalValue: "" }])}
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Adicionar Produto
-                        </Button>
-                      </div>
-                    </div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Informações Básicas
+                    </h3>
                     
-                    {products.map((product, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-4">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold">Produto {index + 1}</h4>
-                          {products.length > 1 && (
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setProducts(products.filter((_, i) => i !== index))}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Nome do Produto *</Label>
-                            <Input 
-                              placeholder="Ex: Smartphone Galaxy A54" 
-                              value={product.name}
-                              onChange={(e) => {
-                                const newProducts = [...products];
-                                newProducts[index].name = e.target.value;
-                                setProducts(newProducts);
-                              }}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label>Código HS</Label>
-                            <Input 
-                              placeholder="Ex: 8517.12.00" 
-                              value={product.hsCode}
-                              onChange={(e) => {
-                                const newProducts = [...products];
-                                newProducts[index].hsCode = e.target.value;
-                                setProducts(newProducts);
-                              }}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label>Quantidade *</Label>
-                            <Input 
-                              type="number" 
-                              placeholder="1000" 
-                              value={product.quantity}
-                              onChange={(e) => {
-                                const newProducts = [...products];
-                                newProducts[index].quantity = parseInt(e.target.value) || 1;
-                                setProducts(newProducts);
-                              }}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label>Preço Unitário (USD) *</Label>
-                            <Input 
-                              placeholder="50.00" 
-                              value={product.unitPrice}
-                              onChange={(e) => {
-                                const newProducts = [...products];
-                                newProducts[index].unitPrice = e.target.value;
-                                // Auto-calculate total value
-                                const total = (parseFloat(e.target.value) || 0) * product.quantity;
-                                newProducts[index].totalValue = total.toFixed(2);
-                                setProducts(newProducts);
-                              }}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label>Descrição Detalhada *</Label>
-                          <Textarea 
-                            placeholder="Descrição completa do produto, especificações técnicas, modelo, etc."
-                            className="min-h-[60px]"
-                            value={product.description}
-                            onChange={(e) => {
-                              const newProducts = [...products];
-                              newProducts[index].description = e.target.value;
-                              setProducts(newProducts);
-                            }}
-                          />
-                        </div>
-                        
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">
-                            <strong>Valor Total: USD ${product.totalValue || "0.00"}</strong>
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {product.quantity} × ${product.unitPrice || "0.00"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {products.length > 0 && (
-                      <div className="border-t pt-4 mt-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h4 className="font-semibold text-blue-900">Resumo da Carga LCL</h4>
-                              <p className="text-sm text-blue-700">
-                                {products.length} produto{products.length > 1 ? 's' : ''} • Total: {products.reduce((sum, p) => sum + p.quantity, 0)} unidades
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-blue-900">
-                                USD ${products.reduce((sum, product) => sum + (parseFloat(product.totalValue) || 0), 0).toFixed(2)}
-                              </div>
-                              <div className="text-sm text-blue-600">Valor Total da Importação</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="products.0.name"
+                      name="importName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome do Produto *</FormLabel>
+                          <FormLabel>Nome da Importação *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Smartphone Galaxy A54" {...field} />
+                            <Input placeholder="Ex: Importação Eletrônicos Q4 2024" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <FormField
-                      control={form.control}
-                      name="products.0.quantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quantidade *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="1000" 
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-                
-                {/* Product Description for FCL */}
-                {form.watch("cargoType") !== "LCL" && (
-                  <FormField
-                    control={form.control}
-                    name="products.0.description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição Detalhada *</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Descrição completa do produto, especificações técnicas, modelo, etc."
-                            className="min-h-[80px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
 
-              {/* Pricing Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Informações de Preço
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="incoterms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Preço *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value || "FOB"}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo de preço" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="FOB">FOB - Free On Board (sem frete/seguro)</SelectItem>
-                            <SelectItem value="CIF">CIF - Cost, Insurance and Freight (com frete/seguro)</SelectItem>
-                            <SelectItem value="EXW">EXW - Ex Works (retirada na fábrica)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="totalValue"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor Total (USD) *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="50000.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                {form.watch("cargoType") !== "LCL" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="products.0.unitPrice"
+                      name="cargoType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Preço Unitário (USD) *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="50.00" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Moeda</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value || "USD"}>
+                          <FormLabel>Tipo de Carga *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione a moeda" />
+                                <SelectValue placeholder="Selecione o tipo de carga" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                              <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                              <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              <SelectItem value="FCL">FCL - Container Completo</SelectItem>
+                              <SelectItem value="LCL">LCL - Carga Fracionada</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -652,167 +350,370 @@ export default function NewImportPage() {
                       )}
                     />
                   </div>
-                )}
-              </div>
 
-              {/* Shipping Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Ship className="w-5 h-5" />
-                  Transporte
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="shippingMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Método de Envio</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="sea">
-                              <div className="flex items-center gap-2">
-                                <Ship className="w-4 h-4" />
-                                Marítimo
+                  {/* Products Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Box className="w-5 h-5" />
+                      Produtos
+                    </h3>
+                    
+                    {form.watch("cargoType") === "LCL" ? (
+                      <div className="space-y-4">
+                        {products.map((product, index) => (
+                          <Card key={index} className="border-dashed">
+                            <CardContent className="pt-4">
+                              <div className="flex justify-between items-center mb-4">
+                                <h4 className="font-medium">Produto {index + 1}</h4>
+                                {products.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeProduct(index)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
                               </div>
-                            </SelectItem>
-                            <SelectItem value="air">
-                              <div className="flex items-center gap-2">
-                                <Plane className="w-4 h-4" />
-                                Aéreo
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label>Nome do Produto *</Label>
+                                  <Input
+                                    placeholder="Ex: Smartphone XYZ"
+                                    value={product.name}
+                                    onChange={(e) => updateProduct(index, 'name', e.target.value)}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label>Fornecedor</Label>
+                                  <Select 
+                                    value={product.supplierId?.toString()} 
+                                    onValueChange={(value) => updateProduct(index, 'supplierId', parseInt(value))}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione um fornecedor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {suppliers.map((supplier: any) => (
+                                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                                          {supplier.companyName}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                <div>
+                                  <Label>Quantidade *</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="1000"
+                                    value={product.quantity}
+                                    onChange={(e) => updateProduct(index, 'quantity', parseInt(e.target.value))}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label>Preço Unitário (USD) *</Label>
+                                  <Input
+                                    placeholder="15.50"
+                                    value={product.unitPrice}
+                                    onChange={(e) => updateProduct(index, 'unitPrice', e.target.value)}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label>Código HS</Label>
+                                  <Input
+                                    placeholder="8517.12.00"
+                                    value={product.hsCode}
+                                    onChange={(e) => updateProduct(index, 'hsCode', e.target.value)}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label>Valor Total (USD) *</Label>
+                                  <Input
+                                    placeholder="15500.00"
+                                    value={product.totalValue}
+                                    onChange={(e) => updateProduct(index, 'totalValue', e.target.value)}
+                                    className="bg-gray-50"
+                                  />
+                                </div>
                               </div>
-                            </SelectItem>
-                            <SelectItem value="land">
-                              <div className="flex items-center gap-2">
-                                <Truck className="w-4 h-4" />
-                                Terrestre
+                              
+                              <div className="mt-4">
+                                <Label>Descrição</Label>
+                                <Textarea
+                                  placeholder="Descrição detalhada do produto..."
+                                  value={product.description}
+                                  onChange={(e) => updateProduct(index, 'description', e.target.value)}
+                                  rows={2}
+                                />
                               </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
+                            </CardContent>
+                          </Card>
+                        ))}
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addProduct}
+                          className="w-full"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Adicionar Produto
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="products.0.name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome do Produto *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Eletrônicos Diversos" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="supplierId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Fornecedor</FormLabel>
+                              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um fornecedor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {suppliers.map((supplier: any) => (
+                                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                                      {supplier.companyName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="products.0.description"
+                          render={({ field }) => (
+                            <FormItem className="col-span-2">
+                              <FormLabel>Descrição do Produto</FormLabel>
+                              <FormControl>
+                                <Textarea placeholder="Descrição detalhada..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="products.0.quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantidade *</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="1000" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="totalValue"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor Total (USD) *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="50000.00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="containerType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Container</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="20ft">20ft Standard</SelectItem>
-                            <SelectItem value="40ft">40ft Standard</SelectItem>
-                            <SelectItem value="40ft-hc">40ft High Cube</SelectItem>
-                            <SelectItem value="lcl">LCL - Carga Fracionada</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="estimatedDelivery"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Entrega Estimada</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="date" 
-                            {...field} 
-                            value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
-                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+                  {/* Shipping Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Ship className="w-5 h-5" />
+                      Transporte
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="shippingMethod"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Método de Envio</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="sea">
+                                  <div className="flex items-center gap-2">
+                                    <Ship className="w-4 h-4" />
+                                    Marítimo
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="air">
+                                  <div className="flex items-center gap-2">
+                                    <Plane className="w-4 h-4" />
+                                    Aéreo
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="land">
+                                  <div className="flex items-center gap-2">
+                                    <Truck className="w-4 h-4" />
+                                    Terrestre
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="incoterms"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Incoterms</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="FOB">FOB - Free On Board</SelectItem>
+                                <SelectItem value="CIF">CIF - Cost, Insurance & Freight</SelectItem>
+                                <SelectItem value="EXW">EXW - Ex Works</SelectItem>
+                                <SelectItem value="DDU">DDU - Delivered Duty Unpaid</SelectItem>
+                                <SelectItem value="DDP">DDP - Delivered Duty Paid</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Moeda</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a moeda" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                                <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
 
-              {/* Form Actions */}
-              <div className="flex justify-end gap-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setLocation('/imports')}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createImportMutation.isPending}
-                  className="min-w-[120px]"
-                  onClick={(e) => {
-                    console.log("Button clicked!");
-                    console.log("Form state:", form.formState);
-                    console.log("Form errors:", form.formState.errors);
-                    // Let the form handle submission naturally
-                  }}
-                >
-                  {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
-                </Button>
-              </div>
-            </form>
-          </Form>
+                  {/* Submit Buttons */}
+                  <div className="flex gap-4 pt-6">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setLocation('/imports')}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={createImportMutation.isPending}
+                      className="min-w-[120px]"
+                    >
+                      {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Financial Preview */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6">
-            <ImportFinancialPreview
-              importValue={currentImportValue}
-              creditApplication={approvedCredit}
-              creditUsage={creditUsage}
-            />
+        {/* Right Column - Financial Preview (only for importers) */}
+        {user?.role === 'importer' && (
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
+              <ImportFinancialPreview
+                importValue={currentImportValue}
+                creditApplication={approvedCredit}
+                creditUsage={creditUsage}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Terms Confirmation Modal */}
-      <ImportTermsConfirmation
-        isOpen={showTermsModal}
-        onClose={() => setShowTermsModal(false)}
-        onConfirm={handleConfirmImport}
-        importData={{
-          value: currentImportValue,
-          cargoType: form.watch("cargoType"),
-          products: form.watch("cargoType") === "LCL" ? products : [form.getValues()]
-        }}
-        financialData={{
-          fobValue: currentImportValue,
-          downPayment: currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100),
-          downPaymentPercent: approvedCredit?.finalDownPayment || 30,
-          financedAmount: currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100)),
-          adminFee: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) * (parseFloat(approvedCredit?.adminFee || '0') / 100),
-          adminFeePercent: parseFloat(approvedCredit?.adminFee || '0'),
-          totalAmount: currentImportValue + ((currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) * (parseFloat(approvedCredit?.adminFee || '0') / 100)),
-          installmentAmount: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) / ((approvedCredit?.finalApprovedTerms || '30').split(',').length),
-          paymentTerms: (approvedCredit?.finalApprovedTerms || '30').split(',').map((term: string) => parseInt(term.trim())),
-          availableCredit: creditUsage?.available || 0,
-          exceedsLimit: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) > (creditUsage?.available || 0)
-        }}
-        isLoading={createImportMutation.isPending}
-      />
+      {/* Terms Confirmation Modal (only for importers) */}
+      {user?.role === 'importer' && (
+        <ImportTermsConfirmation
+          isOpen={showTermsModal}
+          onClose={() => setShowTermsModal(false)}
+          onConfirm={handleConfirmImport}
+          importData={{
+            value: currentImportValue,
+            cargoType: form.watch("cargoType"),
+            products: form.watch("cargoType") === "LCL" ? products : [form.getValues()]
+          }}
+          financialData={{
+            fobValue: currentImportValue,
+            downPayment: currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100),
+            downPaymentPercent: approvedCredit?.finalDownPayment || 30,
+            financedAmount: currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100)),
+            adminFee: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) * (parseFloat(approvedCredit?.adminFee || '0') / 100),
+            adminFeePercent: parseFloat(approvedCredit?.adminFee || '0'),
+            totalAmount: currentImportValue + ((currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) * (parseFloat(approvedCredit?.adminFee || '0') / 100)),
+            installmentAmount: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) / ((approvedCredit?.finalApprovedTerms || '30').split(',').length),
+            paymentTerms: (approvedCredit?.finalApprovedTerms || '30').split(',').map((term: string) => parseInt(term.trim())),
+            availableCredit: creditUsage?.available || 0,
+            exceedsLimit: (currentImportValue - (currentImportValue * ((approvedCredit?.finalDownPayment || 30) / 100))) > (creditUsage?.available || 0)
+          }}
+          isLoading={createImportMutation.isPending}
+        />
+      )}
     </div>
   );
-}
 }
