@@ -14,6 +14,8 @@ export interface MetricsData {
   totalUsers: number;
   totalCreditRequested: number;
   totalCreditApproved: number;
+  usedCredit: number;
+  availableCredit: number;
   totalImports: number;
   activeImports: number;
   completedImports: number;
