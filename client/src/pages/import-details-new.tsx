@@ -111,9 +111,31 @@ function ImportBasicInfo({ importData }: { importData: any }) {
 
 // Componente de cronograma de pagamentos
 function ImportPayments({ importId }: { importId: number }) {
-  const { data: paymentSchedule = [], isLoading } = useQuery({
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: paymentSchedule = [], isLoading, error } = useQuery({
     queryKey: ['/api/payments/schedule', importId],
-    queryFn: () => apiRequest(`/api/payments/schedule/${importId}`, 'GET')
+    queryFn: () => apiRequest(`/api/payments/schedule/${importId}`, 'GET'),
+    retry: false
+  });
+
+  const generatePaymentsMutation = useMutation({
+    mutationFn: () => apiRequest(`/api/payments/generate/${importId}`, 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/payments/schedule', importId] });
+      toast({
+        title: "Cronograma gerado com sucesso",
+        description: "O cronograma de pagamentos foi criado baseado nas condições de crédito aprovadas.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao gerar cronograma",
+        description: error.message || "Não foi possível gerar o cronograma de pagamentos.",
+        variant: "destructive",
+      });
+    }
   });
 
   if (isLoading) {
@@ -150,16 +172,32 @@ function ImportPayments({ importId }: { importId: number }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Cronograma de Pagamentos
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Cronograma de Pagamentos
+            </div>
+            {(error || paymentSchedule.length === 0) && (
+              <Button
+                onClick={() => generatePaymentsMutation.mutate()}
+                disabled={generatePaymentsMutation.isPending}
+                size="sm"
+              >
+                {generatePaymentsMutation.isPending ? 'Gerando...' : 'Gerar Cronograma'}
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {paymentSchedule.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              Nenhum cronograma de pagamento encontrado
-            </p>
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">
+                Nenhum cronograma de pagamento encontrado
+              </p>
+              <p className="text-sm text-gray-400">
+                Clique em "Gerar Cronograma" para criar os pagamentos baseados nas condições de crédito aprovadas
+              </p>
+            </div>
           ) : (
             <div className="space-y-4">
               {paymentSchedule.map((payment: any, index: number) => (

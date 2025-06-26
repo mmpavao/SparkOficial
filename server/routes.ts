@@ -942,6 +942,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate payment schedule for existing import
+  app.post('/api/payments/generate/:importId', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.importId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(importId)
+        : await storage.getImportByIdAndUser(importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      if (!importData.creditApplicationId) {
+        return res.status(400).json({ message: "Importação não está vinculada a um crédito aprovado" });
+      }
+
+      // Check if payment schedule already exists
+      const existingSchedule = await storage.getPaymentSchedulesByImport(importId);
+      if (existingSchedule.length > 0) {
+        return res.status(400).json({ message: "Cronograma de pagamento já existe para esta importação" });
+      }
+
+      // Generate payment schedule
+      const schedule = await storage.generatePaymentSchedule(
+        importId, 
+        importData.totalValue, 
+        importData.creditApplicationId
+      );
+
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error generating payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {

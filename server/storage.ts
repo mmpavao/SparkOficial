@@ -340,6 +340,57 @@ export class DatabaseStorage {
       );
   }
 
+  // Generate payment schedule for import based on credit terms
+  async generatePaymentSchedule(importId: number, totalValue: string, creditApplicationId: number) {
+    // Get credit application to fetch payment terms
+    const creditApp = await this.getCreditApplication(creditApplicationId);
+    if (!creditApp) throw new Error("Credit application not found");
+
+    const totalAmount = parseFloat(totalValue);
+    const downPaymentPercent = 0.10; // 10% down payment
+    const downPaymentAmount = totalAmount * downPaymentPercent;
+    const remainingAmount = totalAmount - downPaymentAmount;
+
+    // Parse payment terms (e.g., "30,60,90" days)
+    const paymentTerms = creditApp.finalApprovedTerms || creditApp.approvedTerms || "30,60,90";
+    const termsDays = paymentTerms.split(',').map(term => parseInt(term.trim()));
+    const installmentAmount = remainingAmount / termsDays.length;
+
+    const schedules = [];
+    
+    // Down payment - due immediately
+    schedules.push({
+      importId,
+      paymentType: "down_payment",
+      amount: downPaymentAmount.toFixed(2),
+      currency: "USD",
+      dueDate: new Date(), // Due immediately
+      status: "pending",
+      installmentNumber: null,
+      totalInstallments: null
+    });
+
+    // Installments based on payment terms
+    for (let i = 0; i < termsDays.length; i++) {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + termsDays[i]);
+      
+      schedules.push({
+        importId,
+        paymentType: "installment",
+        amount: installmentAmount.toFixed(2),
+        currency: "USD",
+        dueDate,
+        status: "pending",
+        installmentNumber: i + 1,
+        totalInstallments: termsDays.length
+      });
+    }
+
+    // Insert all payment schedules
+    return await db.insert(paymentSchedules).values(schedules).returning();
+  }
+
   // ===== ADMIN FEES =====
 
   async getAdminFeeForUser(userId: number) {
