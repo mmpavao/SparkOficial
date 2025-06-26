@@ -25,10 +25,28 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { formatCurrency } from "@/lib/formatters";
-import type { Import } from "@shared/schema";
+interface ImportItem {
+  id: number;
+  userId: number;
+  importName: string;
+  importNumber?: string;
+  cargoType: 'FCL' | 'LCL';
+  totalValue: string;
+  currency: string;
+  currentStage: string;
+  status: string;
+  estimatedDelivery?: string;
+  supplierId?: number;
+  supplierName?: string;
+  companyName?: string;
+  products: any[];
+  createdAt: string;
+  incoterms?: string;
+  shippingMethod?: string;
+}
 
 interface ImportCardProps {
-  importData: Import;
+  importData: any; // Aceita qualquer formato de dados de importação
 }
 
 const getStatusColor = (status: string) => {

@@ -8,13 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { Package, Plus, Search, Filter, MoreVertical, Eye, Edit3, X } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Package, Plus, Search, Filter } from "lucide-react";
+import ImportCard from "@/components/imports/ImportCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -296,109 +291,7 @@ export default function ImportsPage() {
           </Card>
         ) : (
           filteredImports.map((importItem) => (
-            <Card key={importItem.id} className="border-l-4 border-l-blue-500">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{importItem.importName}</h3>
-                      {importItem.importNumber && (
-                        <Badge variant="outline">#{importItem.importNumber}</Badge>
-                      )}
-                      {(isAdmin || isFinanceira) && importItem.companyName && (
-                        <Badge variant="secondary">{importItem.companyName}</Badge>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-4 flex-wrap">
-                      {getStatusBadge(importItem.status, importItem.currentStage)}
-                      <span className="text-sm text-muted-foreground">
-                        {getStageLabel(importItem.currentStage)}
-                      </span>
-                      <Badge variant="outline">
-                        {importItem.cargoType}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/imports/${importItem.id}`}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Ver Detalhes
-                        </Link>
-                      </DropdownMenuItem>
-                      {importItem.status === 'planning' && (
-                        <DropdownMenuItem asChild>
-                          <Link href={`/imports/${importItem.id}/edit`}>
-                            <Edit3 className="mr-2 h-4 w-4" />
-                            Editar
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      {importItem.status !== 'completed' && importItem.status !== 'cancelled' && (
-                        <DropdownMenuItem 
-                          onClick={() => handleCancelImport(importItem)}
-                          className="text-red-600"
-                        >
-                          <X className="mr-2 h-4 w-4" />
-                          Cancelar
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Valor Total</p>
-                    <p className="font-medium">{formatCurrency(importItem.totalValue, importItem.currency)}</p>
-                  </div>
-                  
-                  {importItem.supplierName && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Fornecedor</p>
-                      <p className="font-medium">{importItem.supplierName}</p>
-                    </div>
-                  )}
-                  
-                  {importItem.estimatedDelivery && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Previsão de Entrega</p>
-                      <p className="font-medium">
-                        {new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {importItem.products && importItem.products.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm text-muted-foreground mb-2">Produtos</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {importItem.products.slice(0, 3).map((product: any, index: number) => (
-                        <Badge key={index} variant="outline">
-                          {product.name}
-                        </Badge>
-                      ))}
-                      {importItem.products.length > 3 && (
-                        <Badge variant="outline">
-                          +{importItem.products.length - 3} mais
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ImportCard key={importItem.id} importData={importItem} />
           ))
         )}
       </div>
