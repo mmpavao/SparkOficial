@@ -322,10 +322,7 @@ export default function NewImportPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={(e) => {
-                  console.log("Form submit event triggered");
-                  form.handleSubmit(onSubmit)(e);
-                }} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Basic Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -506,30 +503,7 @@ export default function NewImportPage() {
                           )}
                         />
                         
-                        <FormField
-                          control={form.control}
-                          name="supplierId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fornecedor</FormLabel>
-                              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione um fornecedor" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {suppliers.map((supplier: any) => (
-                                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                                      {supplier.companyName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+
                         
                         <FormField
                           control={form.control}
@@ -561,10 +535,63 @@ export default function NewImportPage() {
                         
                         <FormField
                           control={form.control}
+                          name="products.0.unitPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Preço Unitário (USD) *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="15.50" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="products.0.supplierId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Fornecedor *</FormLabel>
+                              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um fornecedor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {suppliers.map((supplier: any) => (
+                                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                                      {supplier.companyName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="products.0.totalValue"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor Total do Produto (USD) *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="15500.00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
                           name="totalValue"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Valor Total (USD) *</FormLabel>
+                              <FormLabel>Valor Total da Importação (USD) *</FormLabel>
                               <FormControl>
                                 <Input placeholder="50000.00" {...field} />
                               </FormControl>
@@ -685,12 +712,6 @@ export default function NewImportPage() {
                       type="submit" 
                       disabled={createImportMutation.isPending}
                       className="min-w-[120px]"
-                      onClick={(e) => {
-                        console.log("Button clicked!");
-                        console.log("Form valid:", form.formState.isValid);
-                        console.log("Form errors:", form.formState.errors);
-                        // Let the form handle the submit naturally
-                      }}
                     >
                       {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
                     </Button>
