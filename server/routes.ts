@@ -1825,13 +1825,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const adminFee = await storage.getAdminFeeForUser(userId);
       
       if (!adminFee) {
-        return res.json({ feePercentage: "0" }); // Default 0% if no fee configured
+        return res.json({ feePercentage: "10" }); // Default 10% if no fee configured
       }
       
       res.json(adminFee);
     } catch (error) {
       console.error("Error fetching admin fee:", error);
       res.status(500).json({ message: "Erro ao buscar taxa administrativa" });
+    }
+  });
+
+  // Get user's credit information for financial calculations
+  app.get('/api/user/credit-info', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      
+      // Get user's approved credit applications
+      const creditApps = await storage.getCreditApplicationsByUser(userId);
+      const approvedCredit = creditApps.find(app => app.status === 'approved');
+      
+      if (!approvedCredit) {
+        return res.json({
+          totalCredit: 0,
+          usedCredit: 0,
+          availableCredit: 0,
+          adminFeePercentage: 10
+        });
+      }
+
+      // Calculate used credit from imports
+      const imports = await storage.getImportsByUser(userId);
+      const activeImports = imports.filter(imp => 
+        imp.status !== 'cancelado' && 
+        imp.status !== 'cancelled' &&
+        imp.creditApplicationId === approvedCredit.id
+      );
+
+      const usedCredit = activeImports.reduce((total, imp) => {
+        const importValue = parseFloat(imp.totalValue);
+        const financedAmount = importValue * 0.7; // 70% financed after 30% down payment
+        const adminFee = financedAmount * 0.1; // 10% admin fee
+        return total + financedAmount + adminFee;
+      }, 0);
+
+      // Get admin fee percentage
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const adminFeePercentage = adminFee ? parseFloat(adminFee.feePercentage) : 10;
+
+      // Use final admin terms if available, otherwise use financial terms
+      const totalCredit = approvedCredit.finalCreditLimit 
+        ? parseFloat(approvedCredit.finalCreditLimit)
+        : parseFloat(approvedCredit.creditAmount);
+
+      const availableCredit = Math.max(0, totalCredit - usedCredit);
+
+      res.json({
+        totalCredit,
+        usedCredit,
+        availableCredit,
+        adminFeePercentage
+      });
+    } catch (error) {
+      console.error("Error fetching credit info:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
