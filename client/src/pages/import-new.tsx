@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertImportSchema, type InsertImport } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
+import { ImportFinancialPreview } from "@/components/ImportFinancialPreview";
+import { ImportTermsConfirmation } from "@/components/ImportTermsConfirmation";
 import { 
   Package, 
   Building,
@@ -37,6 +39,8 @@ export default function NewImportPage() {
     unitPrice: "",
     totalValue: ""
   }]);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [currentImportValue, setCurrentImportValue] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
