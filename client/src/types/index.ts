@@ -21,6 +21,8 @@ export interface MetricsData {
   completedImports: number;
   totalImportValue: number;
   utilizationRate: number;
+  totalSuppliers: number;
+  totalCreditApplications: number;
 }
 
 export interface ApiResponse<T = any> {

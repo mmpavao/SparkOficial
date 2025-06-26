@@ -35,7 +35,11 @@ export function useMetrics(isAdmin = false, isFinanceira = false) {
     enabled: isAdmin,
   });
 
-  const metrics = buildMetricsData(creditApplications, imports, users.length, user?.role);
+  const { data: suppliers = [] } = useQuery({
+    queryKey: isAdmin ? QUERY_KEYS.admin.suppliers : QUERY_KEYS.suppliers,
+  });
+
+  const metrics = buildMetricsData(creditApplications, imports, users.length, user?.role, suppliers);
 
   return {
     user,

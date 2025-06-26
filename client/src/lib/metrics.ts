@@ -120,7 +120,8 @@ export function buildMetricsData(
   creditApplications: CreditApplication[],
   imports: Import[],
   totalUsers: number = 0,
-  userRole?: string
+  userRole?: string,
+  suppliers: any[] = []
 ): MetricsData {
   const creditMetrics = calculateCreditMetrics(creditApplications, userRole);
   const importMetrics = calculateImportMetrics(imports);
@@ -137,5 +138,7 @@ export function buildMetricsData(
     completedImports: importMetrics.completed,
     totalImportValue: importMetrics.totalValue,
     utilizationRate: creditMetrics.utilizationRate,
+    totalSuppliers: suppliers.length,
+    totalCreditApplications: creditApplications.length,
   };
 }
