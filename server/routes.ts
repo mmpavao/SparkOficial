@@ -52,15 +52,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     name: 'connect.sid',
     cookie: {
-      httpOnly: true, // Secure cookie access
+      httpOnly: false, // Allow JavaScript access for debugging
       secure: false, // HTTP for development
       maxAge: sessionTtl,
-      sameSite: 'strict', // Prevent CSRF attacks
+      sameSite: 'lax', // More permissive for navigation
       path: '/',
       domain: undefined, // Let browser set domain automatically
     },
     rolling: true, // Reset expiration on each request
   }));
+
+  // Session debugging middleware
+  app.use((req: any, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      console.log(`[Session Debug] ${req.method} ${req.path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+    }
+    next();
+  });
+
+  // Force session initialization for authenticated routes
+  app.use('/api/', (req: any, res, next) => {
+    // Skip session regeneration for login/register routes
+    if (req.path === '/auth/login' || req.path === '/auth/register') {
+      return next();
+    }
+
+    // Ensure session is properly initialized
+    if (req.session && !req.session.initialized) {
+      req.session.initialized = true;
+      req.session.save((err: any) => {
+        if (err) console.error('Session save error:', err);
+        next();
+      });
+    } else {
+      next();
+    }
+  });
 
   // Authentication middleware
   const requireAuth = async (req: any, res: any, next: any) => {
