@@ -170,6 +170,30 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Volume Total Importado</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(180000)}</p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
+                  <p className="text-2xl font-bold text-gray-900">1</p>
+                </div>
+                <FileText className="w-8 h-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
       {/* Two Column Layout */}

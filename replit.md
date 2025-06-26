@@ -469,6 +469,11 @@ Changelog:
   * Values now display as: 968.5k, 150k, 120k, 600k, 217.5k, 100k, 60k, 30k
   * Visual-only formatting without affecting underlying data or functionality
   * Professional modern interface following industry standards for large number display
+- June 26, 2025. Enhanced importer dashboard with additional metrics cards:
+  * Added "Volume Total Importado" card showing US$ 180k (sum of active imports)
+  * Added "Aplicações de Crédito" card displaying current application count
+  * Completed 4-card metrics row for importers with authentic data
+  * Maintained responsive grid layout and consistent visual design
 ```
 
 ## User Preferences
