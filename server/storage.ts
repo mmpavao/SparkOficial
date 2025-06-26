@@ -835,6 +835,55 @@ export class DatabaseStorage {
         .from(suppliers);
     }
   }
+
+  // Get payments by import ID
+  async getPaymentsByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
+
+  // Update credit balance
+  async updateCreditBalance(applicationId: number, newBalance: number) {
+    return await db
+      .update(creditApplications)
+      .set({ 
+        creditUsed: newBalance.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(creditApplications.id, applicationId))
+      .returning();
+  }
+
+  // Confirm payment
+  async confirmPayment(paymentId: number, data: any) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: 'paid',
+        paidAt: new Date(),
+        receiptUrl: data.receiptUrl,
+        paymentMethod: data.paymentMethod,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
+
+  // Reject payment
+  async rejectPayment(paymentId: number, reason: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: 'rejected',
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
 }
 
 export const storage = new DatabaseStorage();
