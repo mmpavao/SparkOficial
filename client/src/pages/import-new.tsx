@@ -111,15 +111,7 @@ export default function NewImportPage() {
     return () => subscription.unsubscribe();
   }, [form, products]);
 
-  // Debug logs
-  useEffect(() => {
-    console.log("Current import value:", currentImportValue);
-    console.log("Approved credit:", approvedCredit);
-    console.log("Credit usage:", creditUsage);
-    console.log("User role:", user?.role);
-    console.log("Should show preview:", user?.role === 'importer' && !!approvedCredit);
-    console.log("Products:", products);
-  }, [currentImportValue, approvedCredit, creditUsage, user, products]);
+
 
   const createImportMutation = useMutation({
     mutationFn: (data: any) => {

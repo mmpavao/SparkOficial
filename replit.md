@@ -489,6 +489,13 @@ Changelog:
   * Applied admin fees only to financed amount (excluding down payments) with transparent breakdown
   * Enhanced import creation workflow with mandatory terms confirmation and financial transparency
   * System calculates payment schedules automatically with proper down payment and installment logic
+- June 26, 2025. Financial preview system corrections and optimizations:
+  * Fixed calculateAvailableCredit method to use correct Portuguese status values
+  * Corrected credit calculation to use only financed amount (70% after 30% down payment)
+  * Fixed notifications table import error in storage.ts
+  * Enhanced ImportFinancialPreview to display preview even with zero values for user guidance
+  * Improved authentication state management with better cache configuration
+  * System now correctly calculates US$ 150,000 available credit with proper status filtering
 ```
 
 ## User Preferences

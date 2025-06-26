@@ -45,6 +45,8 @@ function Router() {
     );
   }
 
+
+
   return (
     <Switch>
       {isAuthenticated ? (
