@@ -73,6 +73,13 @@ export default function CreditDetailsPage() {
     enabled: !!applicationId,
   }) as { data: any, isLoading: boolean };
 
+  // Fetch credit usage data
+  const { data: creditUsage } = useQuery({
+    queryKey: ['/api/credit/usage', applicationId],
+    queryFn: () => apiRequest(`/api/credit/usage/${applicationId}`, 'GET'),
+    enabled: !!applicationId && application?.status === 'approved',
+  });
+
   // Upload document mutation
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ documentType, file }: { documentType: string; file: File }) => {
@@ -606,7 +613,9 @@ export default function CreditDetailsPage() {
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
-                      <span className="text-xl font-bold text-blue-600">US$ 0</span>
+                      <span className="text-xl font-bold text-blue-600">
+                        {creditUsage ? `US$ ${Number(creditUsage.used).toLocaleString()}` : 'US$ 0'}
+                      </span>
                     </div>
                   </div>
 
@@ -615,12 +624,15 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
-                        {(() => {
-                          const finalLimit = application.adminStatus === 'admin_finalized' 
-                            ? application.finalCreditLimit 
-                            : application.creditLimit;
-                          return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
-                        })()}
+                        {creditUsage 
+                          ? `US$ ${Number(creditUsage.available).toLocaleString()}`
+                          : (() => {
+                              const finalLimit = application.adminStatus === 'admin_finalized' 
+                                ? application.finalCreditLimit 
+                                : application.creditLimit;
+                              return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
+                            })()
+                        }
                       </span>
                     </div>
                   </div>

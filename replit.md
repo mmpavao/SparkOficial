@@ -407,6 +407,12 @@ Changelog:
   * Created secure upload endpoints for admin/financeira roles only with proper authentication
   * Fixed AdminFinalizationPanel initialization to prevent terms concatenation from previous approvals
   * Enhanced role-based visibility: importers see only admin final terms and notes, not financial observations
+- June 26, 2025. Credit usage display fix in credit application details:
+  * Fixed critical credit usage display showing incorrect "US$ 0" instead of actual usage
+  * Implemented real-time credit usage query fetching actual data from linked imports
+  * Added dynamic calculation showing US$ 120,000 in use and US$ 30,000 available from US$ 150,000 limit
+  * Enhanced credit details page with authentic usage data without modifying other system components
+  * Maintained backward compatibility with fallback logic for applications without usage data
 ```
 
 ## User Preferences

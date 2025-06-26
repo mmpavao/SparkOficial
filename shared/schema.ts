@@ -361,7 +361,7 @@ export const imports = pgTable("imports", {
   incoterms: text("incoterms").default("FOB"), // FOB, CIF, EXW, etc.
 
   // Pipeline Status and Tracking
-  currentStage: text("current_stage").notNull().default("estimativa"), // estimativa, invoice, producao, embarque, transporte, atracacao, desembaraco, transporte_terrestre, entrega
+  currentStage: text("current_stage").notNull().default("estimativa"), // estimativa, producao, entregue_agente, transporte_maritimo, transporte_aereo, desembaraco, transporte_nacional, concluido
   status: text("status").notNull().default("planning"), // planning, active, completed, cancelled
 
   // Pipeline Stages with Timestamps

@@ -347,30 +347,38 @@ export class DatabaseStorage {
     if (!creditApp) throw new Error("Credit application not found");
 
     const totalAmount = parseFloat(totalValue);
-    const downPaymentPercent = 0.10; // 10% down payment
+    
+    // Get down payment percentage from credit application (admin finalized or financial terms)
+    const downPaymentPercent = creditApp.adminStatus === 'admin_finalized' 
+      ? (parseFloat(creditApp.finalDownPayment) || 30) / 100
+      : (parseFloat(creditApp.downPayment) || 30) / 100;
+      
     const downPaymentAmount = totalAmount * downPaymentPercent;
     const remainingAmount = totalAmount - downPaymentAmount;
 
-    // Parse payment terms (e.g., "30,60,90" days)
-    const paymentTerms = creditApp.finalApprovedTerms || creditApp.approvedTerms || "30,60,90";
+    // Parse payment terms (e.g., "30,60,90,120" days)
+    const paymentTerms = creditApp.adminStatus === 'admin_finalized'
+      ? creditApp.finalApprovedTerms || creditApp.approvedTerms || "30,60,90,120"
+      : creditApp.approvedTerms || "30,60,90,120";
+      
     const termsDays = paymentTerms.split(',').map(term => parseInt(term.trim()));
     const installmentAmount = remainingAmount / termsDays.length;
 
     const schedules = [];
     
-    // Down payment - due immediately
+    // Down payment - due when import status changes to "entregue_agente"
     schedules.push({
       importId,
       paymentType: "down_payment",
       amount: downPaymentAmount.toFixed(2),
       currency: "USD",
-      dueDate: new Date(), // Due immediately
+      dueDate: new Date(), // Will be updated when status changes
       status: "pending",
       installmentNumber: null,
       totalInstallments: null
     });
 
-    // Installments based on payment terms
+    // Installments based on payment terms - start counting from "entregue_agente" status
     for (let i = 0; i < termsDays.length; i++) {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + termsDays[i]);
