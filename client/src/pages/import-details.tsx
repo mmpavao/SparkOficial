@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { ArrowLeft, Package, MapPin, Calendar, DollarSign, FileText, Truck, Building } from "lucide-react";
+import ImportFinancialSummary from "@/components/imports/ImportFinancialSummary";
 
 interface ImportDetails {
   id: number;
@@ -179,33 +180,14 @@ export default function ImportDetailsPage() {
         </div>
       </div>
 
-      {/* Resumo Financeiro Destacado */}
-      <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-transparent">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-blue-600" />
-            Resumo Financeiro
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Valor Total</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {formatCurrency(importData.totalValue, importData.currency)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Tipo de Carga</p>
-              <p className="text-lg font-semibold">{importData.cargoType}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Incoterms</p>
-              <p className="text-lg font-semibold">{importData.incoterms || "FOB"}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Resumo Financeiro Completo */}
+      <ImportFinancialSummary 
+        fobValue={parseFloat(importData.totalValue) || 0}
+        adminFeePercentage={10}
+        downPaymentPercentage={30}
+        currency={importData.currency}
+        incoterms={importData.incoterms || "FOB"}
+      />
 
       {/* Tabs de Conteúdo */}
       <Tabs defaultValue="overview" className="space-y-6">
