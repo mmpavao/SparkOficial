@@ -863,7 +863,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  ```
   app.post('/api/import-documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const { importId, documentType } = req.body;
@@ -1304,7 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the specific stage data and current stage
       const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
-      const updateData = {
+      const updateData: any = {
         [stageKey]: data,
         currentStage: currentStage,
         updatedAt: new Date()
