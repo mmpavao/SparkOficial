@@ -23,7 +23,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
-  const { metrics, creditApplications, imports } = useMetrics(isAdmin);
+  const { metrics, creditApplications } = useMetrics(isAdmin);
 
   if (adminMetricsLoading && isAdmin) {
     return (
@@ -52,17 +52,7 @@ export default function Dashboard() {
         </div>
         
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-6">
-          <button 
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
-            onClick={() => window.location.href = '/imports/new'}
-          >
-            <div className="flex items-center">
-              <Plus className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">Nova Importação</span>
-            </div>
-          </button>
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
           <button
             className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
             onClick={() => window.location.href = '/credit/new'}
@@ -147,17 +137,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total de Importações</p>
-                  <p className="text-2xl font-bold text-gray-900">{imports?.length || 0}</p>
-                </div>
-                <Package className="w-8 h-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
+
 
           <Card>
             <CardContent className="p-6">
@@ -171,17 +151,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Volume Total Importado</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(imports?.reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0) || 0)}</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
+
 
           <Card>
             <CardContent className="p-6">

@@ -22,7 +22,7 @@ import {
   X, 
   Home, 
   CreditCard, 
-  Truck, 
+  Building,
   BarChart3, 
   Settings, 
   Shield,
