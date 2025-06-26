@@ -752,10 +752,10 @@ export default function CreditDetailsPage() {
           )}
 
           {/* Gestão Administrativa - Apenas para Admins e Financeira */}
-          {(permissions.canPerformPreAnalysis || permissions.canManageApplications) && (
+          {(permissions.isAdmin || permissions.isFinanceira) && (
             <>
               <AdminAnalysisPanel application={application} />
-              {permissions.canPerformPreAnalysis && (
+              {permissions.isAdmin && application.financialStatus === 'approved' && (
                 <AdminFinalizationPanel 
                   application={application} 
                   onUpdate={() => {

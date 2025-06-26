@@ -29,6 +29,8 @@ interface AdminAnalysisPanelProps {
 
 export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelProps) {
   const permissions = useUserPermissions();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
@@ -43,7 +45,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     creditLimit: application.creditLimit || "",
     approvedTerms: application.approvedTerms ? application.approvedTerms.split(',') : [],
     financialNotes: application.financialNotes || "",
-    downPayment: application.downPayment || "10",
+    downPayment: application.downPayment || "30",
     attachments: [] as File[]
   });
 
@@ -59,37 +61,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     action: () => {}
   });
 
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // Mutação para upload de apólices
-  const uploadAttachmentsMutation = useMutation({
-    mutationFn: async (files: File[]) => {
-      const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append(`attachment_${index}`, file);
-      });
-      formData.append('applicationId', application.id.toString());
-
-      return await apiRequest(`/api/credit/applications/${application.id}/attachments`, "POST", formData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
-      toast({
-        title: "Sucesso!",
-        description: "Apólices anexadas com sucesso.",
-      });
-      setFinancialData(prev => ({ ...prev, attachments: [] }));
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Erro ao anexar apólices. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Mutation para atualizar status da aplicação
   const updateStatusMutation = useMutation({
     mutationFn: async ({ status, data }: { status: string; data?: any }) => {
@@ -101,7 +72,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           ? `/api/financeira/credit-applications/${application.id}/approve`
           : status === 'rejected'
           ? `/api/financeira/credit-applications/${application.id}/reject`
-          : `/api/financeira/credit-applications/${application.id}/update-financial`;
+          : `/api/financeira/credit-applications/${application.id}/update-analysis`;
       } else {
         // Admin endpoints for pre-approval
         endpoint = status === 'pre_approved' 
@@ -117,15 +88,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
-
-      // Clear form fields after successful submission
-      setAnalysisData({
-        status: "pending",
-        riskLevel: "medium",
-        notes: "",
-        requestedDocuments: "",
-        observations: ""
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications"] });
 
       toast({
         title: "Sucesso!",
@@ -200,10 +163,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
   const handleReject = () => {
     if (permissions.isFinanceira) {
-      // Financeira final rejection
+      // Financeira rejection
       handleConfirmAction(
         "Rejeitar Crédito",
-        "Tem certeza que deseja rejeitar esta solicitação de crédito definitivamente?",
+        "Tem certeza que deseja rejeitar esta solicitação de crédito?",
         () => {
           updateStatusMutation.mutate({
             status: 'rejected',
@@ -284,13 +247,13 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      pending: { label: "Pendente", variant: "secondary" as const, color: "bg-gray-100 text-gray-800" },
-      under_review: { label: "Em Análise", variant: "default" as const, color: "bg-blue-100 text-blue-800" },
-      pre_approved: { label: "Pré-análise Completa", variant: "default" as const, color: "bg-green-100 text-green-800" },
-      needs_documents: { label: "Precisa Documentos", variant: "destructive" as const, color: "bg-yellow-100 text-yellow-800" },
-      needs_clarification: { label: "Precisa Esclarecimentos", variant: "destructive" as const, color: "bg-orange-100 text-orange-800" },
-      approved: { label: "Aprovado", variant: "default" as const, color: "bg-green-100 text-green-800" },
-      rejected: { label: "Rejeitado", variant: "destructive" as const, color: "bg-red-100 text-red-800" },
+      pending: { label: "Pendente", color: "bg-gray-100 text-gray-800" },
+      under_review: { label: "Em Análise", color: "bg-blue-100 text-blue-800" },
+      pre_approved: { label: "Pré-Aprovado", color: "bg-green-100 text-green-800" },
+      needs_documents: { label: "Precisa Documentos", color: "bg-yellow-100 text-yellow-800" },
+      needs_clarification: { label: "Precisa Esclarecimentos", color: "bg-orange-100 text-orange-800" },
+      approved: { label: "Aprovado", color: "bg-green-100 text-green-800" },
+      rejected: { label: "Rejeitado", color: "bg-red-100 text-red-800" },
     };
 
     const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
@@ -318,410 +281,245 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
   return (
     <>
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {permissions.isFinanceira ? (
-            <>
-              <DollarSign className="w-5 h-5" />
-              Análise Financeira
-            </>
-          ) : (
-            <>
-              <FileText className="w-5 h-5" />
-              Gestão Administrativa
-            </>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Status Atual */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Status Atual:</span>
-            {getStatusBadge(application.status)}
-          </div>
-          {!permissions.isFinanceira && (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {permissions.isFinanceira ? (
+              <>
+                <DollarSign className="w-5 h-5" />
+                Análise Financeira
+              </>
+            ) : (
+              <>
+                <FileText className="w-5 h-5" />
+                Pré-Análise Administrativa
+              </>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status Atual */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Nível de Risco:</span>
-              {getRiskBadge(analysisData.riskLevel)}
+              <span className="text-sm font-medium">Status Atual:</span>
+              {getStatusBadge(application.preAnalysisStatus || application.status)}
             </div>
-          )}
-        </div>
-
-        <Separator />
-
-        {permissions.isFinanceira ? (
-          // Financeira Interface - Final Approval with Credit Limits and Payment Terms
-          <>
-            {/* Credit Limit Input */}
-            <div className="space-y-2">
-              <Label htmlFor="creditLimit">Limite de Crédito Aprovado (USD)</Label>
-              <Input
-                id="creditLimit"
-                type="number"
-                placeholder="Ex: 100000"
-                value={financialData.creditLimit}
-                onChange={(e) => setFinancialData(prev => ({ ...prev, creditLimit: e.target.value }))}
-              />
-            </div>
-
-            {/* Payment Terms Selection - Multiple Selection */}
-            <div className="space-y-2">
-              <Label>Prazo de Pagamento Aprovado</Label>
-              <div className="flex flex-wrap gap-2">
-                {['30', '60', '90', '120', '150', '180'].map((term) => (
-                  <Button
-                    key={term}
-                    variant={financialData.approvedTerms.includes(term) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      setFinancialData(prev => ({
-                        ...prev,
-                        approvedTerms: prev.approvedTerms.includes(term)
-                          ? prev.approvedTerms.filter(t => t !== term)
-                          : [...prev.approvedTerms, term]
-                      }));
-                    }}
-                  >
-                    {term} dias
-                  </Button>
-                ))}
+            {!permissions.isFinanceira && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Nível de Risco:</span>
+                {getRiskBadge(analysisData.riskLevel)}
               </div>
-              {financialData.approvedTerms.length > 0 && (
-                <p className="text-xs text-gray-500">
-                  Selecionados: {financialData.approvedTerms.join(', ')} dias
-                </p>
-              )}
-            </div>
+            )}
+          </div>
 
-            {/* Down Payment Percentage */}
-            <div className="space-y-2">
-              <Label htmlFor="downPayment">Entrada Requerida (%)</Label>
-              <Input
-                id="downPayment"
-                type="number"
-                placeholder="Ex: 10"
-                value={financialData.downPayment}
-                onChange={(e) => setFinancialData(prev => ({ ...prev, downPayment: e.target.value }))}
-                min="0"
-                max="100"
-              />
-              <p className="text-xs text-gray-500">
-                {financialData.downPayment}% de entrada do valor do pedido
-              </p>
-            </div>
+          <Separator />
 
-            {/* Financial Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="financialNotes">Observações Financeiras</Label>
-              <Textarea
-                id="financialNotes"
-                placeholder="Adicione observações sobre a aprovação financeira..."
-                value={financialData.financialNotes}
-                onChange={(e) => setFinancialData(prev => ({ ...prev, financialNotes: e.target.value }))}
-                rows={3}
-              />
-            </div>
-
-            {/* Document Attachments */}
-            <div className="space-y-2">
-              <Label>Anexar Apólices e Documentos Adicionais</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    setFinancialData(prev => ({
-                      ...prev,
-                      attachments: [...prev.attachments, ...files]
-                    }));
-                  }}
-                  className="w-full"
+          {permissions.isFinanceira ? (
+            // Financeira Interface - Final Approval with Credit Limits and Payment Terms
+            <>
+              {/* Credit Limit Input */}
+              <div className="space-y-2">
+                <Label htmlFor="creditLimit">Limite de Crédito Aprovado (USD)</Label>
+                <Input
+                  id="creditLimit"
+                  type="number"
+                  placeholder="Ex: 150000"
+                  value={financialData.creditLimit}
+                  onChange={(e) => setFinancialData(prev => ({ ...prev, creditLimit: e.target.value }))}
                 />
-                <p className="text-xs text-gray-500 mt-2">
-                  Aceitos: PDF, DOC, DOCX, JPG, PNG (máx. 10MB por arquivo)
+              </div>
+
+              {/* Payment Terms Selection - Multiple Selection */}
+              <div className="space-y-2">
+                <Label>Prazo de Pagamento Aprovado</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['30', '60', '90', '120', '150', '180'].map((term) => (
+                    <Button
+                      key={term}
+                      variant={financialData.approvedTerms.includes(term) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setFinancialData(prev => ({
+                          ...prev,
+                          approvedTerms: prev.approvedTerms.includes(term)
+                            ? prev.approvedTerms.filter(t => t !== term)
+                            : [...prev.approvedTerms, term]
+                        }));
+                      }}
+                    >
+                      {term} dias
+                    </Button>
+                  ))}
+                </div>
+                {financialData.approvedTerms.length > 0 && (
+                  <p className="text-xs text-gray-500">
+                    Selecionados: {financialData.approvedTerms.join(', ')} dias
+                  </p>
+                )}
+              </div>
+
+              {/* Down Payment Percentage */}
+              <div className="space-y-2">
+                <Label htmlFor="downPayment">Entrada Requerida (%)</Label>
+                <Input
+                  id="downPayment"
+                  type="number"
+                  placeholder="30"
+                  value={financialData.downPayment}
+                  onChange={(e) => setFinancialData(prev => ({ ...prev, downPayment: e.target.value }))}
+                  min="0"
+                  max="100"
+                />
+                <p className="text-xs text-gray-500">
+                  Entrada de {financialData.downPayment}% do valor total da importação
                 </p>
               </div>
 
-              {financialData.attachments.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Arquivos Selecionados:</p>
-                  {financialData.attachments.map((file: File, index: number) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                      <span className="text-sm text-gray-700">{file.name}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setFinancialData(prev => ({
-                            ...prev,
-                            attachments: prev.attachments.filter((_, i) => i !== index)
-                          }));
-                        }}
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  ))}
-
-                  <Button
-                    onClick={() => {
-                      if (financialData.attachments.length > 0) {
-                        uploadAttachmentsMutation.mutate(financialData.attachments);
-                      }
-                    }}
-                    disabled={uploadAttachmentsMutation.isPending}
-                    className="w-full mt-2"
-                  >
-                    {uploadAttachmentsMutation.isPending ? "Enviando..." : "Anexar Arquivos"}
-                  </Button>
-                </div>
-              )}
-
-              {/* Display existing attachments (only for admin/financeira) */}
-              {(permissions.isAdmin || permissions.isFinanceira) && application.attachments && application.attachments.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium">Apólices Anexadas:</p>
-                  {application.attachments.map((attachment: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                      <span className="text-sm text-gray-700">{attachment.filename}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => window.open(`/api/credit/applications/${application.id}/attachments/${attachment.id}`, '_blank')}
-                        title="Baixar arquivo"
-                      >
-                        📥
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Final Approval Actions - Only show if not already approved/rejected */}
-            {application.status !== 'approved' && application.status !== 'rejected' && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button 
-                    onClick={handleApprove}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Aprovar
-                  </Button>
-
-                  <Button 
-                    onClick={handleReject}
-                    variant="destructive"
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <XCircle className="w-4 h-4 mr-1" />
-                    Rejeitar
-                  </Button>
-                </div>
+              {/* Financial Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="financialNotes">Observações Financeiras</Label>
+                <Textarea
+                  id="financialNotes"
+                  placeholder="Adicione observações sobre a análise financeira..."
+                  value={financialData.financialNotes}
+                  onChange={(e) => setFinancialData(prev => ({ ...prev, financialNotes: e.target.value }))}
+                  rows={3}
+                />
               </div>
-            )}
 
-            {/* Status Display for Already Processed Applications */}
-            {(application.status === 'approved' || application.status === 'rejected') && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2">
-                  {application.status === 'approved' ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-600" />
-                  )}
-                  <span className="font-medium">
-                    {application.status === 'approved' ? 'Aplicação Aprovada' : 'Aplicação Rejeitada'}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Esta aplicação já foi processada e não pode ser alterada.
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          // Admin Interface - Pre-approval with Risk Analysis
-          <>
-            {/* Análise de Risco */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nível de Risco</label>
-              <Select
-                value={analysisData.riskLevel}
-                onValueChange={(value) => setAnalysisData(prev => ({ ...prev, riskLevel: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixo Risco</SelectItem>
-                  <SelectItem value="medium">Médio Risco</SelectItem>
-                  <SelectItem value="high">Alto Risco</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Notas da Análise */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Notas da Análise</label>
-              <Textarea
-                placeholder="Adicione observações sobre a análise desta solicitação..."
-                value={analysisData.notes}
-                onChange={(e) => setAnalysisData(prev => ({ ...prev, notes: e.target.value }))}
-                rows={3}
-              />
-            </div>
-
-            <Separator />
-
-            {/* Ações Principais */}
-            <div className="space-y-3">
-              {/* Show submit to financeira button if pre-approved but not yet submitted */}
-              {(application.status === 'pre_approved' && application.status !== 'submitted_to_financial') ? (
+              {/* Action Buttons for Financeira */}
+              <div className="flex gap-2 pt-4">
                 <Button 
-                  onClick={() => {
-                    handleConfirmAction(
-                      "Submeter à Financeira",
-                      "Tem certeza que deseja enviar esta solicitação para análise financeira?",
-                      async () => {
-                        try {
-                          await apiRequest(`/api/admin/credit/applications/${application.id}/submit-to-financeira`, "PUT");
-                          queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
-                          queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
-                          toast({
-                            title: "Sucesso!",
-                            description: "Aplicação enviada para financeira com sucesso.",
-                          });
-                        } catch (error: any) {
-                          toast({
-                            title: "Erro",
-                            description: error.message || "Erro ao enviar para financeira",
-                            variant: "destructive",
-                          });
-                        }
-                      }
-                    );
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                  onClick={handleApprove}
+                  disabled={updateStatusMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Aprovar Crédito
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleReject}
                   disabled={updateStatusMutation.isPending}
                 >
-                  <FileText className="w-4 h-4 mr-1" />
-                  Submeter à Financeira
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Rejeitar
                 </Button>
-              ) : application.status === 'submitted_to_financial' ? (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-blue-800">Enviado para Financeira</span>
-                  </div>
-                  <p className="text-sm text-blue-600 mt-1">
-                    Esta aplicação foi enviada para análise financeira.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button 
-                    onClick={handleApprove}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Pré-aprovar
-                  </Button>
+              </div>
+            </>
+          ) : (
+            // Admin Interface - Pre-analysis and Document Management
+            <>
+              {/* Risk Assessment */}
+              <div className="space-y-2">
+                <Label htmlFor="riskLevel">Nível de Risco</Label>
+                <Select value={analysisData.riskLevel} onValueChange={(value) => setAnalysisData(prev => ({ ...prev, riskLevel: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Baixo</SelectItem>
+                    <SelectItem value="medium">Médio</SelectItem>
+                    <SelectItem value="high">Alto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                  <Button 
-                    onClick={handleReject}
-                    variant="destructive"
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <XCircle className="w-4 h-4 mr-1" />
-                    Rejeitar
-                  </Button>
-                </div>
-              )}
-            </div>
+              {/* Analysis Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notas da Análise</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Adicione observações sobre a análise..."
+                  value={analysisData.notes}
+                  onChange={(e) => setAnalysisData(prev => ({ ...prev, notes: e.target.value }))}
+                  rows={3}
+                />
+              </div>
 
-            <Separator />
+              {/* Request Documents Section */}
+              <div className="space-y-2">
+                <Label htmlFor="requestedDocuments">Solicitar Documentos</Label>
+                <Textarea
+                  id="requestedDocuments"
+                  placeholder="Especifique quais documentos adicionais são necessários..."
+                  value={analysisData.requestedDocuments}
+                  onChange={(e) => setAnalysisData(prev => ({ ...prev, requestedDocuments: e.target.value }))}
+                  rows={2}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRequestDocuments}
+                  disabled={updateStatusMutation.isPending || !analysisData.requestedDocuments.trim()}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Enviar Solicitação
+                </Button>
+              </div>
 
-            {/* Solicitar Documentos */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Solicitar Documentos</label>
-              <Textarea
-                placeholder="Especifique quais documentos adicionais são necessários..."
-                value={analysisData.requestedDocuments}
-                onChange={(e) => setAnalysisData(prev => ({ ...prev, requestedDocuments: e.target.value }))}
-                rows={2}
-              />
-              <Button 
-                variant="outline"
-                onClick={handleRequestDocuments}
-                className="w-full"
-                disabled={updateStatusMutation.isPending}
-              >
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                Solicitar Documentos
-              </Button>
-            </div>
+              {/* Admin Observations */}
+              <div className="space-y-2">
+                <Label htmlFor="observations">Observações para o Importador</Label>
+                <Textarea
+                  id="observations"
+                  placeholder="Adicione observações ou solicitações de esclarecimento..."
+                  value={analysisData.observations}
+                  onChange={(e) => setAnalysisData(prev => ({ ...prev, observations: e.target.value }))}
+                  rows={2}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleAddObservation}
+                  disabled={updateStatusMutation.isPending || !analysisData.observations.trim()}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Enviar Observação
+                </Button>
+              </div>
 
-            {/* Adicionar Observações */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Observações para Importador</label>
-              <Textarea
-                placeholder="Adicione observações ou solicitações de esclarecimento..."
-                value={analysisData.observations}
-                onChange={(e) => setAnalysisData(prev => ({ ...prev, observations: e.target.value }))}
-                rows={2}
-              />
-              <Button 
-                variant="outline"
-                onClick={handleAddObservation}
-                className="w-full"
-                disabled={updateStatusMutation.isPending}
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Enviar Observações
-              </Button>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+              {/* Action Buttons for Admin */}
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={handleApprove}
+                  disabled={updateStatusMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Pré-aprovar
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleReject}
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Rejeitar
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-    {/* Confirmation Dialog */}
-    <AlertDialog 
-      open={confirmDialog.open} 
-      onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {confirmDialog.description}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
-            Cancelar
-          </AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={() => {
-              confirmDialog.action();
-              setConfirmDialog(prev => ({ ...prev, open: false }));
-            }}
-          >
-            Confirmar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDialog.action}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
