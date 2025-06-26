@@ -78,20 +78,20 @@ Implementação completa do módulo de importações integrado ao sistema de cr�
 - [x] Sistema de permissões role-based implementado
 - [x] Formatação compacta de números para métricas (formatCompactNumber)
 
-#### **Sprint 2.2: Formulário de Nova Importação**
-**Componentes a criar:**
-- `client/src/components/imports/ImportForm.tsx` - Formulário principal
-- `client/src/components/imports/ProductManager.tsx` - Gerenciador de produtos LCL
-- `client/src/components/imports/FinancialPreview.tsx` - Preview financeiro
-- `client/src/components/imports/TermsConfirmation.tsx` - Modal de confirmação
+#### **Sprint 2.2: Formulário de Nova Importação** ✅ **CONCLUÍDO**
+**Componentes criados:**
+- ✅ `client/src/components/imports/ImportForm.tsx` - Formulário principal
+- ✅ `client/src/components/imports/ProductManager.tsx` - Gerenciador de produtos LCL
+- ✅ `client/src/components/imports/ImportFinancialPreview.tsx` - Preview financeiro
+- ✅ `client/src/components/imports/TermsConfirmation.tsx` - Modal de confirmação
 
-**Features:**
-- [ ] Seleção FCL/LCL com interface adaptativa
-- [ ] Dropdown de fornecedores cadastrados
-- [ ] Sistema de múltiplos produtos para LCL
-- [ ] Preview financeiro em tempo real
-- [ ] Validação de crédito disponível
-- [ ] Modal de confirmação de termos
+**Features implementadas:**
+- ✅ Seleção FCL/LCL com interface adaptativa
+- ✅ Dropdown de fornecedores cadastrados
+- ✅ Sistema de múltiplos produtos para LCL
+- ✅ Preview financeiro em tempo real
+- ✅ Validação de crédito disponível
+- ✅ Modal de confirmação de termos
 
 ---
 
