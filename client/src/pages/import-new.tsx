@@ -185,10 +185,10 @@ export default function NewImportPage() {
 
   const { importValue, downPayment, financedAmount, adminFeeAmount, totalCost } = calculateTotals();
 
-  // Verificar crédito disponível
+  // Verificar crédito disponível - usando valor total FOB como regra de negócio
   const availableCredit = creditInfo?.[0]?.finalCreditLimit ? 
     parseFloat(creditInfo[0].finalCreditLimit) : 0;
-  const hasEnoughCredit = financedAmount <= availableCredit;
+  const hasEnoughCredit = importValue <= availableCredit;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -625,7 +625,7 @@ export default function NewImportPage() {
                     <p className="text-sm font-medium mb-1">Crédito Disponível</p>
                     <p className="text-lg font-bold">{formatCurrency(availableCredit)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Valor necessário: {formatCurrency(financedAmount)}
+                      Valor necessário: {formatCurrency(importValue)}
                     </p>
                   </div>
 
@@ -635,7 +635,7 @@ export default function NewImportPage() {
                       <div>
                         <p className="text-sm font-medium text-red-800">Crédito Insuficiente</p>
                         <p className="text-xs text-red-600">
-                          Você precisa de {formatCurrency(financedAmount - availableCredit)} adicionais
+                          Você precisa de {formatCurrency(importValue - availableCredit)} adicionais
                         </p>
                       </div>
                     </div>
@@ -645,7 +645,7 @@ export default function NewImportPage() {
                     <div className="p-3 bg-green-50 border border-green-200 rounded">
                       <p className="text-sm font-medium text-green-800">✓ Crédito Suficiente</p>
                       <p className="text-xs text-green-600">
-                        Sobrarão {formatCurrency(availableCredit - financedAmount)} disponíveis
+                        Sobrarão {formatCurrency(availableCredit - importValue)} disponíveis
                       </p>
                     </div>
                   )}
@@ -670,7 +670,7 @@ export default function NewImportPage() {
             <AlertDialogTitle>Confirmar Criação da Importação</AlertDialogTitle>
             <AlertDialogDescription>
               Você está prestes a criar uma importação no valor de {formatCurrency(totalCost)} 
-              (incluindo taxas administrativas). Esta ação reservará {formatCurrency(financedAmount)} 
+              (incluindo taxas administrativas). Esta ação utilizará {formatCurrency(importValue)} 
               do seu crédito disponível.
             </AlertDialogDescription>
           </AlertDialogHeader>
