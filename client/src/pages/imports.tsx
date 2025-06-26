@@ -1,491 +1,319 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { type Import, type User } from "@shared/schema";
-import { formatCurrency } from "@/lib/formatters";
-import AdminImportFilters from "@/components/AdminImportFilters";
-import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  Truck, 
-  Package, 
-  MapPin, 
-  Calendar,
-  DollarSign,
-  Ship,
-  Plane,
-  Plus,
-  Search,
-  Filter,
-  Trash2,
-  Eye,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  MoreVertical,
-  Edit,
-  Building,
-  Box,
-  TrendingUp
-} from "lucide-react";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { Package, Plus, Search, Filter } from "lucide-react";
+import ImportCard from "@/components/imports/ImportCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface ImportItem {
+  id: number;
+  userId: number;
+  importName: string;
+  importNumber?: string;
+  cargoType: 'FCL' | 'LCL';
+  totalValue: string;
+  currency: string;
+  currentStage: string;
+  status: string;
+  estimatedDelivery?: string;
+  supplierId?: number;
+  supplierName?: string;
+  companyName?: string;
+  products: any[];
+  createdAt: string;
+}
 
 export default function ImportsPage() {
-  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { isAdmin, isFinanceira } = useUserPermissions();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [adminFilters, setAdminFilters] = useState({
-    search: "",
-    status: "",
-    company: "",
-    cargoType: "",
-  });
-  const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [supplierFilter, setSupplierFilter] = useState("all");
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedImport, setSelectedImport] = useState<ImportItem | null>(null);
 
-  // Use unified endpoint system
-  const { 
-    isAdmin, 
-    isFinanceira, 
-    getEndpoint, 
-    invalidateAllRelatedQueries,
-    permissions
-  } = useUnifiedEndpoints();
-    const { user } = useAuth();
+  // Determinar endpoint baseado no papel do usuário
+  const endpoint = (isAdmin || isFinanceira) ? "/api/admin/imports" : "/api/imports";
 
-  const { data: imports, isLoading } = useQuery({
-    queryKey: [getEndpoint("imports")],
-    enabled: !!user
+  const { data: imports = [], isLoading } = useQuery<ImportItem[]>({
+    queryKey: [endpoint],
+    enabled: !!user,
   });
 
-  // Filter imports based on admin/financeira or regular user
-  const filteredImports = Array.isArray(imports) ? imports.filter((importItem: any) => {
-    if (isAdmin || isFinanceira) {
-      // Admin filtering using AdminImportFilters
-      const matchesSearch = !adminFilters.search || 
-        importItem.importName?.toLowerCase().includes(adminFilters.search.toLowerCase()) ||
-        importItem.companyName?.toLowerCase().includes(adminFilters.search.toLowerCase()) ||
-        (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
-          product.name?.toLowerCase().includes(adminFilters.search.toLowerCase())
-        ));
-
-      const matchesStatus = !adminFilters.status || importItem.status === adminFilters.status;
-      const matchesCargoType = !adminFilters.cargoType || importItem.cargoType === adminFilters.cargoType;
-
-      return matchesSearch && matchesStatus && matchesCargoType;
-    } else {
-      // Regular user filtering
-      const matchesSearch = !searchTerm || 
-        importItem.importName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (Array.isArray(importItem.products) && importItem.products.some((product: any) => 
-          product.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        ));
-
-      const matchesStatus = !statusFilter || statusFilter === "all" || importItem.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    }
-  }) : [];
-
-  // Calculate metrics
-  const totalImports = Array.isArray(imports) ? imports.length : 0;
-  const activeImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
-    ['planning', 'in_progress', 'shipped'].includes(imp.status)
-  ).length : 0;
-  const completedImports = Array.isArray(imports) ? imports.filter((imp: Import) => imp.status === 'completed').length : 0;
-  const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: Import) => 
-    sum + (parseFloat(imp.totalValue) || 0), 0
-  ) : 0;
-
-  // Handle import cancellation
-  const cancelImportMutation = useMutation({
-    mutationFn: async (importId: number) => {
-      return apiRequest(`/api/imports/${importId}`, 'DELETE');
-    },
-    onSuccess: () => {
-      toast({
-        title: "Importação cancelada",
-        description: "A importação foi cancelada com sucesso.",
-      });
-      invalidateAllRelatedQueries(queryClient, "imports");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao cancelar importação",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'planning': return <Clock className="w-4 h-4" />;
-      case 'in_progress': return <Truck className="w-4 h-4" />;
-      case 'shipped': return <Ship className="w-4 h-4" />;
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'cancelled': return <AlertCircle className="w-4 h-4" />;
-      default: return <Package className="w-4 h-4" />;
-    }
+  const handleCancelImport = (importItem: ImportItem) => {
+    setSelectedImport(importItem);
+    setCancelDialogOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'planning': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'shipped': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const confirmCancelImport = () => {
+    // TODO: Implementar cancelamento via API
+    console.log("Cancelando importação:", selectedImport?.id);
+    setCancelDialogOpen(false);
+    setSelectedImport(null);
   };
 
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      'planning': 'Planejamento',
-      'in_progress': 'Em Andamento',
-      'shipped': 'Enviado',
-      'completed': 'Concluído',
-      'cancelled': 'Cancelado'
+  const getStatusBadge = (status: string, stage: string) => {
+    const statusConfig = {
+      planning: { label: "Planejamento", variant: "secondary" as const, color: "bg-blue-100 text-blue-800 border-blue-200" },
+      active: { label: "Em Andamento", variant: "default" as const, color: "bg-green-100 text-green-800 border-green-200" },
+      completed: { label: "Concluída", variant: "outline" as const, color: "bg-gray-100 text-gray-800 border-gray-200" },
+      cancelled: { label: "Cancelada", variant: "destructive" as const, color: "bg-red-100 text-red-800 border-red-200" }
     };
-    return statusMap[status] || status;
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.planning;
+    
+    return (
+      <Badge variant={config.variant} className={`${config.color} border`}>
+        {config.label}
+      </Badge>
+    );
   };
+
+  const getStageLabel = (stage: string) => {
+    const stages = {
+      estimativa: "Estimativa",
+      producao: "Produção",
+      entregue_agente: "Entregue ao Agente",
+      transporte_maritimo: "Transporte Marítimo",
+      transporte_aereo: "Transporte Aéreo",
+      desembaraco: "Desembaraço",
+      transporte_nacional: "Transporte Nacional",
+      concluido: "Concluído"
+    };
+    return stages[stage as keyof typeof stages] || stage;
+  };
+
+  const formatCurrency = (value: string, currency: string = "USD") => {
+    const numValue = parseFloat(value) || 0;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(numValue);
+  };
+
+  const filteredImports = imports.filter(imp => {
+    const matchesSearch = imp.importName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (imp.importNumber && imp.importNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === "all" || imp.status === statusFilter;
+    const matchesSupplier = supplierFilter === "all" || imp.supplierId?.toString() === supplierFilter;
+    
+    return matchesSearch && matchesStatus && matchesSupplier;
+  });
+
+  // Calcular métricas
+  const totalImports = imports.length;
+  const activeImports = imports.filter(imp => imp.status === 'active').length;
+  const completedImports = imports.filter(imp => imp.status === 'completed').length;
+  const totalValue = imports.reduce((sum, imp) => sum + (parseFloat(imp.totalValue) || 0), 0);
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Carregando importações...</div>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {isFinanceira ? "Análise de Importações" : isAdmin ? "Todas as Importações" : "Minhas Importações"}
+            </h2>
+            <p className="text-muted-foreground">
+              Carregando importações...
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 rounded w-16 animate-pulse mb-1"></div>
+                <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {isFinanceira 
-              ? "Análise de Importações" 
-              : isAdmin 
-                ? "Todas as Importações" 
-                : "Minhas Importações"}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {isFinanceira
-              ? "Monitore importações de empresas aprovadas para análise financeira"
-              : isAdmin
-                ? "Visualize e gerencie importações de todos os importadores"
-                : "Gerencie suas importações da China"}
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold tracking-tight">
+            {isFinanceira ? "Análise de Importações" : isAdmin ? "Todas as Importações" : "Minhas Importações"}
+          </h2>
+          <p className="text-muted-foreground">
+            Gerencie e acompanhe suas importações
           </p>
         </div>
         {!isFinanceira && (
-          <Button
-            onClick={() => setLocation('/imports/new')}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nova Importação
-          </Button>
+          <Link href="/imports/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Importação
+            </Button>
+          </Link>
         )}
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Métricas */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total de Importações</p>
-                <p className="text-2xl font-bold">{totalImports}</p>
-              </div>
-              <Package className="w-8 h-8 text-blue-600" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Importações</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalImports}</div>
+            <p className="text-xs text-muted-foreground">
+              Todas as importações
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Importações Ativas</p>
-                <p className="text-2xl font-bold">{activeImports}</p>
-              </div>
-              <Truck className="w-8 h-8 text-yellow-600" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activeImports}</div>
+            <p className="text-xs text-muted-foreground">
+              Importações ativas
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Concluídas</p>
-                <p className="text-2xl font-bold">{completedImports}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{completedImports}</div>
+            <p className="text-xs text-muted-foreground">
+              Importações finalizadas
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-purple-600" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalValue.toString())}</div>
+            <p className="text-xs text-muted-foreground">
+              Volume importado
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      {(isAdmin || isFinanceira) ? (
-        <AdminImportFilters onFiltersChange={setAdminFilters} />
-      ) : (
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Buscar por fornecedor, produto ou código..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome ou número..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
             </div>
-          </div>
-          <div className="w-full sm:w-48">
+            
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filtrar por status" />
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
                 <SelectItem value="planning">Planejamento</SelectItem>
-                <SelectItem value="in_progress">Em Andamento</SelectItem>
-                <SelectItem value="shipped">Enviado</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="active">Em Andamento</SelectItem>
+                <SelectItem value="completed">Concluída</SelectItem>
+                <SelectItem value="cancelled">Cancelada</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </div>
-      )}
-
-      {/* Imports List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Importações</CardTitle>
-          <p className="text-sm text-gray-600">{filteredImports.length} importações encontradas</p>
-        </CardHeader>
-        <CardContent>
-          {filteredImports.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Nenhuma importação encontrada</p>
-              <Button
-                onClick={() => setLocation('/imports/new')}
-                className="mt-4"
-                variant="outline"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Criar primeira importação
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredImports.map((importItem: any) => (
-                <Card 
-                  key={importItem.id} 
-                  className="hover:shadow-md transition-all"
-                >
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between gap-6">
-                    {/* Left Section - Main Info */}
-                    <div 
-                      className="flex items-center gap-4 min-w-0 flex-1 cursor-pointer"
-                      onClick={() => setLocation(`/imports/details/${importItem.id}`)}
-                    >
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                        <Package className="w-6 h-6" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {importItem.importName || "Produto não especificado"}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          ID: #{importItem.id} • {new Date(importItem.createdAt).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Center Section - Key Metrics */}
-                    <div className="hidden md:flex items-center gap-8">
-                      <div className="text-center">
-                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                          <Package className="w-4 h-4" />
-                          <span>Quantidade</span>
-                        </div>
-                        <div className="font-semibold text-gray-900">
-                          {importItem.products?.length || 'N/A'}
-                        </div>
-                      </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                          <DollarSign className="w-4 h-4" />
-                          <span>Valor Total</span>
-                        </div>
-                        <div className="font-semibold text-green-600">
-                          {importItem.totalValue ? 
-                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                            'N/A'
-                          }
-                        </div>
-                      </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                          <Truck className="w-4 h-4" />
-                          <span>Transporte</span>
-                        </div>
-                        <div className="font-semibold text-gray-900">
-                          {importItem.cargoType || 'N/A'}
-                        </div>
-                      </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Prazo</span>
-                        </div>
-                        <div className="font-semibold text-blue-600">
-                          {importItem.estimatedDelivery ? 
-                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                            'N/A'
-                          }
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Section - Status & Actions */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                       <Badge className={`flex items-center gap-1 text-xs ${getStatusColor(importItem.status)}`}>
-                              {getStatusIcon(importItem.status)}
-                              {getStatusLabel(importItem.status)}
-                            </Badge>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            setLocation(`/imports/details/${importItem.id}`);
-                          }}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalhes
-                          </DropdownMenuItem>
-                          {(importItem.status === 'planning' || !isFinanceira) && (
-                            <DropdownMenuItem onClick={(e) => {
-                              e.stopPropagation();
-                              setLocation(`/imports/edit/${importItem.id}`);
-                            }}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                          )}
-                          {!['completed', 'cancelled'].includes(importItem.status) && !isFinanceira && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Cancelar
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Não, manter</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => cancelImportMutation.mutate(importItem.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Sim, cancelar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-
-                  {/* Mobile View - Additional Info */}
-                  <div className="md:hidden mt-4 pt-4 border-t border-gray-100">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Qtd:</span>
-                        <span className="font-medium">{importItem.products?.length || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Valor:</span>
-                        <span className="font-medium text-green-600">
-                          {importItem.totalValue ? 
-                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                            'N/A'
-                          }
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Transporte:</span>
-                        <span className="font-medium">{importItem.cargoType || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Prazo:</span>
-                        <span className="font-medium text-blue-600">
-                          {importItem.estimatedDelivery ? 
-                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                            'N/A'
-                          }
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {/* Lista de Importações */}
+      <div className="grid gap-4">
+        {filteredImports.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Package className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhuma importação encontrada</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                {imports.length === 0 
+                  ? "Você ainda não tem importações cadastradas." 
+                  : "Nenhuma importação corresponde aos filtros aplicados."}
+              </p>
+              {!isFinanceira && imports.length === 0 && (
+                <Link href="/imports/new">
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Criar Primeira Importação
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          filteredImports.map((importItem) => (
+            <ImportCard key={importItem.id} importData={importItem} />
+          ))
+        )}
+      </div>
+
+      {/* Dialog de Cancelamento */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar a importação "{selectedImport?.importName}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancelImport} className="bg-red-600 hover:bg-red-700">
+              Confirmar Cancelamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

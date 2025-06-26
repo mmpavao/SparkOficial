@@ -400,6 +400,140 @@ Changelog:
   * Separated application submission from document uploads to prevent payload size issues
   * Maintained backward compatibility while optimizing for large file handling
   * Application now handles document uploads up to 10MB per file efficiently without server errors
+- June 25, 2025. Payment terms duplication fix and insurance policy upload system:
+  * Fixed critical payment terms duplication issue where both Financeira and Admin terms were showing to importers
+  * Implemented logic to show only Admin-finalized terms when available, hiding Financeira terms from importers
+  * Added insurance policy upload system with attachments field in database schema
+  * Created secure upload endpoints for admin/financeira roles only with proper authentication
+  * Fixed AdminFinalizationPanel initialization to prevent terms concatenation from previous approvals
+  * Enhanced role-based visibility: importers see only admin final terms and notes, not financial observations
+- June 26, 2025. Credit usage display fix in credit application details:
+  * Fixed critical credit usage display showing incorrect "US$ 0" instead of actual usage
+  * Implemented real-time credit usage query fetching actual data from linked imports
+  * Added dynamic calculation showing US$ 120,000 in use and US$ 30,000 available from US$ 150,000 limit
+  * Enhanced credit details page with authentic usage data without modifying other system components
+  * Maintained backward compatibility with fallback logic for applications without usage data
+- June 26, 2025. Payment schedule system overhaul with authentic credit terms:
+  * Corrected down payment calculation from 10% to 30% (US$ 36,000 from US$ 120,000 import)
+  * Implemented proper payment terms using admin-finalized terms: 30, 60, 90, 120 days
+  * Fixed remaining amount calculation: 70% (US$ 84,000) divided into 4 installments of US$ 21,000 each
+  * Updated import status flow: Estimativa → Produção → Entregue Agente → Transporte Marítimo/Aéreo → Desembaraço → Transporte Nacional → Concluído
+  * Established payment term start date logic: countdown begins when import status changes to "entregue_agente"
+  * Regenerated existing payment schedules with correct financial calculations based on approved credit terms
+  * Enhanced payment schedule generation to use finalApprovedTerms from admin-finalized credit applications
+- June 26, 2025. Enhanced imports interface visual design to match credit applications:
+  * Redesigned imports page with professional card layout identical to credit applications interface
+  * Implemented color-coded status badges with proper visual hierarchy and border indicators
+  * Added comprehensive product preview section with badge display for multiple products
+  * Enhanced dropdown actions menu with proper AlertDialog confirmations for cancellation
+  * Integrated role-based company identification badges for admin/financeira users
+  * Improved responsive design with centered metrics display and consistent spacing
+  * Maintained all existing functionality while upgrading visual presentation to match credit module standards
+- June 26, 2025. Complete removal of import functionality and roadmap creation:
+  * Removed 100% of import functionality from the system per user request due to technical issues
+  * Cleaned navigation menus, dashboard, and all components from import references
+  * Fixed icon import errors and streamlined system to focus exclusively on credit applications
+  * Created comprehensive ROADMAP_IMPORTACOES.md for complete module reimplementation
+  * System now operates as pure credit management platform with detailed implementation plan
+  * Established 14-week development roadmap with 7 phases covering all aspects of import management
+- June 26, 2025. Complete import details page visual overhaul with professional design:
+  * Redesigned import details page with same visual standards as credit application details
+  * Implemented highlighted financial analysis card with gradient background and prominent value display
+  * Added comprehensive timeline component with status indicators and visual progress tracking
+  * Enhanced product section with individual cards, hover effects, and structured information display
+  * Created three-column layout with proper spacing and professional typography
+  * Integrated visual status badges with color coding matching the new imports list interface
+  * Added financial metrics highlighting with US$ formatting and prominent value presentation
+  * Maintained all existing functionality while providing significantly improved visual experience
+- June 26, 2025. Complete payment workflow system with comprehensive actions menu:
+  * Implemented PaymentCard component with dropdown actions menu (Ver detalhes, Pagar, Editar, Cancelar)
+  * Created payment details page with supplier payment data, bank information, and receipt management
+  * Built payment processing page with USD amount display, receipt upload, and method selection
+  * Developed payment editing interface with amount and date modification capabilities
+  * Added confirmation dialogs for all payment actions with proper error handling
+  * Integrated payment status management (pending, paid, overdue) with visual indicators
+  * Created backend endpoints for payment CRUD operations with proper authentication
+  * Implemented receipt upload system with base64 storage and download functionality
+  * Added supplier data integration showing bank details and contact information for payments
+  * Established complete payment workflow from creation to completion with comprehensive tracking
+- June 26, 2025. Admin dashboard status display improvements:
+  * Fixed status labels in admin dashboard to display properly in Portuguese
+  * Removed duplicate status text (approved/approved became just "Aprovado")
+  * Updated "Aplicações por Status" section with clean Portuguese labels
+  * Corrected "Atividade Recente" section to show status in Portuguese alongside colored badges
+  * Enhanced user experience with intuitive status display throughout admin interface
+- June 26, 2025. Complete dashboard data consistency analysis and corrections:
+  * Analyzed and corrected all data inconsistencies in admin dashboard
+  * Fixed "Detalhes do Crédito" to show real system data (US$ 150,000 approved, US$ 120,000 in use, 80% utilization)
+  * Corrected "Pipeline de Importações" to display actual 2 imports in planning stage
+  * Updated "Importações Recentes" with authentic data from database (Importacao teste, Pasta de Tomate)
+  * Removed status duplications in "Atividade Recente" section with single Portuguese labels
+  * Fixed variable scope errors causing dashboard crashes
+  * Dashboard now displays 100% authentic data reflecting real system state
+- June 26, 2025. Compact number formatting system implementation:
+  * Created formatCompactNumber utility for values ≥10,000 (10k, 1M, etc.)
+  * Applied compact formatting to all dashboard value cards for cleaner presentation
+  * Values now display as: 968.5k, 150k, 120k, 600k, 217.5k, 100k, 60k, 30k
+  * Visual-only formatting without affecting underlying data or functionality
+  * Professional modern interface following industry standards for large number display
+- June 26, 2025. Enhanced importer dashboard with additional metrics cards:
+  * Added "Volume Total Importado" card showing US$ 180k (sum of active imports)
+  * Added "Aplicações de Crédito" card displaying current application count
+  * Completed 4-card metrics row for importers with authentic data
+  * Maintained responsive grid layout and consistent visual design
+- June 26, 2025. Fixed importer dashboard data accuracy:
+  * Corrected dashboard to show only user-specific data instead of global admin data
+  * Fixed importations count from 2 to 1 (real user data)
+  * Fixed suppliers count from 4 to 1 (real user data)
+  * Fixed volume from US$ 180k to US$ 120k (calculated from user's real imports)
+  * Dashboard now displays authentic data reflecting actual user state, not admin aggregates
+- June 26, 2025. Comprehensive financial preview system for import creation completed:
+  * Implemented real-time financial calculations showing FOB value, admin fees, down payments, installments
+  * Created two-column layout with form on left and sticky financial preview sidebar on right
+  * Built ImportFinancialPreview component with credit limit validation and available balance display
+  * Added ImportTermsConfirmation modal requiring user acceptance of all costs before import creation
+  * Integrated credit usage tracking preventing over-limit imports with immediate validation
+  * Applied admin fees only to financed amount (excluding down payments) with transparent breakdown
+  * Enhanced import creation workflow with mandatory terms confirmation and financial transparency
+  * System calculates payment schedules automatically with proper down payment and installment logic
+- June 26, 2025. Financial preview system corrections and optimizations:
+  * Fixed calculateAvailableCredit method to use correct Portuguese status values
+  * Corrected credit calculation to use only financed amount (70% after 30% down payment)
+  * Fixed notifications table import error in storage.ts
+  * Enhanced ImportFinancialPreview to display preview even with zero values for user guidance
+  * Improved authentication state management with better cache configuration
+  * System now correctly calculates US$ 150,000 available credit with proper status filtering
+- June 26, 2025. Complete elimination of mock data and real admin fee integration:
+  * Created secure endpoint /api/user/admin-fee for authenticated users to fetch real admin fee data
+  * Fixed ImportFinancialPreview component to use authentic 10% admin fee from approved policy
+  * Corrected duplicate variable naming conflicts causing component crashes
+  * Fixed quantity input validation error preventing proper number handling in product forms
+  * System now uses 100% authentic data with no mock values throughout financial calculations
+- June 26, 2025. Sprint 2.1 completion - Import system core components implemented:
+  * Created ImportCard component with professional visual design and dropdown actions menu
+  * Built ImportFilters component with comprehensive search, status, cargo type, supplier, value range, and date filters
+  * Implemented ImportMetrics component with 8 real-time metrics cards (Total, Active, Completed, Value, Planning, Production, Transport, Success Rate)
+  * Added formatCompactNumber utility for professional large number display (10k, 1M format)
+  * Created imports-new-integrated.tsx page combining all Sprint 2.1 components into functional interface
+  * Integrated role-based permissions system (Financeira view-only, Admin/Importer full access)
+  * Established complete filtering logic with real-time data processing and authenticated API integration
+- June 26, 2025. Sprint 2.2 completion - Import creation form system implemented:
+  * Created comprehensive ImportForm component with adaptive FCL/LCL interface and complete form validation
+  * Built ProductManager component for LCL cargo with inline editing, multiple products support, and real-time totals
+  * Implemented ImportFinancialPreview sidebar showing credit usage, admin fees, and financial breakdown
+  * Created TermsConfirmation modal with detailed cost breakdown and payment schedule preview
+  * Integrated supplier dropdown selection with existing supplier database
+  * Added route /imports/new-form to navigation system for complete import creation workflow
+  * Established complete import creation pipeline from form submission to database storage with credit validation
+- June 26, 2025. Sprint 3.1 completion - Pipeline tracking system with 8-stage workflow implemented:
+  * Created comprehensive pipeline utilities (pipelineUtils.ts) with 8 defined stages and shipping method differentiation
+  * Built ImportTimeline component with visual progress tracking, percentage completion, and interactive timeline
+  * Developed StageCard component for individual stage management with editing capabilities and status indicators
+  * Implemented StageManager component providing complete pipeline control with advance/revert functionality
+  * Added pipeline demonstration page (/imports/pipeline-demo) showcasing all components and features
+  * Established 8-stage workflow: Planejamento → Produção → Entregue Agente → Transporte (Marítimo/Aéreo) → Desembaraço → Transporte Nacional → Concluído
+  * Integrated compact number formatting (10k, 1M) throughout credit details for improved readability
+  * Fixed credit usage display in credit details to show authentic values without structural modifications
 ```
 
 ## User Preferences

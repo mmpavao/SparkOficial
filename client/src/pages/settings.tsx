@@ -98,8 +98,7 @@ export default function SettingsPage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("/api/user/profile", "PUT", data);
-      return response.json();
+      return await apiRequest("/api/user/profile", "PUT", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -108,11 +107,13 @@ export default function SettingsPage() {
         description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
+      setAvatarPreview(null);
     },
     onError: (error: any) => {
+      console.error("Profile update error:", error);
       toast({
         title: "Erro ao salvar",
-        description: error.message || "Erro ao atualizar perfil.",
+        description: error?.message || "Erro ao atualizar perfil.",
         variant: "destructive",
       });
     },

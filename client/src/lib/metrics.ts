@@ -77,6 +77,45 @@ export function calculateImportMetrics(imports: Import[]) {
   };
 }
 
+export function calculateCreditUsage(
+  creditApplications: CreditApplication[],
+  imports: Import[],
+  userRole?: string
+) {
+  // Find approved credits - corrigindo critério de aprovação
+  const approvedCredits = creditApplications.filter(app => 
+    app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
+  );
+
+  if (!approvedCredits.length) {
+    return { used: 0, available: 0, limit: 0 };
+  }
+
+  // Calculate total credit limit - usando limite final do admin
+  const totalLimit = approvedCredits.reduce((sum, app) => {
+    const creditAmount = app.finalCreditLimit || app.creditLimit || "0";
+    return sum + Number(creditAmount);
+  }, 0);
+
+  // Calculate used credit from linked imports - incluindo todos os status ativos
+  const usedCredit = imports
+    .filter(imp => {
+      // Check if import is linked to an approved credit
+      const hasLinkedCredit = approvedCredits.some(ca => ca.id === imp.creditApplicationId);
+      // Incluir todos os status que representam uso ativo do crédito
+      return hasLinkedCredit && !['cancelled', 'delivered'].includes(imp.status);
+    })
+    .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0);
+
+  const availableCredit = Math.max(0, totalLimit - usedCredit);
+
+  return {
+    used: usedCredit,
+    available: availableCredit,
+    limit: totalLimit
+  };
+}
+
 export function buildMetricsData(
   creditApplications: CreditApplication[],
   imports: Import[],
@@ -85,15 +124,20 @@ export function buildMetricsData(
 ): MetricsData {
   const creditMetrics = calculateCreditMetrics(creditApplications, userRole);
   const importMetrics = calculateImportMetrics(imports);
+  const creditUsage = calculateCreditUsage(creditApplications, imports, userRole);
 
   return {
     totalUsers,
     totalCreditRequested: creditMetrics.totalRequested,
     totalCreditApproved: creditMetrics.totalApproved,
+    usedCredit: creditUsage.used,
+    availableCredit: creditUsage.available,
     totalImports: importMetrics.total,
     activeImports: importMetrics.active,
     completedImports: importMetrics.completed,
     totalImportValue: importMetrics.totalValue,
     utilizationRate: creditMetrics.utilizationRate,
+    totalSuppliers: 0, // Will be calculated directly in dashboard
+    totalCreditApplications: creditApplications.length,
   };
 }

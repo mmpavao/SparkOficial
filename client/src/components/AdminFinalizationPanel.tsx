@@ -20,8 +20,9 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     finalCreditLimit: application.creditLimit || "",
-    finalApprovedTerms: application.approvedTerms || "",
+    finalApprovedTerms: "", // Iniciar vazio para evitar concatenação
     finalDownPayment: application.finalDownPayment || "10",
+    adminFee: application.adminFee || "0",
     adminFinalNotes: application.adminFinalNotes || ""
   });
 
@@ -38,6 +39,7 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
         finalCreditLimit: formData.finalCreditLimit,
         finalApprovedTerms: formData.finalApprovedTerms,
         finalDownPayment: formData.finalDownPayment,
+        adminFee: formData.adminFee,
         adminFinalNotes: formData.adminFinalNotes
       });
 
@@ -146,6 +148,22 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
                 onChange={(e) => setFormData(prev => ({ ...prev, finalDownPayment: e.target.value }))}
                 placeholder="Ex: 10"
               />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="adminFee">Taxa Administrativa (%)</Label>
+              <Input
+                id="adminFee"
+                type="text"
+                value={formData.adminFee}
+                onChange={(e) => setFormData(prev => ({ ...prev, adminFee: e.target.value }))}
+                placeholder="Ex: 10"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Taxa aplicada apenas no valor financiado (não inclui entrada)
+              </p>
             </div>
           </div>
 

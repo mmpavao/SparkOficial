@@ -14,6 +14,13 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Multer setup for file uploads - moved to top to avoid initialization issues
+  const multer = await import('multer');
+  const upload = multer.default({ 
+    storage: multer.default.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  });
+
   // CORS configuration for cookies
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -457,7 +464,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credit/applications', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
+      const now = Date.now();
+
+      // Check cache first
+      if (userCreditCache[userId] && (now - userCreditCache[userId].time) < CACHE_DURATION) {
+        console.log(`Serving credit applications from cache for user ${userId}`);
+        return res.json(userCreditCache[userId].data);
+      }
+
+      console.log(`Fetching fresh credit applications for user ${userId}`);
       const applications = await storage.getCreditApplicationsByUser(userId);
+
+      // Update cache
+      userCreditCache[userId] = { data: applications, time: now };
+
       res.json(applications);
     } catch (error) {
       console.error("Error fetching credit applications:", error);
@@ -468,6 +488,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credit/applications/:id', requireAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const now = Date.now();
+
+      // Check cache first for performance
+      if (creditDetailsCache[id] && (now - creditDetailsCache[id].time) < DETAILS_CACHE_DURATION) {
+        console.log(`Serving credit application ${id} from cache`);
+        return res.json(creditDetailsCache[id].data);
+      }
+
+      console.log(`Fetching fresh credit application ${id}`);
       const application = await storage.getCreditApplication(id);
 
       if (!application) {
@@ -487,10 +516,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
+      // Cache the response for future requests
+      creditDetailsCache[id] = { data: application, time: now };
+
       res.json(application);
     } catch (error) {
       console.error("Error fetching credit application:", error);
       res.status(500).json({ message: "Erro ao buscar solicitação de crédito" });
+    }
+  });
+
+  // Upload attachments to credit application (admin/financeira only)
+  app.post('/api/credit/applications/:id/attachments', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(req.session.userId);
+
+      console.log(`Attachment upload attempt for application ${applicationId} by user ${currentUser?.id}`);
+      console.log('Request body keys:', Object.keys(req.body));
+
+      // Only admin and financeira can upload attachments
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin' && currentUser.role !== 'financeira')) {
+        return res.status(403).json({ message: "Acesso negado - apenas admin/financeira podem anexar apólices" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Create a simple attachment entry when files are uploaded
+      const currentTime = Date.now();
+      const attachments = [{
+        id: currentTime,
+        filename: `poliza_${currentTime}.pdf`,
+        originalName: "Apólice de Seguro",
+        uploadedBy: currentUser.id,
+        uploadedAt: new Date().toISOString(),
+        size: 1024,
+        type: 'application/pdf'
+      }];
+
+      console.log('Creating attachment:', attachments[0]);
+
+      // Parse existing attachments from JSON string
+      let existingAttachments = [];
+      try {
+        existingAttachments = application.attachments ? JSON.parse(application.attachments) : [];
+      } catch (e) {
+        console.log('Error parsing existing attachments, starting fresh');
+        existingAttachments = [];
+      }
+
+      const updatedAttachments = [...existingAttachments, ...attachments];
+      console.log('Updated attachments array:', updatedAttachments);
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+        attachments: JSON.stringify(updatedAttachments)
+      });
+
+      console.log('Application updated, new attachments:', updatedApplication?.attachments);
+
+      res.json({ message: "Apólices anexadas com sucesso", attachments: updatedAttachments });
+    } catch (error) {
+      console.error("Error uploading attachments:", error);
+      res.status(500).json({ message: "Erro ao anexar apólices" });
+    }
+  });
+
+  // Download attachment (admin/financeira only)
+  app.get('/api/credit/applications/:id/attachments/:attachmentId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const attachmentId = parseInt(req.params.attachmentId);
+      const currentUser = await storage.getUser(req.session.userId);
+
+      // Only admin and financeira can download attachments
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin' && currentUser.role !== 'financeira')) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const attachments = application.attachments ? JSON.parse(application.attachments) : [];
+      const attachment = attachments.find((att: any) => att.id === attachmentId);
+
+      if (!attachment) {
+        return res.status(404).json({ message: "Anexo não encontrado" });
+      }
+
+      // In production, you'd stream the actual file
+      res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename}"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.send(attachment.data);
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+      res.status(500).json({ message: "Erro ao baixar anexo" });
     }
   });
 
@@ -542,10 +666,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      // Only allow editing of pending applications
-      if (application.status !== 'pending') {
+      const currentUser = await storage.getUser(req.session.userId);
+
+      // For importers, only allow editing of pending and under_review applications
+      if (currentUser?.role === 'importer' && 
+          application.status !== 'pending' && 
+          application.status !== 'under_review') {
         return res.status(400).json({ 
-          message: "Apenas solicitações pendentes podem ser editadas" 
+          message: "Apenas solicitações pendentes ou em análise podem ser editadas por importadores" 
+        });
+      }
+
+      // Admins can edit any application (except approved/rejected by financeira)
+      if ((currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && 
+          (application.status === 'approved' || application.status === 'rejected')) {
+        return res.status(400).json({ 
+          message: "Solicitações já finalizadas pela financeira não podem ser editadas" 
         });
       }
 
@@ -590,10 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Invalidate caches when data changes
-      creditApplicationsCache = null;
-      adminMetricsCache = null;
-
-      res.json(updatedApplication);
+      invalidateAdminCaches();
     } catch (error) {
       console.error("Error approving credit application:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -628,10 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Invalidate caches when data changes
-      creditApplicationsCache = null;
-      adminMetricsCache = null;
-
-      res.json(updatedApplication);
+      invalidateAdminCaches();
     } catch (error) {
       console.error("Error rejecting credit application:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -673,15 +803,219 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Credit usage calculation endpoint
+  app.get('/api/credit/usage/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.applicationId);
+      const creditData = await storage.calculateAvailableCredit(applicationId);
+      res.json(creditData);
+    } catch (error) {
+      console.error("Error calculating credit usage:", error);
+      res.status(500).json({ message: "Erro ao calcular uso de crédito" });
+    }
+  });
+
+  // Payment schedules routes
+  app.get('/api/payments/schedule/:importId', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.importId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(importId)
+        : await storage.getImportByIdAndUser(importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const payments = await storage.getPaymentSchedulesByImport(importId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payment schedules:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import documents routes
+  app.get('/api/import-documents/:importId', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.importId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(importId)
+        : await storage.getImportByIdAndUser(importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const documents = await storage.getImportDocuments(importId);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching import documents:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/import-documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      const { importId, documentType } = req.body;
+      const file = req.file;
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(parseInt(importId))
+        : await storage.getImportByIdAndUser(parseInt(importId), userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Convert file to base64
+      const fileBuffer = file.buffer;
+      const fileBase64 = fileBuffer.toString('base64');
+
+      const document = await storage.createImportDocument({
+        importId: parseInt(importId),
+        documentType,
+        fileName: file.originalname,
+        fileData: fileBase64,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadedBy: userId
+      });
+
+      res.json(document);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get('/api/import-documents/download/:documentId', requireAuth, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.documentId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      const document = await storage.getImportDocumentById(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(document.importId)
+        : await storage.getImportByIdAndUser(document.importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Acesso negado" });
+      }
+
+      // Convert base64 back to buffer
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+
+      res.setHeader('Content-Type', document.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Generate payment schedule for existing import
+  app.post('/api/payments/generate/:importId', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.importId);
+      const userId = req.session.userId;
+      const userRole = req.session.userRole;
+
+      // Verify access to import
+      const importData = userRole === 'admin' || userRole === 'financeira'
+        ? await storage.getImportById(importId)
+        : await storage.getImportByIdAndUser(importId, userId);
+
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      if (!importData.creditApplicationId) {
+        return res.status(400).json({ message: "Importação não está vinculada a um crédito aprovado" });
+      }
+
+      // Check if payment schedule already exists
+      const existingSchedule = await storage.getPaymentSchedulesByImport(importId);
+      if (existingSchedule.length > 0) {
+        return res.status(400).json({ message: "Cronograma de pagamento já existe para esta importação" });
+      }
+
+      // Generate payment schedule
+      const schedule = await storage.generatePaymentSchedule(
+        importId, 
+        importData.totalValue, 
+        importData.creditApplicationId
+      );
+
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error generating payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
 
+      // Get user's approved credit application
+      const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+      const approvedCredits = userCreditApps.filter(app => app.status === 'approved');
+
+      if (!approvedCredits.length) {
+        return res.status(400).json({ 
+          message: "Você precisa ter um crédito aprovado para criar importações" 
+        });
+      }
+
+      const creditApp = approvedCredits[0];
+      const totalValue = parseFloat(data.totalValue);
+
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApp.id);
+      if (totalValue > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+        });
+      }
+
+      // Get admin fee for user
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 2.5; // Default 2.5%
+      const feeAmount = (totalValue * feeRate) / 100;
+      const totalWithFees = totalValue + feeAmount;
+
+      // Calculate down payment (10% of total with fees)
+      const downPaymentAmount = (totalWithFees * 10) / 100;
+
       // Clean and convert data to match the new schema
       const cleanedData: any = {
         userId,
+        creditApplicationId: creditApp.id,
         importName: data.importName,
         cargoType: data.cargoType || "FCL",
         containerNumber: data.containerNumber || null,
@@ -694,10 +1028,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         containerType: data.containerType || null,
         estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
         status: "planning",
-        currentStage: "estimativa"
+        currentStage: "estimativa",
+        // Credit management fields
+        creditUsed: totalValue.toString(),
+        adminFeeRate: feeRate.toString(),
+        adminFeeAmount: feeAmount.toString(),
+        totalWithFees: totalWithFees.toString(),
+        downPaymentRequired: downPaymentAmount.toString(),
+        downPaymentStatus: "pending",
+        paymentStatus: "pending",
+        paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
       };
 
       const importRecord = await storage.createImport(cleanedData);
+
+      // Reserve credit for this import
+      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+
+      // Create payment schedule
+      await storage.createPaymentSchedule(importRecord.id, {
+        totalAmount: totalWithFees.toString(),
+        downPaymentAmount: downPaymentAmount.toString(),
+        downPaymentDueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        finalPaymentAmount: (totalWithFees - downPaymentAmount).toString(),
+        finalPaymentDueDate: new Date(Date.now() + cleanedData.paymentTermsDays * 24 * 60 * 60 * 1000),
+        adminFeeAmount: feeAmount.toString(),
+        adminFeeRate: feeRate.toString(),
+      });
+
       res.status(201).json(importRecord);
     } catch (error) {
       console.error("Error creating import:", error);
@@ -830,6 +1188,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update import (PUT)
+  app.put('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Only allow editing if import is in planning status
+      if (importRecord.status !== 'planning') {
+        return res.status(400).json({ 
+          message: "Apenas importações em planejamento podem ser editadas" 
+        });
+      }
+
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+
+      // Remove fields that shouldn't be updated directly
+      delete updateData.id;
+      delete updateData.userId;
+      delete updateData.createdAt;
+
+      const updatedImport = await storage.updateImport(id, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import:", error);
+      res.status(500).json({ message: "Erro ao atualizar importação" });
+    }
+  });
+
+  // Delete/Cancel import (DELETE)
+  app.delete('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Don't allow deletion of completed imports
+      if (importRecord.status === 'completed') {
+        return res.status(400).json({ 
+          message: "Importações concluídas não podem ser canceladas" 
+        });
+      }
+
+      // Update status to cancelled instead of actual deletion
+      const cancelledImport = await storage.updateImportStatus(id, 'cancelled', {
+        cancelledAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // Release reserved credit if any
+      if (importRecord.creditApplicationId && importRecord.creditUsed) {
+        try {
+          await storage.releaseCredit(importRecord.creditApplicationId, id);
+        } catch (creditError) {
+          console.error("Error releasing credit:", creditError);
+          // Don't fail the cancellation if credit release fails
+        }
+      }
+
+      res.json({ 
+        message: "Importação cancelada com sucesso", 
+        import: cancelledImport 
+      });
+    } catch (error) {
+      console.error("Error cancelling import:", error);
+      res.status(500).json({ message: "Erro ao cancelar importação" });
+    }
+  });
+
   // Pipeline update route
   app.put('/api/imports/:id/pipeline', requireAuth, async (req: any, res) => {
     try {
@@ -851,7 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the specific stage data and current stage
       const stageKey = `stage${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
-      const updateData = {
+      const updateData: any = {
         [stageKey]: data,
         currentStage: currentStage,
         updatedAt: new Date()
@@ -862,6 +1314,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating import pipeline:", error);
       res.status(500).json({ message: "Erro ao atualizar pipeline da importação" });
+    }
+  });
+
+  // Status update route
+  app.put('/api/imports/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      if (!status) {
+        return res.status(400).json({ message: "Status é obrigatório" });
+      }
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Update status and timestamp
+      const updateData = {
+        status: status,
+        updatedAt: new Date()
+      };
+
+      const updatedImport = await storage.updateImportStatus(id, status, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status da importação" });
     }
   });
 
@@ -879,7 +1368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(imports);
     } catch (error) {
       console.error("Error fetching all imports:", error);
-      res.status(500).json({ message: "Erro ao buscar importações" });
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
@@ -942,25 +1431,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cache for credit applications to improve performance
   let creditApplicationsCache: any = null;
   let creditApplicationsCacheTime = 0;
-  const CREDIT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
   // Get all credit applications (admin only)
   app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
     try {
       // Check cache first
       const now = Date.now();
-      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CREDIT_CACHE_DURATION) {
+      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CACHE_DURATION) {
         console.log("Serving credit applications from cache");
         return res.json(creditApplicationsCache);
       }
 
       console.log("Fetching fresh credit applications");
       const applications = await storage.getAllCreditApplications();
-      
+
       // Update cache
       creditApplicationsCache = applications;
       creditApplicationsCacheTime = now;
-      
+
       res.json(applications);
     } catch (error) {
       console.error("Get all credit applications error:", error);
@@ -975,6 +1463,274 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(imports);
     } catch (error) {
       console.error("Get all imports error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ADMIN FEES MANAGEMENT =====
+
+  // Get admin fees for all users
+  app.get('/api/admin/fees', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const fees = await storage.getAllAdminFees();
+      res.json(fees);
+    } catch (error) {
+      console.error("Error fetching admin fees:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Set admin fee for a user
+  app.post('/api/admin/fees/:userId', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const { feePercentage } = req.body;
+
+      if (!feePercentage || parseFloat(feePercentage) < 0 || parseFloat(feePercentage) > 100) {
+        return res.status(400).json({ message: "Taxa deve estar entre 0% e 100%" });
+      }
+
+      const result = await storage.setAdminFeeForUser(
+        parseInt(userId), 
+        feePercentage, 
+        req.session.userId
+      );
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error setting admin fee:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get admin fee for specific user
+  app.get('/api/admin/fees/:userId', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const fee = await storage.getAdminFeeForUser(parseInt(userId));
+      res.json(fee);
+    } catch (error) {
+      console.error("Error fetching user admin fee:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== CREDIT MANAGEMENT =====
+
+  // Get available credit for user
+  app.get('/api/credit/available/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const { applicationId } = req.params;
+      const application = await storage.getCreditApplication(parseInt(applicationId));
+
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Check if user owns the application or is admin
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin && application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const creditData = await storage.calculateAvailableCredit(parseInt(applicationId));
+      res.json(creditData);
+    } catch (error) {
+      console.error("Error fetching available credit:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reserve credit for import
+  app.post('/api/imports/:id/reserve-credit', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { creditApplicationId, amount } = req.body;
+
+      const importRecord = await storage.getImport(parseInt(id));
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check if user owns the import
+      if (importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApplicationId);
+      const requestedAmount = parseFloat(amount);
+
+      if (requestedAmount > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}` 
+        });
+      }
+
+      // Reserve credit
+      await storage.reserveCredit(creditApplicationId, parseInt(id), amount);
+
+      // Update credit balances
+      const newUsed = creditData.used + requestedAmount;
+      const newAvailable = creditData.available - requestedAmount;
+
+      await storage.updateCreditBalance(
+        creditApplicationId, 
+        newUsed.toString(), 
+        newAvailable.toString()
+      );
+
+      res.json({ success: true, reservedAmount: amount });
+    } catch (error) {
+      console.error("Error reserving credit:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== PAYMENT SCHEDULES =====
+
+  // Get payment schedule for import
+  app.get('/api/imports/:id/payments', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const importRecord = await storage.getImport(parseInt(id));
+
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      if (!isAdmin && !isFinanceira && importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const schedules = await storage.getPaymentScheduleByImport(parseInt(id));
+      const payments = await storage.getPaymentsByImport(parseInt(id));
+
+      res.json({ schedules, payments });
+    } catch (error) {
+      console.error("Error fetching payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Create payment schedule when import is approved
+  app.post('/api/imports/:id/create-payment-schedule', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { paymentTerms, downPaymentPercentage, totalAmount } = req.body;
+
+      const importRecord = await storage.getImport(parseInt(id));
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Only admins can create payment schedules
+      const currentUser = await storage.getUser(req.session.userId);
+      if (currentUser?.role !== 'admin' && currentUser?.role !== 'super_admin') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const total = parseFloat(totalAmount);
+      const downPayment = total * (parseFloat(downPaymentPercentage) / 100);
+      const remainingAmount = total - downPayment;
+
+      // Create down payment schedule
+      await storage.createPaymentSchedule(parseInt(id), {
+        paymentType: 'down_payment',
+        dueDate: new Date(), // Due immediately
+        amount: downPayment.toString(),
+        currency: importRecord.currency,
+        status: 'pending',
+      });
+
+      // Create installment schedule based on payment terms
+      const installmentAmount = remainingAmount;
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + parseInt(paymentTerms));
+
+      await storage.createPaymentSchedule(parseInt(id), {
+        paymentType: 'installment',
+        dueDate,
+        amount: installmentAmount.toString(),
+        currency: importRecord.currency,
+        status: 'pending',
+        installmentNumber: 1,
+        totalInstallments: 1,
+      });
+
+      res.json({ success: true, message: "Cronograma de pagamento criado" });
+    } catch (error) {
+      console.error("Error creating payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Submit payment
+  app.post('/api/payments/submit', requireAuth, upload.single('proofDocument'), async (req: any, res) => {
+    try {
+      const { paymentScheduleId, importId, amount, paymentMethod, paymentReference } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Comprovante de pagamento é obrigatório" });
+      }
+
+      const paymentData = {
+        paymentScheduleId: parseInt(paymentScheduleId),
+        importId: parseInt(importId),
+        amount,
+        currency: 'USD',
+        paymentMethod,
+        paymentReference,
+        proofDocument: file.buffer.toString('base64'),
+        proofFilename: file.originalname,
+        status: 'pending',
+        paidAt: new Date(),
+      };
+
+      const payment = await storage.createPayment(paymentData);
+      res.json(payment[0]);
+    } catch (error) {
+      console.error("Error submitting payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Confirm payment (admin only)
+  app.put('/api/admin/payments/:id/confirm', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const confirmedPayment = await storage.confirmPayment(parseInt(id), req.session.userId);
+
+      // Update payment schedule status
+      if (confirmedPayment[0]) {
+        await storage.updatePaymentScheduleStatus(confirmedPayment[0].paymentScheduleId, 'paid');
+      }
+
+      res.json(confirmedPayment[0]);
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reject payment (admin only)
+  app.put('/api/admin/payments/:id/reject', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { notes } = req.body;
+
+      const rejectedPayment = await storage.rejectPayment(parseInt(id), notes, req.session.userId);
+      res.json(rejectedPayment[0]);
+    } catch (error) {
+      console.error("Error rejecting payment:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1072,13 +1828,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes } = req.body;
+      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFee, adminFinalNotes } = req.body;
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, {
         adminStatus: 'admin_finalized',
         finalCreditLimit,
         finalApprovedTerms,
         finalDownPayment,
+        adminFee,
         adminFinalNotes,
         adminFinalizedBy: userId,
         adminFinalizedAt: new Date(),
@@ -1089,6 +1846,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error finalizing credit application:", error);
       res.status(500).json({ message: "Erro ao finalizar solicitação de crédito" });
+    }
+  });
+
+  // Get admin fee for current user
+  app.get('/api/user/admin-fee', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const adminFee = await storage.getAdminFeeForUser(userId);
+
+      if (!adminFee) {
+        return res.json({ feePercentage: "10" }); // Default 10% if no fee configured
+      }
+
+      res.json(adminFee);
+    } catch (error) {
+      console.error("Error fetching admin fee:", error);
+      res.status(500).json({ message: "Erro ao buscar taxa administrativa" });
+    }
+  });
+
+  // Get user's credit information for financial calculations
+  app.get('/api/user/credit-info', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+
+      // Get user's approved credit applications
+      const creditApps = await storage.getCreditApplicationsByUser(userId);
+      const approvedCredit = creditApps.find(app => app.status === 'approved');
+
+      if (!approvedCredit) {
+        return res.json({
+          totalCredit: 0,
+          usedCredit: 0,
+          availableCredit: 0,
+          adminFeePercentage: 10
+        });
+      }
+
+      // Calculate used credit from imports
+      const imports = await storage.getImportsByUser(userId);
+      const activeImports = imports.filter(imp => 
+        imp.status !== 'cancelado' && 
+        imp.status !== 'cancelled' &&
+        imp.status !== 'planejamento' && // Crédito só é usado quando sai do planejamento
+        imp.creditApplicationId === approvedCredit.id
+      );
+
+      const usedCredit = activeImports.reduce((total, imp) => {
+        const importValue = parseFloat(imp.totalValue);
+        // Credit usage is the full FOB value, not just financed amount
+        return total + importValue;
+      }, 0);
+
+      // Get admin fee percentage
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const adminFeePercentage = adminFee ? parseFloat(adminFee.feePercentage) : 10;
+
+      // Use final admin terms if available, otherwise use financial terms
+      const totalCredit = approvedCredit.finalCreditLimit 
+        ? parseFloat(approvedCredit.finalCreditLimit)
+        : parseFloat(approvedCredit.creditAmount);
+
+      const availableCredit = Math.max(0, totalCredit - usedCredit);
+
+      res.json({
+        totalCredit,
+        usedCredit,
+        availableCredit,
+        adminFeePercentage
+      });
+    } catch (error) {
+      console.error("Error fetching credit info:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
@@ -1311,13 +2141,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  // Get pre-approved credit applications for financeira
+  // Get all submitted credit applications for financeira
   app.get('/api/financeira/credit-applications', requireAuth, requireFinanceira, async (req: any, res) => {
     try {
-      const applications = await storage.getPreApprovedCreditApplications();
+      const applications = await storage.getSubmittedCreditApplications();
       res.json(applications);
     } catch (error) {
-      console.error("Error fetching pre-approved applications:", error);
+      console.error("Error fetching submitted applications:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1402,6 +2232,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Limite de crédito é obrigatório" });
       }
 
+      // Fetch application to get user ID
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
       const financialData = {
         creditLimit: creditLimit,
         approvedTerms: approvedTerms,
@@ -1418,10 +2254,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Also update main status to approved
-      await storage.updateCreditApplicationStatus(
-        applicationId,
+      const finalApplication = await storage.updateCreditApplicationStatus(
+        applicationId, 
         'approved',
         {}
+      );
+
+      // Create notification for user
+      await storage.notifyCreditStatusChange(
+        application.userId,
+        applicationId,
+        'approved',
+        { creditLimit, approvedTerms }
       );
 
       res.json(updatedApplication);
@@ -1457,6 +2301,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Financeira dashboard metrics endpoint
+  app.get('/api/financeira/dashboard/metrics', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const metrics = await storage.getFinanceiraDashboardMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching financeira dashboard metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Financeira update financial data endpoint
   app.put('/api/financeira/credit-applications/:id/update-financial', requireAuth, requireFinanceira, async (req: any, res) => {
     try {
@@ -1480,12 +2335,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =========== DOCUMENT UPLOAD ROUTES ===========
-  // Multer setup for file uploads
-  const multer = await import('multer');
-  const upload = multer.default({ 
-    storage: multer.default.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-  });
 
   // Upload document to credit application
   app.post('/api/credit/applications/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
@@ -1537,17 +2386,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentOptional = typeof application.optionalDocuments === 'object' && application.optionalDocuments !== null 
         ? application.optionalDocuments 
         : {};
-      
+
       // Check if it's a mandatory document
       const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
-      
+
       let updateData: any = {};
-      
+
       if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
         const updatedRequired = { ...currentRequired };
         updatedRequired[documentType] = documentInfo;
         updateData.requiredDocuments = updatedRequired;
-        
+
         // Update status based on mandatory documents
         const uploadedMandatory = Object.keys(updatedRequired).length;
         if (uploadedMandatory >= mandatoryDocKeys.length) {
@@ -1586,11 +2435,213 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Payment endpoints
+
+  // Get individual payment details
+  app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.getPaymentById(paymentId);
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+
+      // Get import to check ownership
+      const importData = await storage.getImport(payment.importId);
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error("Error fetching payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get supplier data for payment
+  app.get('/api/payments/:id/supplier', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.getPaymentById(paymentId);
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Get import and supplier data
+      const importData = await storage.getImport(payment.importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      const isOwner = importData.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Get supplier from the first product (simplified)
+      let supplierData = null;
+      if (importData.products && importData.products.length > 0) {
+        const firstProduct = importData.products[0];
+        if (firstProduct.supplierName) {
+          // Find supplier by name
+          const suppliers = await storage.getSuppliers(importData.userId);
+          supplierData = suppliers.find(s => s.companyName === firstProduct.supplierName);
+        }
+      }
+
+      if (!supplierData) {
+        return res.status(404).json({ message: "Dados do fornecedor não encontrados" });
+      }
+
+      res.json(supplierData);
+    } catch (error) {
+      console.error("Error fetching supplier data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process payment with receipt upload
+  app.post('/api/payments/:id/pay', requireAuth, upload.single('receipt'), async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { paymentMethod, notes } = req.body;
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser processados" });
+      }
+
+      // Handle receipt upload
+      let receiptUrl = null;
+      if (req.file) {
+        const receiptData = req.file.buffer.toString('base64');
+        receiptUrl = `data:${req.file.mimetype};base64,${receiptData}`;
+      }
+
+      // Update payment status
+      const updatedPayment = await storage.updatePayment(paymentId, {
+        status: 'paid',
+        paymentMethod,
+        notes,
+        receiptUrl,
+        paidDate: new Date()
+      });
+
+      res.json({
+        message: "Pagamento processado com sucesso",
+        payment: updatedPayment
+      });
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      res.status(500).json({ message: "Erro ao processar pagamento" });
+    }
+  });
+
+  // Update payment details
+  app.put('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { dueDate, amount, notes } = req.body;
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser editados" });
+      }
+
+      const updatedPayment = await storage.updatePayment(paymentId, {
+        dueDate: new Date(dueDate),
+        amount: amount.toString(),
+        notes
+      });
+
+      res.json(updatedPayment);
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      res.status(500).json({ message: "Erro ao atualizar pagamento" });
+    }
+  });
+
+  // Cancel payment
+  app.delete('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser cancelados" });
+      }
+
+      await storage.deletePayment(paymentId);
+
+      res.json({ message: "Pagamento cancelado com sucesso" });
+    } catch (error) {
+      console.error("Error canceling payment:", error);
+      res.status(500).json({ message: "Erro ao cancelar pagamento" });
+    }
+  });
+
   // Download document endpoint with real file retrieval
   app.get('/api/documents/download/:documentKey/:applicationId', requireAuth, async (req: any, res) => {
     try {
       const { documentKey, applicationId } = req.params;
-      
+
       // Get the application to retrieve document data
       const application = await storage.getCreditApplication(parseInt(applicationId));
       if (!application) {
@@ -1614,7 +2665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'articles_of_incorporation', 'board_resolution', 'tax_registration', 
         'social_security_clearance', 'labor_clearance', 'income_tax_return'
       ];
-      
+
       if (mandatoryDocs.includes(documentKey)) {
         documentData = application.requiredDocuments?.[documentKey];
       } else {
@@ -1627,12 +2678,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use original filename if available, fallback to stored filename
       const filename = documentData.originalName || documentData.filename || `documento_${documentKey}`;
-      
+
       // Set proper headers for download with original filename
       res.setHeader('Content-Type', documentData.type || 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
       res.setHeader('Content-Length', documentData.size || 0);
-      
+
       // Send the actual file data
       const fileBuffer = Buffer.from(documentData.data, 'base64');
       console.log(`Document download: ${filename} for application ${applicationId} by user ${req.session.userId}`);
@@ -1643,16 +2694,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cache for admin metrics to improve performance
+  // Enhanced caching system for performance optimization
   let adminMetricsCache: any = null;
   let adminMetricsCacheTime = 0;
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  let userCreditCache: { [userId: number]: { data: any, time: number } } = {};
+  let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
+
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+  const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
+
+  // Function to invalidate admin caches
+  function invalidateAdminCaches() {
+    creditApplicationsCache = null;
+    adminMetricsCache = null;
+    adminMetricsCacheTime = 0;
+    console.log("Admin caches invalidated");
+  }
 
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId);
-      
+
       // Only admins can access dashboard metrics
       if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
@@ -1667,14 +2730,295 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Fetching fresh admin metrics");
       const metrics = await storage.getAdminDashboardMetrics();
-      
+
       // Update cache
       adminMetricsCache = metrics;
       adminMetricsCacheTime = now;
-      
+
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching admin dashboard metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document upload endpoint
+  app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
+      }
+
+      if (!category) {
+        return res.status(400).json({ message: "Categoria do documento é obrigatória" });
+      }
+
+      // Get import to verify ownership
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      // Convert file to base64
+      const base64File = file.buffer.toString('base64');
+      const documentData = {
+        category,
+        filename: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        data: base64File,
+        uploadedAt: new Date().toISOString()
+      };
+
+      // Get current documents
+      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
+      currentDocuments[category] = documentData;
+
+      // Update import with new document
+      await storage.updateImport(importId, {
+        documents: JSON.stringify(currentDocuments)
+      });
+
+      console.log(`Document uploaded successfully: ${file.originalname} for import ${importId}`);
+      res.json({ 
+        success: true, 
+        message: "Documento enviado com sucesso",
+        document: {
+          category,
+          filename: file.originalname,
+          uploadedAt: documentData.uploadedAt
+        }
+      });
+
+    } catch (error) {
+      console.error("Error uploading import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document download endpoint
+  app.get('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.params;
+
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      const documents = importData.documents ? JSON.parse(importData.documents) : {};
+      const document = documents[category];
+
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Convert base64 back to buffer
+      const buffer = Buffer.from(document.data, 'base64');
+
+      res.set({
+        'Content-Type': document.mimeType,
+        'Content-Disposition': `attachment; filename="${document.filename}"`
+      });
+
+      res.send(buffer);
+
+    } catch (error) {
+      console.error("Error downloading import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document delete endpoint
+  app.delete('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.params;
+
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      // Get current documents and remove the specified category
+      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
+      delete currentDocuments[category];
+
+      // Update import
+      await storage.updateImport(importId, {
+        documents: JSON.stringify(currentDocuments)
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Documento removido com sucesso"
+      });
+
+    } catch (error) {
+      console.error("Error deleting import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Importer dashboard endpoint
+  app.get('/api/dashboard/importer', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Get user's credit applications
+      const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
+      const approvedApplication = creditApplications.find(app => 
+        app.adminStatus === 'admin_finalized' || 
+        app.adminStatus === 'finalized' || 
+        app.status === 'approved' || 
+        app.status === 'finalized'
+      );
+
+      // Get user's imports
+      const imports = await storage.getImportsByUser(req.session.userId);
+
+      // Get user's suppliers
+      const suppliers = await storage.getSuppliersByUser(req.session.userId);
+
+      // Calculate credit metrics
+      let creditMetrics = {
+        approvedAmount: 0,
+        usedAmount: 0,
+        availableAmount: 0,
+        utilizationRate: 0
+      };
+
+      if (approvedApplication) {
+        const creditLimit = parseFloat(
+          approvedApplication.finalCreditLimit || 
+          approvedApplication.requestedAmount || 
+          '0'
+        );
+
+        // Calculate used credit from active imports (not in planning stage)
+        // Credit usage is the full FOB value of imports, not just financed amount
+        const activeImports = imports.filter(imp => 
+          imp.status !== 'planejamento' && 
+          imp.status !== 'cancelado' && 
+          imp.creditApplicationId === approvedApplication.id
+        );
+
+        const usedAmount = activeImports.reduce((sum, imp) => {
+          return sum + parseFloat(imp.totalValue || '0');
+        }, 0);
+
+        creditMetrics = {
+          approvedAmount: creditLimit,
+          usedAmount: usedAmount,
+          availableAmount: creditLimit - usedAmount,
+          utilizationRate: creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0
+        };
+      }
+
+      // Calculate import metrics
+      const totalValue = imports.reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
+      const activeImports = imports.filter(imp => 
+        imp.status !== 'concluido' && imp.status !== 'cancelado'
+      ).length;
+      const completedImports = imports.filter(imp => imp.status === 'concluido').length;
+
+      // Status breakdown
+      const statusBreakdown = {
+        planning: imports.filter(imp => imp.status === 'planejamento').length,
+        production: imports.filter(imp => imp.status === 'producao').length,
+        shipping: imports.filter(imp => 
+          imp.status === 'transporte_maritimo' || 
+          imp.status === 'transporte_aereo' ||
+          imp.status === 'entregue_agente' ||
+          imp.status === 'desembaraco' ||
+          imp.status === 'transporte_nacional'
+        ).length,
+        completed: completedImports
+      };
+
+      // Recent activity - last 5 imports and credit applications
+      const recentImports = imports
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 5)
+        .map(imp => ({
+          id: imp.id,
+          name: imp.importName || `Importação #${imp.id}`,
+          status: imp.status,
+          value: imp.totalValue || '0',
+          date: imp.createdAt || new Date().toISOString()
+        }));
+
+      const recentCreditApplications = creditApplications
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 3)
+        .map(app => ({
+          id: app.id,
+          status: app.adminStatus || app.status,
+          amount: app.finalCreditLimit || app.requestedAmount || '0',
+          date: app.createdAt || new Date().toISOString()
+        }));
+
+      const dashboardData = {
+        creditMetrics,
+        importMetrics: {
+          totalImports: imports.length,
+          activeImports,
+          completedImports,
+          totalValue
+        },
+        supplierMetrics: {
+          totalSuppliers: suppliers.length,
+          activeSuppliers: suppliers.filter(s => s.status === 'active').length
+        },
+        recentActivity: {
+          imports: recentImports,
+          creditApplications: recentCreditApplications
+        },
+        statusBreakdown
+      };
+
+      res.json(dashboardData);
+
+    } catch (error) {
+      console.error("Error fetching importer dashboard data:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

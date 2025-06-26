@@ -26,9 +26,10 @@ export function useAdminMetrics(enabled: boolean = true) {
       return response;
     },
     enabled, // Only run when enabled
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchInterval: 1000 * 60 * 10, // 10 minutes
-    retry: 2, // Reduce retries
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    refetchInterval: 1000 * 60 * 20, // 20 minutes
+    retry: 1, // Reduce retries
     refetchOnWindowFocus: false, // Prevent unnecessary refetches
+    refetchOnReconnect: false, // Prevent reconnect refetches
   });
 }

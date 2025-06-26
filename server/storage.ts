@@ -3,6 +3,12 @@ import {
   creditApplications, 
   imports,
   suppliers,
+  creditUsage,
+  adminFees,
+  paymentSchedules,
+  payments,
+  importDocuments,
+  notifications,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -13,112 +19,51 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
-// Interface for storage operations
-export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByCnpj(cnpj: string): Promise<User | undefined>;
-  createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User>;
-  updateUser(id: number, data: Partial<User>): Promise<User>;
-  
-  // Credit application operations
-  createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication>;
-  getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]>;
-  getCreditApplication(id: number): Promise<CreditApplication | undefined>;
-  updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication>;
-  updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication>;
-  
-  // Import operations
-  createImport(importData: InsertImport): Promise<Import>;
-  getImportsByUser(userId: number): Promise<Import[]>;
-  getImport(id: number): Promise<Import | undefined>;
-  updateImportStatus(id: number, status: string, updateData?: any): Promise<Import>;
-  
-  // Supplier operations
-  createSupplier(supplierData: InsertSupplier): Promise<Supplier>;
-  getSuppliersByUser(userId: number): Promise<Supplier[]>;
-  getSupplier(id: number): Promise<Supplier | undefined>;
-  updateSupplier(id: number, data: Partial<InsertSupplier>): Promise<Supplier>;
-  deleteSupplier(id: number): Promise<void>;
-  
-  // Admin operations
-  getAllUsers(): Promise<User[]>;
-  getAllCreditApplications(): Promise<CreditApplication[]>;
-  getAllImports(): Promise<Import[]>;
-  getAllSuppliers(): Promise<Supplier[]>;
-  
-  // User management operations
-  createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User>;
-  updateUserRole(userId: number, role: string): Promise<User>;
-  deactivateUser(userId: number): Promise<User>;
-  getUsersByRole(role: string): Promise<User[]>;
-  
-  // Financial operations
-  getPreApprovedCreditApplications(): Promise<CreditApplication[]>;
-  updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication>;
-  getSuppliersByPreApprovedUsers(): Promise<Supplier[]>;
-  getImportsByPreApprovedUsers(): Promise<Import[]>;
-  
-  // Admin dashboard metrics
-  getAdminDashboardMetrics(): Promise<{
-    totalImporters: number;
-    totalApplications: number;
-    applicationsByStatus: { [key: string]: number };
-    totalCreditVolume: number;
-    approvedCreditVolume: number;
-    totalImports: number;
-    totalSuppliers: number;
-    recentActivity: any[];
-  }>;
-}
+export class DatabaseStorage {
+  // ===== USER OPERATIONS =====
 
-export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
   }
 
   async getUserByCnpj(cnpj: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.cnpj, cnpj));
-    return user || undefined;
+    const result = await db.select().from(users).where(eq(users.cnpj, cnpj)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User> {
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values({ ...insertUser, password: hashedPassword })
       .returning();
     return user;
   }
 
   async updateUser(id: number, data: Partial<User>): Promise<User> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
-    
-    const [updatedUser] = await db
+    const [user] = await db
       .update(users)
-      .set(updateData)
+      .set(data)
       .where(eq(users.id, id))
       .returning();
-    return updatedUser;
+    return user;
   }
 
-  // Credit application operations
+  // ===== CREDIT APPLICATION OPERATIONS =====
+
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
     const [creditApp] = await db
       .insert(creditApplications)
-      .values([application])
+      .values(application)
       .returning();
     return creditApp;
   }
@@ -132,70 +77,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCreditApplication(id: number): Promise<CreditApplication | undefined> {
-    const [application] = await db
+    const result = await db
       .select()
       .from(creditApplications)
-      .where(eq(creditApplications.id, id));
-    return application || undefined;
+      .where(eq(creditApplications.id, id))
+      .limit(1);
+    return result[0];
   }
 
   async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {
-    const updateData: any = { 
-      status, 
-      updatedAt: new Date() 
-    };
-    
-    if (reviewData) {
-      if (reviewData.reviewedBy) updateData.reviewedBy = reviewData.reviewedBy;
-      if (reviewData.approvedAmount) updateData.approvedAmount = reviewData.approvedAmount;
-      if (reviewData.interestRate) updateData.interestRate = reviewData.interestRate;
-      if (reviewData.paymentTerms) updateData.paymentTerms = reviewData.paymentTerms;
-      if (reviewData.notes) updateData.reviewNotes = reviewData.notes;
-      updateData.reviewedAt = new Date();
-
-      // Administrative analysis fields
-      if (reviewData.preAnalysisStatus) updateData.preAnalysisStatus = reviewData.preAnalysisStatus;
-      if (reviewData.riskLevel) updateData.riskLevel = reviewData.riskLevel;
-      if (reviewData.analysisNotes) updateData.analysisNotes = reviewData.analysisNotes;
-      if (reviewData.requestedDocuments) updateData.requestedDocuments = reviewData.requestedDocuments;
-      if (reviewData.adminObservations) updateData.adminObservations = reviewData.adminObservations;
-      if (reviewData.analyzedBy) updateData.analyzedBy = reviewData.analyzedBy;
-      if (reviewData.analyzedBy) updateData.analyzedAt = new Date();
-    }
-
-    const [application] = await db
+    const [creditApp] = await db
       .update(creditApplications)
-      .set(updateData)
+      .set({ 
+        status,
+        ...reviewData,
+        updatedAt: new Date()
+      })
       .where(eq(creditApplications.id, id))
       .returning();
-    return application;
+    return creditApp;
   }
 
-  async updateCreditApplication(id: number, data: any): Promise<CreditApplication> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
-
-    const [application] = await db
+  async updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication> {
+    const [creditApp] = await db
       .update(creditApplications)
-      .set(updateData)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(creditApplications.id, id))
       .returning();
-    return application;
+    return creditApp;
   }
 
-  // Import operations
+  // ===== IMPORT OPERATIONS =====
+
   async createImport(importData: InsertImport): Promise<Import> {
-    // Convert estimatedDelivery string to Date if present
-    const processedData = {
-      ...importData,
-      estimatedDelivery: importData.estimatedDelivery ? new Date(importData.estimatedDelivery) : null
-    };
-    
     const [importRecord] = await db
       .insert(imports)
-      .values([processedData as any])
+      .values(importData)
       .returning();
     return importRecord;
   }
@@ -209,36 +126,153 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getImport(id: number): Promise<Import | undefined> {
-    const [importRecord] = await db
+    const result = await db
       .select()
       .from(imports)
-      .where(eq(imports.id, id));
-    return importRecord || undefined;
+      .where(eq(imports.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  // Get import by ID (admin access)
+  async getImportById(importId: number) {
+    const result = await db.select()
+      .from(imports)
+      .where(eq(imports.id, importId))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  // Get import by ID and user (user access control)
+  async getImportByIdAndUser(importId: number, userId: number) {
+    const result = await db.select()
+      .from(imports)
+      .where(and(eq(imports.id, importId), eq(imports.userId, userId)))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  // Payment schedules methods
+  async getPaymentSchedulesByImport(importId: number) {
+    const result = await db.select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+    return result;
+  }
+
+  // Import documents methods
+  async getImportDocuments(importId: number) {
+    const result = await db.select()
+      .from(importDocuments)
+      .where(eq(importDocuments.importId, importId))
+      .orderBy(desc(importDocuments.uploadedAt));
+    return result;
+  }
+
+  async createImportDocument(data: {
+    importId: number;
+    documentType: string;
+    fileName: string;
+    fileData: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedBy: number;
+  }) {
+    const result = await db.insert(importDocuments).values({
+      importId: data.importId,
+      documentType: data.documentType,
+      fileName: data.fileName,
+      fileData: data.fileData,
+      fileSize: data.fileSize,
+      mimeType: data.mimeType,
+      uploadedBy: data.uploadedBy,
+    }).returning();
+    return result[0];
+  }
+
+  async getImportDocumentById(documentId: number) {
+    const result = await db.select()
+      .from(importDocuments)
+      .where(eq(importDocuments.id, documentId))
+      .limit(1);
+    return result[0] || null;
   }
 
   async updateImportStatus(id: number, status: string, updateData?: any): Promise<Import> {
-    const data: any = { 
-      status, 
-      updatedAt: new Date() 
-    };
-    
-    if (updateData) {
-      if (updateData.trackingNumber) data.trackingNumber = updateData.trackingNumber;
-      if (updateData.customsStatus) data.customsStatus = updateData.customsStatus;
-      if (updateData.estimatedDelivery) data.estimatedDelivery = updateData.estimatedDelivery;
-      if (updateData.notes) data.notes = updateData.notes;
-      if (updateData.documents) data.documents = updateData.documents;
-    }
-
     const [importRecord] = await db
       .update(imports)
-      .set(data)
+      .set({ status, ...updateData, updatedAt: new Date() })
       .where(eq(imports.id, id))
       .returning();
     return importRecord;
   }
 
-  // Supplier operations
+  async updateImport(id: number, updateData: any): Promise<Import> {
+    const [importRecord] = await db
+      .update(imports)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(imports.id, id))
+      .returning();
+    return importRecord;
+  }
+
+  async releaseCredit(creditApplicationId: number, importId: number): Promise<void> {
+    // Remove credit usage record
+    await db
+      .delete(creditUsage)
+      .where(and(
+        eq(creditUsage.creditApplicationId, creditApplicationId),
+        eq(creditUsage.importId, importId)
+      ));
+  }
+
+  // Add missing storage methods for payments and credit management
+  async updateCreditBalance(creditApplicationId: number, usedAmount: string, availableAmount: string): Promise<void> {
+    await db
+      .update(creditApplications)
+      .set({ 
+        creditUsed: usedAmount,
+        updatedAt: new Date()
+      })
+      .where(eq(creditApplications.id, creditApplicationId));
+  }
+
+  async getPaymentsByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
+
+  async confirmPayment(paymentId: number, confirmationData: any) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: "paid",
+        paidAt: new Date(),
+        receiptData: confirmationData.receiptData,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
+
+  async rejectPayment(paymentId: number, reason: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: "rejected",
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
+
+  // ===== SUPPLIER OPERATIONS =====
+
   async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
     const [supplier] = await db
       .insert(suppliers)
@@ -256,107 +290,348 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSupplier(id: number): Promise<Supplier | undefined> {
-    const [supplier] = await db
+    const result = await db
       .select()
       .from(suppliers)
-      .where(eq(suppliers.id, id));
-    return supplier || undefined;
+      .where(eq(suppliers.id, id))
+      .limit(1);
+    return result[0];
   }
 
   async updateSupplier(id: number, data: Partial<InsertSupplier>): Promise<Supplier> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
-
     const [supplier] = await db
       .update(suppliers)
-      .set(updateData)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(suppliers.id, id))
       .returning();
     return supplier;
   }
 
   async deleteSupplier(id: number): Promise<void> {
-    await db
-      .delete(suppliers)
-      .where(eq(suppliers.id, id));
+    await db.delete(suppliers).where(eq(suppliers.id, id));
   }
 
-  // Admin operations
+  // ===== ADMIN OPERATIONS =====
+
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
-    try {
-      // Use JOIN instead of separate queries for better performance
-      const result = await db
-        .select({
-          ...getTableColumns(creditApplications),
-          companyName: users.companyName
-        })
-        .from(creditApplications)
-        .leftJoin(users, eq(creditApplications.userId, users.id))
-        .orderBy(desc(creditApplications.createdAt))
-        .limit(100); // Limit results for performance
-      
-      return result as any[];
-    } catch (error) {
-      console.error('Error in getAllCreditApplications:', error);
-      // Fallback to original method if JOIN fails
-      const allApplications = await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt)).limit(100);
-      const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-      
-      const result = allApplications.map(app => {
-        const user = allUsers.find(u => u.id === app.userId);
-        return {
-          ...app,
-          companyName: user?.companyName || 'Empresa não encontrada'
-        };
-      });
-      
-      return result as any[];
-    }
+    const applications = await db
+      .select()
+      .from(creditApplications)
+      .orderBy(desc(creditApplications.createdAt));
+
+    return applications;
+  }
+
+  async getAllCreditApplicationsOptimized(): Promise<CreditApplication[]> {
+    // Query otimizada sem dados pesados desnecessários
+    const applications = await db
+      .select({
+        id: creditApplications.id,
+        userId: creditApplications.userId,
+        legalCompanyName: creditApplications.legalCompanyName,
+        requestedAmount: creditApplications.requestedAmount,
+        status: creditApplications.status,
+        preAnalysisStatus: creditApplications.preAnalysisStatus,
+        financialStatus: creditApplications.financialStatus,
+        adminStatus: creditApplications.adminStatus,
+        createdAt: creditApplications.createdAt,
+        updatedAt: creditApplications.updatedAt,
+        finalCreditLimit: creditApplications.finalCreditLimit,
+        creditLimit: creditApplications.creditLimit,
+        approvedTerms: creditApplications.approvedTerms,
+        finalApprovedTerms: creditApplications.finalApprovedTerms
+      })
+      .from(creditApplications)
+      .orderBy(desc(creditApplications.createdAt));
+
+    return applications;
   }
 
   async getAllImports(): Promise<Import[]> {
-    const allImports = await db.select().from(imports).orderBy(desc(imports.createdAt));
-    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
-    const result = allImports.map(importItem => {
-      const user = allUsers.find(u => u.id === importItem.userId);
-      return {
-        ...importItem,
-        companyName: user?.companyName || 'Empresa não encontrada'
-      };
-    });
-    
-    return result as any[];
+    const importsTable = imports;
+    const imports = await db
+      .select()
+      .from(importsTable)
+      .orderBy(desc(importsTable.createdAt));
+
+    return imports;
+  }
+
+  async getAllImportsOptimized(): Promise<Import[]> {
+    const importsTable = imports;
+    // Query otimizada sem dados JSON pesados
+    const imports = await db
+      .select({
+        id: importsTable.id,
+        userId: importsTable.userId,
+        creditApplicationId: importsTable.creditApplicationId,
+        importName: importsTable.importName,
+        importNumber: importsTable.importNumber,
+        cargoType: importsTable.cargoType,
+        totalValue: importsTable.totalValue,
+        currency: importsTable.currency,
+        status: importsTable.status,
+        currentStage: importsTable.currentStage,
+        estimatedDelivery: importsTable.estimatedDelivery,
+        createdAt: importsTable.createdAt,
+        updatedAt: importsTable.updatedAt,
+        incoterms: importsTable.incoterms,
+        shippingMethod: importsTable.shippingMethod,
+        containerType: importsTable.containerType,
+        paymentStatus: importsTable.paymentStatus,
+        downPaymentStatus: importsTable.downPaymentStatus
+      })
+      .from(importsTable)
+      .orderBy(desc(importsTable.createdAt));
+
+    return imports;
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
-    const allSuppliers = await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
-    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
-    const result = allSuppliers.map(supplier => {
-      const user = allUsers.find(u => u.id === supplier.userId);
-      return {
-        ...supplier,
-        companyName: user?.companyName || 'Empresa não encontrada'
-      };
-    });
-    
-    return result as any[];
+    return await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
   }
 
-  // User management operations
+  // ===== CREDIT MANAGEMENT =====
+
+  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
+    const application = await this.getCreditApplication(creditApplicationId);
+    if (!application) throw new Error("Credit application not found");
+
+    const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
+
+    // Get all active imports linked to this credit application
+    const activeImports = await db
+      .select()
+      .from(imports)
+      .where(
+        and(
+          eq(imports.creditApplicationId, creditApplicationId),
+          inArray(imports.status, ["planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional"])
+        )
+      );
+
+    // Calculate total used credit from active imports (full FOB value - credit covers entire import)
+    const usedCredit = activeImports.reduce((total, importRecord) => {
+      const importValue = parseFloat(importRecord.totalValue || "0");
+      // Credit usage is the full FOB value, not just financed amount
+      return total + importValue;
+    }, 0);
+
+    const availableCredit = creditLimit - usedCredit;
+
+    console.log(`Credit calculation for app ${creditApplicationId}:`, {
+      creditLimit,
+      activeImports: activeImports.length,
+      usedCredit,
+      availableCredit
+    });
+
+    return {
+      used: usedCredit,
+      available: Math.max(0, availableCredit),
+      limit: creditLimit
+    };
+  }
+
+  async reserveCredit(creditApplicationId: number, importId: number, amount: string) {
+    return await db
+      .insert(creditUsage)
+      .values({
+        creditApplicationId,
+        importId,
+        amountUsed: amount,
+        status: "reserved",
+        reservedAt: new Date(),
+      })
+      .returning();
+  }
+
+  async confirmCreditUsage(creditApplicationId: number, importId: number) {
+    return await db
+      .update(creditUsage)
+      .set({
+        status: "confirmed",
+        confirmedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.importId, importId)
+        )
+      )
+      .returning();
+  }
+
+
+
+  // Generate payment schedule for import based on credit terms
+  async generatePaymentSchedule(importId: number, totalValue: string, creditApplicationId: number) {
+    // Get credit application to fetch payment terms
+    const creditApp = await this.getCreditApplication(creditApplicationId);
+    if (!creditApp) throw new Error("Credit application not found");
+
+    const totalAmount = parseFloat(totalValue);
+
+    // Get down payment percentage from credit application (admin finalized or financial terms)
+    const downPaymentPercent = creditApp.adminStatus === 'admin_finalized' 
+      ? (parseFloat((creditApp as any).finalDownPayment || "30")) / 100
+      : (parseFloat((creditApp as any).downPayment || "30")) / 100;
+
+    const downPaymentAmount = totalAmount * downPaymentPercent;
+    const remainingAmount = totalAmount - downPaymentAmount;
+
+    // Parse payment terms (e.g., "30,60,90,120" days)
+    const paymentTerms = creditApp.adminStatus === 'admin_finalized'
+      ? (creditApp as any).finalApprovedTerms || (creditApp as any).approvedTerms || "30,60,90,120"
+      : (creditApp as any).approvedTerms || "30,60,90,120";
+
+    const termsDays = paymentTerms.split(',').map((term: string) => parseInt(term.trim()));
+    const installmentAmount = remainingAmount / termsDays.length;
+
+    const schedules = [];
+
+    // Down payment - due when import status changes to "entregue_agente"
+    schedules.push({
+      importId,
+      paymentType: "down_payment",
+      amount: downPaymentAmount.toFixed(2),
+      currency: "USD",
+      dueDate: new Date(), // Will be updated when status changes
+      status: "pending",
+      installmentNumber: null,
+      totalInstallments: null
+    });
+
+    // Installments based on payment terms - start counting from "entregue_agente" status
+    for (let i = 0; i < termsDays.length; i++) {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + termsDays[i]);
+
+      schedules.push({
+        importId,
+        paymentType: "installment",
+        amount: installmentAmount.toFixed(2),
+        currency: "USD",
+        dueDate,
+        status: "pending",
+        installmentNumber: i + 1,
+        totalInstallments: termsDays.length
+      });
+    }
+
+    // Insert all payment schedules
+    return await db.insert(paymentSchedules).values(schedules).returning();
+  }
+
+  // ===== ADMIN FEES =====
+
+  async getAdminFeeForUser(userId: number) {
+    const result = await db
+      .select()
+      .from(adminFees)
+      .where(
+        and(
+          eq(adminFees.userId, userId),
+          eq(adminFees.isActive, true)
+        )
+      )
+      .limit(1);
+
+    return result[0] || null;
+  }
+
+  async setAdminFeeForUser(userId: number, feePercentage: string, createdBy: number) {
+    return await db
+      .insert(adminFees)
+      .values({
+        userId,
+        feePercentage,
+        createdBy,
+        isActive: true,
+        createdAt: new Date(),
+      })
+      .returning();
+  }
+
+  async getAllAdminFees() {
+    return await db.select().from(adminFees).where(eq(adminFees.isActive, true));
+  }
+
+  // ===== PAYMENT SCHEDULES =====
+
+  async createPaymentSchedule(importId: number, paymentData: any) {
+    return await db
+      .insert(paymentSchedules)
+      .values({
+        importId,
+        paymentType: paymentData.paymentType || "down_payment",
+        dueDate: paymentData.dueDate || new Date(),
+        amount: paymentData.amount || "0",
+        currency: paymentData.currency || "USD",
+        status: "pending",
+        installmentNumber: paymentData.installmentNumber,
+        totalInstallments: paymentData.totalInstallments,
+      })
+      .returning();
+  }
+
+  async getPaymentScheduleByImport(importId: number) {
+    const result = await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .limit(1);
+    return result[0];
+  }
+
+  async updatePaymentScheduleStatus(scheduleId: number, status: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(paymentSchedules.id, scheduleId))
+      .returning();
+  }
+
+  // ===== PAYMENTS =====
+
+  async createPayment(paymentData: any) {
+    return await db
+      .insert(payments)
+      .values({
+        ...paymentData,
+        createdAt: new Date(),
+      })
+      .returning();
+  }
+
+  async getPaymentsBySchedule(scheduleId: number) {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.paymentScheduleId, scheduleId));
+  }
+
+  async updatePaymentStatus(paymentId: number, status: string) {
+    return await db
+      .update(payments)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(payments.id, paymentId))
+      .returning();
+  }
+
+  // ===== USER MANAGEMENT =====
+
   async createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User> {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const [user] = await db
       .insert(users)
-      .values({
-        ...userData,
+      .values({ 
+        ...userData, 
         password: hashedPassword,
       })
       .returning();
@@ -375,104 +650,83 @@ export class DatabaseStorage implements IStorage {
   async deactivateUser(userId: number): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ role: "inactive", updatedAt: new Date() })
+      .set({ status: "inactive", updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return user;
   }
 
   async getUsersByRole(role: string): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.role, role));
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.role, role))
+      .orderBy(desc(users.createdAt));
   }
 
-  // Financial operations
+  // ===== FINANCIAL OPERATIONS =====
+
   async getPreApprovedCreditApplications(): Promise<CreditApplication[]> {
     return await db
       .select()
       .from(creditApplications)
+      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"))
+      .orderBy(desc(creditApplications.createdAt));
+  }
+
+  async getSubmittedCreditApplications(): Promise<CreditApplication[]> {
+    return await db
+      .select()
+      .from(creditApplications)
       .where(
-        inArray(creditApplications.status, ["pre_approved", "approved"])
-      );
+        or(
+          eq(creditApplications.preAnalysisStatus, "pre_approved"),
+          eq(creditApplications.status, "submitted_to_financial"),
+          eq(creditApplications.financialStatus, "approved"),
+          eq(creditApplications.financialStatus, "rejected"),
+          eq(creditApplications.status, "approved"),
+          eq(creditApplications.status, "rejected")
+        )
+      )
+      .orderBy(desc(creditApplications.createdAt));
   }
 
   async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
-    const updateData: any = {
-      financialStatus: status,
-      financialAnalyzedAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    if (financialData?.creditLimit) {
-      updateData.creditLimit = financialData.creditLimit;
-    }
-    if (financialData?.approvedTerms) {
-      updateData.approvedTerms = JSON.stringify(financialData.approvedTerms);
-    }
-    if (financialData?.financialNotes) {
-      updateData.financialNotes = financialData.financialNotes;
-    }
-    if (financialData?.financialAnalyzedBy) {
-      updateData.financialAnalyzedBy = financialData.financialAnalyzedBy;
-    }
-
-    const [application] = await db
+    const [creditApp] = await db
       .update(creditApplications)
-      .set(updateData)
+      .set({ 
+        status,
+        ...financialData,
+        updatedAt: new Date()
+      })
       .where(eq(creditApplications.id, id))
       .returning();
-    return application;
+    return creditApp;
   }
 
   async getSuppliersByPreApprovedUsers(): Promise<Supplier[]> {
-    // Get all users with pre-approved credit applications
-    const preApprovedApplications = await db
-      .select({ userId: creditApplications.userId })
-      .from(creditApplications)
-      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
-    
-    if (preApprovedApplications.length === 0) {
-      return [];
-    }
+    const preApprovedApps = await this.getPreApprovedCreditApplications();
+    const userIds = preApprovedApps.map(app => app.userId);
 
-    const userIds = preApprovedApplications.map(app => app.userId);
-    
-    // Get all suppliers
-    const allSuppliers = await db.select().from(suppliers);
-    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
-    // Filter suppliers by pre-approved users and add company name
-    const result = allSuppliers
-      .filter(supplier => userIds.includes(supplier.userId))
-      .map(supplier => {
-        const user = allUsers.find(u => u.id === supplier.userId);
-        return {
-          ...supplier,
-          importerCompanyName: user?.companyName || 'Empresa não encontrada'
-        };
-      });
-    
-    return result as any[];
+    if (userIds.length === 0) return [];
+
+    return await db
+      .select()
+      .from(suppliers)
+      .where(inArray(suppliers.userId, userIds))
+      .orderBy(desc(suppliers.createdAt));
   }
 
   async getImportsByPreApprovedUsers(): Promise<Import[]> {
-    // Get all users with pre-approved credit applications
-    const preApprovedApplications = await db
-      .select({ userId: creditApplications.userId })
-      .from(creditApplications)
-      .where(eq(creditApplications.preAnalysisStatus, "pre_approved"));
-    
-    if (preApprovedApplications.length === 0) {
-      return [];
-    }
+    const preApprovedApps = await this.getPreApprovedCreditApplications();
+    const userIds = preApprovedApps.map(app => app.userId);
 
-    const userIds = preApprovedApplications.map(app => app.userId);
-    
-    // Get all imports
+    if (userIds.length === 0) return [];
+
     const allImports = await db.select().from(imports);
-    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
-    
-    // Filter imports by pre-approved users and add company name
-    const result = allImports
+    const allUsers = await db.select().from(users);
+
+    return allImports
       .filter(importItem => userIds.includes(importItem.userId))
       .map(importItem => {
         const user = allUsers.find(u => u.id === importItem.userId);
@@ -480,95 +734,420 @@ export class DatabaseStorage implements IStorage {
           ...importItem,
           companyName: user?.companyName || 'Empresa não encontrada'
         };
-      });
-    
-    return result as any[];
+      }) as Import[];
   }
 
-  async getAdminDashboardMetrics() {
+  async getFinanceiraDashboardMetrics() {
     try {
-      // Optimize queries - get only necessary data
-      const [allUsers, allApplications, allImports, allSuppliers] = await Promise.all([
-        db.select({ id: users.id, companyName: users.companyName, role: users.role, status: users.status }).from(users),
-        db.select({ 
-          id: creditApplications.id, 
-          userId: creditApplications.userId, 
-          status: creditApplications.status,
-          requestedAmount: creditApplications.requestedAmount,
-          createdAt: creditApplications.createdAt 
-        }).from(creditApplications).orderBy(desc(creditApplications.createdAt)),
-        db.select({ id: imports.id }).from(imports),
-        db.select({ id: suppliers.id }).from(suppliers)
+      // Get all applications that were submitted to financeira (pre-approved or higher)
+      const [submittedApplications, allUsers, allImports] = await Promise.all([
+        db.select().from(creditApplications)
+        .where(
+          or(
+            eq(creditApplications.preAnalysisStatus, "pre_approved"),
+            eq(creditApplications.status, "submitted_to_financial"),
+            eq(creditApplications.financialStatus, "approved"),
+            eq(creditApplications.financialStatus, "rejected"),
+            eq(creditApplications.status, "approved"),
+            eq(creditApplications.status, "rejected")
+          )
+        )
+        .orderBy(desc(creditApplications.createdAt)),
+
+        db.select().from(users),
+
+        db.select().from(imports).where(isNotNull(imports.creditApplicationId))
       ]);
 
-      // Count importers (excluding admin/super_admin/financeira)
-      const totalImporters = allUsers.filter(user => 
-        user.role === 'importer' && user.status === 'active'
-      ).length;
-
-      // Count applications by status
-      const applicationsByStatus: { [key: string]: number } = {};
-      const statusLabels = {
-        'pre_analysis': 'Pré-Análise',
-        'pre_approved': 'Pré-Aprovado', 
-        'final_analysis': 'Análise Final',
-        'approved': 'Aprovado',
-        'rejected': 'Rejeitado',
-        'cancelled': 'Cancelado'
-      };
-
-      // Initialize counts
-      Object.keys(statusLabels).forEach(status => {
-        applicationsByStatus[statusLabels[status as keyof typeof statusLabels]] = 0;
-      });
-
-      // Count actual applications
-      allApplications.forEach(app => {
-        const statusLabel = statusLabels[app.status as keyof typeof statusLabels] || app.status;
-        applicationsByStatus[statusLabel] = (applicationsByStatus[statusLabel] || 0) + 1;
-      });
-
-      // Calculate credit volumes
-      const totalCreditVolume = allApplications.reduce((sum, app) => {
-        const amount = parseFloat(app.requestedAmount) || 0;
-        return sum + amount;
+      // Calculate metrics
+      const totalApplicationsSubmitted = submittedApplications.length;
+      const totalCreditRequested = submittedApplications.reduce((sum, app) => {
+        const amount = app.requestedAmount || '0';
+        return sum + parseFloat(amount.toString());
       }, 0);
 
-      const approvedCreditVolume = allApplications
-        .filter(app => app.status === 'approved')
-        .reduce((sum, app) => {
-          const amount = parseFloat(app.requestedAmount) || 0;
-          return sum + amount;
-        }, 0);
+      // Calculate approved applications and total credit approved
+      const approvedApplications = submittedApplications.filter(app => 
+        app.financialStatus === 'approved' || app.status === 'approved'
+      );
+      const totalCreditApproved = approvedApplications.reduce((sum, app) => {
+        const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
+        return sum + parseFloat(approvedAmount.toString());
+      }, 0);
 
-      // Get recent activity (last 10 applications)
-      const recentActivity = allApplications
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      // Calculate credit in use from active imports
+      const totalCreditInUse = allImports
+        .filter(imp => imp.status !== 'cancelado' && imp.status !== 'cancelled' && imp.status !== 'planejamento')
+        .reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
+
+      const totalCreditAvailable = totalCreditApproved - totalCreditInUse;
+
+      // Calculate applications by status
+      const applicationsByStatus = {
+        pending: submittedApplications.filter(app => 
+          app.preAnalysisStatus === 'pre_approved' && 
+          !app.financialStatus && 
+          app.status !== 'approved' && 
+          app.status !== 'rejected'
+        ).length,
+        under_review: submittedApplications.filter(app => 
+          app.financialStatus === 'under_review' || 
+          app.status === 'submitted_to_financial'
+        ).length,
+        approved: submittedApplications.filter(app => 
+          app.financialStatus === 'approved' || app.status === 'approved'
+        ).length,
+        rejected: submittedApplications.filter(app => 
+          app.financialStatus === 'rejected' || app.status === 'rejected'
+        ).length,
+        cancelled: submittedApplications.filter(app => 
+          app.status === 'cancelled'
+        ).length
+      };
+
+      // Calculate approval rate
+      const totalProcessed = applicationsByStatus.approved + applicationsByStatus.rejected;
+      const approvalRate = totalProcessed > 0 ? (applicationsByStatus.approved / totalProcessed) * 100 : 0;
+
+      // Calculate average approval time (in days)
+      const approvedWithTimes = approvedApplications.filter(app => 
+        app.submittedToFinancialAt && app.financialAnalyzedAt
+      );
+      const averageApprovalTime = approvedWithTimes.length > 0 
+        ? approvedWithTimes.reduce((sum, app) => {
+            const submitted = new Date(app.submittedToFinancialAt!);
+            const analyzed = new Date(app.financialAnalyzedAt!);
+            const diffDays = Math.ceil((analyzed.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24));
+            return sum + diffDays;
+          }, 0) / approvedWithTimes.length
+        : 0;
+
+      // Recent activity - last 10 applications
+      const recentActivity = submittedApplications
         .slice(0, 10)
         .map(app => {
           const user = allUsers.find(u => u.id === app.userId);
           return {
-            id: app.id,
+            id: app.id || 0,
             companyName: user?.companyName || 'Empresa não encontrada',
-            status: app.status,
-            amount: app.requestedAmount,
-            createdAt: app.createdAt
+            status: app.financialStatus || app.status || 'pending',
+            requestedAmount: (app.requestedAmount || '0').toString(),
+            approvedAmount: (app.finalCreditLimit || app.creditLimit || '0').toString(),
+            submittedAt: (app.submittedToFinancialAt || app.createdAt || new Date()).toString()
           };
         });
 
+      // Monthly stats (current month)
+      const currentMonth = new Date();
+      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const monthlyApplications = submittedApplications.filter(app => {
+        const appDate = app.createdAt ? new Date(app.createdAt) : new Date(0);
+        return appDate >= monthStart;
+      });
+
+      const monthlyApprovals = monthlyApplications.filter(app => 
+        app.financialStatus === 'approved' || app.status === 'approved'
+      );
+
+      const monthlyVolume = monthlyApprovals.reduce((sum, app) => {
+        const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
+        return sum + parseFloat(approvedAmount.toString());
+      }, 0);
+
       return {
-        totalImporters,
-        totalApplications: allApplications.length,
+        totalApplicationsSubmitted,
+        totalCreditRequested,
+        totalCreditApproved,
+        totalCreditInUse,
+        totalCreditAvailable,
         applicationsByStatus,
-        totalCreditVolume,
-        approvedCreditVolume,
-        totalImports: allImports.length,
-        totalSuppliers: allSuppliers.length,
-        recentActivity
+        approvalRate: Math.round(approvalRate * 100) / 100,
+        averageApprovalTime: Math.round(averageApprovalTime * 100) / 100,
+        recentActivity,
+        monthlyStats: {
+          applications: monthlyApplications.length,
+          approvals: monthlyApprovals.length,
+          volume: monthlyVolume
+        }
       };
     } catch (error) {
-      console.error('Error getting admin dashboard metrics:', error);
+      console.error("Error calculating financeira dashboard metrics:", error);
       throw error;
+    }
+  }
+
+  // ===== NOTIFICATIONS =====
+
+  async createNotification(notificationData: {
+    userId: number;
+    type: string;
+    title: string;
+    message: string;
+    data?: any;
+    priority?: string;
+  }) {
+    return await db
+      .insert(notifications)
+      .values({
+        ...notificationData,
+        priority: notificationData.priority || "normal",
+      })
+      .returning();
+  }
+
+  async getUserNotifications(userId: number, limit: number = 10) {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async getUnreadNotificationsCount(userId: number) {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.status, "unread")
+        )
+      );
+    return result[0]?.count || 0;
+  }
+
+  async markNotificationAsRead(notificationId: number, userId: number) {
+    return await db
+      .update(notifications)
+      .set({
+        status: "read",
+        readAt: new Date(),
+      })
+      .where(
+        and(
+          eq(notifications.id, notificationId),
+          eq(notifications.userId, userId)
+        )
+      )
+      .returning();
+  }
+
+  async markAllNotificationsAsRead(userId: number) {
+    return await db
+      .update(notifications)
+      .set({
+        status: "read",
+        readAt: new Date(),
+      })
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.status, "unread")
+        )
+      )
+      .returning();
+  }
+
+  // Helper function to create notifications for credit events
+  async notifyCreditStatusChange(
+    userId: number,
+    applicationId: number,
+    newStatus: string,
+    additionalData?: any
+  ) {
+    const statusMessages = {
+      approved: {
+        title: "Crédito Aprovado! 🎉",
+        message: "Sua solicitação de crédito foi aprovada. Você já pode criar importações.",
+        priority: "high",
+      },
+      rejected: {
+        title: "Solicitação de Crédito",
+        message: "Sua solicitação de crédito foi rejeitada. Entre em contato conosco para mais informações.",
+        priority: "high",
+      },
+      under_review: {
+        title: "Análise em Andamento",
+        message: "Sua solicitação de crédito está sendo analisada por nossa equipe.",
+        priority: "normal",
+      },
+      needs_documents: {
+        title: "Documentos Necessários",
+        message: "Documentos adicionais são necessários para sua solicitação de crédito.",
+        priority: "high",
+      },
+    };
+
+    const config = statusMessages[newStatus as keyof typeof statusMessages];
+    if (config) {
+      await this.createNotification({
+        userId,
+        type: "credit_status_change",
+        title: config.title,
+        message: config.message,
+        priority: config.priority,
+        data: {
+          applicationId,
+          status: newStatus,
+          ...additionalData,
+        },
+      });
+    }
+  }
+
+  // ===== ADMIN DASHBOARD METRICS =====
+
+  async getAdminDashboardMetrics(): Promise<{
+    totalImporters: number;
+    totalApplications: number;
+    applicationsByStatus: { [key: string]: number };
+    totalCreditVolume: number;
+    approvedCreditVolume: number;
+    totalImports: number;
+    totalSuppliers: number;
+    recentActivity: any[];
+  }> {
+    const allUsers = await this.getAllUsers();
+    const allApplications = await this.getAllCreditApplications();
+    const allImports = await this.getAllImports();
+    const allSuppliers = await this.getAllSuppliers();
+
+    const totalImporters = allUsers.filter(u => u.role === 'importer').length;
+    const totalApplications = allApplications.length;
+
+    // Mapear status combinados financeiro + admin para labels mais claros
+    const applicationsByStatus = allApplications.reduce((acc, app) => {
+      let displayStatus = app.status;
+
+      // Para aplicações aprovadas financeiramente, mostrar status admin
+      if (app.financialStatus === 'approved') {
+        if (app.adminStatus === 'admin_finalized') {
+          displayStatus = 'approved';
+        } else {
+          displayStatus = 'under_review';
+        }
+      } else if (app.preAnalysisStatus === 'pre_approved') {
+        displayStatus = 'under_review';
+      } else if (app.status === 'rejected') {
+        displayStatus = 'rejected';
+      } else {
+        displayStatus = 'under_review';
+      }
+
+      acc[displayStatus] = (acc[displayStatus] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    const totalCreditVolume = allApplications.reduce((sum, app) => {
+      return sum + parseFloat(app.requestedAmount || "0");
+    }, 0);
+
+    const approvedCreditVolume = allApplications
+      .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+      .reduce((sum, app) => {
+        return sum + parseFloat(app.finalCreditLimit || app.creditLimit || "0");
+      }, 0);
+
+    // Atividade recente com dados mais ricos
+    const recentActivityData = allApplications
+      .map(app => ({
+        id: app.id,
+        type: 'credit_application',
+        companyName: app.legalCompanyName || 'Empresa não informada',
+        amount: app.requestedAmount || '0',
+        status: app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized' ? 'approved' : 
+                app.preAnalysisStatus === 'pre_approved' ? 'under_review' : 
+                app.status,
+        createdAt: app.createdAt || new Date(),
+      }))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+
+    return {
+      totalImporters,
+      totalApplications,
+      applicationsByStatus,
+      totalCreditVolume,
+      approvedCreditVolume,
+      totalImports: allImports.length,
+      totalSuppliers: allSuppliers.length,
+      recentActivity: recentActivityData,
+    };
+  }
+
+
+
+  // Get imports by credit application
+  async getImportsByCreditApplication(creditApplicationId: number) {
+    return await db
+      .select()
+      .from(imports)
+      .where(eq(imports.creditApplicationId, creditApplicationId));
+  }
+
+  // Create credit usage record
+  async createCreditUsage(data: {
+    creditApplicationId: number;
+    importId: number;
+    amountUsed: string;
+    status: string;
+  }) {
+    return await db
+      .insert(creditUsage)
+      .values({
+        creditApplicationId: data.creditApplicationId,
+        importId: data.importId,
+        amountUsed: data.amountUsed,
+        status: data.status,
+        confirmedAt: new Date(),
+      })
+      .returning();
+  }
+
+
+
+  // Get individual payment by ID
+  async getPaymentById(paymentId: number) {
+    const result = await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.id, paymentId))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  // Update payment details
+  async updatePayment(paymentId: number, updates: any) {
+    const result = await db
+      .update(paymentSchedules)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+    return result[0];
+  }
+
+  // Delete payment
+  async deletePayment(paymentId: number) {
+    await db
+      .delete(paymentSchedules)
+      .where(eq(paymentSchedules.id, paymentId));
+  }
+
+  // Get all suppliers for a user (for admin or user's own suppliers)
+  async getSuppliers(userId?: number) {
+    if (userId) {
+      return await db
+        .select()
+        .from(suppliers)
+        .where(eq(suppliers.userId, userId));
+    } else {
+      return await db
+        .select()
+        .from(suppliers);
     }
   }
 }

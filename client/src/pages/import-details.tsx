@@ -1,522 +1,540 @@
-
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
+import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { apiRequest } from "@/lib/queryClient";
-import PipelineTracker from "@/components/PipelineTracker";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  Package,
-  MapPin,
-  DollarSign,
-  Calendar,
-  Truck,
-  Ship,
-  Plane,
-  FileText,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Building2,
-  Weight,
-  Box,
-  Scale
-} from "lucide-react";
+import { ArrowLeft, Package, MapPin, Calendar, DollarSign, FileText, Truck, Building } from "lucide-react";
+import ImportFinancialSummary from "@/components/imports/ImportFinancialSummary";
+import StatusChanger from "@/components/imports/StatusChanger";
+import ImportTimeline from "@/components/imports/ImportTimeline";
+import DocumentManager from "@/components/imports/DocumentManager";
+
+interface ImportDetails {
+  id: number;
+  userId: number;
+  importName: string;
+  importNumber?: string;
+  cargoType: 'FCL' | 'LCL';
+  totalValue: string;
+  currency: string;
+  currentStage: string;
+  status: string;
+  estimatedDelivery?: string;
+  supplierId?: number;
+  supplierName?: string;
+  products: any[];
+  createdAt: string;
+  shippingMethod?: string;
+  incoterms?: string;
+  containerType?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+}
 
 export default function ImportDetailsPage() {
-  const [match, params] = useRoute("/imports/details/:id");
-  const [location, setLocation] = useLocation();
-  const { toast } = useToast();
+  const { id } = useParams();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { isAdmin } = useUserPermissions();
-  const queryClient = useQueryClient();
+  const { isAdmin, isFinanceira } = useUserPermissions();
 
-  // Extract importId from URL path if useRoute fails
-  const importId = params?.id ? parseInt(params.id) : 
-    location.startsWith('/imports/details/') ? 
-    parseInt(location.split('/imports/details/')[1]) : null;
+  // Determinar endpoint baseado no papel do usuário
+  const endpoint = (isAdmin || isFinanceira) ? `/api/admin/imports/${id}` : `/api/imports/${id}`;
 
-  // Fetch import details
-  const { data: importData, isLoading, error } = useQuery({
-    queryKey: ["/api/imports", importId],
-    queryFn: async () => {
-      if (isAdmin) {
-        return await apiRequest(`/api/admin/imports/${importId}`, "GET");
-      } else {
-        return await apiRequest(`/api/imports/${importId}`, "GET");
-      }
-    },
-    enabled: !!importId,
-  });
-  
-  console.log("Query state:", { importData, isLoading, error });
-
-  // Pipeline update mutation
-  const updatePipelineMutation = useMutation({
-    mutationFn: async ({ stage, data }: { stage: string; data: any }) => {
-      const response = await apiRequest(`/api/imports/${importId}/pipeline`, "PUT", {
-        stage,
-        data,
-        currentStage: stage
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Pipeline atualizado!",
-        description: "A etapa foi atualizada com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/imports", importId] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar pipeline",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+  const { data: importData, isLoading, error } = useQuery<ImportDetails>({
+    queryKey: [endpoint],
+    enabled: !!user && !!id,
   });
 
-  const handlePipelineUpdate = (stage: string, data: any) => {
-    updatePipelineMutation.mutate({ stage, data });
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      planning: { label: "Planejamento", variant: "secondary" as const, color: "bg-blue-100 text-blue-800 border-blue-200" },
+      active: { label: "Em Andamento", variant: "default" as const, color: "bg-green-100 text-green-800 border-green-200" },
+      completed: { label: "Concluída", variant: "outline" as const, color: "bg-gray-100 text-gray-800 border-gray-200" },
+      cancelled: { label: "Cancelada", variant: "destructive" as const, color: "bg-red-100 text-red-800 border-red-200" }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.planning;
+    
+    return (
+      <Badge variant={config.variant} className={`${config.color} border`}>
+        {config.label}
+      </Badge>
+    );
   };
 
-  if (!importId) {
-    return <div>Importação não encontrada</div>;
-  }
+  const getStageLabel = (stage: string) => {
+    const stages = {
+      estimativa: "Estimativa",
+      producao: "Produção",
+      entregue_agente: "Entregue ao Agente",
+      transporte_maritimo: "Transporte Marítimo",
+      transporte_aereo: "Transporte Aéreo",
+      desembaraco: "Desembaraço",
+      transporte_nacional: "Transporte Nacional",
+      concluido: "Concluído"
+    };
+    return stages[stage as keyof typeof stages] || stage;
+  };
+
+  const formatCurrency = (value: string, currency: string = "USD") => {
+    const numValue = parseFloat(value) || 0;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(numValue);
+  };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+          <div className="space-y-2">
+            <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="h-5 bg-gray-200 rounded w-32 animate-pulse"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!importData) {
-    return <div>Importação não encontrada</div>;
+  if (error || !importData) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setLocation("/imports")}
+            className="p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Importação não encontrada</h2>
+          </div>
+        </div>
+
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Package className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Importação não encontrada</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              A importação solicitada não foi encontrada ou você não tem permissão para visualizá-la.
+            </p>
+            <Button onClick={() => setLocation("/imports")}>
+              Voltar para Importações
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Concluída</Badge>;
-      case "active":
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Em Andamento</Badge>;
-      case "planning":
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Planejamento</Badge>;
-      case "cancelled":
-        return <Badge className="bg-red-100 text-red-800"><AlertCircle className="w-3 h-3 mr-1" />Cancelada</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const getShippingIcon = (method: string) => {
-    switch (method) {
-      case "sea":
-        return <Ship className="w-4 h-4" />;
-      case "air":
-        return <Plane className="w-4 h-4" />;
-      case "land":
-        return <Truck className="w-4 h-4" />;
-      default:
-        return <Package className="w-4 h-4" />;
-    }
-  };
-
-  const getShippingLabel = (method: string) => {
-    switch (method) {
-      case "sea":
-        return "Marítimo";
-      case "air":
-        return "Aéreo";
-      case "land":
-        return "Terrestre";
-      default:
-        return method;
-    }
-  };
-
-  const canEdit = importData.status === 'planning' && (isAdmin || importData.userId === user?.id);
-  const canCancel = !['cancelled', 'completed'].includes(importData.status) && (isAdmin || importData.userId === user?.id);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={() => setLocation("/imports")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {importData.importName || "Detalhes da Importação"}
-            </h1>
-            <p className="text-gray-600">
-              {importData.importNumber || `IMP-${importData.id?.toString().padStart(3, '0') || '000'}`}
-            </p>
+      <div className="flex items-center gap-4">
+        <Button 
+          variant="ghost" 
+          onClick={() => setLocation("/imports")}
+          className="p-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-1">
+          <div className="flex items-center gap-4 mb-2">
+            <h2 className="text-2xl font-bold tracking-tight">{importData.importName}</h2>
+            {importData.importNumber && (
+              <Badge variant="outline">#{importData.importNumber}</Badge>
+            )}
+            {getStatusBadge(importData.status)}
           </div>
+          <p className="text-muted-foreground">
+            Detalhes da importação • {getStageLabel(importData.currentStage)}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          {getStatusBadge(importData.status)}
-          {canEdit && (
-            <Button 
-              variant="outline"
-              onClick={() => setLocation(`/imports/edit/${importId}`)}
-              className="flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
+        <div className="flex gap-2">
+          {importData.status === 'planning' && (
+            <Button variant="outline" onClick={() => setLocation(`/imports/${id}/edit`)}>
               Editar
             </Button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Product Information */}
+      {/* Resumo Financeiro Completo */}
+      <ImportFinancialSummary 
+        fobValue={parseFloat(importData.totalValue) || 0}
+        adminFeePercentage={10}
+        downPaymentPercentage={30}
+        currency={importData.currency}
+        incoterms={importData.incoterms || "FOB"}
+      />
+
+      {/* Tabs de Conteúdo */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="products">Produtos</TabsTrigger>
+          <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="payments">Pagamentos</TabsTrigger>
+          <TabsTrigger value="status">Alterar Status</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Informações Básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Informações da Importação
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Método de Envio</p>
+                    <p className="font-medium">
+                      {importData.shippingMethod === 'sea' ? 'Marítimo' : 
+                       importData.shippingMethod === 'air' ? 'Aéreo' : 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status Atual</p>
+                    <p className="font-medium">{getStageLabel(importData.status)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tipo de Carga</p>
+                    <p className="font-medium">{importData.cargoType}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Incoterms</p>
+                    <p className="font-medium">{importData.incoterms || 'FOB'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Moeda</p>
+                    <p className="font-medium">{importData.currency}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Peso Total</p>
+                    <p className="font-medium">{(importData as any).weight || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Volume</p>
+                    <p className="font-medium">{(importData as any).volume || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Previsão de Entrega</p>
+                    <p className="font-medium">
+                      {importData.estimatedDelivery 
+                        ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')
+                        : 'Não informado'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status Atual</p>
+                    <p className="font-medium">{getStageLabel(importData.currentStage)}</p>
+                  </div>
+                </div>
+
+                {importData.containerNumber && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Container</p>
+                    <p className="font-medium">{importData.containerNumber}</p>
+                    {importData.sealNumber && (
+                      <p className="text-xs text-muted-foreground">Lacre: {importData.sealNumber}</p>
+                    )}
+                  </div>
+                )}
+
+                {importData.estimatedDelivery && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Previsão de Entrega</p>
+                    <p className="font-medium">
+                      {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Informações do Fornecedor */}
+            {importData.supplierName && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Fornecedor
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div>
+                    <p className="font-medium text-lg">{importData.supplierName}</p>
+                    <p className="text-sm text-muted-foreground">Fornecedor ID: {importData.supplierId}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="timeline" className="space-y-6">
+          <ImportTimeline 
+            currentStage={importData.currentStage || importData.status}
+            shippingMethod={(importData as any).shippingMethod || 'sea'}
+            createdAt={new Date(importData.createdAt)}
+          />
+        </TabsContent>
+
+        <TabsContent value="products" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Informações dos Produtos
+                <Package className="h-4 w-4" />
+                Produtos da Importação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               {importData.products && importData.products.length > 0 ? (
                 <div className="space-y-4">
                   {importData.products.map((product: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card key={index} className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-600">Nome do Produto</label>
-                          <p className="text-sm text-gray-900">{product.name || 'N/A'}</p>
+                          <p className="font-medium">{product.name}</p>
+                          {product.description && (
+                            <p className="text-sm text-muted-foreground">{product.description}</p>
+                          )}
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-600">Quantidade</label>
-                          <p className="text-sm text-gray-900">{product.quantity?.toLocaleString() || 'N/A'}</p>
+                          <p className="text-sm text-muted-foreground">Quantidade</p>
+                          <p className="font-medium">{product.quantity || 1}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-600">Preço Unitário</label>
-                          <p className="text-sm text-gray-900">{importData.currency} {product.unitPrice || 'N/A'}</p>
+                          <p className="text-sm text-muted-foreground">Valor</p>
+                          <p className="font-medium">
+                            {formatCurrency((product.totalValue || product.unitPrice || 0).toString())}
+                          </p>
                         </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                          <p className="text-sm text-gray-900">{importData.currency} {product.totalValue || 'N/A'}</p>
-                        </div>
-                        {product.description && (
-                          <div className="md:col-span-2">
-                            <label className="text-sm font-medium text-gray-600">Descrição</label>
-                            <p className="text-sm text-gray-900 bg-white p-3 rounded-md">{product.description}</p>
-                          </div>
-                        )}
-                        {product.hsCode && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-600">Código HS</label>
-                            <p className="text-sm text-gray-900">{product.hsCode}</p>
-                          </div>
-                        )}
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">Nenhum produto registrado</p>
+                <div className="text-center py-12">
+                  <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
+                  <p className="text-muted-foreground">
+                    Esta importação não possui produtos cadastrados.
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Financial Information */}
+        <TabsContent value="documents" className="space-y-6">
+          <DocumentManager 
+            importId={importData.id}
+            documents={(importData as any).documents || []}
+          />
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Informações Financeiras
+                <DollarSign className="h-4 w-4" />
+                Cronograma de Pagamentos
               </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {importData.currency} {parseFloat(importData.totalValue).toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Moeda</label>
-                  <p className="text-sm text-gray-900">{importData.currency}</p>
-                </div>
-                {importData.incoterms && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Incoterms</label>
-                    <p className="text-sm text-gray-900">{importData.incoterms}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Cargo Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Box className="w-5 h-5" />
-                Informações da Carga
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Tipo de Carga</label>
-                  <p className="text-sm text-gray-900">{importData.cargoType === 'FCL' ? 'Container Completo (FCL)' : 'Carga Fracionada (LCL)'}</p>
-                </div>
-                {importData.containerNumber && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Número do Container</label>
-                    <p className="text-sm text-gray-900">{importData.containerNumber}</p>
-                  </div>
-                )}
-                {importData.sealNumber && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Número do Lacre</label>
-                    <p className="text-sm text-gray-900">{importData.sealNumber}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="w-5 h-5" />
-                Informações de Transporte
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Método de Envio</label>
-                  <p className="text-sm text-gray-900 flex items-center gap-2">
-                    {getShippingIcon(importData.shippingMethod)}
-                    {getShippingLabel(importData.shippingMethod)}
-                  </p>
-                </div>
-                {importData.containerType && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Tipo de Container</label>
-                    <p className="text-sm text-gray-900">{importData.containerType}</p>
-                  </div>
-                )}
-                {importData.weight && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Peso Total</label>
-                    <p className="text-sm text-gray-900 flex items-center gap-1">
-                      <Weight className="w-3 h-3" />
-                      {importData.weight} kg
-                    </p>
-                  </div>
-                )}
-                {importData.volume && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Volume</label>
-                    <p className="text-sm text-gray-900 flex items-center gap-1">
-                      <Box className="w-3 h-3" />
-                      {importData.volume} m³
-                    </p>
-                  </div>
-                )}
-                {importData.portOfLoading && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Porto de Embarque</label>
-                    <p className="text-sm text-gray-900">{importData.portOfLoading}</p>
-                  </div>
-                )}
-                {importData.portOfDischarge && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Porto de Desembarque</label>
-                    <p className="text-sm text-gray-900">{importData.portOfDischarge}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Status e Progresso Simplificado */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status da Importação</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Status Atual</span>
-                  {getStatusBadge(importData.status)}
+                {/* Resumo dos pagamentos */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-medium text-yellow-800">Pagamento Imediato</span>
+                    </div>
+                    <p className="text-lg font-bold text-yellow-900">
+                      {formatCurrency((parseFloat(importData.totalValue) * 0.30).toString())}
+                    </p>
+                    <p className="text-xs text-yellow-700">Entrada (30%)</p>
+                  </div>
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Parcelado via Crédito</span>
+                    </div>
+                    <p className="text-lg font-bold text-blue-900">
+                      {formatCurrency((parseFloat(importData.totalValue) * 0.70).toString())}
+                    </p>
+                    <p className="text-xs text-blue-700">70% financiado</p>
+                  </div>
+                  
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Total da Importação</span>
+                    </div>
+                    <p className="text-lg font-bold text-green-900">
+                      {formatCurrency(importData.totalValue)}
+                    </p>
+                    <p className="text-xs text-green-700">Valor FOB</p>
+                  </div>
+                </div>
+
+                {/* Cronograma detalhado */}
+                <div className="border rounded-lg">
+                  <div className="bg-gray-50 px-4 py-3 border-b">
+                    <h4 className="font-medium">Cronograma de Pagamentos</h4>
+                    <p className="text-sm text-muted-foreground">
+                      O cronograma inicia quando a importação chega ao agente (status "Entregue Agente")
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 space-y-3">
+                    {/* Pagamento imediato */}
+                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                      <div>
+                        <p className="font-medium">Pagamento Imediato</p>
+                        <p className="text-sm text-muted-foreground">Entrada de 30%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-yellow-700">
+                          {formatCurrency((parseFloat(importData.totalValue) * 0.30).toString())}
+                        </p>
+                        <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                          A vista
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Parcelas do crédito */}
+                    {[30, 60, 90, 120].map((days, index) => {
+                      const installmentValue = (parseFloat(importData.totalValue) * 0.70) / 4;
+                      return (
+                        <div key={days} className="flex items-center justify-between p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                          <div>
+                            <p className="font-medium">Parcela {index + 1}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {days} dias após entrega ao agente
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-blue-700">
+                              {formatCurrency(installmentValue.toString())}
+                            </p>
+                            <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                              {importData.status === 'entregue_agente' || 
+                               importData.status === 'transporte_maritimo' ||
+                               importData.status === 'transporte_aereo' ||
+                               importData.status === 'desembaraco' ||
+                               importData.status === 'transporte_nacional' ||
+                               importData.status === 'concluido' ? 'Ativo' : 'Aguardando'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Informações importantes */}
+                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                  <h5 className="font-medium text-amber-800 mb-2">ℹ️ Informações Importantes</h5>
+                  <ul className="text-sm text-amber-700 space-y-1">
+                    <li>• O cronograma de pagamentos inicia quando a mercadoria é entregue ao agente</li>
+                    <li>• O pagamento de 30% deve ser feito à vista no momento da importação</li>
+                    <li>• As parcelas do crédito seguem os termos aprovados: 30, 60, 90 e 120 dias</li>
+                    <li>• Taxa administrativa de 10% já incluída nos valores financiados</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="status" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Componente de mudança de status */}
+            <StatusChanger 
+              importId={importData.id} 
+              currentStatus={importData.status}
+              onStatusChange={(newStatus) => {
+                // Atualizar dados locais para refletir mudança
+                importData.status = newStatus;
+              }}
+            />
+            
+            {/* Informações complementares sobre status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Informações sobre Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Status Atual</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    A importação está atualmente em: <strong>{getStageLabel(importData.currentStage)}</strong>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Alterar o status afeta o cálculo de crédito utilizado e as permissões de edição.
+                  </p>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Etapa do Pipeline</span>
-                  <Badge variant="outline" className="text-blue-600">
-                    {importData.currentStage === 'estimativa' ? 'Estimativa' :
-                     importData.currentStage === 'invoice' ? 'Invoice' :
-                     importData.currentStage === 'producao' ? 'Produção' :
-                     importData.currentStage === 'embarque' ? 'Embarque' :
-                     importData.currentStage === 'transporte' ? 'Transporte Marítimo' :
-                     importData.currentStage === 'atracacao' ? 'Atracação' :
-                     importData.currentStage === 'desembaraco' ? 'Desembaraço' :
-                     importData.currentStage === 'transporte_terrestre' ? 'Transporte Terrestre' :
-                     importData.currentStage === 'entrega' ? 'Entrega' : 'Em Andamento'}
-                  </Badge>
+                <div>
+                  <h4 className="font-medium mb-2">Impactos da Mudança</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Planejamento: Não consome crédito, pode ser editada</li>
+                    <li>• Produção: Inicia consumo de crédito, edição limitada</li>
+                    <li>• Transporte: Crédito totalmente comprometido</li>
+                    <li>• Concluído: Processo finalizado</li>
+                  </ul>
                 </div>
-
-                {importData.estimatedDelivery && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600">Previsão de Entrega</span>
-                    <span className="text-sm text-gray-900">
-                      {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
-                    </span>
+                
+                {importData.createdAt && (
+                  <div>
+                    <h4 className="font-medium mb-2">Histórico</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Criada em: {new Date(importData.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {canEdit && (
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => setLocation(`/imports/edit/${importId}`)}
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar Importação
-                </Button>
-              )}
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.print()}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Imprimir Relatório
-              </Button>
-              
-              {canCancel && (
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-red-600 hover:text-red-700"
-                  onClick={() => {
-                    if (confirm("Tem certeza que deseja cancelar esta importação?")) {
-                      // Handle cancellation
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Cancelar Importação
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Timeline Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumo de Datas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Criado em</span>
-                <span className="font-medium">
-                  {new Date(importData.createdAt).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-              
-              {importData.estimatedDelivery && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Entrega Estimada</span>
-                  <span className="font-medium">
-                    {new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              )}
-              
-              {importData.actualDelivery && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Entrega Real</span>
-                  <span className="font-medium text-green-600">
-                    {new Date(importData.actualDelivery).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Última Atualização</span>
-                <span className="font-medium">
-                  {new Date(importData.updatedAt).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          {importData.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Observações</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                  {importData.notes}
-                </p>
               </CardContent>
             </Card>
-          )}
-
-          {/* Documents */}
-          {importData.documents && importData.documents.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Documentos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {importData.documents.map((doc: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
-                      <FileText className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{doc}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

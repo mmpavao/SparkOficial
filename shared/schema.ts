@@ -184,9 +184,17 @@ export const creditApplications = pgTable("credit_applications", {
   finalCreditLimit: text("final_credit_limit"), // Limite final definido pelo admin
   finalApprovedTerms: text("final_approved_terms"), // Prazos finais definidos pelo admin
   finalDownPayment: text("final_down_payment").default("10"), // Percentual de entrada final
+  adminFee: text("admin_fee").default("0"), // Taxa administrativa em percentual (aplicada apenas no valor financiado)
   adminFinalNotes: text("admin_final_notes"), // Observações finais do admin
   adminFinalizedBy: integer("admin_finalized_by").references(() => users.id),
   adminFinalizedAt: timestamp("admin_finalized_at"),
+
+  // Credit Usage Management
+  usedCredit: text("used_credit").default("0"), // Currently used credit amount
+  availableCredit: text("available_credit").default("0"), // Available credit (limit - used)
+
+  // Financial Institution Attachments (apólices and additional documents)
+  attachments: text("attachments"), // JSON array of attachment metadata
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -241,6 +249,81 @@ export const suppliers = pgTable("suppliers", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Credit usage tracking table
+export const creditUsage = pgTable("credit_usage", {
+  id: serial("id").primaryKey(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
+  importId: integer("import_id").references(() => imports.id).notNull(),
+  amountUsed: text("amount_used").notNull(), // Amount of credit used for this import
+  status: text("status").notNull().default("reserved"), // reserved, confirmed, released
+  reservedAt: timestamp("reserved_at").defaultNow(),
+  confirmedAt: timestamp("confirmed_at"),
+  releasedAt: timestamp("released_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Admin fees configuration table
+export const adminFees = pgTable("admin_fees", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  feePercentage: text("fee_percentage").notNull(), // Admin fee percentage
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payment schedules table
+export const paymentSchedules = pgTable("payment_schedules", {
+  id: serial("id").primaryKey(),
+  importId: integer("import_id").references(() => imports.id).notNull(),
+  paymentType: text("payment_type").notNull(), // down_payment, installment
+  dueDate: timestamp("due_date").notNull(),
+  amount: text("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("pending"), // pending, paid, overdue
+  installmentNumber: integer("installment_number"), // For installment payments
+  totalInstallments: integer("total_installments"), // Total number of installments
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payments table
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  paymentScheduleId: integer("payment_schedule_id").references(() => paymentSchedules.id).notNull(),
+  importId: integer("import_id").references(() => imports.id).notNull(),
+  amount: text("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  paymentMethod: text("payment_method"), // bank_transfer, pix, etc
+  paymentReference: text("payment_reference"), // User provided reference
+  proofDocument: text("proof_document"), // Base64 encoded payment proof
+  proofFilename: text("proof_filename"),
+  status: text("status").notNull().default("pending"), // pending, confirmed, rejected
+  paidAt: timestamp("paid_at"),
+  confirmedAt: timestamp("confirmed_at"),
+  confirmedBy: integer("confirmed_by").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Import documents table
+export const importDocuments = pgTable("import_documents", {
+  id: serial("id").primaryKey(),
+  importId: integer("import_id").references(() => imports.id).notNull(),
+  documentType: text("document_type").notNull(), // proforma_invoice, bill_of_lading, etc
+  fileName: text("file_name").notNull(),
+  fileData: text("file_data").notNull(), // Base64 encoded file
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  uploadedBy: integer("uploaded_by").references(() => users.id).notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Import tracking table with enhanced pipeline tracking
 export const imports = pgTable("imports", {
   id: serial("id").primaryKey(),
@@ -279,7 +362,7 @@ export const imports = pgTable("imports", {
   incoterms: text("incoterms").default("FOB"), // FOB, CIF, EXW, etc.
 
   // Pipeline Status and Tracking
-  currentStage: text("current_stage").notNull().default("estimativa"), // estimativa, invoice, producao, embarque, transporte, atracacao, desembaraco, transporte_terrestre, entrega
+  currentStage: text("current_stage").notNull().default("estimativa"), // estimativa, producao, entregue_agente, transporte_maritimo, transporte_aereo, desembaraco, transporte_nacional, concluido
   status: text("status").notNull().default("planning"), // planning, active, completed, cancelled
 
   // Pipeline Stages with Timestamps
@@ -320,6 +403,17 @@ export const imports = pgTable("imports", {
   // Documents and Files
   documents: text("documents").array(),
   requiredDocuments: jsonb("required_documents"),
+
+  // Credit and Payment Information
+  creditUsed: text("credit_used"), // Amount of credit used for this import
+  adminFeeRate: text("admin_fee_rate"), // Admin fee percentage applied
+  adminFeeAmount: text("admin_fee_amount"), // Calculated admin fee amount
+  totalWithFees: text("total_with_fees"), // Total value including admin fees
+  paymentStatus: text("payment_status").default("pending"), // pending, down_payment_paid, in_progress, completed
+  downPaymentRequired: text("down_payment_required"), // Required down payment amount
+  downPaymentPaid: text("down_payment_paid"), // Paid down payment amount
+  paymentTermsDays: integer("payment_terms_days"), // Payment terms in days
+  paymentStartDate: timestamp("payment_start_date"), // When payment terms start (usually shipping date)
 
   // Additional Information
   notes: text("notes"),
@@ -420,7 +514,10 @@ const productSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
   hsCode: z.string().optional(),
-  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
+  quantity: z.union([z.string(), z.number()]).transform((val) => {
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? 0 : num;
+  }).refine((val) => val > 0, "Quantidade deve ser maior que 0"),
   unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   supplierId: z.number().min(1, "Fornecedor é obrigatório"),
@@ -469,4 +566,19 @@ export type Import = typeof imports.$inferSelect;
 export type InsertImport = z.infer<typeof insertImportSchema>;
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // credit_approved, credit_rejected, import_status_change, payment_due, etc.
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data"), // Additional context data
+  status: text("status").notNull().default("unread"), // unread, read
+  priority: text("priority").notNull().default("normal"), // low, normal, high, urgent
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
+export type Notification = typeof notifications.$inferSelect;

@@ -48,6 +48,16 @@ export function formatDateTime(date: Date | string | null, locale: string = 'pt-
   return dateObj.toLocaleString(locale);
 }
 
+export function formatCompactNumber(value: number): string {
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1) + 'M';
+  }
+  if (value >= 1000) {
+    return (value / 1000).toFixed(1) + 'k';
+  }
+  return value.toString();
+}
+
 export function formatNumber(value: number | string): string {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
   

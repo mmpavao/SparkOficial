@@ -12,9 +12,13 @@ import CreditApplicationPage from "@/pages/credit-application";
 import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
-import NewImportPage from "@/pages/import-complete";
+import NewImportPage from "@/pages/import-new";
+import ImportNewFormPage from "@/pages/import-new-form";
 import ImportDetailsPage from "@/pages/import-details";
-import ImportEditPage from "@/pages/import-edit";
+import ImportEdit from "@/pages/import-edit";
+import PipelineDemoPage from "@/pages/pipeline-demo";
+import PipelineSimplePage from "@/pages/pipeline-simple";
+
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminUsersPage from "@/pages/admin-users";
@@ -23,6 +27,9 @@ import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
+import PaymentDetailsPage from "@/pages/payment-details";
+import PaymentPayPage from "@/pages/payment-pay";
+import PaymentEditPage from "@/pages/payment-edit";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -42,6 +49,8 @@ function Router() {
     );
   }
 
+
+
   return (
     <Switch>
       {isAuthenticated ? (
@@ -52,14 +61,22 @@ function Router() {
             <Route path="/credit/new" component={CreditApplicationPage} />
             <Route path="/credit/details/:id" component={CreditDetailsPage} />
             <Route path="/credit/edit/:id" component={CreditEditPage} />
+
             <Route path="/imports" component={ImportsPage} />
-            <Route path="/imports/details/:id" component={ImportDetailsPage} />
-            <Route path="/imports/edit/:id" component={ImportEditPage} />
             <Route path="/imports/new" component={NewImportPage} />
+            <Route path="/imports/new-form" component={ImportNewFormPage} />
+            <Route path="/imports/pipeline-demo" component={PipelineDemoPage} />
+            <Route path="/imports/pipeline" component={PipelineSimplePage} />
+            <Route path="/imports/:id" component={ImportDetailsPage} />
+            <Route path="/imports/:id/edit" component={ImportEdit} />
+
             <Route path="/suppliers" component={SuppliersPage} />
             <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />
             <Route path="/suppliers/edit/:id" component={SupplierEditPage} />
             <Route path="/suppliers/new" component={SupplierNewPage} />
+            <Route path="/payments/details/:id" component={PaymentDetailsPage} />
+            <Route path="/payments/pay/:id" component={PaymentPayPage} />
+            <Route path="/payments/edit/:id" component={PaymentEditPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
