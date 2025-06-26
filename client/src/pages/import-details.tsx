@@ -9,6 +9,8 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { ArrowLeft, Package, MapPin, Calendar, DollarSign, FileText, Truck, Building } from "lucide-react";
 import ImportFinancialSummary from "@/components/imports/ImportFinancialSummary";
 import StatusChanger from "@/components/imports/StatusChanger";
+import ImportTimeline from "@/components/imports/ImportTimeline";
+import DocumentManager from "@/components/imports/DocumentManager";
 
 interface ImportDetails {
   id: number;
@@ -197,6 +199,7 @@ export default function ImportDetailsPage() {
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="payments">Pagamentos</TabsTrigger>
           <TabsTrigger value="status">Alterar Status</TabsTrigger>
         </TabsList>
 
@@ -217,6 +220,39 @@ export default function ImportDetailsPage() {
                     <p className="font-medium">
                       {importData.shippingMethod === 'sea' ? 'Marítimo' : 
                        importData.shippingMethod === 'air' ? 'Aéreo' : 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status Atual</p>
+                    <p className="font-medium">{getStageLabel(importData.status)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tipo de Carga</p>
+                    <p className="font-medium">{importData.cargoType}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Incoterms</p>
+                    <p className="font-medium">{importData.incoterms || 'FOB'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Moeda</p>
+                    <p className="font-medium">{importData.currency}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Peso Total</p>
+                    <p className="font-medium">{(importData as any).weight || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Volume</p>
+                    <p className="font-medium">{(importData as any).volume || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Previsão de Entrega</p>
+                    <p className="font-medium">
+                      {importData.estimatedDelivery 
+                        ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')
+                        : 'Não informado'
+                      }
                     </p>
                   </div>
                   <div>
@@ -267,26 +303,11 @@ export default function ImportDetailsPage() {
         </TabsContent>
 
         <TabsContent value="timeline" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Timeline do Pipeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Timeline em Desenvolvimento</h3>
-                <p className="text-muted-foreground mb-4">
-                  A funcionalidade de timeline será implementada no Sprint 3.1
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Estágio atual: <strong>{getStageLabel(importData.currentStage)}</strong>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <ImportTimeline 
+            currentStage={importData.currentStage || importData.status}
+            shippingMethod={(importData as any).shippingMethod || 'sea'}
+            createdAt={new Date(importData.createdAt)}
+          />
         </TabsContent>
 
         <TabsContent value="products" className="space-y-6">
