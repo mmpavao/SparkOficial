@@ -2057,7 +2057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create notification for user
       await storage.notifyCreditStatusChange(
-        application.userId,
+        updatedApplication.userId,
         applicationId,
         'approved',
         { creditLimit, approvedTerms }

@@ -763,32 +763,7 @@ export class DatabaseStorage {
     };
   }
 
-  // Credit usage calculation
-  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
-    const application = await this.getCreditApplication(creditApplicationId);
-    if (!application) throw new Error("Credit application not found");
 
-    const creditLimit = parseFloat(application.finalCreditLimit || application.requestedAmount || "0");
-
-    // Get imports linked to this credit application
-    const linkedImports = await db
-      .select()
-      .from(imports)
-      .where(eq(imports.creditApplicationId, creditApplicationId));
-
-    // Calculate used credit from active imports
-    const usedCredit = linkedImports
-      .filter(imp => ['planning', 'in_transit', 'production'].includes(imp.status))
-      .reduce((total, imp) => total + parseFloat(imp.totalValue || "0"), 0);
-
-    const availableCredit = creditLimit - usedCredit;
-
-    return {
-      used: usedCredit,
-      available: Math.max(0, availableCredit),
-      limit: creditLimit
-    };
-  }
 
   // Get imports by credit application
   async getImportsByCreditApplication(creditApplicationId: number) {
@@ -817,46 +792,7 @@ export class DatabaseStorage {
       .returning();
   }
 
-  // Create payment schedule for an import
-  async createPaymentSchedule(importId: number, totalValue: number) {
-    const downPayment = totalValue * 0.1; // 10% down payment
-    const remainingAmount = totalValue - downPayment;
-    const installmentAmount = remainingAmount / 3; // 3 equal installments
 
-    const schedules = [
-      {
-        importId,
-        paymentType: 'down_payment',
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        amount: downPayment.toString(),
-        currency: 'USD',
-        status: 'pending',
-        installmentNumber: 1,
-        totalInstallments: 4,
-      },
-      {
-        importId,
-        paymentType: 'installment',
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        amount: installmentAmount.toString(),
-        currency: 'USD',
-        status: 'pending',
-        installmentNumber: 2,
-        totalInstallments: 4,
-      },
-      {
-        importId,
-        paymentType: 'installment',
-        dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
-        amount: installmentAmount.toString(),
-        currency: 'USD',
-        status: 'pending',
-        installmentNumber: 3,
-        totalInstallments: 4,
-      },
-      {
-        importId,
-        paymentType: 'installment',
         dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
         amount: installmentAmount.toString(),
         currency: 'USD',
@@ -869,14 +805,7 @@ export class DatabaseStorage {
     return await db.insert(paymentSchedules).values(schedules).returning();
   }
 
-  // Get payment schedules for an import
-  async getPaymentSchedulesByImport(importId: number) {
-    return await db
-      .select()
-      .from(paymentSchedules)
-      .where(eq(paymentSchedules.importId, importId))
-      .orderBy(paymentSchedules.dueDate);
-  }
+
 
   // Get individual payment by ID
   async getPaymentById(paymentId: number) {
