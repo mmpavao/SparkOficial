@@ -1901,9 +1901,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const usedCredit = activeImports.reduce((total, imp) => {
         const importValue = parseFloat(imp.totalValue);
-        const financedAmount = importValue * 0.7; // 70% financed after 30% down payment
-        const adminFee = financedAmount * 0.1; // 10% admin fee
-        return total + financedAmount + adminFee;
+        // Credit usage is the full FOB value, not just financed amount
+        return total + importValue;
       }, 0);
 
       // Get admin fee percentage
@@ -2922,6 +2921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         // Calculate used credit from active imports (not in planning stage)
+        // Credit usage is the full FOB value of imports, not just financed amount
         const activeImports = imports.filter(imp => 
           imp.status !== 'planejamento' && 
           imp.status !== 'cancelado' && 

@@ -348,12 +348,11 @@ export class DatabaseStorage {
         )
       );
 
-    // Calculate total used credit from active imports (only the financed amount, excluding down payment)
+    // Calculate total used credit from active imports (full FOB value - credit covers entire import)
     const usedCredit = activeImports.reduce((total, importRecord) => {
       const importValue = parseFloat(importRecord.totalValue || "0");
-      const downPaymentPercent = parseFloat(application.finalDownPayment || "30");
-      const financedAmount = importValue * (1 - downPaymentPercent / 100);
-      return total + financedAmount;
+      // Credit usage is the full FOB value, not just financed amount
+      return total + importValue;
     }, 0);
 
     const availableCredit = creditLimit - usedCredit;

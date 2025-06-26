@@ -37,7 +37,7 @@ export function ImportFinancialPreview({
     const installmentAmount = financedAmount / paymentTerms.length;
 
     const availableCredit = creditUsage ? creditUsage.available : 0;
-    const exceedsLimit = financedAmount > availableCredit;
+    const exceedsLimit = calculationValue > availableCredit;
 
     return {
       fobValue: calculationValue,
@@ -51,7 +51,7 @@ export function ImportFinancialPreview({
       paymentTerms,
       availableCredit,
       exceedsLimit,
-      remainingCredit: availableCredit - financedAmount
+      remainingCredit: availableCredit - calculationValue
     };
   }, [importValue, creditApplication, creditUsage, adminFeeData]);
 
