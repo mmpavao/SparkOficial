@@ -2893,31 +2893,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user's credit applications
       const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
-      console.log(`Dashboard - Found ${creditApplications.length} credit applications for user ${req.session.userId}`);
-      
-      if (creditApplications.length > 0) {
-        console.log('Credit applications status:', creditApplications.map(app => ({
-          id: app.id,
-          status: app.status,
-          adminStatus: app.adminStatus,
-          finalCreditLimit: app.finalCreditLimit,
-          requestedAmount: app.requestedAmount
-        })));
-      }
-      
       const approvedApplication = creditApplications.find(app => 
+        app.adminStatus === 'admin_finalized' || 
         app.adminStatus === 'finalized' || 
         app.status === 'approved' || 
         app.status === 'finalized'
       );
-      
-      console.log('Approved application found:', approvedApplication ? {
-        id: approvedApplication.id,
-        status: approvedApplication.status,
-        adminStatus: approvedApplication.adminStatus,
-        finalCreditLimit: approvedApplication.finalCreditLimit,
-        requestedAmount: approvedApplication.requestedAmount
-      } : 'None');
 
       // Get user's imports
       const imports = await storage.getImportsByUser(req.session.userId);

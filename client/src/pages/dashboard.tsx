@@ -234,7 +234,7 @@ export default function Dashboard() {
                     <span className="font-medium text-green-800">Crédito Aprovado</span>
                   </div>
                   <span className="text-lg font-bold text-green-600">
-                    {formatCompactCurrency(importerData.creditMetrics.approvedAmount)}
+                    {formatCompactCurrency(importerData?.creditMetrics?.approvedAmount || 0)}
                   </span>
                 </div>
 
@@ -246,7 +246,7 @@ export default function Dashboard() {
                     <span className="font-medium text-blue-800">Em Uso</span>
                   </div>
                   <span className="text-lg font-bold text-blue-600">
-                    {formatCompactCurrency(importerData.creditMetrics.usedAmount)}
+                    {formatCompactCurrency(importerData?.creditMetrics?.usedAmount || 0)}
                   </span>
                 </div>
 
@@ -258,7 +258,7 @@ export default function Dashboard() {
                     <span className="font-medium text-emerald-800">Disponível</span>
                   </div>
                   <span className="text-lg font-bold text-emerald-600">
-                    {formatCompactCurrency(importerData.creditMetrics.availableAmount)}
+                    {formatCompactCurrency(importerData?.creditMetrics?.availableAmount || 0)}
                   </span>
                 </div>
 
@@ -266,13 +266,13 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
                     <span className="font-medium">Taxa de Utilização</span>
                     <span className="text-lg font-semibold text-gray-800">
-                      {importerData.creditMetrics.utilizationRate.toFixed(1)}%
+                      {(importerData?.creditMetrics?.utilizationRate || 0).toFixed(1)}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${Math.min(importerData.creditMetrics.utilizationRate, 100)}%` }}
+                      style={{ width: `${Math.min(importerData?.creditMetrics?.utilizationRate || 0, 100)}%` }}
                     ></div>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
