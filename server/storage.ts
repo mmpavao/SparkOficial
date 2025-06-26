@@ -7,6 +7,7 @@ import {
   adminFees,
   paymentSchedules,
   payments,
+  importDocuments,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -134,7 +135,7 @@ export class DatabaseStorage {
 
   // Get import by ID (admin access)
   async getImportById(importId: number) {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(imports)
       .where(eq(imports.id, importId))
       .limit(1);
@@ -143,7 +144,7 @@ export class DatabaseStorage {
 
   // Get import by ID and user (user access control)
   async getImportByIdAndUser(importId: number, userId: number) {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(imports)
       .where(and(eq(imports.id, importId), eq(imports.userId, userId)))
       .limit(1);
@@ -152,7 +153,7 @@ export class DatabaseStorage {
 
   // Payment schedules methods
   async getPaymentSchedulesByImport(importId: number) {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(paymentSchedules)
       .where(eq(paymentSchedules.importId, importId))
       .orderBy(paymentSchedules.dueDate);
@@ -161,7 +162,7 @@ export class DatabaseStorage {
 
   // Import documents methods
   async getImportDocuments(importId: number) {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(importDocuments)
       .where(eq(importDocuments.importId, importId))
       .orderBy(desc(importDocuments.uploadedAt));
@@ -177,7 +178,7 @@ export class DatabaseStorage {
     mimeType: string;
     uploadedBy: number;
   }) {
-    const result = await this.db.insert(importDocuments).values({
+    const result = await db.insert(importDocuments).values({
       importId: data.importId,
       documentType: data.documentType,
       fileName: data.fileName,
@@ -190,7 +191,7 @@ export class DatabaseStorage {
   }
 
   async getImportDocumentById(documentId: number) {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(importDocuments)
       .where(eq(importDocuments.id, documentId))
       .limit(1);
