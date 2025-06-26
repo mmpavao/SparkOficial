@@ -809,6 +809,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Credit usage calculation endpoint
+  app.get('/api/credit/usage/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.applicationId);
+      const creditData = await storage.calculateAvailableCredit(applicationId);
+      res.json(creditData);
+    } catch (error) {
+      console.error("Error calculating credit usage:", error);
+      res.status(500).json({ message: "Erro ao calcular uso de crédito" });
+    }
+  });
+
   // Import routes
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {

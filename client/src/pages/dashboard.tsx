@@ -149,12 +149,12 @@ export default function Dashboard() {
             iconColor="text-green-600"
           />
 
-          {/* Em Uso - calculado das importações ativas */}
+          {/* Em Uso - calculado das importações ativas vinculadas ao crédito */}
           <MetricsCard
             title="Em Uso"
             value={formatCurrency(
               imports
-                .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
+                .filter(imp => imp.creditApplicationId && ['planning', 'in_transit', 'production'].includes(imp.status))
                 .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0)
             ).replace('R$', 'US$')}
             icon={PiggyBank}
