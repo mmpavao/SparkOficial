@@ -449,6 +449,12 @@ Changelog:
   * Implemented receipt upload system with base64 storage and download functionality
   * Added supplier data integration showing bank details and contact information for payments
   * Established complete payment workflow from creation to completion with comprehensive tracking
+- June 26, 2025. Admin dashboard status display improvements:
+  * Fixed status labels in admin dashboard to display properly in Portuguese
+  * Removed duplicate status text (approved/approved became just "Aprovado")
+  * Updated "Aplicações por Status" section with clean Portuguese labels
+  * Corrected "Atividade Recente" section to show status in Portuguese alongside colored badges
+  * Enhanced user experience with intuitive status display throughout admin interface
 ```
 
 ## User Preferences

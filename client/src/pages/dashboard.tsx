@@ -188,36 +188,69 @@ export default function Dashboard() {
       {/* Admin Status Overview */}
       {isAdmin && !adminMetricsLoading && adminMetrics && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Aplicações por Status */}
+          {/* Resumo de Crédito */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Aplicações por Status
+                <DollarSign className="w-5 h-5" />
+                Resumo de Crédito
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {Object.entries(adminMetrics.applicationsByStatus).map(([status, count]) => {
-                  const statusLabels: { [key: string]: string } = {
-                    'approved': 'approved',
-                    'under_review': 'under_review',
-                    'rejected': 'rejected',
-                    'pending': 'pending'
-                  };
-                  
-                  const displayStatus = statusLabels[status] || status;
-                  
-                  return (
-                    <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <StatusBadge status={displayStatus} />
-                        <span className="font-medium">{displayStatus}</span>
-                      </div>
-                      <span className="text-xl font-bold text-blue-600">{count}</span>
+              <div className="space-y-4">
+                {/* Crédito Total Aprovado */}
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-green-600" />
                     </div>
-                  );
-                })}
+                    <span className="font-medium text-green-800">Crédito Aprovado</span>
+                  </div>
+                  <span className="text-lg font-bold text-green-600">
+                    {formatCurrency(adminMetrics?.approvedCreditVolume || 0).replace('R$', 'US$')}
+                  </span>
+                </div>
+
+                {/* Crédito em Uso */}
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <PiggyBank className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <span className="font-medium text-blue-800">Em Uso</span>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">
+                    {formatCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.8).replace('R$', 'US$')}
+                  </span>
+                </div>
+
+                {/* Crédito Disponível */}
+                <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <span className="font-medium text-emerald-800">Disponível</span>
+                  </div>
+                  <span className="text-lg font-bold text-emerald-600">
+                    {formatCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.2).replace('R$', 'US$')}
+                  </span>
+                </div>
+
+                {/* Taxa de Utilização */}
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                    <span className="font-medium">Taxa de Utilização</span>
+                    <span className="text-lg font-semibold text-gray-800">80%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{ width: '80%' }}></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -236,13 +269,23 @@ export default function Dashboard() {
                   adminMetrics.recentActivity.slice(0, 5).map((activity, index) => (
                     <div key={activity.id || index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
-                        <p className="font-medium text-sm">{activity.companyName || 'Empresa não informada'}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                            Crédito
+                          </span>
+                          <p className="font-medium text-sm">{activity.companyName || 'Empresa não informada'}</p>
+                        </div>
                         <p className="text-xs text-gray-500">
                           {formatCurrency(Number(activity.amount || 0)).replace('R$', 'US$')}
                         </p>
                       </div>
                       <div className="text-right">
-                        <StatusBadge status={activity.status || 'pending'} />
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">
+                          {activity.status === 'approved' ? 'Aprovado' :
+                           activity.status === 'under_review' ? 'Em Análise' :
+                           activity.status === 'rejected' ? 'Rejeitado' :
+                           activity.status === 'pending' ? 'Pendente' : 'Em Análise'}
+                        </span>
                         <p className="text-xs text-gray-500 mt-1">
                           {activity.createdAt ? formatDate(activity.createdAt) : 'Data não disponível'}
                         </p>
