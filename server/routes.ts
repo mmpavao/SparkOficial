@@ -1858,6 +1858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeImports = imports.filter(imp => 
         imp.status !== 'cancelado' && 
         imp.status !== 'cancelled' &&
+        imp.status !== 'planejamento' && // Crédito só é usado quando sai do planejamento
         imp.creditApplicationId === approvedCredit.id
       );
 
