@@ -16,6 +16,7 @@ import NewImportPage from "@/pages/import-new";
 import ImportNewFormPage from "@/pages/import-new-form";
 import ImportDetailsPage from "@/pages/import-details";
 import ImportEdit from "@/pages/import-edit";
+import PipelineDemoPage from "@/pages/pipeline-demo";
 
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
@@ -63,6 +64,7 @@ function Router() {
             <Route path="/imports" component={ImportsPage} />
             <Route path="/imports/new" component={NewImportPage} />
             <Route path="/imports/new-form" component={ImportNewFormPage} />
+            <Route path="/imports/pipeline-demo" component={PipelineDemoPage} />
             <Route path="/imports/:id" component={ImportDetailsPage} />
             <Route path="/imports/:id/edit" component={ImportEdit} />
 

@@ -525,6 +525,15 @@ Changelog:
   * Integrated supplier dropdown selection with existing supplier database
   * Added route /imports/new-form to navigation system for complete import creation workflow
   * Established complete import creation pipeline from form submission to database storage with credit validation
+- June 26, 2025. Sprint 3.1 completion - Pipeline tracking system with 8-stage workflow implemented:
+  * Created comprehensive pipeline utilities (pipelineUtils.ts) with 8 defined stages and shipping method differentiation
+  * Built ImportTimeline component with visual progress tracking, percentage completion, and interactive timeline
+  * Developed StageCard component for individual stage management with editing capabilities and status indicators
+  * Implemented StageManager component providing complete pipeline control with advance/revert functionality
+  * Added pipeline demonstration page (/imports/pipeline-demo) showcasing all components and features
+  * Established 8-stage workflow: Planejamento → Produção → Entregue Agente → Transporte (Marítimo/Aéreo) → Desembaraço → Transporte Nacional → Concluído
+  * Integrated compact number formatting (10k, 1M) throughout credit details for improved readability
+  * Fixed credit usage display in credit details to show authentic values without structural modifications
 ```
 
 ## User Preferences
