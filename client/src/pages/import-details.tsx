@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
@@ -9,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
 import { calculateAdminFee, getAdminFeeFromCredit, getDownPaymentFromCredit } from "@/lib/adminFeeCalculator";
 import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
@@ -78,19 +76,24 @@ export default function ImportDetailsPage() {
     );
   }
 
-  // Status configuration
+  // Função para obter informações do status
   const getStatusInfo = (status: string) => {
     const statusMap = {
-      estimativa: { label: "Estimativa", color: "bg-gray-100 text-gray-700 border-gray-200", bgColor: "bg-gray-50", borderColor: "border-l-gray-500" },
-      producao: { label: "Produção", color: "bg-blue-100 text-blue-700 border-blue-200", bgColor: "bg-blue-50", borderColor: "border-l-blue-500" },
-      entregue_agente: { label: "Entregue ao Agente", color: "bg-yellow-100 text-yellow-700 border-yellow-200", bgColor: "bg-yellow-50", borderColor: "border-l-yellow-500" },
-      transporte_maritimo: { label: "Transporte Marítimo", color: "bg-indigo-100 text-indigo-700 border-indigo-200", bgColor: "bg-indigo-50", borderColor: "border-l-indigo-500" },
-      transporte_aereo: { label: "Transporte Aéreo", color: "bg-purple-100 text-purple-700 border-purple-200", bgColor: "bg-purple-50", borderColor: "border-l-purple-500" },
-      desembaraco: { label: "Desembaraço", color: "bg-orange-100 text-orange-700 border-orange-200", bgColor: "bg-orange-50", borderColor: "border-l-orange-500" },
-      transporte_nacional: { label: "Transporte Nacional", color: "bg-cyan-100 text-cyan-700 border-cyan-200", bgColor: "bg-cyan-50", borderColor: "border-l-cyan-500" },
-      concluido: { label: "Concluído", color: "bg-green-100 text-green-700 border-green-200", bgColor: "bg-green-50", borderColor: "border-l-green-500" },
+      estimativa: { label: "Estimativa", color: "bg-gray-100 text-gray-700", icon: Clock },
+      producao: { label: "Produção", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
+      entregue_agente: { label: "Entregue ao Agente", color: "bg-yellow-100 text-yellow-700", icon: Building },
+      transporte_maritimo: { label: "Transporte Marítimo", color: "bg-indigo-100 text-indigo-700", icon: Ship },
+      transporte_aereo: { label: "Transporte Aéreo", color: "bg-purple-100 text-purple-700", icon: Plane },
+      desembaraco: { label: "Desembaraço", color: "bg-orange-100 text-orange-700", icon: FileText },
+      transporte_nacional: { label: "Transporte Nacional", color: "bg-cyan-100 text-cyan-700", icon: Truck },
+      concluido: { label: "Concluído", color: "bg-green-100 text-green-700", icon: CheckCircle },
+      planning: { label: "Planejamento", color: "bg-gray-100 text-gray-700", icon: Clock },
+      in_progress: { label: "Em Andamento", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
+      shipped: { label: "Enviado", color: "bg-indigo-100 text-indigo-700", icon: Ship },
+      completed: { label: "Concluído", color: "bg-green-100 text-green-700", icon: CheckCircle },
+      pending: { label: "Pendente", color: "bg-yellow-100 text-yellow-700", icon: Clock }
     };
-    return statusMap[status as keyof typeof statusMap] || statusMap.estimativa;
+    return statusMap[status as keyof typeof statusMap] || { label: status, color: "bg-gray-100 text-gray-700", icon: Clock };
   };
 
   const statusInfo = getStatusInfo(importData.status);
@@ -102,16 +105,16 @@ export default function ImportDetailsPage() {
   
   const financialData = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
 
-  // Timeline steps
-  const timelineSteps = [
-    { key: 'estimativa', label: 'Estimativa Criada', icon: Clock, status: 'completed' },
-    { key: 'producao', label: 'Início da Produção', icon: AlertCircle, status: importData.status === 'estimativa' ? 'pending' : 'completed' },
-    { key: 'entregue_agente', label: 'Entregue ao Agente', icon: Package, status: ['estimativa', 'producao'].includes(importData.status) ? 'pending' : 'completed' },
-    { key: 'transporte_maritimo', label: 'Transporte Marítimo', icon: Ship, status: ['estimativa', 'producao', 'entregue_agente'].includes(importData.status) ? 'pending' : 'completed' },
-    { key: 'transporte_aereo', label: 'Transporte Aéreo', icon: Plane, status: ['estimativa', 'producao', 'entregue_agente', 'transporte_maritimo'].includes(importData.status) ? 'pending' : 'completed' },
-    { key: 'desembaraco', label: 'Desembaraço', icon: AlertCircle, status: ['concluido', 'transporte_nacional'].includes(importData.status) ? 'completed' : 'pending' },
-    { key: 'transporte_nacional', label: 'Transporte Nacional', icon: Truck, status: importData.status === 'concluido' ? 'completed' : 'pending' },
-    { key: 'concluido', label: 'Concluído', icon: CheckCircle, status: importData.status === 'concluido' ? 'completed' : 'pending' }
+  // Timeline dos estágios
+  const timelineStages = [
+    { key: 'estimativa', label: 'Estimativa Criada', icon: Clock, completed: true },
+    { key: 'producao', label: 'Início da Produção', icon: AlertCircle, completed: ['producao', 'entregue_agente', 'transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional', 'concluido'].includes(importData.status) },
+    { key: 'entregue_agente', label: 'Entregue ao Agente', icon: Building, completed: ['entregue_agente', 'transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional', 'concluido'].includes(importData.status) },
+    { key: 'transporte_maritimo', label: 'Transporte Marítimo', icon: Ship, completed: ['transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional', 'concluido'].includes(importData.status) },
+    { key: 'transporte_aereo', label: 'Transporte Aéreo', icon: Plane, completed: ['transporte_aereo', 'desembaraco', 'transporte_nacional', 'concluido'].includes(importData.status) },
+    { key: 'desembaraco', label: 'Desembaraço', icon: FileText, completed: ['desembaraco', 'transporte_nacional', 'concluido'].includes(importData.status) },
+    { key: 'transporte_nacional', label: 'Transporte Nacional', icon: Truck, completed: ['transporte_nacional', 'concluido'].includes(importData.status) },
+    { key: 'concluido', label: 'Concluído', icon: CheckCircle, completed: importData.status === 'concluido' }
   ];
 
   return (
@@ -162,43 +165,92 @@ export default function ImportDetailsPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Nome da Importação</label>
-                        <p className="text-lg font-semibold text-gray-900">{importData.importName}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Tipo de Carga</label>
-                        <p className="text-gray-900">{importData.cargoType}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Incoterms</label>
-                        <p className="text-gray-900">{importData.incoterms || 'FOB'}</p>
-                      </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Nome da Importação</label>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {importData.importName || `Importação #${importData.id}`}
+                      </p>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Status</label>
-                        <div className="mt-1">
-                          <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Método de Envio</label>
-                        <p className="text-gray-900 flex items-center gap-2">
-                          {importData.shippingMethod === 'sea' ? <Ship className="w-4 h-4" /> : <Plane className="w-4 h-4" />}
-                          {importData.shippingMethod === 'sea' ? 'Marítimo' : 'Aéreo'}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Entrega Prevista</label>
-                        <p className="text-gray-900 flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-blue-600" />
-                          {importData.estimatedDelivery ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR') : 'A definir'}
-                        </p>
-                      </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <Badge className={`${statusInfo.color} border-0 text-sm px-3 py-1`}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Tipo de Carga</label>
+                      <p className="text-base font-medium text-gray-900">{importData.cargoType}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Método de Envio</label>
+                      <p className="text-base font-medium text-gray-900">{importData.shippingMethod}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Incoterms</label>
+                      <p className="text-base font-medium text-gray-900">{importData.incoterms}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Entrega Prevista</label>
+                      <p className="text-base font-medium text-gray-900">
+                        {importData.estimatedDelivery ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR') : 'Não definida'}
+                      </p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Products */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Box className="h-5 w-5 text-green-600" />
+                    Produtos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {importData.products && importData.products.length > 0 ? (
+                    <div className="space-y-4">
+                      {importData.products.map((product: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Produto</label>
+                              <p className="font-semibold text-gray-900">{product.name}</p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Quantidade</label>
+                              <p className="font-semibold text-gray-900">{product.quantity?.toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Preço Unitário</label>
+                              <p className="font-semibold text-gray-900">{formatCurrency(parseFloat(product.unitPrice || '0')).replace('R$', 'US$')}</p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Valor Total</label>
+                              <p className="font-semibold text-gray-900">{formatCurrency(parseFloat(product.totalValue || '0')).replace('R$', 'US$')}</p>
+                            </div>
+                          </div>
+                          {product.description && (
+                            <div className="mt-3">
+                              <label className="text-sm font-medium text-gray-500">Descrição</label>
+                              <p className="text-gray-700">{product.description}</p>
+                            </div>
+                          )}
+                           {product.supplierName && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-600">Fornecedor</label>
+                              <p className="text-blue-600">{product.supplierName}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Box className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nenhum produto cadastrado</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -230,97 +282,32 @@ export default function ImportDetailsPage() {
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
 
-              {/* Products */}
+            <TabsContent value="pagamentos" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Box className="h-5 w-5 text-blue-600" />
-                    Produtos
+                    <CreditCard className="h-5 w-5 text-green-600" />
+                    Informações de Pagamento
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {importData.products && importData.products.length > 0 ? (
-                    <div className="space-y-4">
-                      {importData.products.map((product: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-4 space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Produto</label>
-                              <p className="font-semibold text-gray-900">{product.name}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Quantidade</label>
-                              <p className="text-gray-900">{product.quantity?.toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Preço Unitário</label>
-                              <p className="text-green-600 font-medium">
-                                {formatCurrency(parseFloat(product.unitPrice || '0')).replace('R$', 'US$')}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                              <p className="text-green-600 font-semibold">
-                                {formatCurrency(parseFloat(product.totalValue || '0')).replace('R$', 'US$')}
-                              </p>
-                            </div>
-                          </div>
-                          {product.description && (
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Descrição</label>
-                              <p className="text-gray-700">{product.description}</p>
-                            </div>
-                          )}
-                          {product.supplierName && (
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Fornecedor</label>
-                              <p className="text-blue-600">{product.supplierName}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Box className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>Nenhum produto cadastrado</p>
-                    </div>
-                  )}
+                  <p className="text-gray-500">Funcionalidade em desenvolvimento</p>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="pagamentos">
+            <TabsContent value="documentos" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-blue-600" />
-                    Cronograma de Pagamentos
+                    <FileText className="h-5 w-5 text-orange-600" />
+                    Documentos
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-gray-500">
-                    <CreditCard className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>Cronograma de pagamentos será gerado após aprovação do crédito</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="documentos">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Documentos da Importação
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>Documentos serão disponibilizados durante o processo de importação</p>
-                  </div>
+                  <p className="text-gray-500">Nenhum documento anexado</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -329,25 +316,33 @@ export default function ImportDetailsPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Financial Analysis */}
-          <Card className="border-l-4 border-l-green-500">
+          {/* Análise Financeira */}
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-800">
-                <Calculator className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calculator className="h-5 w-5 text-green-600" />
                 Análise Financeira
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">
-                  {formatCurrency(importValue).replace('R$', 'US$')}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Valor Total</span>
+                  <span className="font-semibold text-gray-900">
+                    {formatCurrency(importData.totalValue).replace('R$', 'US$')}
+                  </span>
                 </div>
-                <p className="text-sm text-gray-600">Valor Total da Importação</p>
-              </div>
-              
-              <Separator />
-              
-              {creditApplication && adminFeePercentage > 0 ? (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Moeda</span>
+                  <span className="font-semibold text-gray-900">USD</span>
+                </div>
+                {importData.products && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Produtos</span>
+                    <span className="font-semibold text-gray-900">{importData.products.length}</span>
+                  </div>
+                )}
+                 {creditApplication && adminFeePercentage > 0 ? (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Valor da Importação:</span>
@@ -395,49 +390,36 @@ export default function ImportDetailsPage() {
                   </p>
                 </div>
               )}
+              </div>
             </CardContent>
           </Card>
 
           {/* Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Clock className="h-5 w-5 text-blue-600" />
-                Timeline do Processo
+                Timeline
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {timelineSteps.map((step, index) => {
-                  const Icon = step.icon;
-                  const isCompleted = step.status === 'completed';
-                  const isCurrent = step.key === importData.status;
-                  
+                {timelineStages.map((stage, index) => {
+                  const Icon = stage.icon;
                   return (
-                    <div key={step.key} className="flex items-center gap-3">
+                    <div key={stage.key} className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        isCompleted 
+                        stage.completed 
                           ? 'bg-green-100 text-green-600' 
-                          : isCurrent 
-                            ? 'bg-blue-100 text-blue-600' 
-                            : 'bg-gray-100 text-gray-400'
+                          : 'bg-gray-100 text-gray-400'
                       }`}>
                         <Icon className="w-4 h-4" />
                       </div>
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          isCompleted 
-                            ? 'text-green-600' 
-                            : isCurrent 
-                              ? 'text-blue-600' 
-                              : 'text-gray-400'
-                        }`}>
-                          {step.label}
-                        </p>
-                      </div>
-                      {isCompleted && (
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      )}
+                      <span className={`text-sm ${
+                        stage.completed ? 'text-gray-900 font-medium' : 'text-gray-500'
+                      }`}>
+                        {stage.label}
+                      </span>
                     </div>
                   );
                 })}
@@ -445,7 +427,7 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
+           {/* Quick Stats */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
