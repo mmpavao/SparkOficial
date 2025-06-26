@@ -413,6 +413,14 @@ Changelog:
   * Added dynamic calculation showing US$ 120,000 in use and US$ 30,000 available from US$ 150,000 limit
   * Enhanced credit details page with authentic usage data without modifying other system components
   * Maintained backward compatibility with fallback logic for applications without usage data
+- June 26, 2025. Payment schedule system overhaul with authentic credit terms:
+  * Corrected down payment calculation from 10% to 30% (US$ 36,000 from US$ 120,000 import)
+  * Implemented proper payment terms using admin-finalized terms: 30, 60, 90, 120 days
+  * Fixed remaining amount calculation: 70% (US$ 84,000) divided into 4 installments of US$ 21,000 each
+  * Updated import status flow: Estimativa → Produção → Entregue Agente → Transporte Marítimo/Aéreo → Desembaraço → Transporte Nacional → Concluído
+  * Established payment term start date logic: countdown begins when import status changes to "entregue_agente"
+  * Regenerated existing payment schedules with correct financial calculations based on approved credit terms
+  * Enhanced payment schedule generation to use finalApprovedTerms from admin-finalized credit applications
 ```
 
 ## User Preferences

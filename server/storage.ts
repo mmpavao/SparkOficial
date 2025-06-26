@@ -358,10 +358,10 @@ export class DatabaseStorage {
 
     // Parse payment terms (e.g., "30,60,90,120" days)
     const paymentTerms = creditApp.adminStatus === 'admin_finalized'
-      ? creditApp.finalApprovedTerms || creditApp.approvedTerms || "30,60,90,120"
-      : creditApp.approvedTerms || "30,60,90,120";
+      ? (creditApp as any).finalApprovedTerms || (creditApp as any).approvedTerms || "30,60,90,120"
+      : (creditApp as any).approvedTerms || "30,60,90,120";
       
-    const termsDays = paymentTerms.split(',').map(term => parseInt(term.trim()));
+    const termsDays = paymentTerms.split(',').map((term: string) => parseInt(term.trim()));
     const installmentAmount = remainingAmount / termsDays.length;
 
     const schedules = [];

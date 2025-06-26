@@ -600,10 +600,14 @@ export default function ImportEditPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="planejamento">Planejamento</SelectItem>
-                        <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                        <SelectItem value="concluida">Concluída</SelectItem>
-                        <SelectItem value="cancelada">Cancelada</SelectItem>
+                        <SelectItem value="estimativa">Estimativa</SelectItem>
+                        <SelectItem value="producao">Produção</SelectItem>
+                        <SelectItem value="entregue_agente">Entregue Agente</SelectItem>
+                        <SelectItem value="transporte_maritimo">Transporte Marítimo</SelectItem>
+                        <SelectItem value="transporte_aereo">Transporte Aéreo</SelectItem>
+                        <SelectItem value="desembaraco">Desembaraço</SelectItem>
+                        <SelectItem value="transporte_nacional">Transporte Nacional</SelectItem>
+                        <SelectItem value="concluido">Concluído</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
