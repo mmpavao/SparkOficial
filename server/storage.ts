@@ -8,6 +8,7 @@ import {
   paymentSchedules,
   payments,
   importDocuments,
+  notifications,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -253,8 +254,28 @@ export class DatabaseStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async getAllCreditApplications(): Promise<CreditApplication[]> {
-    return await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt));
+  async getAllCreditApplications(limit: number = 50, offset: number = 0): Promise<CreditApplication[]> {
+    // Optimized query with only essential fields for admin listing
+    return await db
+      .select({
+        id: creditApplications.id,
+        userId: creditApplications.userId,
+        legalCompanyName: creditApplications.legalCompanyName,
+        requestedAmount: creditApplications.requestedAmount,
+        currency: creditApplications.currency,
+        status: creditApplications.status,
+        financialStatus: creditApplications.financialStatus,
+        adminStatus: creditApplications.adminStatus,
+        preAnalysisStatus: creditApplications.preAnalysisStatus,
+        riskLevel: creditApplications.riskLevel,
+        createdAt: creditApplications.createdAt,
+        updatedAt: creditApplications.updatedAt,
+        // Exclude heavy fields like requiredDocuments, optionalDocuments
+      })
+      .from(creditApplications)
+      .orderBy(desc(creditApplications.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   async getAllImports(): Promise<Import[]> {
@@ -440,13 +461,15 @@ export class DatabaseStorage {
       .insert(paymentSchedules)
       .values({
         importId,
-        paymentType: paymentData.paymentType || "down_payment",
-        dueDate: paymentData.dueDate || new Date(),
-        amount: paymentData.amount || "0",
-        currency: paymentData.currency || "USD",
+        totalAmount: paymentData.totalAmount,
+        downPaymentAmount: paymentData.downPaymentAmount,
+        downPaymentDueDate: paymentData.downPaymentDueDate,
+        finalPaymentAmount: paymentData.finalPaymentAmount,
+        finalPaymentDueDate: paymentData.finalPaymentDueDate,
+        adminFeeAmount: paymentData.adminFeeAmount,
+        adminFeeRate: paymentData.adminFeeRate,
         status: "pending",
-        installmentNumber: paymentData.installmentNumber,
-        totalInstallments: paymentData.totalInstallments,
+        createdAt: new Date(),
       })
       .returning();
   }
@@ -504,6 +527,7 @@ export class DatabaseStorage {
       .values({ 
         ...userData, 
         password: hashedPassword,
+        createdBy,
       })
       .returning();
     return user;
@@ -716,34 +740,17 @@ export class DatabaseStorage {
     totalSuppliers: number;
     recentActivity: any[];
   }> {
+    // Get all required data
     const allUsers = await this.getAllUsers();
-    const allApplications = await this.getAllCreditApplications();
+    const allApplications = await db.select().from(creditApplications);
     const allImports = await this.getAllImports();
     const allSuppliers = await this.getAllSuppliers();
 
     const totalImporters = allUsers.filter(u => u.role === 'importer').length;
     const totalApplications = allApplications.length;
 
-    // Mapear status combinados financeiro + admin para labels mais claros
     const applicationsByStatus = allApplications.reduce((acc, app) => {
-      let displayStatus = app.status;
-      
-      // Para aplicações aprovadas financeiramente, mostrar status admin
-      if (app.financialStatus === 'approved') {
-        if (app.adminStatus === 'admin_finalized') {
-          displayStatus = 'approved';
-        } else {
-          displayStatus = 'under_review';
-        }
-      } else if (app.preAnalysisStatus === 'pre_approved') {
-        displayStatus = 'under_review';
-      } else if (app.status === 'rejected') {
-        displayStatus = 'rejected';
-      } else {
-        displayStatus = 'under_review';
-      }
-      
-      acc[displayStatus] = (acc[displayStatus] || 0) + 1;
+      acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
@@ -752,25 +759,19 @@ export class DatabaseStorage {
     }, 0);
 
     const approvedCreditVolume = allApplications
-      .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+      .filter(app => app.status === 'approved')
       .reduce((sum, app) => {
         return sum + parseFloat(app.finalCreditLimit || app.creditLimit || "0");
       }, 0);
 
-    // Atividade recente com dados mais ricos
-    const recentActivityData = allApplications
-      .map(app => ({
-        id: app.id,
-        type: 'credit_application',
-        companyName: app.legalCompanyName || 'Empresa não informada',
-        amount: app.requestedAmount || '0',
-        status: app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized' ? 'approved' : 
-                app.preAnalysisStatus === 'pre_approved' ? 'under_review' : 
-                app.status,
-        createdAt: app.createdAt || new Date(),
-      }))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
+    const recentActivity = [
+      ...allApplications.slice(0, 5).map(app => ({ type: 'credit_application', data: app })),
+      ...allImports.slice(0, 5).map(imp => ({ type: 'import', data: imp })),
+    ].sort((a, b) => {
+      const dateA = new Date(a.data.createdAt);
+      const dateB = new Date(b.data.createdAt);
+      return dateB.getTime() - dateA.getTime();
+    }).slice(0, 10);
 
     return {
       totalImporters,
@@ -780,7 +781,7 @@ export class DatabaseStorage {
       approvedCreditVolume,
       totalImports: allImports.length,
       totalSuppliers: allSuppliers.length,
-      recentActivity: recentActivityData,
+      recentActivity,
     };
   }
 
@@ -812,8 +813,6 @@ export class DatabaseStorage {
       })
       .returning();
   }
-
-
 
   // Get individual payment by ID
   async getPaymentById(paymentId: number) {
@@ -857,6 +856,55 @@ export class DatabaseStorage {
         .select()
         .from(suppliers);
     }
+  }
+
+  // Get payments by import ID
+  async getPaymentsByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
+
+  // Update credit balance
+  async updateCreditBalance(applicationId: number, newBalance: number) {
+    return await db
+      .update(creditApplications)
+      .set({ 
+        creditUsed: newBalance.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(creditApplications.id, applicationId))
+      .returning();
+  }
+
+  // Confirm payment
+  async confirmPayment(paymentId: number, data: any) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: 'paid',
+        paidAt: new Date(),
+        receiptUrl: data.receiptUrl,
+        paymentMethod: data.paymentMethod,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+  }
+
+  // Reject payment
+  async rejectPayment(paymentId: number, reason: string) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        status: 'rejected',
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
   }
 }
 

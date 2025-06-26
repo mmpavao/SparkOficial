@@ -725,9 +725,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      // Invalidate caches when data changes
-      creditApplicationsCache = null;
-      adminMetricsCache = null;
+      // Invalidate all admin caches when data changes
+      invalidateAdminCaches();
 
       res.json(updatedApplication);
     } catch (error) {
@@ -1307,24 +1306,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let creditApplicationsCache: any = null;
   let creditApplicationsCacheTime = 0;
 
-  // Get all credit applications (admin only)
+  // Get all credit applications (admin only) with pagination
   app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
     try {
-      // Check cache first
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = (page - 1) * limit;
+      
+      // Check cache for first page only
       const now = Date.now();
-      if (creditApplicationsCache && (now - creditApplicationsCacheTime) < CACHE_DURATION) {
+      const cacheKey = `${page}-${limit}`;
+      
+      if (page === 1 && adminCreditListCache && (now - adminCreditListCacheTime) < LIST_CACHE_DURATION) {
         console.log("Serving credit applications from cache");
-        return res.json(creditApplicationsCache);
+        return res.json(adminCreditListCache);
       }
 
-      console.log("Fetching fresh credit applications");
-      const applications = await storage.getAllCreditApplications();
+      console.log(`Fetching credit applications page ${page}`);
+      const applications = await storage.getAllCreditApplications(limit, offset);
+      
+      // Get total count for pagination
+      const totalCountResult = await storage.getAllCreditApplications(999999, 0);
+      const totalCount = totalCountResult.length;
+      
+      const response = {
+        data: applications,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limit)
+        }
+      };
 
-      // Update cache
-      creditApplicationsCache = applications;
-      creditApplicationsCacheTime = now;
+      // Cache first page only
+      if (page === 1) {
+        adminCreditListCache = response;
+        adminCreditListCacheTime = now;
+      }
 
-      res.json(applications);
+      res.json(response);
     } catch (error) {
       console.error("Get all credit applications error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -1703,14 +1724,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFee, adminFinalNotes } = req.body;
+      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes } = req.body;
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, {
         adminStatus: 'admin_finalized',
         finalCreditLimit,
         finalApprovedTerms,
         finalDownPayment,
-        adminFee,
         adminFinalNotes,
         adminFinalizedBy: userId,
         adminFinalizedAt: new Date(),
@@ -2034,12 +2054,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Limite de crédito é obrigatório" });
       }
 
-      // Fetch application to get user ID
-      const application = await storage.getCreditApplication(applicationId);
-      if (!application) {
-        return res.status(404).json({ message: "Solicitação não encontrada" });
-      }
-
       const financialData = {
         creditLimit: creditLimit,
         approvedTerms: approvedTerms,
@@ -2056,7 +2070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Also update main status to approved
-      const finalApplication = await storage.updateCreditApplicationStatus(
+      const updatedMainApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         'approved',
         {}
@@ -2064,7 +2078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create notification for user
       await storage.notifyCreditStatusChange(
-        application.userId,
+        updatedApplication.userId,
         applicationId,
         'approved',
         { creditLimit, approvedTerms }
@@ -2488,11 +2502,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced caching system for performance optimization
   let adminMetricsCache: any = null;
   let adminMetricsCacheTime = 0;
+  let adminCreditListCache: any = null;
+  let adminCreditListCacheTime = 0;
   let userCreditCache: { [userId: number]: { data: any, time: number } } = {};
   let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
 
-  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for admin data
+  const LIST_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes for lists
   const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
+
+  // Cache invalidation helper
+  const invalidateAdminCaches = () => {
+    adminMetricsCache = null;
+    adminCreditListCache = null;
+    adminMetricsCacheTime = 0;
+    adminCreditListCacheTime = 0;
+  };
 
   // Admin dashboard metrics endpoint
   app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
