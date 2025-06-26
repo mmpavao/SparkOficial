@@ -421,6 +421,14 @@ Changelog:
   * Established payment term start date logic: countdown begins when import status changes to "entregue_agente"
   * Regenerated existing payment schedules with correct financial calculations based on approved credit terms
   * Enhanced payment schedule generation to use finalApprovedTerms from admin-finalized credit applications
+- June 26, 2025. Enhanced imports interface visual design to match credit applications:
+  * Redesigned imports page with professional card layout identical to credit applications interface
+  * Implemented color-coded status badges with proper visual hierarchy and border indicators
+  * Added comprehensive product preview section with badge display for multiple products
+  * Enhanced dropdown actions menu with proper AlertDialog confirmations for cancellation
+  * Integrated role-based company identification badges for admin/financeira users
+  * Improved responsive design with centered metrics display and consistent spacing
+  * Maintained all existing functionality while upgrading visual presentation to match credit module standards
 ```
 
 ## User Preferences
