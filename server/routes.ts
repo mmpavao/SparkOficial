@@ -1493,7 +1493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let creditApplicationsCacheTime = 0;
 
   // Get all credit applications (admin only)
-  app.get('/api/admin/credit-applications', requireAuth, requireAdmin, async (req: any, res) => {
+  app.get('/api/admin/credit-applications', requireAuth, async (req: any, res) => {
     try {
       // Check cache first
       const now = Date.now();
@@ -1796,7 +1796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update credit application status (admin only)
-  app.put('/api/admin/credit-applications/:id/status', requireAuth, requireAdmin, async (req: any, res) => {
+  app.put('/api/admin/credit-applications/:id/status', requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -1815,7 +1815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update credit application pre-analysis (admin only)
-  app.put('/api/admin/credit-applications/:id/pre-analysis', requireAuth, requireAdmin, async (req: any, res) => {
+  app.put('/api/admin/credit-applications/:id/pre-analysis', requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { preAnalysisStatus, riskAssessment, adminRecommendation } = req.body;
@@ -1842,7 +1842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update credit application status (admin only)
-  app.put('/api/admin/credit-applications/:id/status', requireAuth, requireAdmin, async (req: any, res) => {
+  app.put('/api/admin/credit-applications/:id/status', requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -2126,7 +2126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes for credit analysis
-  app.get("/api/admin/credit-applications/:id", requireAuth, requireAdmin, async (req: any, res) => {
+  app.get("/api/admin/credit-applications/:id", requireAuth, async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
       const application = await storage.getCreditApplication(applicationId);
