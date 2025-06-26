@@ -307,6 +307,14 @@ export default function CreditDetailsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Status Tracker */}
+          <CreditStatusTracker
+            currentStatus={application.status}
+            preAnalysisStatus={application.preAnalysisStatus}
+            financialStatus={application.financialStatus}
+            adminStatus={application.adminStatus}
+          />
+
           {/* Company Information */}
           <Card>
             <CardHeader>

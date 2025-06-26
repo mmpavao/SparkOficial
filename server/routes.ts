@@ -518,6 +518,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const now = Date.now();
 
+      // Special debugging for user ID 26 and application ID 1
+      if (req.session.userId === 26 && id === 1) {
+        console.log(`[DEBUG] User 26 attempting to access non-existent application ID 1`);
+        console.log(`[DEBUG] Request headers:`, req.headers);
+        console.log(`[DEBUG] Session data:`, req.session);
+        console.log(`[DEBUG] Stack trace:`, new Error().stack);
+        
+        // Get user's actual applications
+        const userApps = await storage.getCreditApplicationsByUser(26);
+        console.log(`[DEBUG] User 26 actual applications:`, userApps.map(app => ({ id: app.id, status: app.status })));
+        
+        return res.status(404).json({ 
+          message: "Solicitação não encontrada",
+          debug: {
+            requestedId: id,
+            userId: req.session.userId,
+            availableIds: userApps.map(app => app.id)
+          }
+        });
+      }
+
       // Check cache first for performance
       if (creditDetailsCache[id] && (now - creditDetailsCache[id].time) < DETAILS_CACHE_DURATION) {
         console.log(`Serving credit application ${id} from cache`);
