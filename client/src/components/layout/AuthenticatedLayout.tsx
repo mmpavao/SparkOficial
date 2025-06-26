@@ -33,7 +33,8 @@ import {
   ChevronRight,
   Users,
   UserCog,
-  FileCheck
+  FileCheck,
+  Truck
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {

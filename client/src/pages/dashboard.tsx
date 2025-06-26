@@ -6,17 +6,14 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { formatCompactCurrency } from '@/lib/numberFormat';
 import { 
-  BarChart3, 
-  TrendingUp, 
   Users, 
   CreditCard, 
-  Plus, 
   Clock,
-  Package,
   DollarSign,
   PiggyBank,
   Building2,
-  FileText
+  FileText,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -225,88 +222,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Pipeline de Importações */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Pipeline de Importações
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 bg-gray-100">
-                    <span className="text-sm font-bold">2</span>
-                  </div>
-                  <span className="font-medium">Planejamento</span>
-                </div>
-                <span className="text-sm text-gray-500">2 importações</span>
-              </div>
 
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 bg-blue-100">
-                    <span className="text-sm font-bold">0</span>
-                  </div>
-                  <span className="font-medium">Produção</span>
-                </div>
-                <span className="text-sm text-gray-500">0 importações</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-purple-600 bg-purple-100">
-                    <span className="text-sm font-bold">0</span>
-                  </div>
-                  <span className="font-medium">Entregue ao Agente</span>
-                </div>
-                <span className="text-sm text-gray-500">0 importações</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-cyan-600 bg-cyan-100">
-                    <span className="text-sm font-bold">0</span>
-                  </div>
-                  <span className="font-medium">Transporte Marítimo</span>
-                </div>
-                <span className="text-sm text-gray-500">0 importações</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-yellow-600 bg-yellow-100">
-                    <span className="text-sm font-bold">0</span>
-                  </div>
-                  <span className="font-medium">Desembaraço</span>
-                </div>
-                <span className="text-sm text-gray-500">0 importações</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-orange-600 bg-orange-100">
-                    <span className="text-sm font-bold">0</span>
-                  </div>
-                  <span className="font-medium">Transporte Nacional</span>
-                </div>
-                <span className="text-sm text-gray-500">0 importações</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-green-600 bg-green-100">
-                    <span className="text-sm font-bold">0</span>
-                  </div>
-                  <span className="font-medium">Concluído</span>
-                </div>
-                <span className="text-sm text-gray-500">0 importações</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
       {/* Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -389,54 +305,7 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* Importações Recentes */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Importações Recentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 bg-gray-100">
-                    <Package className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Importacao teste</p>
-                    <p className="text-sm text-gray-600">
-                      {formatCompactCurrency(120000)} • {isAdmin ? 'Empresa Importadora Ltda' : ''}
-                    </p>
-                    <p className="text-xs text-gray-500">25/06/2025</p>
-                  </div>
-                </div>
-                <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
-                  Planejamento
-                </span>
-              </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 bg-gray-100">
-                    <Package className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Importação Pasta de Tomate em Lata de Aço</p>
-                    <p className="text-sm text-gray-600">
-                      {formatCompactCurrency(60000)} • {isAdmin ? 'Spark Comex' : ''}
-                    </p>
-                    <p className="text-xs text-gray-500">25/06/2025</p>
-                  </div>
-                </div>
-                <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
-                  Planejamento
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
