@@ -101,16 +101,6 @@ export default function Dashboard() {
               <span className="text-sm font-medium">Iniciar Importação</span>
             </div>
           </button>
-
-          <button
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
-            onClick={() => window.location.href = '/credit'}
-          >
-            <div className="flex items-center">
-              <FileText className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">Ver Crédito</span>
-            </div>
-          </button>
         </div>
       </div>
       {/* Main Metrics Row */}
