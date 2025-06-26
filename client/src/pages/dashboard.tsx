@@ -30,9 +30,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
-  const { data: importerData, isLoading: importerDataLoading, error } = useImporterDashboard();
+  const { data: importerData, isLoading: importerDataLoading, error } = useImporterDashboard(!isAdmin);
 
-  if ((adminMetricsLoading && isAdmin) || (importerDataLoading && !isAdmin)) {
+  if ((isAdmin && adminMetricsLoading) || (!isAdmin && importerDataLoading)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600"></div>
@@ -111,7 +111,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total de Importadores</p>
-                  <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImporters || 5}</p>
+                  <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImporters || 0}</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
               </div>
@@ -123,7 +123,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
-                  <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalApplications || 4}</p>
+                  <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalApplications || 0}</p>
                 </div>
                 <FileText className="w-8 h-8 text-green-600" />
               </div>
@@ -135,7 +135,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Volume Total Solicitado</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(968499)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(adminMetrics?.totalCreditVolume || 0)}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-purple-600" />
               </div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Volume Aprovado</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(150000)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(adminMetrics?.approvedCreditVolume || 0)}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-emerald-600" />
               </div>
@@ -462,27 +462,43 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Atividade Recente
+                Atividade Recente do Sistema
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Crédito</span>
-                      <p className="font-medium text-sm">Empresa do Marcio</p>
+              {adminMetrics?.recentActivity?.length > 0 ? (
+                <div className="space-y-3">
+                  {adminMetrics.recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Crédito</span>
+                          <p className="font-medium text-sm">{activity.companyName}</p>
+                        </div>
+                        <p className="text-xs text-gray-500">{formatCompactCurrency(parseFloat(activity.amount))}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          activity.status === 'approved' ? 'bg-green-100 text-green-700' :
+                          activity.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {activity.status === 'approved' ? 'Aprovado' :
+                           activity.status === 'pending' ? 'Pendente' :
+                           'Em Análise'}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">{formatDate(activity.createdAt)}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500">{formatCompactCurrency(150000)}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">
-                      Aprovado
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">25/06/2025</p>
-                  </div>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma atividade recente</h3>
+                  <p className="text-gray-500">Atividades do sistema aparecerão aqui.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

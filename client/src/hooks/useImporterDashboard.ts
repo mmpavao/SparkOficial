@@ -40,20 +40,21 @@ interface ImporterDashboardData {
   };
 }
 
-export function useImporterDashboard() {
+export function useImporterDashboard(enabled: boolean) {
   return useQuery<ImporterDashboardData>({
     queryKey: ['/api/dashboard/importer'],
     queryFn: async () => {
       const response = await fetch('/api/dashboard/importer', {
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard data');
       }
-      
+
       return response.json();
     },
+    enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
   });
