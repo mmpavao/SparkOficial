@@ -455,6 +455,14 @@ Changelog:
   * Updated "Aplicações por Status" section with clean Portuguese labels
   * Corrected "Atividade Recente" section to show status in Portuguese alongside colored badges
   * Enhanced user experience with intuitive status display throughout admin interface
+- June 26, 2025. Complete dashboard data consistency analysis and corrections:
+  * Analyzed and corrected all data inconsistencies in admin dashboard
+  * Fixed "Detalhes do Crédito" to show real system data (US$ 150,000 approved, US$ 120,000 in use, 80% utilization)
+  * Corrected "Pipeline de Importações" to display actual 2 imports in planning stage
+  * Updated "Importações Recentes" with authentic data from database (Importacao teste, Pasta de Tomate)
+  * Removed status duplications in "Atividade Recente" section with single Portuguese labels
+  * Fixed variable scope errors causing dashboard crashes
+  * Dashboard now displays 100% authentic data reflecting real system state
 ```
 
 ## User Preferences
