@@ -145,6 +145,10 @@ export default function NewImportPage() {
   });
 
   const onSubmit = (data: InsertImport) => {
+    console.log("onSubmit called with data:", data);
+    console.log("Form validation state:", form.formState);
+    console.log("Form errors:", form.formState.errors);
+    
     if (!approvedCredit && user?.role === 'importer') {
       toast({
         title: "Crédito não encontrado",
@@ -318,7 +322,10 @@ export default function NewImportPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={(e) => {
+                  console.log("Form submit event triggered");
+                  form.handleSubmit(onSubmit)(e);
+                }} className="space-y-6">
                   {/* Basic Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -678,6 +685,12 @@ export default function NewImportPage() {
                       type="submit" 
                       disabled={createImportMutation.isPending}
                       className="min-w-[120px]"
+                      onClick={(e) => {
+                        console.log("Button clicked!");
+                        console.log("Form valid:", form.formState.isValid);
+                        console.log("Form errors:", form.formState.errors);
+                        // Let the form handle the submit naturally
+                      }}
                     >
                       {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
                     </Button>
