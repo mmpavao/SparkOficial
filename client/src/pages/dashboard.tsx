@@ -4,8 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useAdminMetrics } from "@/hooks/useAdminMetrics";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useCreditUsage } from "@/hooks/useCreditManagement";
 import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";
+import CreditUsageCard from "@/components/CreditUsageCard";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { getGreeting, getFirstName, getRoleDisplayName } from "@/utils/roleUtils";
 
@@ -149,7 +151,7 @@ export default function Dashboard() {
             iconColor="text-green-600"
           />
 
-          {/* Em Uso - calculado das importações ativas vinculadas ao crédito */}
+          {/* Em Uso - calculado das importações vinculadas ao crédito */}
           <MetricsCard
             title="Em Uso"
             value={formatCurrency(
