@@ -4,6 +4,7 @@ import { useMetrics } from '@/hooks/useMetrics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatCompactCurrency } from '@/lib/numberFormat';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -125,7 +126,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Volume Total Solicitado</p>
-                  <p className="text-2xl font-bold text-gray-900">US$ 968.499,00</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(968499)}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-purple-600" />
               </div>
@@ -137,7 +138,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Volume Aprovado</p>
-                  <p className="text-2xl font-bold text-gray-900">US$ 150.000,00</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(150000)}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-emerald-600" />
               </div>
@@ -190,7 +191,7 @@ export default function Dashboard() {
                   </div>
                   <span className="font-medium text-green-800">Crédito Aprovado</span>
                 </div>
-                <span className="text-lg font-bold text-green-600">US$ 150.000,00</span>
+                <span className="text-lg font-bold text-green-600">{formatCompactCurrency(150000)}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -200,7 +201,7 @@ export default function Dashboard() {
                   </div>
                   <span className="font-medium text-blue-800">Em Uso</span>
                 </div>
-                <span className="text-lg font-bold text-blue-600">US$ 120.000,00</span>
+                <span className="text-lg font-bold text-blue-600">{formatCompactCurrency(120000)}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-lg border border-emerald-200">
@@ -210,7 +211,7 @@ export default function Dashboard() {
                   </div>
                   <span className="font-medium text-emerald-800">Disponível</span>
                 </div>
-                <span className="text-lg font-bold text-emerald-600">US$ 30.000,00</span>
+                <span className="text-lg font-bold text-emerald-600">{formatCompactCurrency(30000)}</span>
               </div>
 
               <div className="pt-3 border-t border-gray-200">
@@ -332,7 +333,7 @@ export default function Dashboard() {
                       <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Crédito</span>
                       <p className="font-medium text-sm">Empresa do Marcio</p>
                     </div>
-                    <p className="text-xs text-gray-500">US$ 150.000,00</p>
+                    <p className="text-xs text-gray-500">{formatCompactCurrency(150000)}</p>
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">
@@ -348,7 +349,7 @@ export default function Dashboard() {
                       <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Crédito</span>
                       <p className="font-medium text-sm">Spark Global Commerce Ltda</p>
                     </div>
-                    <p className="text-xs text-gray-500">US$ 600.000,00</p>
+                    <p className="text-xs text-gray-500">{formatCompactCurrency(600000)}</p>
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">
