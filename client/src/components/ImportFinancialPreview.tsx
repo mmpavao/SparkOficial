@@ -28,17 +28,17 @@ export function ImportFinancialPreview({
     const adminFeePercent = parseFloat(creditApplication.adminFee || '0');
     const paymentTerms = (creditApplication.finalApprovedTerms || '30').split(',').map((term: string) => parseInt(term.trim()));
 
-    const downPayment = (importValue * downPaymentPercent) / 100;
-    const financedAmount = importValue - downPayment;
+    const downPayment = (calculationValue * downPaymentPercent) / 100;
+    const financedAmount = calculationValue - downPayment;
     const adminFee = (financedAmount * adminFeePercent) / 100;
-    const totalAmount = importValue + adminFee;
+    const totalAmount = calculationValue + adminFee;
     const installmentAmount = financedAmount / paymentTerms.length;
 
     const availableCredit = creditUsage ? creditUsage.available : 0;
     const exceedsLimit = financedAmount > availableCredit;
 
     return {
-      fobValue: importValue,
+      fobValue: calculationValue,
       downPayment,
       downPaymentPercent,
       financedAmount,
