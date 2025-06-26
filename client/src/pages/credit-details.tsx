@@ -132,7 +132,7 @@ export default function CreditDetailsPage() {
       const endpoint = permissions.canPerformPreAnalysis 
         ? `/api/admin/credit/applications/${applicationId}/finalize`
         : `/api/credit/applications/${applicationId}`;
-      
+
       return await apiRequest(endpoint, 'PUT', {
         finalApprovedTerms: data.paymentTerms,
         finalDownPayment: data.downPaymentPercentage,
@@ -546,106 +546,13 @@ export default function CreditDetailsPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Step 1: Application Created - Always shown */}
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium">Solicitação Criada</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(application.createdAt).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2: Under Review - Show if status progressed beyond pending */}
-              {(application.status === 'under_review' || 
-                application.status === 'pre_approved' || 
-                application.status === 'approved' || 
-                application.status === 'rejected') && (
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Início da Pré-análise</p>
-                    <p className="text-xs text-gray-500">Análise administrativa iniciada</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Pre-approved - Show if pre-approved */}
-              {(application.status === 'pre_approved' || 
-                application.status === 'approved') && (
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Pré-aprovado</p>
-                    <p className="text-xs text-gray-500">
-                      {application.analyzedAt 
-                        ? new Date(application.analyzedAt).toLocaleDateString('pt-BR')
-                        : 'Enviado para análise financeira'
-                      }
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 4: Financial Analysis - Show if approved */}
-              {application.status === 'approved' && (
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Aprovado pela Financeira</p>
-                    <p className="text-xs text-gray-500">
-                      {application.financialAnalyzedAt 
-                        ? new Date(application.financialAnalyzedAt).toLocaleDateString('pt-BR')
-                        : 'Crédito aprovado'
-                      }
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 5: Admin Finalization - Show if admin finalized */}
-              {application.adminStatus === 'finalized' && (
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Finalizado</p>
-                    <p className="text-xs text-gray-500">
-                      {application.adminFinalizedAt 
-                        ? new Date(application.adminFinalizedAt).toLocaleDateString('pt-BR')
-                        : 'Termos finalizados'
-                      }
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Rejection Step - Show if rejected */}
-              {application.status === 'rejected' && (
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Rejeitado</p>
-                    <p className="text-xs text-gray-500">
-                      {application.rejectedAt 
-                        ? new Date(application.rejectedAt).toLocaleDateString('pt-BR')
-                        : 'Solicitação negada'
-                      }
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Timeline using CreditStatusTracker */}
+          <CreditStatusTracker 
+            currentStatus={application.status}
+            preAnalysisStatus={application.preAnalysisStatus}
+            financialStatus={application.financialStatus}
+            adminStatus={application.adminStatus}
+          />
 
           {/* Credit Limit Display for Approved Applications */}
           {application.financialStatus === 'approved' && application.creditLimit && (
@@ -751,7 +658,7 @@ export default function CreditDetailsPage() {
                   {isEditingCredit ? (
                     <div className="space-y-4">
                       <h4 className="font-medium text-gray-900">Configurações de Crédito</h4>
-                      
+
                       {/* Prazo de Pagamento */}
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Prazo de Pagamento (dias)</Label>
@@ -895,7 +802,7 @@ export default function CreditDetailsPage() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => window.print()}
+                  onClick={(){() => window.print()}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Imprimir Detalhes
