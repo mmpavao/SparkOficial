@@ -1519,29 +1519,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use raw SQL query for production compatibility
       const applications = await db.execute(`
         SELECT 
-          id, userId, legalCompanyName, requestedAmount, status,
-          preAnalysisStatus, financialStatus, adminStatus,
-          createdAt, updatedAt, finalCreditLimit, creditLimit,
-          approvedTerms, finalApprovedTerms
+          id, user_id, legal_company_name, requested_amount, status,
+          pre_analysis_status, financial_status, admin_status,
+          created_at, updated_at, final_credit_limit, credit_limit,
+          approved_terms, final_approved_terms
         FROM credit_applications 
-        ORDER BY createdAt DESC
+        ORDER BY created_at DESC
       `);
 
       const formattedApplications = applications.rows.map((row: any) => ({
         id: row.id,
-        userId: row.userId || row.userid,
-        legalCompanyName: row.legalCompanyName || row.legalcompanyname,
-        requestedAmount: row.requestedAmount || row.requestedamount,
+        userId: row.user_id,
+        legalCompanyName: row.legal_company_name,
+        requestedAmount: row.requested_amount,
         status: row.status,
-        preAnalysisStatus: row.preAnalysisStatus || row.preanalysisstatus,
-        financialStatus: row.financialStatus || row.financialstatus,
-        adminStatus: row.adminStatus || row.adminstatus,
-        createdAt: row.createdAt || row.createdat,
-        updatedAt: row.updatedAt || row.updatedat,
-        finalCreditLimit: row.finalCreditLimit || row.finalcreditlimit,
-        creditLimit: row.creditLimit || row.creditlimit,
-        approvedTerms: row.approvedTerms || row.approvedterms,
-        finalApprovedTerms: row.finalApprovedTerms || row.finalapprovedterms
+        preAnalysisStatus: row.pre_analysis_status,
+        financialStatus: row.financial_status,
+        adminStatus: row.admin_status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        finalCreditLimit: row.final_credit_limit,
+        creditLimit: row.credit_limit,
+        approvedTerms: row.approved_terms,
+        finalApprovedTerms: row.final_approved_terms
       }));
 
       console.log(`Found ${formattedApplications.length} credit applications`);
