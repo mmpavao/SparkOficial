@@ -194,8 +194,9 @@ export default function CreditPage() {
 
   const { data: applications = [], isLoading } = useQuery({
     queryKey: [getEndpoint()],
+    queryFn: () => apiRequest(getEndpoint(), "GET"),
     enabled: !!user,
-  });
+  }) as { data: any[], isLoading: boolean };
 
   // Create credit application mutation
   const createApplicationMutation = useMutation({
