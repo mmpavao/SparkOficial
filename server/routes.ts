@@ -1323,6 +1323,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Status update route
+  app.put('/api/imports/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      if (!status) {
+        return res.status(400).json({ message: "Status é obrigatório" });
+      }
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Update status and timestamp
+      const updateData = {
+        status: status,
+        updatedAt: new Date()
+      };
+
+      const updatedImport = await storage.updateImportStatus(id, status, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status da importação" });
+    }
+  });
+
   // Admin import routes
   app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
     try {

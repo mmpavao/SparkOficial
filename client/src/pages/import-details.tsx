@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { ArrowLeft, Package, MapPin, Calendar, DollarSign, FileText, Truck, Building } from "lucide-react";
 import ImportFinancialSummary from "@/components/imports/ImportFinancialSummary";
+import StatusChanger from "@/components/imports/StatusChanger";
 
 interface ImportDetails {
   id: number;
@@ -196,6 +197,7 @@ export default function ImportDetailsPage() {
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="status">Alterar Status</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -352,6 +354,60 @@ export default function ImportDetailsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="status" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Componente de mudança de status */}
+            <StatusChanger 
+              importId={importData.id} 
+              currentStatus={importData.status}
+              onStatusChange={(newStatus) => {
+                // Atualizar dados locais para refletir mudança
+                importData.status = newStatus;
+              }}
+            />
+            
+            {/* Informações complementares sobre status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Informações sobre Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Status Atual</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    A importação está atualmente em: <strong>{getStageLabel(importData.currentStage)}</strong>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Alterar o status afeta o cálculo de crédito utilizado e as permissões de edição.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Impactos da Mudança</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Planejamento: Não consome crédito, pode ser editada</li>
+                    <li>• Produção: Inicia consumo de crédito, edição limitada</li>
+                    <li>• Transporte: Crédito totalmente comprometido</li>
+                    <li>• Concluído: Processo finalizado</li>
+                  </ul>
+                </div>
+                
+                {importData.createdAt && (
+                  <div>
+                    <h4 className="font-medium mb-2">Histórico</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Criada em: {new Date(importData.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
