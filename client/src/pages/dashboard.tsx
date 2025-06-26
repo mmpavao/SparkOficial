@@ -274,42 +274,48 @@ export default function Dashboard() {
                 );
               }
 
-              // Importadores veem apenas valores finais ajustados pelo admin
+              // Valores corretos baseados nos dados reais
               const approvedCredit = Number(approvedApp.finalCreditLimit || 0);
               
+              // Calcular uso real baseado nas importações vinculadas
               const usedCredit = imports
-                .filter(imp => ['ordered', 'in_transit', 'customs'].includes(imp.status))
+                .filter(imp => imp.creditApplicationId === approvedApp.id && !['cancelled', 'delivered'].includes(imp.status))
                 .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0);
               
-              const availableCredit = approvedCredit - usedCredit;
+              const availableCredit = Math.max(0, approvedCredit - usedCredit);
+              const utilizationRate = approvedCredit > 0 ? (usedCredit / approvedCredit) * 100 : 0;
 
               return (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
                     <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                     <span className="text-lg font-bold text-green-600">{formatCurrency(approvedCredit).replace('R$', 'US$')}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <span className="text-sm font-medium text-blue-800">Em Uso</span>
                     <span className="text-lg font-bold text-blue-600">{formatCurrency(usedCredit).replace('R$', 'US$')}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-800">Disponível</span>
-                    <span className="text-lg font-bold text-gray-600">{formatCurrency(availableCredit).replace('R$', 'US$')}</span>
+                  <div className="flex justify-between items-center p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <span className="text-sm font-medium text-emerald-800">Disponível</span>
+                    <span className="text-lg font-bold text-emerald-600">{formatCurrency(availableCredit).replace('R$', 'US$')}</span>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Taxa de Utilização</span>
-                      <span>{approvedCredit > 0 ? `${((usedCredit / approvedCredit) * 100).toFixed(1)}%` : '0%'}</span>
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
+                      <span className="font-medium">Taxa de Utilização</span>
+                      <span className="text-lg font-semibold text-gray-800">{utilizationRate.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${approvedCredit > 0 ? Math.min((usedCredit / approvedCredit) * 100, 100) : 0}%` }}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300" 
+                        style={{ width: `${Math.min(utilizationRate, 100)}%` }}
                       ></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0%</span>
+                      <span>100%</span>
                     </div>
                   </div>
                 </div>

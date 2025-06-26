@@ -82,27 +82,28 @@ export function calculateCreditUsage(
   imports: Import[],
   userRole?: string
 ) {
-  // Find approved credits
+  // Find approved credits - corrigindo critério de aprovação
   const approvedCredits = creditApplications.filter(app => 
-    app.status === 'approved' || app.status === 'admin_finalized'
+    app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
   );
 
   if (!approvedCredits.length) {
     return { used: 0, available: 0, limit: 0 };
   }
 
-  // Calculate total credit limit
+  // Calculate total credit limit - usando limite final do admin
   const totalLimit = approvedCredits.reduce((sum, app) => {
-    const creditAmount = app.finalCreditLimit || app.requestedAmount || "0";
+    const creditAmount = app.finalCreditLimit || app.creditLimit || "0";
     return sum + Number(creditAmount);
   }, 0);
 
-  // Calculate used credit from linked imports
+  // Calculate used credit from linked imports - incluindo todos os status ativos
   const usedCredit = imports
     .filter(imp => {
       // Check if import is linked to an approved credit
       const hasLinkedCredit = approvedCredits.some(ca => ca.id === imp.creditApplicationId);
-      return hasLinkedCredit && ['planning', 'in_transit', 'production'].includes(imp.status);
+      // Incluir todos os status que representam uso ativo do crédito
+      return hasLinkedCredit && !['cancelled', 'delivered'].includes(imp.status);
     })
     .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0);
 
