@@ -2730,6 +2730,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Import document upload endpoint
+  app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
+      }
+
+      if (!category) {
+        return res.status(400).json({ message: "Categoria do documento é obrigatória" });
+      }
+
+      // Get import to verify ownership
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      // Convert file to base64
+      const base64File = file.buffer.toString('base64');
+      const documentData = {
+        category,
+        filename: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        data: base64File,
+        uploadedAt: new Date().toISOString()
+      };
+
+      // Get current documents
+      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
+      currentDocuments[category] = documentData;
+
+      // Update import with new document
+      await storage.updateImport(importId, {
+        documents: JSON.stringify(currentDocuments)
+      });
+
+      console.log(`Document uploaded successfully: ${file.originalname} for import ${importId}`);
+      res.json({ 
+        success: true, 
+        message: "Documento enviado com sucesso",
+        document: {
+          category,
+          filename: file.originalname,
+          uploadedAt: documentData.uploadedAt
+        }
+      });
+
+    } catch (error) {
+      console.error("Error uploading import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document download endpoint
+  app.get('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.params;
+
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      const documents = importData.documents ? JSON.parse(importData.documents) : {};
+      const document = documents[category];
+
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Convert base64 back to buffer
+      const buffer = Buffer.from(document.data, 'base64');
+      
+      res.set({
+        'Content-Type': document.mimeType,
+        'Content-Disposition': `attachment; filename="${document.filename}"`
+      });
+      
+      res.send(buffer);
+
+    } catch (error) {
+      console.error("Error downloading import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document delete endpoint
+  app.delete('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.params;
+
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      // Get current documents and remove the specified category
+      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
+      delete currentDocuments[category];
+
+      // Update import
+      await storage.updateImport(importId, {
+        documents: JSON.stringify(currentDocuments)
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Documento removido com sucesso"
+      });
+
+    } catch (error) {
+      console.error("Error deleting import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

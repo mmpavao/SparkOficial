@@ -123,7 +123,27 @@ export default function DocumentManager({ importId, documents = [] }: DocumentMa
   };
 
   const isDocumentUploaded = (category: string) => {
-    return documents.includes(category);
+    // documents can be either array of strings or object with document data
+    if (Array.isArray(documents)) {
+      return documents.includes(category);
+    }
+    
+    // If documents is a string (JSON), parse it
+    if (typeof documents === 'string') {
+      try {
+        const parsedDocs = JSON.parse(documents);
+        return parsedDocs && parsedDocs[category];
+      } catch {
+        return false;
+      }
+    }
+    
+    // If documents is an object
+    if (typeof documents === 'object' && documents !== null) {
+      return documents[category];
+    }
+    
+    return false;
   };
 
   const requiredDocs = DOCUMENT_CATEGORIES.filter(doc => doc.required);

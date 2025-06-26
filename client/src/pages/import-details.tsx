@@ -358,20 +358,124 @@ export default function ImportDetailsPage() {
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6">
+          <DocumentManager 
+            importId={importData.id}
+            documents={(importData as any).documents || []}
+          />
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Documentos da Importação
+                <DollarSign className="h-4 w-4" />
+                Cronograma de Pagamentos
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Sistema de Documentos em Desenvolvimento</h3>
-                <p className="text-muted-foreground mb-4">
-                  O sistema de upload e gestão de documentos será implementado no Sprint 5.1
-                </p>
+              <div className="space-y-4">
+                {/* Resumo dos pagamentos */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-medium text-yellow-800">Pagamento Imediato</span>
+                    </div>
+                    <p className="text-lg font-bold text-yellow-900">
+                      {formatCurrency((parseFloat(importData.totalValue) * 0.30).toString())}
+                    </p>
+                    <p className="text-xs text-yellow-700">Entrada (30%)</p>
+                  </div>
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Parcelado via Crédito</span>
+                    </div>
+                    <p className="text-lg font-bold text-blue-900">
+                      {formatCurrency((parseFloat(importData.totalValue) * 0.70).toString())}
+                    </p>
+                    <p className="text-xs text-blue-700">70% financiado</p>
+                  </div>
+                  
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Total da Importação</span>
+                    </div>
+                    <p className="text-lg font-bold text-green-900">
+                      {formatCurrency(importData.totalValue)}
+                    </p>
+                    <p className="text-xs text-green-700">Valor FOB</p>
+                  </div>
+                </div>
+
+                {/* Cronograma detalhado */}
+                <div className="border rounded-lg">
+                  <div className="bg-gray-50 px-4 py-3 border-b">
+                    <h4 className="font-medium">Cronograma de Pagamentos</h4>
+                    <p className="text-sm text-muted-foreground">
+                      O cronograma inicia quando a importação chega ao agente (status "Entregue Agente")
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 space-y-3">
+                    {/* Pagamento imediato */}
+                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                      <div>
+                        <p className="font-medium">Pagamento Imediato</p>
+                        <p className="text-sm text-muted-foreground">Entrada de 30%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-yellow-700">
+                          {formatCurrency((parseFloat(importData.totalValue) * 0.30).toString())}
+                        </p>
+                        <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                          A vista
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Parcelas do crédito */}
+                    {[30, 60, 90, 120].map((days, index) => {
+                      const installmentValue = (parseFloat(importData.totalValue) * 0.70) / 4;
+                      return (
+                        <div key={days} className="flex items-center justify-between p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                          <div>
+                            <p className="font-medium">Parcela {index + 1}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {days} dias após entrega ao agente
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-blue-700">
+                              {formatCurrency(installmentValue.toString())}
+                            </p>
+                            <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                              {importData.status === 'entregue_agente' || 
+                               importData.status === 'transporte_maritimo' ||
+                               importData.status === 'transporte_aereo' ||
+                               importData.status === 'desembaraco' ||
+                               importData.status === 'transporte_nacional' ||
+                               importData.status === 'concluido' ? 'Ativo' : 'Aguardando'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Informações importantes */}
+                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                  <h5 className="font-medium text-amber-800 mb-2">ℹ️ Informações Importantes</h5>
+                  <ul className="text-sm text-amber-700 space-y-1">
+                    <li>• O cronograma de pagamentos inicia quando a mercadoria é entregue ao agente</li>
+                    <li>• O pagamento de 30% deve ser feito à vista no momento da importação</li>
+                    <li>• As parcelas do crédito seguem os termos aprovados: 30, 60, 90 e 120 dias</li>
+                    <li>• Taxa administrativa de 10% já incluída nos valores financiados</li>
+                  </ul>
+                </div>
               </div>
             </CardContent>
           </Card>
