@@ -365,7 +365,7 @@ export default function Dashboard() {
                       <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Crédito</span>
                       <p className="font-medium text-sm">Jazz Piracicaba LTDA</p>
                     </div>
-                    <p className="text-xs text-gray-500">US$ 100.000,00</p>
+                    <p className="text-xs text-gray-500">{formatCompactCurrency(100000)}</p>
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">
@@ -381,7 +381,7 @@ export default function Dashboard() {
                       <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Crédito</span>
                       <p className="font-medium text-sm">PROW IMPORTADORA E DISTRIBUIDORA DE PRODUTOS PARA SAÚDE LTDA</p>
                     </div>
-                    <p className="text-xs text-gray-500">US$ 217.500,00</p>
+                    <p className="text-xs text-gray-500">{formatCompactCurrency(217500)}</p>
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">
@@ -413,7 +413,7 @@ export default function Dashboard() {
                   <div>
                     <p className="font-medium">Importacao teste</p>
                     <p className="text-sm text-gray-600">
-                      US$ 120.000,00 • {isAdmin ? 'Empresa Importadora Ltda' : ''}
+                      {formatCompactCurrency(120000)} • {isAdmin ? 'Empresa Importadora Ltda' : ''}
                     </p>
                     <p className="text-xs text-gray-500">25/06/2025</p>
                   </div>
@@ -431,7 +431,7 @@ export default function Dashboard() {
                   <div>
                     <p className="font-medium">Importação Pasta de Tomate em Lata de Aço</p>
                     <p className="text-sm text-gray-600">
-                      US$ 60.000,00 • {isAdmin ? 'Spark Comex' : ''}
+                      {formatCompactCurrency(60000)} • {isAdmin ? 'Spark Comex' : ''}
                     </p>
                     <p className="text-xs text-gray-500">25/06/2025</p>
                   </div>
