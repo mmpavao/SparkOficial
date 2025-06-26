@@ -474,6 +474,12 @@ Changelog:
   * Added "Aplicações de Crédito" card displaying current application count
   * Completed 4-card metrics row for importers with authentic data
   * Maintained responsive grid layout and consistent visual design
+- June 26, 2025. Fixed importer dashboard data accuracy:
+  * Corrected dashboard to show only user-specific data instead of global admin data
+  * Fixed importations count from 2 to 1 (real user data)
+  * Fixed suppliers count from 4 to 1 (real user data)
+  * Fixed volume from US$ 180k to US$ 120k (calculated from user's real imports)
+  * Dashboard now displays authentic data reflecting actual user state, not admin aggregates
 ```
 
 ## User Preferences

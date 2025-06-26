@@ -152,7 +152,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total de Importações</p>
-                  <p className="text-2xl font-bold text-gray-900">{metrics?.totalImports || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{imports?.length || 0}</p>
                 </div>
                 <Package className="w-8 h-8 text-blue-600" />
               </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total de Fornecedores</p>
-                  <p className="text-2xl font-bold text-gray-900">{metrics?.totalSuppliers || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">1</p>
                 </div>
                 <Building2 className="w-8 h-8 text-purple-600" />
               </div>
@@ -176,7 +176,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Volume Total Importado</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(metrics?.totalImportValue || 0)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(imports?.reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0) || 0)}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div>
@@ -188,7 +188,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
-                  <p className="text-2xl font-bold text-gray-900">{metrics?.totalCreditApplications || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{creditApplications?.length || 0}</p>
                 </div>
                 <FileText className="w-8 h-8 text-orange-600" />
               </div>

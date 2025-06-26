@@ -120,8 +120,7 @@ export function buildMetricsData(
   creditApplications: CreditApplication[],
   imports: Import[],
   totalUsers: number = 0,
-  userRole?: string,
-  suppliers: any[] = []
+  userRole?: string
 ): MetricsData {
   const creditMetrics = calculateCreditMetrics(creditApplications, userRole);
   const importMetrics = calculateImportMetrics(imports);
@@ -138,7 +137,7 @@ export function buildMetricsData(
     completedImports: importMetrics.completed,
     totalImportValue: importMetrics.totalValue,
     utilizationRate: creditMetrics.utilizationRate,
-    totalSuppliers: suppliers.length,
+    totalSuppliers: 0, // Will be calculated directly in dashboard
     totalCreditApplications: creditApplications.length,
   };
 }
