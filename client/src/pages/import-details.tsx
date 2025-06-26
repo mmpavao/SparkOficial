@@ -81,7 +81,6 @@ export default function ImportDetailsPage() {
   const [match, params] = useRoute("/imports/details/:id");
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { t } = useTranslation();
   const permissions = useUserPermissions();
 
   const importId = params?.id ? parseInt(params.id) : null;
