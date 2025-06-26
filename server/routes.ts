@@ -2412,7 +2412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedTerms: approvedTerms,
         financialNotes: financialNotes || '',
         financialAnalyzedBy: req.session.userId,
-        financialAnalyzedAt: new Date().toISOString()
+        financialAnalyzedAt: new Date()
       };
 
       // Update financial status to approved
@@ -2454,7 +2454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         financialNotes: financialNotes || 'Rejeitado após análise financeira',
         financialStatus: 'rejected',
         rejectedBy: req.session.userId,
-        rejectedAt: new Date().toISOString()
+        rejectedAt: new Date()
       };
 
       const updatedApplication = await storage.updateCreditApplicationStatus(
