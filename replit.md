@@ -480,6 +480,15 @@ Changelog:
   * Fixed suppliers count from 4 to 1 (real user data)
   * Fixed volume from US$ 180k to US$ 120k (calculated from user's real imports)
   * Dashboard now displays authentic data reflecting actual user state, not admin aggregates
+- June 26, 2025. Comprehensive financial preview system for import creation completed:
+  * Implemented real-time financial calculations showing FOB value, admin fees, down payments, installments
+  * Created two-column layout with form on left and sticky financial preview sidebar on right
+  * Built ImportFinancialPreview component with credit limit validation and available balance display
+  * Added ImportTermsConfirmation modal requiring user acceptance of all costs before import creation
+  * Integrated credit usage tracking preventing over-limit imports with immediate validation
+  * Applied admin fees only to financed amount (excluding down payments) with transparent breakdown
+  * Enhanced import creation workflow with mandatory terms confirmation and financial transparency
+  * System calculates payment schedules automatically with proper down payment and installment logic
 ```
 
 ## User Preferences

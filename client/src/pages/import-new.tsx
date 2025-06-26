@@ -37,7 +37,8 @@ export default function NewImportPage() {
     hsCode: "",
     quantity: 1,
     unitPrice: "",
-    totalValue: ""
+    totalValue: "",
+    supplierId: 0
   }]);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [currentImportValue, setCurrentImportValue] = useState(0);
@@ -225,7 +226,7 @@ export default function NewImportPage() {
     }
   };
 
-  const suppliers = suppliersQuery.data || [];
+  const suppliers = Array.isArray(suppliersQuery.data) ? suppliersQuery.data : [];
 
   const addProduct = () => {
     setProducts([...products, {
@@ -234,7 +235,8 @@ export default function NewImportPage() {
       hsCode: "",
       quantity: 1,
       unitPrice: "",
-      totalValue: ""
+      totalValue: "",
+      supplierId: 0
     }]);
   };
 
