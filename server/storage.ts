@@ -280,17 +280,26 @@ export class DatabaseStorage {
       .where(
         and(
           eq(imports.creditApplicationId, creditApplicationId),
-          inArray(imports.status, ["planning", "in_transit", "production"])
+          inArray(imports.status, ["planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional"])
         )
       );
 
-    // Calculate total used credit from active imports
+    // Calculate total used credit from active imports (only the financed amount, excluding down payment)
     const usedCredit = activeImports.reduce((total, importRecord) => {
       const importValue = parseFloat(importRecord.totalValue || "0");
-      return total + importValue;
+      const downPaymentPercent = parseFloat(application.finalDownPayment || "30");
+      const financedAmount = importValue * (1 - downPaymentPercent / 100);
+      return total + financedAmount;
     }, 0);
 
     const availableCredit = creditLimit - usedCredit;
+
+    console.log(`Credit calculation for app ${creditApplicationId}:`, {
+      creditLimit,
+      activeImports: activeImports.length,
+      usedCredit,
+      availableCredit
+    });
 
     return {
       used: usedCredit,

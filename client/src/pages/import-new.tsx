@@ -98,17 +98,29 @@ export default function NewImportPage() {
   // Calculate import value in real-time
   useEffect(() => {
     const subscription = form.watch((value) => {
+      console.log("Form watch triggered:", value);
       if (value.cargoType === "LCL") {
         const totalValue = products.reduce((sum, product) => {
           return sum + (parseFloat(product.totalValue) || 0);
         }, 0);
+        console.log("LCL total value:", totalValue);
         setCurrentImportValue(totalValue);
       } else {
-        setCurrentImportValue(parseFloat(value.totalValue || "0"));
+        const newValue = parseFloat(value.totalValue || "0");
+        console.log("FCL total value:", newValue);
+        setCurrentImportValue(newValue);
       }
     });
     return () => subscription.unsubscribe();
   }, [form, products]);
+
+  // Debug logs
+  useEffect(() => {
+    console.log("Current import value:", currentImportValue);
+    console.log("Approved credit:", approvedCredit);
+    console.log("Credit usage:", creditUsage);
+    console.log("User role:", user?.role);
+  }, [currentImportValue, approvedCredit, creditUsage, user]);
 
   const createImportMutation = useMutation({
     mutationFn: (data: any) => {
@@ -676,7 +688,7 @@ export default function NewImportPage() {
         </div>
 
         {/* Right Column - Financial Preview (only for importers) */}
-        {user?.role === 'importer' && (
+        {user?.role === 'importer' && approvedCredit && (
           <div className="lg:col-span-1">
             <div className="sticky top-6">
               <ImportFinancialPreview
