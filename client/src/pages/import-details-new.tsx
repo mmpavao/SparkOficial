@@ -25,8 +25,28 @@ import {
   AlertCircle,
   Ship,
   Plane,
-  Truck
+  Truck,
+  MoreVertical,
+  Eye,
+  DollarSign as PayIcon,
+  X
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Componente de informações básicas da importação
 function ImportBasicInfo({ importData }: { importData: any }) {
@@ -274,10 +294,116 @@ function ProductsSection({ importData }: { importData: any }) {
   );
 }
 
+// Componente PaymentCard com menu de ações
+function PaymentCard({ 
+  payment, 
+  getPaymentTypeLabel, 
+  getStatusIcon, 
+  getStatusLabel, 
+  onViewDetails, 
+  onPay, 
+  onEdit, 
+  onCancel 
+}: {
+  payment: any;
+  getPaymentTypeLabel: (type: string, payment: any) => string;
+  getStatusIcon: (status: string) => React.ReactNode;
+  getStatusLabel: (status: string) => string;
+  onViewDetails: () => void;
+  onPay: () => void;
+  onEdit: () => void;
+  onCancel: () => void;
+}) {
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+
+  return (
+    <>
+      <div 
+        className="flex items-center justify-between p-4 border rounded-lg hover:border-blue-300 transition-colors cursor-pointer"
+        onClick={onViewDetails}
+      >
+        <div className="flex items-center gap-4">
+          {getStatusIcon(payment.status)}
+          <div>
+            <p className="font-medium">{getPaymentTypeLabel(payment.paymentType, payment)}</p>
+            <p className="text-sm text-gray-500">
+              Vencimento: {formatDate(payment.dueDate)}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="font-bold text-lg">{formatCurrency(payment.amount)}</p>
+            <p className="text-sm text-gray-500">{getStatusLabel(payment.status)}</p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDetails(); }}>
+                <Eye className="mr-2 h-4 w-4" />
+                Ver Detalhes
+              </DropdownMenuItem>
+              {payment.status === 'pending' && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPay(); }}>
+                  <PayIcon className="mr-2 h-4 w-4" />
+                  Pagar
+                </DropdownMenuItem>
+              )}
+              {payment.status === 'pending' && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+              )}
+              {payment.status === 'pending' && (
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); setShowCancelDialog(true); }}
+                  className="text-red-600"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancelar
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja cancelar este pagamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não, manter</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                onCancel();
+                setShowCancelDialog(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Sim, cancelar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 // Componente de cronograma de pagamentos
 function ImportPayments({ importId }: { importId: number }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: paymentSchedule = [], isLoading, error } = useQuery({
     queryKey: ['/api/payments/schedule', importId],
@@ -356,20 +482,17 @@ function ImportPayments({ importId }: { importId: number }) {
         ) : (
           <div className="space-y-4">
             {paymentSchedule.map((payment: any) => (
-              <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  {getStatusIcon(payment.status)}
-                  <div>
-                    <p className="font-medium">{getPaymentTypeLabel(payment.paymentType, payment)}</p>
-                    <p className="text-sm text-gray-500">
-                      Vencimento: {formatDate(payment.dueDate)}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-lg">{formatCurrency(payment.amount)}</p>
-                  <p className="text-sm text-gray-500">{getStatusLabel(payment.status)}</p>
-                </div>
+              <div key={payment.id}>
+                <PaymentCard 
+                  payment={payment} 
+                  getPaymentTypeLabel={getPaymentTypeLabel}
+                  getStatusIcon={getStatusIcon}
+                  getStatusLabel={getStatusLabel}
+                  onViewDetails={() => setLocation(`/payments/details/${payment.id}`)}
+                  onPay={() => setLocation(`/payments/pay/${payment.id}`)}
+                  onEdit={() => setLocation(`/payments/edit/${payment.id}`)}
+                  onCancel={() => handleCancelPayment(payment.id)}
+                />
               </div>
             ))}
           </div>
@@ -377,6 +500,11 @@ function ImportPayments({ importId }: { importId: number }) {
       </CardContent>
     </Card>
   );
+
+  function handleCancelPayment(paymentId: number) {
+    // Implementar cancelamento com confirmação
+    console.log(`Cancelar pagamento ${paymentId}`);
+  }
 }
 
 // Componente de documentos
