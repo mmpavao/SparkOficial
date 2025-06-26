@@ -792,21 +792,6 @@ export class DatabaseStorage {
       .returning();
   }
 
-
-        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
-        amount: installmentAmount.toString(),
-        currency: 'USD',
-        status: 'pending',
-        installmentNumber: 4,
-        totalInstallments: 4,
-      },
-    ];
-
-    return await db.insert(paymentSchedules).values(schedules).returning();
-  }
-
-
-
   // Get individual payment by ID
   async getPaymentById(paymentId: number) {
     const result = await db
