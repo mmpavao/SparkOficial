@@ -198,15 +198,26 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {Object.entries(adminMetrics.applicationsByStatus).map(([status, count]) => (
-                  <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={status.toLowerCase().replace(' ', '_').replace('-', '_')} />
-                      <span className="font-medium">{status}</span>
+                {Object.entries(adminMetrics.applicationsByStatus).map(([status, count]) => {
+                  const statusLabels: { [key: string]: string } = {
+                    'approved': 'approved',
+                    'under_review': 'under_review',
+                    'rejected': 'rejected',
+                    'pending': 'pending'
+                  };
+                  
+                  const displayStatus = statusLabels[status] || status;
+                  
+                  return (
+                    <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={displayStatus} />
+                        <span className="font-medium">{displayStatus}</span>
+                      </div>
+                      <span className="text-xl font-bold text-blue-600">{count}</span>
                     </div>
-                    <span className="text-xl font-bold text-blue-600">{count}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -221,19 +232,19 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {adminMetrics.recentActivity.length > 0 ? (
-                  adminMetrics.recentActivity.slice(0, 5).map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
+                {adminMetrics.recentActivity && adminMetrics.recentActivity.length > 0 ? (
+                  adminMetrics.recentActivity.slice(0, 5).map((activity, index) => (
+                    <div key={activity.id || index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
-                        <p className="font-medium text-sm">{activity.companyName}</p>
+                        <p className="font-medium text-sm">{activity.companyName || 'Empresa não informada'}</p>
                         <p className="text-xs text-gray-500">
-                          {formatCurrency(Number(activity.amount)).replace('R$', 'US$')}
+                          {formatCurrency(Number(activity.amount || 0)).replace('R$', 'US$')}
                         </p>
                       </div>
                       <div className="text-right">
-                        <StatusBadge status={activity.status} />
+                        <StatusBadge status={activity.status || 'pending'} />
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDate(activity.createdAt)}
+                          {activity.createdAt ? formatDate(activity.createdAt) : 'Data não disponível'}
                         </p>
                       </div>
                     </div>

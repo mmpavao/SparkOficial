@@ -724,8 +724,26 @@ export class DatabaseStorage {
     const totalImporters = allUsers.filter(u => u.role === 'importer').length;
     const totalApplications = allApplications.length;
 
+    // Mapear status combinados financeiro + admin para labels mais claros
     const applicationsByStatus = allApplications.reduce((acc, app) => {
-      acc[app.status] = (acc[app.status] || 0) + 1;
+      let displayStatus = app.status;
+      
+      // Para aplicações aprovadas financeiramente, mostrar status admin
+      if (app.financialStatus === 'approved') {
+        if (app.adminStatus === 'admin_finalized') {
+          displayStatus = 'approved';
+        } else {
+          displayStatus = 'under_review';
+        }
+      } else if (app.preAnalysisStatus === 'pre_approved') {
+        displayStatus = 'under_review';
+      } else if (app.status === 'rejected') {
+        displayStatus = 'rejected';
+      } else {
+        displayStatus = 'under_review';
+      }
+      
+      acc[displayStatus] = (acc[displayStatus] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
@@ -734,19 +752,25 @@ export class DatabaseStorage {
     }, 0);
 
     const approvedCreditVolume = allApplications
-      .filter(app => app.status === 'approved')
+      .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
       .reduce((sum, app) => {
         return sum + parseFloat(app.finalCreditLimit || app.creditLimit || "0");
       }, 0);
 
-    const recentActivity = [
-      ...allApplications.slice(0, 5).map(app => ({ type: 'credit_application', data: app })),
-      ...allImports.slice(0, 5).map(imp => ({ type: 'import', data: imp })),
-    ].sort((a, b) => {
-      const dateA = new Date(a.data.createdAt);
-      const dateB = new Date(b.data.createdAt);
-      return dateB.getTime() - dateA.getTime();
-    }).slice(0, 10);
+    // Atividade recente com dados mais ricos
+    const recentActivityData = allApplications
+      .map(app => ({
+        id: app.id,
+        type: 'credit_application',
+        companyName: app.legalCompanyName || 'Empresa não informada',
+        amount: app.requestedAmount || '0',
+        status: app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized' ? 'approved' : 
+                app.preAnalysisStatus === 'pre_approved' ? 'under_review' : 
+                app.status,
+        createdAt: app.createdAt || new Date(),
+      }))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
 
     return {
       totalImporters,
@@ -756,7 +780,7 @@ export class DatabaseStorage {
       approvedCreditVolume,
       totalImports: allImports.length,
       totalSuppliers: allSuppliers.length,
-      recentActivity,
+      recentActivity: recentActivityData,
     };
   }
 
