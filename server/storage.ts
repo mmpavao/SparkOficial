@@ -19,7 +19,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or, sql } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
@@ -640,11 +640,174 @@ export class DatabaseStorage {
 
     if (userIds.length === 0) return [];
 
-    return await db
-      .select()
-      .from(imports)
-      .where(inArray(imports.userId, userIds))
-      .orderBy(desc(imports.createdAt));
+    const allImports = await db.select().from(imports);
+    const allUsers = await db.select().from(users);
+
+    return allImports
+      .filter(importItem => userIds.includes(importItem.userId))
+      .map(importItem => {
+        const user = allUsers.find(u => u.id === importItem.userId);
+        return {
+          ...importItem,
+          companyName: user?.companyName || 'Empresa não encontrada'
+        };
+      }) as Import[];
+  }
+
+  async getFinanceiraDashboardMetrics() {
+    try {
+      // Get all applications that were submitted to financeira (pre-approved or higher)
+      const [submittedApplications, allUsers, allImports] = await Promise.all([
+        db.select({
+          id: creditApplications.id,
+          userId: creditApplications.userId,
+          status: creditApplications.status,
+          preAnalysisStatus: creditApplications.preAnalysisStatus,
+          financialStatus: creditApplications.financialStatus,
+          requestedAmount: creditApplications.requestedAmount,
+          creditLimit: creditApplications.creditLimit,
+          finalCreditLimit: creditApplications.finalCreditLimit,
+          createdAt: creditApplications.createdAt,
+          submittedToFinancialAt: creditApplications.submittedToFinancialAt,
+          financialAnalyzedAt: creditApplications.financialAnalyzedAt
+        }).from(creditApplications)
+        .where(
+          or(
+            eq(creditApplications.preAnalysisStatus, "pre_approved"),
+            eq(creditApplications.status, "submitted_to_financial"),
+            eq(creditApplications.financialStatus, "approved"),
+            eq(creditApplications.financialStatus, "rejected"),
+            eq(creditApplications.status, "approved"),
+            eq(creditApplications.status, "rejected")
+          )
+        )
+        .orderBy(desc(creditApplications.createdAt)),
+
+        db.select({
+          id: users.id,
+          companyName: users.companyName
+        }).from(users),
+
+        db.select({
+          creditApplicationId: imports.creditApplicationId,
+          totalValue: imports.totalValue,
+          status: imports.status
+        }).from(imports).where(isNotNull(imports.creditApplicationId))
+      ]);
+
+      // Calculate metrics
+      const totalApplicationsSubmitted = submittedApplications.length;
+      const totalCreditRequested = submittedApplications.reduce((sum, app) => 
+        sum + parseFloat(app.requestedAmount || '0'), 0
+      );
+
+      // Calculate approved applications and total credit approved
+      const approvedApplications = submittedApplications.filter(app => 
+        app.financialStatus === 'approved' || app.status === 'approved'
+      );
+      const totalCreditApproved = approvedApplications.reduce((sum, app) => {
+        const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
+        return sum + parseFloat(approvedAmount);
+      }, 0);
+
+      // Calculate credit in use from active imports
+      const totalCreditInUse = allImports
+        .filter(imp => imp.status !== 'cancelado' && imp.status !== 'cancelled' && imp.status !== 'planejamento')
+        .reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
+
+      const totalCreditAvailable = totalCreditApproved - totalCreditInUse;
+
+      // Calculate applications by status
+      const applicationsByStatus = {
+        pending: submittedApplications.filter(app => 
+          app.preAnalysisStatus === 'pre_approved' && 
+          !app.financialStatus && 
+          app.status !== 'approved' && 
+          app.status !== 'rejected'
+        ).length,
+        under_review: submittedApplications.filter(app => 
+          app.financialStatus === 'under_review' || 
+          app.status === 'submitted_to_financial'
+        ).length,
+        approved: submittedApplications.filter(app => 
+          app.financialStatus === 'approved' || app.status === 'approved'
+        ).length,
+        rejected: submittedApplications.filter(app => 
+          app.financialStatus === 'rejected' || app.status === 'rejected'
+        ).length,
+        cancelled: submittedApplications.filter(app => 
+          app.status === 'cancelled'
+        ).length
+      };
+
+      // Calculate approval rate
+      const totalProcessed = applicationsByStatus.approved + applicationsByStatus.rejected;
+      const approvalRate = totalProcessed > 0 ? (applicationsByStatus.approved / totalProcessed) * 100 : 0;
+
+      // Calculate average approval time (in days)
+      const approvedWithTimes = approvedApplications.filter(app => 
+        app.submittedToFinancialAt && app.financialAnalyzedAt
+      );
+      const averageApprovalTime = approvedWithTimes.length > 0 
+        ? approvedWithTimes.reduce((sum, app) => {
+            const submitted = new Date(app.submittedToFinancialAt!);
+            const analyzed = new Date(app.financialAnalyzedAt!);
+            const diffDays = Math.ceil((analyzed.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24));
+            return sum + diffDays;
+          }, 0) / approvedWithTimes.length
+        : 0;
+
+      // Recent activity - last 10 applications
+      const recentActivity = submittedApplications
+        .slice(0, 10)
+        .map(app => {
+          const user = allUsers.find(u => u.id === app.userId);
+          return {
+            id: app.id,
+            companyName: user?.companyName || 'Empresa não encontrada',
+            status: app.financialStatus || app.status || 'pending',
+            requestedAmount: app.requestedAmount || '0',
+            approvedAmount: app.finalCreditLimit || app.creditLimit,
+            submittedAt: app.submittedToFinancialAt || app.createdAt || new Date().toISOString()
+          };
+        });
+
+      // Monthly stats (current month)
+      const currentMonth = new Date();
+      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const monthlyApplications = submittedApplications.filter(app => 
+        new Date(app.createdAt || 0) >= monthStart
+      );
+
+      const monthlyApprovals = monthlyApplications.filter(app => 
+        app.financialStatus === 'approved' || app.status === 'approved'
+      );
+
+      const monthlyVolume = monthlyApprovals.reduce((sum, app) => {
+        const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
+        return sum + parseFloat(approvedAmount);
+      }, 0);
+
+      return {
+        totalApplicationsSubmitted,
+        totalCreditRequested,
+        totalCreditApproved,
+        totalCreditInUse,
+        totalCreditAvailable,
+        applicationsByStatus,
+        approvalRate: Math.round(approvalRate * 100) / 100,
+        averageApprovalTime: Math.round(averageApprovalTime * 100) / 100,
+        recentActivity,
+        monthlyStats: {
+          applications: monthlyApplications.length,
+          approvals: monthlyApprovals.length,
+          volume: monthlyVolume
+        }
+      };
+    } catch (error) {
+      console.error("Error calculating financeira dashboard metrics:", error);
+      throw error;
+    }
   }
 
   // ===== NOTIFICATIONS =====
@@ -790,7 +953,7 @@ export class DatabaseStorage {
     // Mapear status combinados financeiro + admin para labels mais claros
     const applicationsByStatus = allApplications.reduce((acc, app) => {
       let displayStatus = app.status;
-      
+
       // Para aplicações aprovadas financeiramente, mostrar status admin
       if (app.financialStatus === 'approved') {
         if (app.adminStatus === 'admin_finalized') {
@@ -805,7 +968,7 @@ export class DatabaseStorage {
       } else {
         displayStatus = 'under_review';
       }
-      
+
       acc[displayStatus] = (acc[displayStatus] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });

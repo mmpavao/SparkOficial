@@ -2147,13 +2147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  // Get pre-approved credit applications for financeira
+  // Get all submitted credit applications for financeira
   app.get('/api/financeira/credit-applications', requireAuth, requireFinanceira, async (req: any, res) => {
     try {
-      const applications = await storage.getPreApprovedCreditApplications();
+      const applications = await storage.getSubmittedCreditApplications();
       res.json(applications);
     } catch (error) {
-      console.error("Error fetching pre-approved applications:", error);
+      console.error("Error fetching submitted applications:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2303,6 +2303,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error rejecting credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira dashboard metrics endpoint
+  app.get('/api/financeira/dashboard/metrics', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const metrics = await storage.getFinanceiraDashboardMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching financeira dashboard metrics:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
