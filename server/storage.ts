@@ -253,8 +253,28 @@ export class DatabaseStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async getAllCreditApplications(): Promise<CreditApplication[]> {
-    return await db.select().from(creditApplications).orderBy(desc(creditApplications.createdAt));
+  async getAllCreditApplications(limit: number = 50, offset: number = 0): Promise<CreditApplication[]> {
+    // Optimized query with only essential fields for admin listing
+    return await db
+      .select({
+        id: creditApplications.id,
+        userId: creditApplications.userId,
+        legalCompanyName: creditApplications.legalCompanyName,
+        requestedAmount: creditApplications.requestedAmount,
+        currency: creditApplications.currency,
+        status: creditApplications.status,
+        financialStatus: creditApplications.financialStatus,
+        adminStatus: creditApplications.adminStatus,
+        preAnalysisStatus: creditApplications.preAnalysisStatus,
+        riskLevel: creditApplications.riskLevel,
+        createdAt: creditApplications.createdAt,
+        updatedAt: creditApplications.updatedAt,
+        // Exclude heavy fields like requiredDocuments, optionalDocuments
+      })
+      .from(creditApplications)
+      .orderBy(desc(creditApplications.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   async getAllImports(): Promise<Import[]> {
@@ -719,10 +739,49 @@ export class DatabaseStorage {
     totalSuppliers: number;
     recentActivity: any[];
   }> {
-    const allUsers = await this.getAllUsers();
-    const allApplications = await this.getAllCreditApplications();
-    const allImports = await this.getAllImports();
-    const allSuppliers = await this.getAllSuppliers();
+    // Optimized parallel queries with aggregation
+    const [
+      importersCount,
+      applicationsStats,
+      importsCount,
+      suppliersCount,
+      recentApps
+    ] = await Promise.all([
+      // Count importers only
+      db.select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(eq(users.role, 'importer')),
+      
+      // Aggregate applications data in single query
+      db.select({
+        count: sql<number>`count(*)`,
+        status: creditApplications.status,
+        totalRequested: sql<number>`sum(cast(${creditApplications.requestedAmount} as decimal))`,
+        approvedSum: sql<number>`sum(case when ${creditApplications.status} = 'approved' then cast(${creditApplications.finalCreditLimit} as decimal) else 0 end)`
+      })
+        .from(creditApplications)
+        .groupBy(creditApplications.status),
+      
+      // Count imports
+      db.select({ count: sql<number>`count(*)` })
+        .from(imports),
+      
+      // Count suppliers  
+      db.select({ count: sql<number>`count(*)` })
+        .from(suppliers),
+      
+      // Recent activity (lightweight)
+      db.select({
+        id: creditApplications.id,
+        legalCompanyName: creditApplications.legalCompanyName,
+        requestedAmount: creditApplications.requestedAmount,
+        status: creditApplications.status,
+        createdAt: creditApplications.createdAt
+      })
+        .from(creditApplications)
+        .orderBy(desc(creditApplications.createdAt))
+        .limit(10)
+    ]);
 
     const totalImporters = allUsers.filter(u => u.role === 'importer').length;
     const totalApplications = allApplications.length;
