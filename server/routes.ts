@@ -815,9 +815,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
 
+      // Get user's approved credit application
+      const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+      const approvedCredits = userCreditApps.filter(app => app.status === 'approved');
+
+      if (!approvedCredits.length) {
+        return res.status(400).json({ 
+          message: "Você precisa ter um crédito aprovado para criar importações" 
+        });
+      }
+
+      const creditApp = approvedCredits[0];
+      const totalValue = parseFloat(data.totalValue);
+
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApp.id);
+      if (totalValue > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+        });
+      }
+
+      // Get admin fee for user
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 2.5; // Default 2.5%
+      const feeAmount = (totalValue * feeRate) / 100;
+      const totalWithFees = totalValue + feeAmount;
+
+      // Calculate down payment (10% of total with fees)
+      const downPaymentAmount = (totalWithFees * 10) / 100;
+
       // Clean and convert data to match the new schema
       const cleanedData: any = {
         userId,
+        creditApplicationId: creditApp.id,
         importName: data.importName,
         cargoType: data.cargoType || "FCL",
         containerNumber: data.containerNumber || null,
@@ -831,9 +862,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
         status: "planning",
         currentStage: "estimativa",
+        // Credit management fields
+        creditUsed: totalValue.toString(),
+        adminFeeRate: feeRate.toString(),
+        adminFeeAmount: feeAmount.toString(),
+        totalWithFees: totalWithFees.toString(),
+        downPaymentRequired: downPaymentAmount.toString(),
+        downPaymentStatus: "pending",
+        paymentStatus: "pending",
+        paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
       };
 
       const importRecord = await storage.createImport(cleanedData);
+
+      // Reserve credit for this import
+      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+
+      // Create payment schedule
+      await storage.createPaymentSchedule(importRecord.id, {
+        totalAmount: totalWithFees.toString(),
+        downPaymentAmount: downPaymentAmount.toString(),
+        downPaymentDueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        finalPaymentAmount: (totalWithFees - downPaymentAmount).toString(),
+        finalPaymentDueDate: new Date(Date.now() + cleanedData.paymentTermsDays * 24 * 60 * 60 * 1000),
+        adminFeeAmount: feeAmount.toString(),
+        adminFeeRate: feeRate.toString(),
+      });
 
       res.status(201).json(importRecord);
     } catch (error) {
