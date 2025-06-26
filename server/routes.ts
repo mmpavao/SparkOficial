@@ -5,6 +5,7 @@ import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import { db } from "./db";
 
 // Extend the session interface
 declare module "express-session" {
@@ -1514,13 +1515,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("Fetching fresh credit applications");
-      const applications = await storage.getAllCreditApplications();
+      
+      // Use raw SQL query for production compatibility
+      const applications = await db.execute(`
+        SELECT 
+          id, userId, legalCompanyName, requestedAmount, status,
+          preAnalysisStatus, financialStatus, adminStatus,
+          createdAt, updatedAt, finalCreditLimit, creditLimit,
+          approvedTerms, finalApprovedTerms
+        FROM credit_applications 
+        ORDER BY createdAt DESC
+      `);
+
+      const formattedApplications = applications.rows.map((row: any) => ({
+        id: row.id,
+        userId: row.userId || row.userid,
+        legalCompanyName: row.legalCompanyName || row.legalcompanyname,
+        requestedAmount: row.requestedAmount || row.requestedamount,
+        status: row.status,
+        preAnalysisStatus: row.preAnalysisStatus || row.preanalysisstatus,
+        financialStatus: row.financialStatus || row.financialstatus,
+        adminStatus: row.adminStatus || row.adminstatus,
+        createdAt: row.createdAt || row.createdat,
+        updatedAt: row.updatedAt || row.updatedat,
+        finalCreditLimit: row.finalCreditLimit || row.finalcreditlimit,
+        creditLimit: row.creditLimit || row.creditlimit,
+        approvedTerms: row.approvedTerms || row.approvedterms,
+        finalApprovedTerms: row.finalApprovedTerms || row.finalapprovedterms
+      }));
+
+      console.log(`Found ${formattedApplications.length} credit applications`);
 
       // Update cache
-      creditApplicationsCache = applications;
+      creditApplicationsCache = formattedApplications;
       creditApplicationsCacheTime = now;
 
-      res.json(applications);
+      res.json(formattedApplications);
     } catch (error) {
       console.error("Get all credit applications error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
