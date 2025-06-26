@@ -35,8 +35,7 @@ import {
   Edit,
   Building,
   Box,
-  TrendingUp,
-  FileText
+  TrendingUp
 } from "lucide-react";
 
 export default function ImportsPage() {
@@ -98,10 +97,10 @@ export default function ImportsPage() {
   // Calculate metrics
   const totalImports = Array.isArray(imports) ? imports.length : 0;
   const activeImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
-    ['planning', 'in_progress', 'shipped', 'estimativa', 'producao', 'entregue_agente', 'transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional'].includes(imp.status)
+    ['planning', 'in_progress', 'shipped'].includes(imp.status)
   ).length : 0;
   const completedImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
-    ['completed', 'concluido'].includes(imp.status)
+    imp.status === 'completed'
   ).length : 0;
   const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: any) => {
     const value = parseFloat(imp.totalValue || '0');
@@ -137,19 +136,19 @@ export default function ImportsPage() {
   // Helper functions for status handling
   function getStatusBadge(status: string) {
     const statusMap = {
-      estimativa: { label: "Estimativa", color: "bg-gray-100 text-gray-700", icon: Clock },
-      producao: { label: "Produção", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
-      entregue_agente: { label: "Entregue Agente", color: "bg-yellow-100 text-yellow-700", icon: Package },
-      transporte_maritimo: { label: "Transporte Marítimo", color: "bg-indigo-100 text-indigo-700", icon: Ship },
-      transporte_aereo: { label: "Transporte Aéreo", color: "bg-purple-100 text-purple-700", icon: Plane },
-      desembaraco: { label: "Desembaraço", color: "bg-orange-100 text-orange-700", icon: AlertCircle },
-      transporte_nacional: { label: "Transporte Nacional", color: "bg-cyan-100 text-cyan-700", icon: Truck },
-      concluido: { label: "Concluído", color: "bg-green-100 text-green-700", icon: CheckCircle },
-      planning: { label: "Planejamento", color: "bg-gray-100 text-gray-700", icon: Clock },
-      in_progress: { label: "Em Andamento", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
-      shipped: { label: "Enviado", color: "bg-indigo-100 text-indigo-700", icon: Ship },
-      completed: { label: "Concluído", color: "bg-green-100 text-green-700", icon: CheckCircle },
-      cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700", icon: AlertCircle },
+      estimativa: { label: "Estimativa", variant: "secondary" as const, color: "bg-gray-100 text-gray-700", icon: Clock },
+      producao: { label: "Produção", variant: "default" as const, color: "bg-blue-100 text-blue-700", icon: AlertCircle },
+      entregue_agente: { label: "Entregue Agente", variant: "default" as const, color: "bg-yellow-100 text-yellow-700", icon: Package },
+      transporte_maritimo: { label: "Transporte Marítimo", variant: "default" as const, color: "bg-indigo-100 text-indigo-700", icon: Ship },
+      transporte_aereo: { label: "Transporte Aéreo", variant: "default" as const, color: "bg-purple-100 text-purple-700", icon: Plane },
+      desembaraco: { label: "Desembaraço", variant: "default" as const, color: "bg-orange-100 text-orange-700", icon: AlertCircle },
+      transporte_nacional: { label: "Transporte Nacional", variant: "default" as const, color: "bg-cyan-100 text-cyan-700", icon: Truck },
+      concluido: { label: "Concluído", variant: "default" as const, color: "bg-green-100 text-green-700", icon: CheckCircle },
+      planning: { label: "Planejamento", variant: "secondary" as const, color: "bg-gray-100 text-gray-700", icon: Clock },
+      in_progress: { label: "Em Andamento", variant: "default" as const, color: "bg-blue-100 text-blue-700", icon: AlertCircle },
+      shipped: { label: "Enviado", variant: "default" as const, color: "bg-indigo-100 text-indigo-700", icon: Ship },
+      completed: { label: "Concluído", variant: "default" as const, color: "bg-green-100 text-green-700", icon: CheckCircle },
+      cancelled: { label: "Cancelado", variant: "destructive" as const, color: "bg-red-100 text-red-700", icon: AlertCircle },
     };
 
     const config = statusMap[status as keyof typeof statusMap] || statusMap.planning;
@@ -164,10 +163,12 @@ export default function ImportsPage() {
   }
 
   function canEdit(importItem: any) {
+    // Allow editing for all statuses except completed and cancelled
     return !["concluido", "completed", "cancelled"].includes(importItem.status);
   }
 
   function canCancel(importItem: any) {
+    // Allow cancellation for non-finished imports
     return !["concluido", "completed", "cancelled"].includes(importItem.status);
   }
 
@@ -306,131 +307,47 @@ export default function ImportsPage() {
             <div className="text-center py-8">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Nenhuma importação encontrada</p>
-              {!isFinanceira && (
-                <Button
-                  onClick={() => setLocation('/imports/new')}
-                  className="mt-4"
-                  variant="outline"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar primeira importação
-                </Button>
-              )}
+              <Button
+                onClick={() => setLocation('/imports/new')}
+                className="mt-4"
+                variant="outline"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Criar primeira importação
+              </Button>
             </div>
           ) : (
             <div className="space-y-6">
-              {filteredImports.map((importItem: any) => {
-                // Status visual configuration similar to credit applications
-                const getStatusInfo = () => {
-                  if (['completed', 'concluido'].includes(importItem.status)) {
-                    return { 
-                      bgColor: 'bg-green-50',
-                      borderColor: 'border-l-green-500'
-                    };
-                  } else if (importItem.status === 'cancelled') {
-                    return { 
-                      bgColor: 'bg-red-50',
-                      borderColor: 'border-l-red-500'
-                    };
-                  } else if (['transporte_maritimo', 'transporte_aereo', 'shipped'].includes(importItem.status)) {
-                    return { 
-                      bgColor: 'bg-blue-50',
-                      borderColor: 'border-l-blue-500'
-                    };
-                  } else if (['entregue_agente', 'desembaraco'].includes(importItem.status)) {
-                    return { 
-                      bgColor: 'bg-yellow-50',
-                      borderColor: 'border-l-yellow-500'
-                    };
-                  } else {
-                    return { 
-                      bgColor: 'bg-gray-50',
-                      borderColor: 'border-l-gray-500'
-                    };
-                  }
-                };
-
-                const statusInfo = getStatusInfo();
-                
-                return (
-                  <Card key={importItem.id} className={`border-l-4 ${statusInfo.borderColor} hover:shadow-md transition-all duration-200`}>
-                    <CardContent className="p-4">
+              {filteredImports.map((importItem: any) => (
+                <Card 
+                  key={importItem.id} 
+                  className="border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group"
+                >
+                  <CardContent className="p-0">
+                    {/* Card Header with Company Badge */}
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
                       <div className="flex items-center justify-between">
-                        {/* Left Section - Main Info */}
-                        <div className="flex items-center space-x-4">
-                          <div className="relative flex-shrink-0">
-                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                              <Package className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-bold text-white">#{importItem.id}</span>
-                            </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white">
+                            <Package className="w-5 h-5" />
                           </div>
-                          
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
                               {importItem.importName || `Importação #${importItem.id}`}
                             </h3>
-                            <div className="flex flex-col space-y-1">
-                              <p className="text-sm text-gray-600">
-                                {new Date(importItem.createdAt || Date.now()).toLocaleDateString('pt-BR')}
-                              </p>
-                              {(isAdmin || isFinanceira) && importItem.companyName && (
-                                <div className="flex items-center gap-2">
-                                  <Building className="w-3 h-3 text-gray-400" />
-                                  <span className="text-xs text-gray-500">{importItem.companyName}</span>
-                                </div>
-                              )}
-                            </div>
+                            {(isAdmin || isFinanceira) && importItem.companyName && (
+                              <Badge variant="outline" className="text-xs mt-1">
+                                <Building className="w-3 h-3 mr-1" />
+                                {importItem.companyName}
+                              </Badge>
+                            )}
                           </div>
                         </div>
-
-                        {/* Center Section - Key Metrics */}
-                        <div className="hidden md:flex items-center space-x-8">
-                          <div className="text-center">
-                            <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
-                              <DollarSign className="w-3 h-3" />
-                              <span>Valor</span>
-                            </div>
-                            <div className="font-semibold text-green-600">
-                              {importItem.totalValue ? 
-                                `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                                'N/A'
-                              }
-                            </div>
-                          </div>
-
-                          <div className="text-center">
-                            <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
-                              <Box className="w-3 h-3" />
-                              <span>Tipo</span>
-                            </div>
-                            <div className="font-semibold text-gray-700">
-                              {importItem.cargoType || 'N/A'}
-                            </div>
-                          </div>
-
-                          <div className="text-center">
-                            <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
-                              <Calendar className="w-3 h-3" />
-                              <span>Entrega</span>
-                            </div>
-                            <div className="font-semibold text-blue-600">
-                              {importItem.estimatedDelivery ? 
-                                new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                                'N/A'
-                              }
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right Section - Status & Actions */}
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center gap-3">
                           {getStatusBadge(importItem.status)}
-                          
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="opacity-70 hover:opacity-100">
+                              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -476,36 +393,88 @@ export default function ImportsPage() {
                           </DropdownMenu>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Additional Info Row - Products Preview */}
+                    {/* Card Body with Information Grid */}
+                    <div 
+                      className="p-6 cursor-pointer"
+                      onClick={() => setLocation(`/imports/details/${importItem.id}`)}
+                    >
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <DollarSign className="w-4 h-4" />
+                            <span>Valor Total</span>
+                          </div>
+                          <div className="text-lg font-semibold text-green-600">
+                            {importItem.totalValue ? 
+                              `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
+                              'Não informado'
+                            }
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Box className="w-4 h-4" />
+                            <span>Tipo de Carga</span>
+                          </div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {importItem.cargoType || 'Não especificado'}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Ship className="w-4 h-4" />
+                            <span>Modal</span>
+                          </div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {importItem.shippingMethod === 'sea' ? 'Marítimo' : 
+                             importItem.shippingMethod === 'air' ? 'Aéreo' : 
+                             'Não informado'}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Calendar className="w-4 h-4" />
+                            <span>Entrega Prevista</span>
+                          </div>
+                          <div className="text-lg font-semibold text-blue-600">
+                            {importItem.estimatedDelivery ? 
+                              new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
+                              'Não definida'
+                            }
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Products Preview */}
                       {importItem.products && importItem.products.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Package className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-500">
-                                Produtos ({importItem.products.length})
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {importItem.products.slice(0, 3).map((product: any, index: number) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {product.name}
-                                </Badge>
-                              ))}
-                              {importItem.products.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{importItem.products.length - 3} mais
-                                </Badge>
-                              )}
-                            </div>
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                            <Package className="w-4 h-4" />
+                            <span>Produtos ({importItem.products.length})</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {importItem.products.slice(0, 3).map((product: any, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {product.name}
+                              </Badge>
+                            ))}
+                            {importItem.products.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{importItem.products.length - 3} mais
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>

@@ -137,7 +137,5 @@ export function buildMetricsData(
     completedImports: importMetrics.completed,
     totalImportValue: importMetrics.totalValue,
     utilizationRate: creditMetrics.utilizationRate,
-    totalSuppliers: 0, // Will be calculated directly in dashboard
-    totalCreditApplications: creditApplications.length,
   };
 }

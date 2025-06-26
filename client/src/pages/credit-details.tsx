@@ -14,7 +14,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/formatters";
 import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
 import { ValidationResult } from "@/lib/documentValidation";
 import { 
@@ -34,10 +34,7 @@ import {
   Clock,
   XCircle,
   AlertTriangle,
-  AlertCircle,
-  Edit,
-  Save,
-  X
+  AlertCircle
 } from "lucide-react";
 
 export default function CreditDetailsPage() {
@@ -49,12 +46,6 @@ export default function CreditDetailsPage() {
   const permissions = useUserPermissions();
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
-  const [isEditingCredit, setIsEditingCredit] = useState(false);
-  const [editCreditData, setEditCreditData] = useState({
-    paymentTerms: '',
-    downPaymentPercentage: 30,
-    adminFee: 0
-  });
 
   const applicationId = params?.id ? parseInt(params.id) : null;
 
@@ -125,64 +116,9 @@ export default function CreditDetailsPage() {
     },
   });
 
-  // Update credit data mutation
-  const updateCreditDataMutation = useMutation({
-    mutationFn: async (data: { paymentTerms: string; downPaymentPercentage: number; adminFee: number }) => {
-      const endpoint = permissions.canPerformPreAnalysis 
-        ? `/api/admin/credit/applications/${applicationId}/finalize`
-        : `/api/credit/applications/${applicationId}`;
-      
-      return await apiRequest(endpoint, 'PUT', {
-        finalApprovedTerms: data.paymentTerms,
-        finalDownPayment: data.downPaymentPercentage,
-        adminFee: data.adminFee.toString()
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/credit/applications', applicationId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications', applicationId] });
-      setIsEditingCredit(false);
-      toast({
-        title: "Dados atualizados",
-        description: "Os dados de crédito foram atualizados com sucesso.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro na atualização",
-        description: error.message || "Falha ao atualizar os dados.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleDocumentUpload = (documentType: string, file: File) => {
     setUploadingDocument(documentType);
     uploadDocumentMutation.mutate({ documentType, file });
-  };
-
-  const initializeEditMode = () => {
-    if (application) {
-      setEditCreditData({
-        paymentTerms: application.finalApprovedTerms || application.approvedTerms || '30',
-        downPaymentPercentage: application.finalDownPayment || 30,
-        adminFee: parseFloat(application.adminFee || '0')
-      });
-      setIsEditingCredit(true);
-    }
-  };
-
-  const handleSaveCreditData = () => {
-    updateCreditDataMutation.mutate(editCreditData);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingCredit(false);
-    setEditCreditData({
-      paymentTerms: '',
-      downPaymentPercentage: 30,
-      adminFee: 0
-    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -642,44 +578,9 @@ export default function CreditDetailsPage() {
           {application.financialStatus === 'approved' && application.creditLimit && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    Análise Financeira
-                  </div>
-                  {permissions.canPerformPreAnalysis && !isEditingCredit && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={initializeEditMode}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Editar
-                    </Button>
-                  )}
-                  {isEditingCredit && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCancelEdit}
-                        className="text-gray-600 hover:text-gray-700"
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        Cancelar
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleSaveCreditData}
-                        disabled={updateCreditDataMutation.isPending}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar
-                      </Button>
-                    </div>
-                  )}
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Análise Financeira
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -702,7 +603,7 @@ export default function CreditDetailsPage() {
                           const finalLimit = application.adminStatus === 'admin_finalized' 
                             ? application.finalCreditLimit 
                             : application.creditLimit;
-                          return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                          return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
                         })()}
                       </span>
                     </div>
@@ -713,7 +614,7 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0'}
+                        {creditUsage ? `US$ ${Number(creditUsage.used).toLocaleString()}` : 'US$ 0'}
                       </span>
                     </div>
                   </div>
@@ -724,133 +625,96 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
                         {creditUsage 
-                          ? `US$ ${formatCompactNumber(Number(creditUsage.available))}`
+                          ? `US$ ${Number(creditUsage.available).toLocaleString()}`
                           : (() => {
                               const finalLimit = application.adminStatus === 'admin_finalized' 
                                 ? application.finalCreditLimit 
                                 : application.creditLimit;
-                              return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                              return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
                             })()
                         }
                       </span>
                     </div>
                   </div>
 
-                  <Separator />
+                  {/* Prazo de Pagamento */}
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      {(() => {
+                        // Se existe finalApprovedTerms do Admin, mostrar apenas esses
+                        if (application.finalApprovedTerms) {
+                          return application.finalApprovedTerms;
+                        }
+                        // Senão, mostrar os termos da Financeira
+                        return application.approvedTerms || '30';
+                      })()} dias
+                    </Badge>
+                  </div>
 
-                  {/* Configuration Section */}
-                  {isEditingCredit ? (
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-gray-900">Configurações de Crédito</h4>
-                      
-                      {/* Prazo de Pagamento */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Prazo de Pagamento (dias)</Label>
-                        <Input
-                          type="text"
-                          value={editCreditData.paymentTerms}
-                          onChange={(e) => setEditCreditData(prev => ({ ...prev, paymentTerms: e.target.value }))}
-                          placeholder="Ex: 30, 60, 90"
-                          className="w-full"
-                        />
-                      </div>
-
-                      {/* Percentual de Entrada */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Percentual de Entrada (%)</Label>
-                        <Input
-                          type="number"
-                          value={editCreditData.downPaymentPercentage}
-                          onChange={(e) => setEditCreditData(prev => ({ ...prev, downPaymentPercentage: parseFloat(e.target.value) || 0 }))}
-                          min="0"
-                          max="100"
-                          className="w-full"
-                        />
-                      </div>
-
-                      {/* Taxa Administrativa - Ocultar para Financeira */}
-                      {!permissions.isFinanceira && (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Taxa Administrativa (%)</Label>
-                          <Input
-                            type="number"
-                            value={editCreditData.adminFee}
-                            onChange={(e) => setEditCreditData(prev => ({ ...prev, adminFee: parseFloat(e.target.value) || 0 }))}
-                            min="0"
-                            step="0.1"
-                            className="w-full"
-                          />
-                        </div>
-                      )}
+                  {/* Entrada Requerida */}
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-yellow-800">Entrada Requerida</span>
+                      <span className="text-lg font-bold text-yellow-700">
+                        {(() => {
+                          const finalDownPayment = application.adminStatus === 'admin_finalized' 
+                            ? application.finalDownPayment 
+                            : application.downPayment;
+                          return finalDownPayment || '10';
+                        })()}% do valor do pedido
+                      </span>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {/* Prazo de Pagamento */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Prazo de Pagamento Aprovado</span>
-                        <Badge variant="outline" className="bg-green-50 text-green-700">
-                          {(() => {
-                            // Para Financeira, mostrar apenas os termos que ela própria configurou
-                            if (permissions.isFinanceira) {
-                              return application.approvedTerms || '30';
-                            }
-                            // Para outros usuários, mostrar termos finais do Admin se existirem
-                            if (application.finalApprovedTerms) {
-                              return application.finalApprovedTerms;
-                            }
-                            // Senão, mostrar os termos da Financeira
-                            return application.approvedTerms || '30';
-                          })()} dias
-                        </Badge>
-                      </div>
-
-                      {/* Percentual de Entrada */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Entrada Requerida</span>
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                          {(() => {
-                            // Para Financeira, mostrar apenas o que ela configurou
-                            if (permissions.isFinanceira) {
-                              return (application.downPayment || 30);
-                            }
-                            // Para outros usuários, mostrar configuração final do Admin
-                            return (application.finalDownPayment || 30);
-                          })()}% do valor do pedido
-                        </Badge>
-                      </div>
-
-                      {/* Taxa Administrativa - Ocultar para Financeira */}
-                      {!permissions.isFinanceira && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Taxa Admin</span>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                            {application.adminFee || 0}%
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Order Down Payment - {(() => {
+                        const finalDownPayment = application.adminStatus === 'admin_finalized' 
+                          ? application.finalDownPayment 
+                          : application.downPayment;
+                        return finalDownPayment || '10';
+                      })()}% of order value
+                    </p>
+                  </div>
                 </div>
+
+                {/* Mostrar observações finais do Admin para importadores, observações financeiras apenas para admin/financeira */}
+                {permissions.canManageApplications && application.financialNotes && (
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-gray-600">Observações Financeiras:</span>
+                    <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                      {application.financialNotes}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Observações finais do Admin visíveis para importadores */}
+                {!permissions.canManageApplications && application.adminFinalNotes && (
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-gray-600">Observações:</span>
+                    <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                      {application.adminFinalNotes}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
 
           {/* Gestão Administrativa - Apenas para Admins e Financeira */}
-          {(permissions.canPerformPreAnalysis || permissions.canManageApplications) && (
+          {(permissions.isAdmin || permissions.isFinanceira) && (
             <>
               <AdminAnalysisPanel application={application} />
-              {permissions.canPerformPreAnalysis && (
+              {permissions.isAdmin && (
                 <AdminFinalizationPanel 
                   application={application} 
                   onUpdate={() => {
-                    queryClient.invalidateQueries({ queryKey: ['/api/credit/applications', applicationId] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/credit/application', applicationId] });
                   }}
                 />
               )}
             </>
           )}
 
-          {!permissions.canPerformPreAnalysis && !permissions.canManageApplications && (
+          {!(permissions.isAdmin || permissions.isFinanceira) && (
             <Card>
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>

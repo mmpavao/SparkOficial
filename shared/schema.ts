@@ -184,7 +184,6 @@ export const creditApplications = pgTable("credit_applications", {
   finalCreditLimit: text("final_credit_limit"), // Limite final definido pelo admin
   finalApprovedTerms: text("final_approved_terms"), // Prazos finais definidos pelo admin
   finalDownPayment: text("final_down_payment").default("10"), // Percentual de entrada final
-  adminFee: text("admin_fee").default("0"), // Taxa administrativa em percentual (aplicada apenas no valor financiado)
   adminFinalNotes: text("admin_final_notes"), // Observações finais do admin
   adminFinalizedBy: integer("admin_finalized_by").references(() => users.id),
   adminFinalizedAt: timestamp("admin_finalized_at"),
@@ -514,10 +513,7 @@ const productSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
   hsCode: z.string().optional(),
-  quantity: z.union([z.string(), z.number()]).transform((val) => {
-    const num = typeof val === 'string' ? parseInt(val) : val;
-    return isNaN(num) ? 0 : num;
-  }).refine((val) => val > 0, "Quantidade deve ser maior que 0"),
+  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
   unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   supplierId: z.number().min(1, "Fornecedor é obrigatório"),

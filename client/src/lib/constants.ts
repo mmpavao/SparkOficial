@@ -90,11 +90,9 @@ export const QUERY_KEYS = {
   users: ['/api/users'],
   creditApplications: ['/api/credit/applications'],
   imports: ['/api/imports'],
-  suppliers: ['/api/suppliers'],
   admin: {
     users: ['/api/admin/users'],
     creditApplications: ['/api/admin/credit-applications'],
-    imports: ['/api/admin/imports'],
-    suppliers: ['/api/admin/suppliers']
+    imports: ['/api/admin/imports']
   }
 } as const;

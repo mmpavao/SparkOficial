@@ -1,599 +1,217 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { useMetrics } from "@/hooks/useMetrics";
+import { useAdminMetrics } from "@/hooks/useAdminMetrics";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useCreditUsage } from "@/hooks/useCreditManagement";
+import MetricsCard from "@/components/common/MetricsCard";
+import StatusBadge from "@/components/common/StatusBadge";
+import CreditUsageCard from "@/components/CreditUsageCard";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import { getGreeting, getFirstName, getRoleDisplayName } from "@/utils/roleUtils";
 
-import { useAuth } from '@/hooks/useAuth';
-import { useAdminMetrics } from '@/hooks/useAdminMetrics';
-import { useImporterDashboard } from '@/hooks/useImporterDashboard';
-import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { formatCurrency, formatDate } from '@/lib/formatters';
-import { formatCompactCurrency } from '@/lib/numberFormat';
-import { Link } from 'wouter';
 import { 
-  Users, 
-  CreditCard, 
-  Clock,
-  DollarSign,
-  PiggyBank,
-  Building2,
-  FileText,
-  TrendingUp,
-  Package,
-  Truck,
-  ShoppingCart,
-  CheckCircle,
-  AlertCircle,
-  Factory,
-  BarChart3,
   Plus,
-  Calculator,
-  Percent,
-  Target,
-  Activity,
-  Banknote,
-  TrendingDown
-} from 'lucide-react';
+  FileText,
+  Package,
+  PiggyBank,
+  CreditCard,
+  Truck,
+  BarChart3,
+  Users,
+  DollarSign,
+  TrendingUp,
+  Clock
+} from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
-  const isFinanceira = user?.role === 'financeira';
-  const isImporter = !isAdmin && !isFinanceira;
+  const { t } = useTranslation();
   
+  // Only fetch admin metrics if user is admin
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
-  const { data: importerData, isLoading: importerDataLoading, error } = useImporterDashboard(isImporter);
-  const { data: financeiraMetrics, isLoading: financeiraMetricsLoading } = useFinanceiraMetrics(isFinanceira);
+  
+  // For importers, use regular metrics. For admins, skip to avoid duplicate queries
+  const { metrics, creditApplications, imports } = useMetrics();
 
-  if ((isAdmin && adminMetricsLoading) || (isImporter && importerDataLoading) || (isFinanceira && financeiraMetricsLoading)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600"></div>
-      </div>
-    );
-  }
+  // Debug logging
+  console.log('Dashboard Debug Data:', {
+    user: user?.id,
+    creditApplications: creditApplications.length,
+    imports: imports.length,
+    creditApps: creditApplications,
+    importsData: imports
+  });
 
-  if (error && isImporter) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Erro ao carregar dashboard</h3>
-          <p className="text-muted-foreground">Ocorreu um erro ao carregar os dados do dashboard</p>
-        </div>
-      </div>
-    );
-  }
+
+
+
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section - Different for Admin vs Financeira vs Importer */}
-      <div className="from-spark-500 to-spark-600 rounded-xl p-6 text-white bg-[#15ad7a]">
+        {/* Personalized Welcome Section */}
+        <div className="bg-gradient-spark rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-1">
-              {isAdmin ? 'Painel Administrativo' : 
-               isFinanceira ? 'Painel Financeiro' : 
-               `Bom dia, ${user?.companyName?.split(' ')[0] || 'Usuário'}!`} 👋
-            </h1>
-            <p className="text-spark-100 text-sm">
-              {isAdmin ? 'Visão completa da plataforma Spark Comex' : 
-               isFinanceira ? 'Análise e aprovação de créditos para importações' :
-               'Gerencie seus créditos e importações da China de forma simples e eficiente.'}
+            <h2 className="text-2xl font-bold mb-2">
+              {getGreeting()}, {getFirstName(user?.fullName)}! 👋
+            </h2>
+            <p className="opacity-90 mb-1">
+              {getRoleDisplayName(user?.role as any)} na {user?.companyName}
+            </p>
+            <p className="opacity-75 text-sm">
+              {t.dashboard.manageCreditsAndImports}
             </p>
           </div>
-          <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center">
-            <span className="text-2xl font-bold">{user?.companyName?.charAt(0) || 'U'}</span>
+          <div className="hidden md:block">
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+              <span className="text-2xl font-bold">
+                {user?.fullName?.split(' ').map(name => name[0]).join('').slice(0, 2) || 'SC'}
+              </span>
+            </div>
           </div>
         </div>
-        
-        {/* Quick Actions - Only for Importers */}
-        {isImporter && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-            <button
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
-              onClick={() => window.location.href = '/credit/new'}
-            >
-              <div className="flex items-center">
-                <CreditCard className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Solicitar Crédito</span>
-              </div>
-            </button>
-
-            <button
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
-              onClick={() => window.location.href = '/suppliers/new'}
-            >
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Cadastrar Fornecedor</span>
-              </div>
-            </button>
-
-            <button
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
-              onClick={() => window.location.href = '/imports/new'}
-            >
-              <div className="flex items-center">
-                <Plus className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Iniciar Importação</span>
-              </div>
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Main Metrics Row */}
+      {/* Conditional Metrics Based on User Role */}
       {isAdmin ? (
-        // ===== ADMIN DASHBOARD =====
-        <>
-          {/* Admin Main Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-l-4 border-l-blue-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Importadores</p>
-                    <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImporters || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Usuários ativos</p>
-                  </div>
-                  <Users className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
+        /* Admin Dashboard Metrics */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {adminMetricsLoading ? (
+            <div className="col-span-4 text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Carregando métricas administrativas...</p>
+            </div>
+          ) : (
+            <>
+              {/* Total de Importadores */}
+              <MetricsCard
+                title="Total de Importadores"
+                value={adminMetrics?.totalImporters || 0}
+                icon={Users}
+                iconColor="text-blue-600"
+              />
 
-            <Card className="border-l-4 border-l-green-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
-                    <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalApplications || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total processadas</p>
-                  </div>
-                  <FileText className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
+              {/* Total de Aplicações */}
+              <MetricsCard
+                title="Aplicações de Crédito"
+                value={adminMetrics?.totalApplications || 0}
+                icon={FileText}
+                iconColor="text-green-600"
+              />
 
-            <Card className="border-l-4 border-l-purple-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Volume Total Solicitado</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(adminMetrics?.totalCreditVolume || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Em pedidos de crédito</p>
-                  </div>
-                  <DollarSign className="w-8 h-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
+              {/* Volume Total de Crédito */}
+              <MetricsCard
+                title="Volume Total Solicitado"
+                value={formatCurrency(adminMetrics?.totalCreditVolume || 0).replace('R$', 'US$')}
+                icon={DollarSign}
+                iconColor="text-yellow-600"
+              />
 
-            <Card className="border-l-4 border-l-emerald-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Volume Aprovado</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(adminMetrics?.approvedCreditVolume || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Crédito concedido</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-emerald-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              {/* Volume Aprovado */}
+              <MetricsCard
+                title="Volume Aprovado"
+                value={formatCurrency(adminMetrics?.approvedCreditVolume || 0).replace('R$', 'US$')}
+                icon={TrendingUp}
+                iconColor="text-emerald-600"
+              />
 
-          {/* Admin Secondary Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-l-4 border-l-orange-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Importações</p>
-                    <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImports || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Operações realizadas</p>
-                  </div>
-                  <Package className="w-8 h-8 text-orange-600" />
-                </div>
-              </CardContent>
-            </Card>
+              {/* Total de Importações */}
+              <MetricsCard
+                title="Total de Importações"
+                value={adminMetrics?.totalImports || 0}
+                icon={Truck}
+                iconColor="text-orange-600"
+              />
 
-            <Card className="border-l-4 border-l-cyan-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Fornecedores</p>
-                    <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalSuppliers || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Cadastrados na plataforma</p>
-                  </div>
-                  <Building2 className="w-8 h-8 text-cyan-600" />
-                </div>
-              </CardContent>
-            </Card>
+              {/* Total de Fornecedores */}
+              <MetricsCard
+                title="Total de Fornecedores"
+                value={adminMetrics?.totalSuppliers || 0}
+                icon={Package}
+                iconColor="text-purple-600"
+              />
+            </>
+          )}
+        </div>
+      ) : (
+        /* Importer Dashboard Metrics */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Crédito Aprovado - Importador só vê valores finalizados pelo admin */}
+          <MetricsCard
+            title="Crédito Aprovado"
+            value={formatCurrency(
+              creditApplications
+                .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+                .reduce((sum, app) => sum + Number(app.finalCreditLimit || 0), 0)
+            ).replace('R$', 'US$')}
+            icon={CreditCard}
+            iconColor="text-green-600"
+          />
 
-            <Card className="border-l-4 border-l-yellow-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {adminMetrics?.totalApplications > 0 
-                        ? Math.round((adminMetrics?.approvedCreditVolume / adminMetrics?.totalCreditVolume) * 100) || 0
-                        : 0}%
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Créditos aprovados</p>
-                  </div>
-                  <Target className="w-8 h-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
+          {/* Em Uso - usando função de cálculo de crédito */}
+          <MetricsCard
+            title="Em Uso"
+            value={formatCurrency(metrics.usedCredit || 0).replace('R$', 'US$')}
+            icon={PiggyBank}
+            iconColor="text-blue-600"
+          />
 
-            <Card className="border-l-4 border-l-red-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Receita em Taxas</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatCompactCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.025)}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Taxa administrativa 2.5%</p>
-                  </div>
-                  <Calculator className="w-8 h-8 text-red-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Disponível - crédito restante */}
+          <MetricsCard
+            title="Disponível"
+            value={formatCurrency(metrics.availableCredit || 0).replace('R$', 'US$')}
+            icon={BarChart3}
+            iconColor="text-green-600"
+          />
 
-          {/* Admin Detailed Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Status das Aplicações */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  Status das Aplicações de Crédito
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {adminMetrics?.applicationsByStatus && Object.entries(adminMetrics.applicationsByStatus).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          status === 'approved' ? 'bg-green-500' :
-                          status === 'under_review' ? 'bg-yellow-500' :
-                          status === 'rejected' ? 'bg-red-500' : 'bg-gray-500'
-                        }`}></div>
-                        <span className="font-medium">
-                          {status === 'approved' ? 'Aprovadas' :
-                           status === 'under_review' ? 'Em Análise' :
-                           status === 'rejected' ? 'Rejeitadas' : 'Outras'}
-                        </span>
-                      </div>
-                      <span className="text-lg font-bold">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Importações Ativas */}
+          <MetricsCard
+            title="Importações Ativas"
+            value={imports.filter(imp => ['planning', 'ordered', 'in_transit', 'customs'].includes(imp.status)).length}
+            icon={Truck}
+            iconColor="text-orange-600"
+          />
 
-            {/* Projeção de Faturamento */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Projeção de Faturamento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-green-800">Receita com Taxas Admin</span>
-                      <Percent className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {formatCompactCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.025)}
-                    </div>
-                    <p className="text-xs text-green-600 mt-1">2.5% sobre crédito aprovado</p>
-                  </div>
+          {/* Total de Importações */}
+          <MetricsCard
+            title="Total de Importações"
+            value={imports.length}
+            icon={Package}
+            iconColor="text-purple-600"
+          />
+        </div>
+      )}
 
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-blue-800">Projeção Mensal</span>
-                      <Banknote className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {formatCompactCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.025 * 0.1)}
-                    </div>
-                    <p className="text-xs text-blue-600 mt-1">10% da receita total por mês</p>
-                  </div>
-
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-800">Volume Potencial</span>
-                      <Activity className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {formatCompactCurrency((adminMetrics?.totalCreditVolume || 0) - (adminMetrics?.approvedCreditVolume || 0))}
-                    </div>
-                    <p className="text-xs text-purple-600 mt-1">Crédito pendente de aprovação</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Atividade Recente Admin */}
+      {/* Admin Status Overview */}
+      {isAdmin && !adminMetricsLoading && adminMetrics && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Aplicações por Status */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Atividade Recente do Sistema
+                <BarChart3 className="w-5 h-5" />
+                Aplicações por Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {adminMetrics?.recentActivity?.length > 0 ? (
-                <div className="space-y-3">
-                  {adminMetrics.recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{activity.companyName}</p>
-                            <p className="text-xs text-gray-500">Aplicação #{activity.id}</p>
-                          </div>
-                        </div>
-                        <p className="text-sm font-semibold text-gray-900">{formatCompactCurrency(parseFloat(activity.amount))}</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant={
-                          activity.status === 'approved' ? 'default' : 
-                          activity.status === 'pending' ? 'secondary' : 
-                          'outline'
-                        }>
-                          {activity.status === 'approved' ? 'Aprovado' :
-                           activity.status === 'pending' ? 'Pendente' :
-                           'Em Análise'}
-                        </Badge>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {formatDate(activity.createdAt)}
-                        </p>
-                      </div>
+              <div className="space-y-3">
+                {Object.entries(adminMetrics.applicationsByStatus).map(([status, count]) => (
+                  <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={status.toLowerCase().replace(' ', '_').replace('-', '_')} />
+                      <span className="font-medium">{status}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma atividade recente</h3>
-                  <p className="text-gray-500">Atividades do sistema aparecerão aqui.</p>
-                </div>
-              )}
+                    <span className="text-xl font-bold text-blue-600">{count}</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
-        </>
-      ) : isFinanceira ? (
-        // ===== FINANCEIRA DASHBOARD =====
-        <>
-          {/* Financeira Main Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-l-4 border-l-blue-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Créditos Submetidos</p>
-                    <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.totalApplicationsSubmitted || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total de aplicações</p>
-                  </div>
-                  <FileText className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="border-l-4 border-l-purple-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditRequested || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Volume total pedido</p>
-                  </div>
-                  <DollarSign className="w-8 h-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-green-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditApproved || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Volume concedido</p>
-                  </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-orange-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
-                    <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.approvalRate || 0}%</p>
-                    <p className="text-xs text-gray-500 mt-1">Eficiência de aprovação</p>
-                  </div>
-                  <Target className="w-8 h-8 text-orange-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Financeira Secondary Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-l-4 border-l-emerald-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Em Uso</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditInUse || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Sendo utilizado</p>
-                  </div>
-                  <PiggyBank className="w-8 h-8 text-emerald-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-cyan-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditAvailable || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Livre para uso</p>
-                  </div>
-                  <CreditCard className="w-8 h-8 text-cyan-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-yellow-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Tempo Médio Aprovação</p>
-                    <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.averageApprovalTime || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Dias para aprovar</p>
-                  </div>
-                  <Clock className="w-8 h-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-red-500">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Utilização</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {financeiraMetrics?.totalCreditApproved > 0 
-                        ? Math.round(((financeiraMetrics?.totalCreditInUse || 0) / financeiraMetrics.totalCreditApproved) * 100)
-                        : 0}%
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Do crédito aprovado</p>
-                  </div>
-                  <BarChart3 className="w-8 h-8 text-red-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Financeira Detailed Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Status das Aplicações */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  Status das Aplicações de Crédito
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="font-medium">Pendentes</span>
-                    </div>
-                    <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.pending || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span className="font-medium">Em Análise</span>
-                    </div>
-                    <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.under_review || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="font-medium">Aprovadas</span>
-                    </div>
-                    <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.approved || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="font-medium">Rejeitadas</span>
-                    </div>
-                    <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.rejected || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                      <span className="font-medium">Canceladas</span>
-                    </div>
-                    <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.cancelled || 0}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Estatísticas Mensais */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Estatísticas do Mês
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-blue-800">Aplicações Recebidas</span>
-                      <FileText className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {financeiraMetrics?.monthlyStats?.applications || 0}
-                    </div>
-                    <p className="text-xs text-blue-600 mt-1">Este mês</p>
-                  </div>
-
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-green-800">Aprovações</span>
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {financeiraMetrics?.monthlyStats?.approvals || 0}
-                    </div>
-                    <p className="text-xs text-green-600 mt-1">Este mês</p>
-                  </div>
-
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-800">Volume Aprovado</span>
-                      <DollarSign className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {formatCompactCurrency(financeiraMetrics?.monthlyStats?.volume || 0)}
-                    </div>
-                    <p className="text-xs text-purple-600 mt-1">Este mês</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Atividade Recente Financeira */}
+          {/* Atividade Recente */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -602,361 +220,271 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {financeiraMetrics?.recentActivity?.length > 0 ? (
-                <div className="space-y-3">
-                  {financeiraMetrics.recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{activity.companyName}</p>
-                            <p className="text-xs text-gray-500">Aplicação #{activity.id}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm text-gray-600">
-                            Solicitado: <span className="font-semibold">{formatCompactCurrency(parseFloat(activity.requestedAmount))}</span>
-                          </p>
-                          {activity.approvedAmount && (
-                            <p className="text-sm text-gray-600">
-                              Aprovado: <span className="font-semibold text-green-600">{formatCompactCurrency(parseFloat(activity.approvedAmount))}</span>
-                            </p>
-                          )}
-                        </div>
+              <div className="space-y-3">
+                {adminMetrics.recentActivity.length > 0 ? (
+                  adminMetrics.recentActivity.slice(0, 5).map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{activity.companyName}</p>
+                        <p className="text-xs text-gray-500">
+                          {formatCurrency(Number(activity.amount)).replace('R$', 'US$')}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <Badge variant={
-                          activity.status === 'approved' ? 'default' : 
-                          activity.status === 'rejected' ? 'destructive' :
-                          activity.status === 'under_review' ? 'secondary' : 
-                          'outline'
-                        }>
-                          {activity.status === 'approved' ? 'Aprovado' :
-                           activity.status === 'rejected' ? 'Rejeitado' :
-                           activity.status === 'under_review' ? 'Em Análise' :
-                           activity.status === 'pending' ? 'Pendente' :
-                           'Outro'}
-                        </Badge>
+                        <StatusBadge status={activity.status} />
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDate(activity.submittedAt)}
+                          {formatDate(activity.createdAt)}
                         </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma atividade recente</h3>
-                  <p className="text-gray-500">Aplicações de crédito aparecerão aqui conforme forem submetidas.</p>
-                </div>
-              )}
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhuma atividade recente</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
-        </>
-      ) : (
-        // ===== IMPORTER DASHBOARD =====
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatCompactCurrency(importerData?.creditMetrics?.approvedAmount || 0)}
-                    </p>
-                  </div>
-                  <DollarSign className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatCompactCurrency(importerData?.creditMetrics?.availableAmount || 0)}
-                    </p>
-                  </div>
-                  <CreditCard className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Volume Importado</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatCompactCurrency(importerData?.importMetrics?.totalValue || 0)}
-                    </p>
-                  </div>
-                  <Package className="w-8 h-8 text-orange-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Importações</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {importerData?.importMetrics?.totalImports || 0}
-                    </p>
-                  </div>
-                  <BarChart3 className="w-8 h-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Two Column Layout for Importers */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Detalhes do Crédito usando dados reais */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Detalhes do Crédito
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(importerData?.creditMetrics?.approvedAmount || 0) > 0 ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <CreditCard className="w-5 h-5 text-green-600" />
-                        </div>
-                        <span className="font-medium text-green-800">Crédito Aprovado</span>
-                      </div>
-                      <span className="text-lg font-bold text-green-600">
-                        {formatCompactCurrency(importerData?.creditMetrics?.approvedAmount || 0)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <PiggyBank className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span className="font-medium text-blue-800">Em Uso</span>
-                      </div>
-                      <span className="text-lg font-bold text-blue-600">
-                        {formatCompactCurrency(importerData?.creditMetrics?.usedAmount || 0)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                          <TrendingUp className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <span className="font-medium text-emerald-800">Disponível</span>
-                      </div>
-                      <span className="text-lg font-bold text-emerald-600">
-                        {formatCompactCurrency(importerData?.creditMetrics?.availableAmount || 0)}
-                      </span>
-                    </div>
-
-                    <div className="pt-3 border-t border-gray-200">
-                      <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-                        <span className="font-medium">Taxa de Utilização</span>
-                        <span className="text-lg font-semibold text-gray-800">
-                          {(importerData?.creditMetrics?.utilizationRate || 0).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
-                          style={{ width: `${Math.min(importerData?.creditMetrics?.utilizationRate || 0, 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>0%</span>
-                        <span>100%</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum crédito aprovado</h3>
-                    <p className="text-gray-500 mb-4">Você ainda não possui crédito aprovado. Solicite seu crédito para começar a importar.</p>
-                    <Link href="/credit/new">
-                      <Button>
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Solicitar Crédito
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Pipeline de Importações */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Factory className="w-5 h-5" />
-                  Pipeline de Importações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="text-2xl font-bold text-yellow-700">
-                      {importerData?.statusBreakdown?.planning || 0}
-                    </div>
-                    <div className="text-sm text-yellow-600 font-medium">Planejamento</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-2xl font-bold text-blue-700">
-                      {importerData?.statusBreakdown?.production || 0}
-                    </div>
-                    <div className="text-sm text-blue-600 font-medium">Produção</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="text-2xl font-bold text-purple-700">
-                      {importerData?.statusBreakdown?.shipping || 0}
-                    </div>
-                    <div className="text-sm text-purple-600 font-medium">Transporte</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="text-2xl font-bold text-green-700">
-                      {importerData?.statusBreakdown?.completed || 0}
-                    </div>
-                    <div className="text-sm text-green-600 font-medium">Concluído</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Bottom Section for Importers */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Importações Recentes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Importações Recentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(importerData?.recentActivity?.imports?.length || 0) > 0 ? (
-                  <div className="space-y-3">
-                    {importerData?.recentActivity?.imports?.map((import_) => (
-                      <div key={import_.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Package className="w-4 h-4 text-gray-500" />
-                            <p className="font-medium text-sm">{import_.name}</p>
-                          </div>
-                          <p className="text-xs text-gray-500">{formatCurrency(parseFloat(import_.value))}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={
-                            import_.status === 'concluido' ? 'default' : 
-                            import_.status === 'planejamento' ? 'secondary' : 
-                            'outline'
-                          }>
-                            {import_.status === 'planejamento' ? 'Planejamento' :
-                             import_.status === 'producao' ? 'Produção' :
-                             import_.status === 'concluido' ? 'Concluído' : 
-                             'Em Andamento'}
-                          </Badge>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formatDate(import_.date)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma importação</h3>
-                    <p className="text-gray-500 mb-4">Você ainda não possui importações. Crie sua primeira importação.</p>
-                    <Link href="/imports/new">
-                      <Button>
-                        <Package className="w-4 h-4 mr-2" />
-                        Nova Importação
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Aplicações de Crédito Recentes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Aplicações de Crédito
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(importerData?.recentActivity?.creditApplications?.length || 0) > 0 ? (
-                  <div className="space-y-3">
-                    {importerData?.recentActivity?.creditApplications?.map((app) => (
-                      <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CreditCard className="w-4 h-4 text-gray-500" />
-                            <p className="font-medium text-sm">Aplicação #{app.id}</p>
-                          </div>
-                          <p className="text-xs text-gray-500">{formatCurrency(parseFloat(app.amount))}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={
-                            app.status === 'finalized' ? 'default' : 
-                            app.status === 'approved' ? 'default' : 
-                            app.status === 'pending' ? 'secondary' : 
-                            'outline'
-                          }>
-                            {app.status === 'finalized' ? 'Finalizado' :
-                             app.status === 'approved' ? 'Aprovado' :
-                             app.status === 'pending' ? 'Pendente' : 
-                             'Em Análise'}
-                          </Badge>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formatDate(app.date)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma aplicação</h3>
-                    <p className="text-gray-500 mb-4">Você ainda não possui aplicações de crédito.</p>
-                    <Link href="/credit/new">
-                      <Button>
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Solicitar Crédito
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </>
+        </div>
       )}
+
+      {/* Credit Details and Pipeline */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Detalhes do Crédito */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalhes do Crédito</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              // Importadores só veem aplicações finalizadas pelo admin
+              const approvedApp = creditApplications.find(app => 
+                app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
+              );
+              
+              if (!approvedApp) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhuma solicitação de crédito aprovada</p>
+                    <p className="text-xs mt-2">Aguardando finalização administrativa</p>
+                  </div>
+                );
+              }
+
+              // Valores corretos baseados nos dados reais
+              const approvedCredit = Number(approvedApp.finalCreditLimit || 0);
+              
+              // Calcular uso real baseado nas importações vinculadas
+              const usedCredit = imports
+                .filter(imp => imp.creditApplicationId === approvedApp.id && !['cancelled', 'delivered'].includes(imp.status))
+                .reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0);
+              
+              const availableCredit = Math.max(0, approvedCredit - usedCredit);
+              const utilizationRate = approvedCredit > 0 ? (usedCredit / approvedCredit) * 100 : 0;
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
+                    <span className="text-lg font-bold text-green-600">{formatCurrency(approvedCredit).replace('R$', 'US$')}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <span className="text-sm font-medium text-blue-800">Em Uso</span>
+                    <span className="text-lg font-bold text-blue-600">{formatCurrency(usedCredit).replace('R$', 'US$')}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <span className="text-sm font-medium text-emerald-800">Disponível</span>
+                    <span className="text-lg font-bold text-emerald-600">{formatCurrency(availableCredit).replace('R$', 'US$')}</span>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
+                      <span className="font-medium">Taxa de Utilização</span>
+                      <span className="text-lg font-semibold text-gray-800">{utilizationRate.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300" 
+                        style={{ width: `${Math.min(utilizationRate, 100)}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Pipeline de Importações */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pipeline de Importações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const statusCounts = {
+                planning: imports.filter(imp => imp.status === 'planning').length,
+                ordered: imports.filter(imp => imp.status === 'ordered').length,
+                in_transit: imports.filter(imp => imp.status === 'in_transit').length,
+                customs: imports.filter(imp => imp.status === 'customs').length,
+                delivered: imports.filter(imp => imp.status === 'delivered').length,
+              };
+
+              const statusLabels = {
+                planning: 'Planejamento',
+                ordered: 'Pedido Feito',
+                in_transit: 'Em Trânsito',
+                customs: 'Alfândega',
+                delivered: 'Entregue'
+              };
+
+              const statusColors = {
+                planning: 'text-gray-600 bg-gray-100',
+                ordered: 'text-blue-600 bg-blue-100',
+                in_transit: 'text-orange-600 bg-orange-100',
+                customs: 'text-yellow-600 bg-yellow-100',
+                delivered: 'text-green-600 bg-green-100'
+              };
+
+              return (
+                <div className="space-y-3">
+                  {Object.entries(statusCounts).map(([status, count]) => (
+                    <div key={status} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${statusColors[status as keyof typeof statusColors]}`}>
+                          <span className="text-sm font-bold">{count}</span>
+                        </div>
+                        <span className="font-medium">{statusLabels[status as keyof typeof statusLabels]}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">{count} {count === 1 ? 'importação' : 'importações'}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Imports */}
+      <div className="grid grid-cols-1 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Importações Recentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {imports.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhuma importação encontrada</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {imports.slice(0, 5).map((importItem) => {
+                  const statusColors = {
+                    planning: 'text-gray-600 bg-gray-100',
+                    ordered: 'text-blue-600 bg-blue-100',
+                    in_transit: 'text-orange-600 bg-orange-100',
+                    customs: 'text-yellow-600 bg-yellow-100',
+                    delivered: 'text-green-600 bg-green-100'
+                  };
+
+                  const statusLabels = {
+                    planning: 'Planejamento',
+                    ordered: 'Pedido Feito',
+                    in_transit: 'Em Trânsito',
+                    customs: 'Alfândega',
+                    delivered: 'Entregue'
+                  };
+
+                  return (
+                    <div key={importItem.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusColors[importItem.status as keyof typeof statusColors] || 'text-gray-600 bg-gray-100'}`}>
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{importItem.importName || `Importação #${importItem.id}`}</p>
+                          <p className="text-sm text-gray-600">
+                            {formatCurrency(Number(importItem.totalValue || 0))} • {formatDate(importItem.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[importItem.status as keyof typeof statusColors] || 'text-gray-600 bg-gray-100'}`}>
+                        {statusLabels[importItem.status as keyof typeof statusLabels] || importItem.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Ações Rápidas */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              className="w-full justify-between bg-spark-50 hover:bg-spark-100 text-gray-900 border border-spark-200"
+              onClick={() => window.location.href = '/imports/new'}
+            >
+              <div className="flex items-center">
+                <Plus className="w-4 h-4 text-spark-600 mr-3" />
+                <span className="font-medium">Nova Importação</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-between hover:bg-gray-50"
+              onClick={() => window.location.href = '/credit/new'}
+            >
+              <div className="flex items-center">
+                <CreditCard className="w-4 h-4 text-gray-600 mr-3" />
+                <span className="font-medium">Solicitar Crédito</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-between hover:bg-gray-50"
+              onClick={() => window.location.href = '/suppliers/new'}
+            >
+              <div className="flex items-center">
+                <FileText className="w-4 h-4 text-gray-600 mr-3" />
+                <span className="font-medium">Cadastrar Fornecedor</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-between hover:bg-gray-50"
+              onClick={() => window.location.href = '/credit'}
+            >
+              <div className="flex items-center">
+                <BarChart3 className="w-4 h-4 text-gray-600 mr-3" />
+                <span className="font-medium">Ver Crédito</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

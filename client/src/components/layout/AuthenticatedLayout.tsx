@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/contexts/I18nContext";
-
+import LanguageSelector from "@/components/ui/language-selector";
 import NotificationCenter from "@/components/NotificationCenter";
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ import {
   X, 
   Home, 
   CreditCard, 
-  Building,
+  Truck, 
   BarChart3, 
   Settings, 
   Shield,
@@ -33,9 +33,7 @@ import {
   ChevronRight,
   Users,
   UserCog,
-  FileCheck,
-  Truck,
-  Package
+  FileCheck
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -126,21 +124,26 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     },
     { 
       path: "/imports", 
-      icon: Package, 
-      label: isFinanceira 
-        ? "Análise de Importações" 
-        : isAdmin 
-          ? "Todas as Importações" 
-          : "Minhas Importações"
-    },
-    { 
-      path: "/suppliers", 
-      icon: Building, 
-      label: isFinanceira 
-        ? "Todos Fornecedores" 
-        : isAdmin 
-          ? "Todos Fornecedores" 
-          : "Fornecedores"
+      icon: Truck, 
+      label: (isAdmin || isFinanceira) ? "Importações" : t.nav.imports,
+      submenu: [
+        { 
+          path: "/imports", 
+          label: isFinanceira 
+            ? "Importações" 
+            : isAdmin 
+              ? "Importações" 
+              : "Minhas Importações" 
+        },
+        { 
+          path: "/suppliers", 
+          label: isFinanceira 
+            ? "Todos Fornecedores" 
+            : isAdmin 
+              ? "Todos Fornecedores" 
+              : "Fornecedores" 
+        },
+      ]
     },
     { path: "/reports", icon: BarChart3, label: t.nav.reports },
   ];
@@ -420,6 +423,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSelector />
               <NotificationCenter />
             </div>
           </div>

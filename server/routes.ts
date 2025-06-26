@@ -1194,100 +1194,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update import (PUT)
-  app.put('/api/imports/:id', requireAuth, async (req: any, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const userId = req.session.userId;
-      const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
-
-      const importRecord = await storage.getImport(id);
-      if (!importRecord) {
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      // Allow access if user owns the import or is admin
-      if (!isAdmin && importRecord.userId !== userId) {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      // Only allow editing if import is in planning status
-      if (importRecord.status !== 'planning') {
-        return res.status(400).json({ 
-          message: "Apenas importações em planejamento podem ser editadas" 
-        });
-      }
-
-      const updateData = {
-        ...req.body,
-        updatedAt: new Date()
-      };
-
-      // Remove fields that shouldn't be updated directly
-      delete updateData.id;
-      delete updateData.userId;
-      delete updateData.createdAt;
-
-      const updatedImport = await storage.updateImport(id, updateData);
-      res.json(updatedImport);
-    } catch (error) {
-      console.error("Error updating import:", error);
-      res.status(500).json({ message: "Erro ao atualizar importação" });
-    }
-  });
-
-  // Delete/Cancel import (DELETE)
-  app.delete('/api/imports/:id', requireAuth, async (req: any, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const userId = req.session.userId;
-      const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
-
-      const importRecord = await storage.getImport(id);
-      if (!importRecord) {
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      // Allow access if user owns the import or is admin
-      if (!isAdmin && importRecord.userId !== userId) {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      // Don't allow deletion of completed imports
-      if (importRecord.status === 'completed') {
-        return res.status(400).json({ 
-          message: "Importações concluídas não podem ser canceladas" 
-        });
-      }
-
-      // Update status to cancelled instead of actual deletion
-      const cancelledImport = await storage.updateImportStatus(id, 'cancelled', {
-        cancelledAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      // Release reserved credit if any
-      if (importRecord.creditApplicationId && importRecord.creditUsed) {
-        try {
-          await storage.releaseCredit(importRecord.creditApplicationId, id);
-        } catch (creditError) {
-          console.error("Error releasing credit:", creditError);
-          // Don't fail the cancellation if credit release fails
-        }
-      }
-
-      res.json({ 
-        message: "Importação cancelada com sucesso", 
-        import: cancelledImport 
-      });
-    } catch (error) {
-      console.error("Error cancelling import:", error);
-      res.status(500).json({ message: "Erro ao cancelar importação" });
-    }
-  });
-
   // Pipeline update route
   app.put('/api/imports/:id/pipeline', requireAuth, async (req: any, res) => {
     try {
@@ -1320,43 +1226,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating import pipeline:", error);
       res.status(500).json({ message: "Erro ao atualizar pipeline da importação" });
-    }
-  });
-
-  // Status update route
-  app.put('/api/imports/:id/status', requireAuth, async (req: any, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { status } = req.body;
-      const userId = req.session.userId;
-      const currentUser = await storage.getUser(userId);
-      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
-
-      if (!status) {
-        return res.status(400).json({ message: "Status é obrigatório" });
-      }
-
-      const importRecord = await storage.getImport(id);
-      if (!importRecord) {
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      // Allow access if user owns the import or is admin
-      if (!isAdmin && importRecord.userId !== userId) {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      // Update status and timestamp
-      const updateData = {
-        status: status,
-        updatedAt: new Date()
-      };
-
-      const updatedImport = await storage.updateImportStatus(id, status, updateData);
-      res.json(updatedImport);
-    } catch (error) {
-      console.error("Error updating import status:", error);
-      res.status(500).json({ message: "Erro ao atualizar status da importação" });
     }
   });
 
@@ -1834,14 +1703,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFee, adminFinalNotes } = req.body;
+      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes } = req.body;
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, {
         adminStatus: 'admin_finalized',
         finalCreditLimit,
         finalApprovedTerms,
         finalDownPayment,
-        adminFee,
         adminFinalNotes,
         adminFinalizedBy: userId,
         adminFinalizedAt: new Date(),
@@ -1852,79 +1720,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error finalizing credit application:", error);
       res.status(500).json({ message: "Erro ao finalizar solicitação de crédito" });
-    }
-  });
-
-  // Get admin fee for current user
-  app.get('/api/user/admin-fee', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.session.userId;
-      const adminFee = await storage.getAdminFeeForUser(userId);
-      
-      if (!adminFee) {
-        return res.json({ feePercentage: "10" }); // Default 10% if no fee configured
-      }
-      
-      res.json(adminFee);
-    } catch (error) {
-      console.error("Error fetching admin fee:", error);
-      res.status(500).json({ message: "Erro ao buscar taxa administrativa" });
-    }
-  });
-
-  // Get user's credit information for financial calculations
-  app.get('/api/user/credit-info', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.session.userId;
-      
-      // Get user's approved credit applications
-      const creditApps = await storage.getCreditApplicationsByUser(userId);
-      const approvedCredit = creditApps.find(app => app.status === 'approved');
-      
-      if (!approvedCredit) {
-        return res.json({
-          totalCredit: 0,
-          usedCredit: 0,
-          availableCredit: 0,
-          adminFeePercentage: 10
-        });
-      }
-
-      // Calculate used credit from imports
-      const imports = await storage.getImportsByUser(userId);
-      const activeImports = imports.filter(imp => 
-        imp.status !== 'cancelado' && 
-        imp.status !== 'cancelled' &&
-        imp.status !== 'planejamento' && // Crédito só é usado quando sai do planejamento
-        imp.creditApplicationId === approvedCredit.id
-      );
-
-      const usedCredit = activeImports.reduce((total, imp) => {
-        const importValue = parseFloat(imp.totalValue);
-        // Credit usage is the full FOB value, not just financed amount
-        return total + importValue;
-      }, 0);
-
-      // Get admin fee percentage
-      const adminFee = await storage.getAdminFeeForUser(userId);
-      const adminFeePercentage = adminFee ? parseFloat(adminFee.feePercentage) : 10;
-
-      // Use final admin terms if available, otherwise use financial terms
-      const totalCredit = approvedCredit.finalCreditLimit 
-        ? parseFloat(approvedCredit.finalCreditLimit)
-        : parseFloat(approvedCredit.creditAmount);
-
-      const availableCredit = Math.max(0, totalCredit - usedCredit);
-
-      res.json({
-        totalCredit,
-        usedCredit,
-        availableCredit,
-        adminFeePercentage
-      });
-    } catch (error) {
-      console.error("Error fetching credit info:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
@@ -2147,13 +1942,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  // Get all submitted credit applications for financeira
+  // Get pre-approved credit applications for financeira
   app.get('/api/financeira/credit-applications', requireAuth, requireFinanceira, async (req: any, res) => {
     try {
-      const applications = await storage.getSubmittedCreditApplications();
+      const applications = await storage.getPreApprovedCreditApplications();
       res.json(applications);
     } catch (error) {
-      console.error("Error fetching submitted applications:", error);
+      console.error("Error fetching pre-approved applications:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2303,17 +2098,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error rejecting credit application:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Financeira dashboard metrics endpoint
-  app.get('/api/financeira/dashboard/metrics', requireAuth, requireFinanceira, async (req: any, res) => {
-    try {
-      const metrics = await storage.getFinanceiraDashboardMetrics();
-      res.json(metrics);
-    } catch (error) {
-      console.error("Error fetching financeira dashboard metrics:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2736,287 +2520,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching admin dashboard metrics:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Import document upload endpoint
-  app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
-    try {
-      const importId = parseInt(req.params.id);
-      const { category } = req.body;
-      const file = req.file;
-
-      if (!file) {
-        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
-      }
-
-      if (!category) {
-        return res.status(400).json({ message: "Categoria do documento é obrigatória" });
-      }
-
-      // Get import to verify ownership
-      const importData = await storage.getImport(importId);
-      if (!importData) {
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-
-      // Check permissions
-      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
-        return res.status(403).json({ message: "Sem permissão para esta importação" });
-      }
-
-      // Convert file to base64
-      const base64File = file.buffer.toString('base64');
-      const documentData = {
-        category,
-        filename: file.originalname,
-        mimeType: file.mimetype,
-        size: file.size,
-        data: base64File,
-        uploadedAt: new Date().toISOString()
-      };
-
-      // Get current documents
-      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
-      currentDocuments[category] = documentData;
-
-      // Update import with new document
-      await storage.updateImport(importId, {
-        documents: JSON.stringify(currentDocuments)
-      });
-
-      console.log(`Document uploaded successfully: ${file.originalname} for import ${importId}`);
-      res.json({ 
-        success: true, 
-        message: "Documento enviado com sucesso",
-        document: {
-          category,
-          filename: file.originalname,
-          uploadedAt: documentData.uploadedAt
-        }
-      });
-
-    } catch (error) {
-      console.error("Error uploading import document:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Import document download endpoint
-  app.get('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
-    try {
-      const importId = parseInt(req.params.id);
-      const { category } = req.params;
-
-      const importData = await storage.getImport(importId);
-      if (!importData) {
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-
-      // Check permissions
-      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
-        return res.status(403).json({ message: "Sem permissão para esta importação" });
-      }
-
-      const documents = importData.documents ? JSON.parse(importData.documents) : {};
-      const document = documents[category];
-
-      if (!document) {
-        return res.status(404).json({ message: "Documento não encontrado" });
-      }
-
-      // Convert base64 back to buffer
-      const buffer = Buffer.from(document.data, 'base64');
-      
-      res.set({
-        'Content-Type': document.mimeType,
-        'Content-Disposition': `attachment; filename="${document.filename}"`
-      });
-      
-      res.send(buffer);
-
-    } catch (error) {
-      console.error("Error downloading import document:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Import document delete endpoint
-  app.delete('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
-    try {
-      const importId = parseInt(req.params.id);
-      const { category } = req.params;
-
-      const importData = await storage.getImport(importId);
-      if (!importData) {
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-
-      // Check permissions
-      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
-        return res.status(403).json({ message: "Sem permissão para esta importação" });
-      }
-
-      // Get current documents and remove the specified category
-      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
-      delete currentDocuments[category];
-
-      // Update import
-      await storage.updateImport(importId, {
-        documents: JSON.stringify(currentDocuments)
-      });
-
-      res.json({ 
-        success: true, 
-        message: "Documento removido com sucesso"
-      });
-
-    } catch (error) {
-      console.error("Error deleting import document:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Importer dashboard endpoint
-  app.get('/api/dashboard/importer', requireAuth, async (req: any, res) => {
-    try {
-      const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-
-      // Get user's credit applications
-      const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
-      const approvedApplication = creditApplications.find(app => 
-        app.adminStatus === 'admin_finalized' || 
-        app.adminStatus === 'finalized' || 
-        app.status === 'approved' || 
-        app.status === 'finalized'
-      );
-
-      // Get user's imports
-      const imports = await storage.getImportsByUser(req.session.userId);
-      
-      // Get user's suppliers
-      const suppliers = await storage.getSuppliersByUser(req.session.userId);
-
-      // Calculate credit metrics
-      let creditMetrics = {
-        approvedAmount: 0,
-        usedAmount: 0,
-        availableAmount: 0,
-        utilizationRate: 0
-      };
-
-      if (approvedApplication) {
-        const creditLimit = parseFloat(
-          approvedApplication.finalCreditLimit || 
-          approvedApplication.requestedAmount || 
-          '0'
-        );
-        
-        // Calculate used credit from active imports (not in planning stage)
-        // Credit usage is the full FOB value of imports, not just financed amount
-        const activeImports = imports.filter(imp => 
-          imp.status !== 'planejamento' && 
-          imp.status !== 'cancelado' && 
-          imp.creditApplicationId === approvedApplication.id
-        );
-        
-        const usedAmount = activeImports.reduce((sum, imp) => {
-          return sum + parseFloat(imp.totalValue || '0');
-        }, 0);
-
-        creditMetrics = {
-          approvedAmount: creditLimit,
-          usedAmount: usedAmount,
-          availableAmount: creditLimit - usedAmount,
-          utilizationRate: creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0
-        };
-      }
-
-      // Calculate import metrics
-      const totalValue = imports.reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
-      const activeImports = imports.filter(imp => 
-        imp.status !== 'concluido' && imp.status !== 'cancelado'
-      ).length;
-      const completedImports = imports.filter(imp => imp.status === 'concluido').length;
-
-      // Status breakdown
-      const statusBreakdown = {
-        planning: imports.filter(imp => imp.status === 'planejamento').length,
-        production: imports.filter(imp => imp.status === 'producao').length,
-        shipping: imports.filter(imp => 
-          imp.status === 'transporte_maritimo' || 
-          imp.status === 'transporte_aereo' ||
-          imp.status === 'entregue_agente' ||
-          imp.status === 'desembaraco' ||
-          imp.status === 'transporte_nacional'
-        ).length,
-        completed: completedImports
-      };
-
-      // Recent activity - last 5 imports and credit applications
-      const recentImports = imports
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, 5)
-        .map(imp => ({
-          id: imp.id,
-          name: imp.importName || `Importação #${imp.id}`,
-          status: imp.status,
-          value: imp.totalValue || '0',
-          date: imp.createdAt || new Date().toISOString()
-        }));
-
-      const recentCreditApplications = creditApplications
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, 3)
-        .map(app => ({
-          id: app.id,
-          status: app.adminStatus || app.status,
-          amount: app.finalCreditLimit || app.requestedAmount || '0',
-          date: app.createdAt || new Date().toISOString()
-        }));
-
-      const dashboardData = {
-        creditMetrics,
-        importMetrics: {
-          totalImports: imports.length,
-          activeImports,
-          completedImports,
-          totalValue
-        },
-        supplierMetrics: {
-          totalSuppliers: suppliers.length,
-          activeSuppliers: suppliers.filter(s => s.status === 'active').length
-        },
-        recentActivity: {
-          imports: recentImports,
-          creditApplications: recentCreditApplications
-        },
-        statusBreakdown
-      };
-
-      res.json(dashboardData);
-
-    } catch (error) {
-      console.error("Error fetching importer dashboard data:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

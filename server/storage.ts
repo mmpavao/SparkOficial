@@ -8,7 +8,6 @@ import {
   paymentSchedules,
   payments,
   importDocuments,
-  notifications,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -19,7 +18,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
@@ -208,69 +207,6 @@ export class DatabaseStorage {
     return importRecord;
   }
 
-  async updateImport(id: number, updateData: any): Promise<Import> {
-    const [importRecord] = await db
-      .update(imports)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(imports.id, id))
-      .returning();
-    return importRecord;
-  }
-
-  async releaseCredit(creditApplicationId: number, importId: number): Promise<void> {
-    // Remove credit usage record
-    await db
-      .delete(creditUsage)
-      .where(and(
-        eq(creditUsage.creditApplicationId, creditApplicationId),
-        eq(creditUsage.importId, importId)
-      ));
-  }
-
-  // Add missing storage methods for payments and credit management
-  async updateCreditBalance(creditApplicationId: number, usedAmount: string, availableAmount: string): Promise<void> {
-    await db
-      .update(creditApplications)
-      .set({ 
-        creditUsed: usedAmount,
-        updatedAt: new Date()
-      })
-      .where(eq(creditApplications.id, creditApplicationId));
-  }
-
-  async getPaymentsByImport(importId: number) {
-    return await db
-      .select()
-      .from(paymentSchedules)
-      .where(eq(paymentSchedules.importId, importId))
-      .orderBy(paymentSchedules.dueDate);
-  }
-
-  async confirmPayment(paymentId: number, confirmationData: any) {
-    return await db
-      .update(paymentSchedules)
-      .set({
-        status: "paid",
-        paidAt: new Date(),
-        receiptData: confirmationData.receiptData,
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
-  }
-
-  async rejectPayment(paymentId: number, reason: string) {
-    return await db
-      .update(paymentSchedules)
-      .set({
-        status: "rejected",
-        rejectionReason: reason,
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
-  }
-
   // ===== SUPPLIER OPERATIONS =====
 
   async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
@@ -344,25 +280,17 @@ export class DatabaseStorage {
       .where(
         and(
           eq(imports.creditApplicationId, creditApplicationId),
-          inArray(imports.status, ["planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional"])
+          inArray(imports.status, ["planning", "in_transit", "production"])
         )
       );
 
-    // Calculate total used credit from active imports (full FOB value - credit covers entire import)
+    // Calculate total used credit from active imports
     const usedCredit = activeImports.reduce((total, importRecord) => {
       const importValue = parseFloat(importRecord.totalValue || "0");
-      // Credit usage is the full FOB value, not just financed amount
       return total + importValue;
     }, 0);
 
     const availableCredit = creditLimit - usedCredit;
-
-    console.log(`Credit calculation for app ${creditApplicationId}:`, {
-      creditLimit,
-      activeImports: activeImports.length,
-      usedCredit,
-      availableCredit
-    });
 
     return {
       used: usedCredit,
@@ -401,7 +329,16 @@ export class DatabaseStorage {
       .returning();
   }
 
-
+  async releaseCredit(creditApplicationId: number, importId: number) {
+    return await db
+      .delete(creditUsage)
+      .where(
+        and(
+          eq(creditUsage.creditApplicationId, creditApplicationId),
+          eq(creditUsage.importId, importId)
+        )
+      );
+  }
 
   // Generate payment schedule for import based on credit terms
   async generatePaymentSchedule(importId: number, totalValue: string, creditApplicationId: number) {
@@ -503,13 +440,15 @@ export class DatabaseStorage {
       .insert(paymentSchedules)
       .values({
         importId,
-        paymentType: paymentData.paymentType || "down_payment",
-        dueDate: paymentData.dueDate || new Date(),
-        amount: paymentData.amount || "0",
-        currency: paymentData.currency || "USD",
+        totalAmount: paymentData.totalAmount,
+        downPaymentAmount: paymentData.downPaymentAmount,
+        downPaymentDueDate: paymentData.downPaymentDueDate,
+        finalPaymentAmount: paymentData.finalPaymentAmount,
+        finalPaymentDueDate: paymentData.finalPaymentDueDate,
+        adminFeeAmount: paymentData.adminFeeAmount,
+        adminFeeRate: paymentData.adminFeeRate,
         status: "pending",
-        installmentNumber: paymentData.installmentNumber,
-        totalInstallments: paymentData.totalInstallments,
+        createdAt: new Date(),
       })
       .returning();
   }
@@ -567,6 +506,7 @@ export class DatabaseStorage {
       .values({ 
         ...userData, 
         password: hashedPassword,
+        createdBy,
       })
       .returning();
     return user;
@@ -608,23 +548,6 @@ export class DatabaseStorage {
       .orderBy(desc(creditApplications.createdAt));
   }
 
-  async getSubmittedCreditApplications(): Promise<CreditApplication[]> {
-    return await db
-      .select()
-      .from(creditApplications)
-      .where(
-        or(
-          eq(creditApplications.preAnalysisStatus, "pre_approved"),
-          eq(creditApplications.status, "submitted_to_financial"),
-          eq(creditApplications.financialStatus, "approved"),
-          eq(creditApplications.financialStatus, "rejected"),
-          eq(creditApplications.status, "approved"),
-          eq(creditApplications.status, "rejected")
-        )
-      )
-      .orderBy(desc(creditApplications.createdAt));
-  }
-
   async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
     const [creditApp] = await db
       .update(creditApplications)
@@ -657,157 +580,11 @@ export class DatabaseStorage {
 
     if (userIds.length === 0) return [];
 
-    const allImports = await db.select().from(imports);
-    const allUsers = await db.select().from(users);
-
-    return allImports
-      .filter(importItem => userIds.includes(importItem.userId))
-      .map(importItem => {
-        const user = allUsers.find(u => u.id === importItem.userId);
-        return {
-          ...importItem,
-          companyName: user?.companyName || 'Empresa não encontrada'
-        };
-      }) as Import[];
-  }
-
-  async getFinanceiraDashboardMetrics() {
-    try {
-      // Get all applications that were submitted to financeira (pre-approved or higher)
-      const [submittedApplications, allUsers, allImports] = await Promise.all([
-        db.select().from(creditApplications)
-        .where(
-          or(
-            eq(creditApplications.preAnalysisStatus, "pre_approved"),
-            eq(creditApplications.status, "submitted_to_financial"),
-            eq(creditApplications.financialStatus, "approved"),
-            eq(creditApplications.financialStatus, "rejected"),
-            eq(creditApplications.status, "approved"),
-            eq(creditApplications.status, "rejected")
-          )
-        )
-        .orderBy(desc(creditApplications.createdAt)),
-
-        db.select().from(users),
-
-        db.select().from(imports).where(isNotNull(imports.creditApplicationId))
-      ]);
-
-      // Calculate metrics
-      const totalApplicationsSubmitted = submittedApplications.length;
-      const totalCreditRequested = submittedApplications.reduce((sum, app) => {
-        const amount = app.requestedAmount || '0';
-        return sum + parseFloat(amount.toString());
-      }, 0);
-
-      // Calculate approved applications and total credit approved
-      const approvedApplications = submittedApplications.filter(app => 
-        app.financialStatus === 'approved' || app.status === 'approved'
-      );
-      const totalCreditApproved = approvedApplications.reduce((sum, app) => {
-        const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
-        return sum + parseFloat(approvedAmount.toString());
-      }, 0);
-
-      // Calculate credit in use from active imports
-      const totalCreditInUse = allImports
-        .filter(imp => imp.status !== 'cancelado' && imp.status !== 'cancelled' && imp.status !== 'planejamento')
-        .reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
-
-      const totalCreditAvailable = totalCreditApproved - totalCreditInUse;
-
-      // Calculate applications by status
-      const applicationsByStatus = {
-        pending: submittedApplications.filter(app => 
-          app.preAnalysisStatus === 'pre_approved' && 
-          !app.financialStatus && 
-          app.status !== 'approved' && 
-          app.status !== 'rejected'
-        ).length,
-        under_review: submittedApplications.filter(app => 
-          app.financialStatus === 'under_review' || 
-          app.status === 'submitted_to_financial'
-        ).length,
-        approved: submittedApplications.filter(app => 
-          app.financialStatus === 'approved' || app.status === 'approved'
-        ).length,
-        rejected: submittedApplications.filter(app => 
-          app.financialStatus === 'rejected' || app.status === 'rejected'
-        ).length,
-        cancelled: submittedApplications.filter(app => 
-          app.status === 'cancelled'
-        ).length
-      };
-
-      // Calculate approval rate
-      const totalProcessed = applicationsByStatus.approved + applicationsByStatus.rejected;
-      const approvalRate = totalProcessed > 0 ? (applicationsByStatus.approved / totalProcessed) * 100 : 0;
-
-      // Calculate average approval time (in days)
-      const approvedWithTimes = approvedApplications.filter(app => 
-        app.submittedToFinancialAt && app.financialAnalyzedAt
-      );
-      const averageApprovalTime = approvedWithTimes.length > 0 
-        ? approvedWithTimes.reduce((sum, app) => {
-            const submitted = new Date(app.submittedToFinancialAt!);
-            const analyzed = new Date(app.financialAnalyzedAt!);
-            const diffDays = Math.ceil((analyzed.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24));
-            return sum + diffDays;
-          }, 0) / approvedWithTimes.length
-        : 0;
-
-      // Recent activity - last 10 applications
-      const recentActivity = submittedApplications
-        .slice(0, 10)
-        .map(app => {
-          const user = allUsers.find(u => u.id === app.userId);
-          return {
-            id: app.id || 0,
-            companyName: user?.companyName || 'Empresa não encontrada',
-            status: app.financialStatus || app.status || 'pending',
-            requestedAmount: (app.requestedAmount || '0').toString(),
-            approvedAmount: (app.finalCreditLimit || app.creditLimit || '0').toString(),
-            submittedAt: (app.submittedToFinancialAt || app.createdAt || new Date()).toString()
-          };
-        });
-
-      // Monthly stats (current month)
-      const currentMonth = new Date();
-      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const monthlyApplications = submittedApplications.filter(app => {
-        const appDate = app.createdAt ? new Date(app.createdAt) : new Date(0);
-        return appDate >= monthStart;
-      });
-
-      const monthlyApprovals = monthlyApplications.filter(app => 
-        app.financialStatus === 'approved' || app.status === 'approved'
-      );
-
-      const monthlyVolume = monthlyApprovals.reduce((sum, app) => {
-        const approvedAmount = app.finalCreditLimit || app.creditLimit || app.requestedAmount || '0';
-        return sum + parseFloat(approvedAmount.toString());
-      }, 0);
-
-      return {
-        totalApplicationsSubmitted,
-        totalCreditRequested,
-        totalCreditApproved,
-        totalCreditInUse,
-        totalCreditAvailable,
-        applicationsByStatus,
-        approvalRate: Math.round(approvalRate * 100) / 100,
-        averageApprovalTime: Math.round(averageApprovalTime * 100) / 100,
-        recentActivity,
-        monthlyStats: {
-          applications: monthlyApplications.length,
-          approvals: monthlyApprovals.length,
-          volume: monthlyVolume
-        }
-      };
-    } catch (error) {
-      console.error("Error calculating financeira dashboard metrics:", error);
-      throw error;
-    }
+    return await db
+      .select()
+      .from(imports)
+      .where(inArray(imports.userId, userIds))
+      .orderBy(desc(imports.createdAt));
   }
 
   // ===== NOTIFICATIONS =====
@@ -950,26 +727,8 @@ export class DatabaseStorage {
     const totalImporters = allUsers.filter(u => u.role === 'importer').length;
     const totalApplications = allApplications.length;
 
-    // Mapear status combinados financeiro + admin para labels mais claros
     const applicationsByStatus = allApplications.reduce((acc, app) => {
-      let displayStatus = app.status;
-
-      // Para aplicações aprovadas financeiramente, mostrar status admin
-      if (app.financialStatus === 'approved') {
-        if (app.adminStatus === 'admin_finalized') {
-          displayStatus = 'approved';
-        } else {
-          displayStatus = 'under_review';
-        }
-      } else if (app.preAnalysisStatus === 'pre_approved') {
-        displayStatus = 'under_review';
-      } else if (app.status === 'rejected') {
-        displayStatus = 'rejected';
-      } else {
-        displayStatus = 'under_review';
-      }
-
-      acc[displayStatus] = (acc[displayStatus] || 0) + 1;
+      acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
@@ -978,25 +737,19 @@ export class DatabaseStorage {
     }, 0);
 
     const approvedCreditVolume = allApplications
-      .filter(app => app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized')
+      .filter(app => app.status === 'approved')
       .reduce((sum, app) => {
         return sum + parseFloat(app.finalCreditLimit || app.creditLimit || "0");
       }, 0);
 
-    // Atividade recente com dados mais ricos
-    const recentActivityData = allApplications
-      .map(app => ({
-        id: app.id,
-        type: 'credit_application',
-        companyName: app.legalCompanyName || 'Empresa não informada',
-        amount: app.requestedAmount || '0',
-        status: app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized' ? 'approved' : 
-                app.preAnalysisStatus === 'pre_approved' ? 'under_review' : 
-                app.status,
-        createdAt: app.createdAt || new Date(),
-      }))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
+    const recentActivity = [
+      ...allApplications.slice(0, 5).map(app => ({ type: 'credit_application', data: app })),
+      ...allImports.slice(0, 5).map(imp => ({ type: 'import', data: imp })),
+    ].sort((a, b) => {
+      const dateA = new Date(a.data.createdAt);
+      const dateB = new Date(b.data.createdAt);
+      return dateB.getTime() - dateA.getTime();
+    }).slice(0, 10);
 
     return {
       totalImporters,
@@ -1006,11 +759,36 @@ export class DatabaseStorage {
       approvedCreditVolume,
       totalImports: allImports.length,
       totalSuppliers: allSuppliers.length,
-      recentActivity: recentActivityData,
+      recentActivity,
     };
   }
 
+  // Credit usage calculation
+  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
+    const application = await this.getCreditApplication(creditApplicationId);
+    if (!application) throw new Error("Credit application not found");
 
+    const creditLimit = parseFloat(application.finalCreditLimit || application.requestedAmount || "0");
+
+    // Get imports linked to this credit application
+    const linkedImports = await db
+      .select()
+      .from(imports)
+      .where(eq(imports.creditApplicationId, creditApplicationId));
+
+    // Calculate used credit from active imports
+    const usedCredit = linkedImports
+      .filter(imp => ['planning', 'in_transit', 'production'].includes(imp.status))
+      .reduce((total, imp) => total + parseFloat(imp.totalValue || "0"), 0);
+
+    const availableCredit = creditLimit - usedCredit;
+
+    return {
+      used: usedCredit,
+      available: Math.max(0, availableCredit),
+      limit: creditLimit
+    };
+  }
 
   // Get imports by credit application
   async getImportsByCreditApplication(creditApplicationId: number) {
@@ -1039,7 +817,66 @@ export class DatabaseStorage {
       .returning();
   }
 
+  // Create payment schedule for an import
+  async createPaymentSchedule(importId: number, totalValue: number) {
+    const downPayment = totalValue * 0.1; // 10% down payment
+    const remainingAmount = totalValue - downPayment;
+    const installmentAmount = remainingAmount / 3; // 3 equal installments
 
+    const schedules = [
+      {
+        importId,
+        paymentType: 'down_payment',
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        amount: downPayment.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 1,
+        totalInstallments: 4,
+      },
+      {
+        importId,
+        paymentType: 'installment',
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        amount: installmentAmount.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 2,
+        totalInstallments: 4,
+      },
+      {
+        importId,
+        paymentType: 'installment',
+        dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+        amount: installmentAmount.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 3,
+        totalInstallments: 4,
+      },
+      {
+        importId,
+        paymentType: 'installment',
+        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
+        amount: installmentAmount.toString(),
+        currency: 'USD',
+        status: 'pending',
+        installmentNumber: 4,
+        totalInstallments: 4,
+      },
+    ];
+
+    return await db.insert(paymentSchedules).values(schedules).returning();
+  }
+
+  // Get payment schedules for an import
+  async getPaymentSchedulesByImport(importId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.importId, importId))
+      .orderBy(paymentSchedules.dueDate);
+  }
 
   // Get individual payment by ID
   async getPaymentById(paymentId: number) {
