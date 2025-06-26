@@ -74,6 +74,7 @@ export default function ImportDetailsPage() {
   });
   
   console.log("Query state:", { importData, isLoading, error });
+  console.log("Credit Application Data:", creditApplication);
 
   // Pipeline update mutation
   const updatePipelineMutation = useMutation({
