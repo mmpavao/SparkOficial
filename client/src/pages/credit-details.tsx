@@ -14,7 +14,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
 import { ValidationResult } from "@/lib/documentValidation";
 import { 
@@ -702,7 +702,7 @@ export default function CreditDetailsPage() {
                           const finalLimit = application.adminStatus === 'admin_finalized' 
                             ? application.finalCreditLimit 
                             : application.creditLimit;
-                          return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
+                          return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
                         })()}
                       </span>
                     </div>
@@ -713,7 +713,7 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {creditUsage ? `US$ ${Number(creditUsage.used).toLocaleString()}` : 'US$ 0'}
+                        {creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0'}
                       </span>
                     </div>
                   </div>
@@ -724,12 +724,12 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
                         {creditUsage 
-                          ? `US$ ${Number(creditUsage.available).toLocaleString()}`
+                          ? `US$ ${formatCompactNumber(Number(creditUsage.available))}`
                           : (() => {
                               const finalLimit = application.adminStatus === 'admin_finalized' 
                                 ? application.finalCreditLimit 
                                 : application.creditLimit;
-                              return finalLimit ? `US$ ${Number(finalLimit).toLocaleString()}` : 'US$ 0';
+                              return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
                             })()
                         }
                       </span>
