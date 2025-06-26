@@ -142,13 +142,13 @@ export default function NotificationCenter() {
               Nenhuma notificação encontrada
             </div>
           ) : (
-            notifications.map((notification) => (
+            Array.isArray(notifications) ? notifications.map((notification: Notification) => (
               <NotificationItem
                 key={notification.id}
                 notification={notification}
                 onMarkAsRead={markAsRead}
               />
-            ))
+            )) : null
           )}
         </ScrollArea>
       </DropdownMenuContent>

@@ -24,14 +24,14 @@ export function useNotifications(limit: number = 10) {
     queryKey: ["/api/notifications", limit],
     queryFn: () => apiRequest(`/api/notifications?limit=${limit}`, "GET"),
     refetchInterval: 30000, // Refetch every 30 seconds
-  }) as { data: Notification[], isLoading: boolean };
+  });
 
   // Fetch unread count
   const { data: unreadData } = useQuery({
     queryKey: ["/api/notifications/unread-count"],
     queryFn: () => apiRequest("/api/notifications/unread-count", "GET"),
     refetchInterval: 15000, // Refetch every 15 seconds
-  }) as { data: { count: number } };
+  });
 
   const unreadCount = unreadData?.count || 0;
 

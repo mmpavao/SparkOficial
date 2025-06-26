@@ -2033,6 +2033,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Limite de crédito é obrigatório" });
       }
 
+      // Fetch application to get user ID
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
       const financialData = {
         creditLimit: creditLimit,
         approvedTerms: approvedTerms,
@@ -2049,7 +2055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Also update main status to approved
-      const updatedApplication = await storage.updateCreditApplicationStatus(
+      const finalApplication = await storage.updateCreditApplicationStatus(
         applicationId, 
         'approved',
         {}
