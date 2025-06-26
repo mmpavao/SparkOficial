@@ -35,8 +35,7 @@ import {
   Edit,
   Building,
   Box,
-  TrendingUp,
-  FileText
+  TrendingUp
 } from "lucide-react";
 
 export default function ImportsPage() {
@@ -59,7 +58,7 @@ export default function ImportsPage() {
     invalidateAllRelatedQueries,
     permissions
   } = useUnifiedEndpoints();
-  const { user } = useAuth();
+    const { user } = useAuth();
 
   const { data: imports, isLoading } = useQuery({
     queryKey: [getEndpoint("imports")],
@@ -98,112 +97,103 @@ export default function ImportsPage() {
   // Calculate metrics
   const totalImports = Array.isArray(imports) ? imports.length : 0;
   const activeImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
-    ['planning', 'in_progress', 'shipped', 'estimativa', 'producao', 'entregue_agente', 'transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional'].includes(imp.status)
+    ['planning', 'in_progress', 'shipped'].includes(imp.status)
   ).length : 0;
-  const completedImports = Array.isArray(imports) ? imports.filter((imp: Import) => 
-    ['completed', 'concluido'].includes(imp.status)
-  ).length : 0;
-  const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: any) => {
-    const value = parseFloat(imp.totalValue || '0');
-    return sum + (isNaN(value) ? 0 : value);
-  }, 0) : 0;
+  const completedImports = Array.isArray(imports) ? imports.filter((imp: Import) => imp.status === 'completed').length : 0;
+  const totalValue = Array.isArray(imports) ? imports.reduce((sum: number, imp: Import) => 
+    sum + (parseFloat(imp.totalValue) || 0), 0
+  ) : 0;
 
-  // Cancel import mutation
+  // Handle import cancellation
   const cancelImportMutation = useMutation({
     mutationFn: async (importId: number) => {
-      const response = await apiRequest(`/api/imports/${importId}`, "DELETE");
-      return response;
+      return apiRequest(`/api/imports/${importId}`, 'DELETE');
     },
     onSuccess: () => {
-      invalidateAllRelatedQueries();
       toast({
-        title: "Sucesso!",
-        description: "Importação cancelada com sucesso.",
+        title: "Importação cancelada",
+        description: "A importação foi cancelada com sucesso.",
       });
+      invalidateAllRelatedQueries(queryClient, "imports");
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível cancelar a importação. Tente novamente.",
+        title: "Erro ao cancelar importação",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const handleCancelImport = (importId: number) => {
-    cancelImportMutation.mutate(importId);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'planning': return <Clock className="w-4 h-4" />;
+      case 'in_progress': return <Truck className="w-4 h-4" />;
+      case 'shipped': return <Ship className="w-4 h-4" />;
+      case 'completed': return <CheckCircle className="w-4 h-4" />;
+      case 'cancelled': return <AlertCircle className="w-4 h-4" />;
+      default: return <Package className="w-4 h-4" />;
+    }
   };
 
-  // Helper functions for status handling
-  function getStatusBadge(status: string) {
-    const statusMap = {
-      estimativa: { label: "Estimativa", color: "bg-gray-100 text-gray-700", icon: Clock },
-      producao: { label: "Produção", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
-      entregue_agente: { label: "Entregue Agente", color: "bg-yellow-100 text-yellow-700", icon: Package },
-      transporte_maritimo: { label: "Transporte Marítimo", color: "bg-indigo-100 text-indigo-700", icon: Ship },
-      transporte_aereo: { label: "Transporte Aéreo", color: "bg-purple-100 text-purple-700", icon: Plane },
-      desembaraco: { label: "Desembaraço", color: "bg-orange-100 text-orange-700", icon: AlertCircle },
-      transporte_nacional: { label: "Transporte Nacional", color: "bg-cyan-100 text-cyan-700", icon: Truck },
-      concluido: { label: "Concluído", color: "bg-green-100 text-green-700", icon: CheckCircle },
-      planning: { label: "Planejamento", color: "bg-gray-100 text-gray-700", icon: Clock },
-      in_progress: { label: "Em Andamento", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
-      shipped: { label: "Enviado", color: "bg-indigo-100 text-indigo-700", icon: Ship },
-      completed: { label: "Concluído", color: "bg-green-100 text-green-700", icon: CheckCircle },
-      cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700", icon: AlertCircle },
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'planning': return 'bg-blue-100 text-blue-800';
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+      case 'shipped': return 'bg-purple-100 text-purple-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'planning': 'Planejamento',
+      'in_progress': 'Em Andamento',
+      'shipped': 'Enviado',
+      'completed': 'Concluído',
+      'cancelled': 'Cancelado'
     };
-
-    const config = statusMap[status as keyof typeof statusMap] || statusMap.planning;
-    const Icon = config.icon;
-
-    return (
-      <Badge className={`flex items-center gap-1 text-xs ${config.color} border-0`}>
-        <Icon className="w-3 h-3" />
-        {config.label}
-      </Badge>
-    );
-  }
-
-  function canEdit(importItem: any) {
-    return !["concluido", "completed", "cancelled"].includes(importItem.status);
-  }
-
-  function canCancel(importItem: any) {
-    return !["concluido", "completed", "cancelled"].includes(importItem.status);
-  }
+    return statusMap[status] || status;
+  };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Carregando importações...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {permissions.isFinanceira 
+          <h1 className="text-3xl font-bold">
+            {isFinanceira 
               ? "Análise de Importações" 
-              : permissions.canViewAllApplications 
+              : isAdmin 
                 ? "Todas as Importações" 
-                : "Minhas Importações"
-            }
+                : "Minhas Importações"}
           </h1>
-          <p className="text-gray-600">
-            {permissions.isFinanceira 
-              ? "Análise financeira das operações de importação" 
-              : permissions.canViewAllApplications 
-                ? "Gerenciar todas as importações do sistema" 
-                : "Gerencie suas operações de importação"
-            }
+          <p className="text-gray-600 mt-1">
+            {isFinanceira
+              ? "Monitore importações de empresas aprovadas para análise financeira"
+              : isAdmin
+                ? "Visualize e gerencie importações de todos os importadores"
+                : "Gerencie suas importações da China"}
           </p>
         </div>
         {!isFinanceira && (
-          <Button onClick={() => setLocation('/imports/new')}>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button
+            onClick={() => setLocation('/imports/new')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
             Nova Importação
           </Button>
         )}
@@ -306,206 +296,192 @@ export default function ImportsPage() {
             <div className="text-center py-8">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Nenhuma importação encontrada</p>
-              {!isFinanceira && (
-                <Button
-                  onClick={() => setLocation('/imports/new')}
-                  className="mt-4"
-                  variant="outline"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar primeira importação
-                </Button>
-              )}
+              <Button
+                onClick={() => setLocation('/imports/new')}
+                className="mt-4"
+                variant="outline"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Criar primeira importação
+              </Button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {filteredImports.map((importItem: any) => {
-                // Status visual configuration similar to credit applications
-                const getStatusInfo = () => {
-                  if (['completed', 'concluido'].includes(importItem.status)) {
-                    return { 
-                      bgColor: 'bg-green-50',
-                      borderColor: 'border-l-green-500'
-                    };
-                  } else if (importItem.status === 'cancelled') {
-                    return { 
-                      bgColor: 'bg-red-50',
-                      borderColor: 'border-l-red-500'
-                    };
-                  } else if (['transporte_maritimo', 'transporte_aereo', 'shipped'].includes(importItem.status)) {
-                    return { 
-                      bgColor: 'bg-blue-50',
-                      borderColor: 'border-l-blue-500'
-                    };
-                  } else if (['entregue_agente', 'desembaraco'].includes(importItem.status)) {
-                    return { 
-                      bgColor: 'bg-yellow-50',
-                      borderColor: 'border-l-yellow-500'
-                    };
-                  } else {
-                    return { 
-                      bgColor: 'bg-gray-50',
-                      borderColor: 'border-l-gray-500'
-                    };
-                  }
-                };
+            <div className="space-y-4">
+              {filteredImports.map((importItem: any) => (
+                <Card 
+                  key={importItem.id} 
+                  className="hover:shadow-md transition-all"
+                >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between gap-6">
+                    {/* Left Section - Main Info */}
+                    <div 
+                      className="flex items-center gap-4 min-w-0 flex-1 cursor-pointer"
+                      onClick={() => setLocation(`/imports/details/${importItem.id}`)}
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                        <Package className="w-6 h-6" />
+                      </div>
 
-                const statusInfo = getStatusInfo();
-                
-                return (
-                  <Card key={importItem.id} className={`border-l-4 ${statusInfo.borderColor} hover:shadow-md transition-all duration-200`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        {/* Left Section - Main Info */}
-                        <div className="flex items-center space-x-4">
-                          <div className="relative flex-shrink-0">
-                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                              <Package className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-bold text-white">#{importItem.id}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">
-                              {importItem.importName || `Importação #${importItem.id}`}
-                            </h3>
-                            <div className="flex flex-col space-y-1">
-                              <p className="text-sm text-gray-600">
-                                {new Date(importItem.createdAt || Date.now()).toLocaleDateString('pt-BR')}
-                              </p>
-                              {(isAdmin || isFinanceira) && importItem.companyName && (
-                                <div className="flex items-center gap-2">
-                                  <Building className="w-3 h-3 text-gray-400" />
-                                  <span className="text-xs text-gray-500">{importItem.companyName}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {importItem.importName || "Produto não especificado"}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          ID: #{importItem.id} • {new Date(importItem.createdAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Center Section - Key Metrics */}
+                    <div className="hidden md:flex items-center gap-8">
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <Package className="w-4 h-4" />
+                          <span>Quantidade</span>
                         </div>
-
-                        {/* Center Section - Key Metrics */}
-                        <div className="hidden md:flex items-center space-x-8">
-                          <div className="text-center">
-                            <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
-                              <DollarSign className="w-3 h-3" />
-                              <span>Valor</span>
-                            </div>
-                            <div className="font-semibold text-green-600">
-                              {importItem.totalValue ? 
-                                `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
-                                'N/A'
-                              }
-                            </div>
-                          </div>
-
-                          <div className="text-center">
-                            <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
-                              <Box className="w-3 h-3" />
-                              <span>Tipo</span>
-                            </div>
-                            <div className="font-semibold text-gray-700">
-                              {importItem.cargoType || 'N/A'}
-                            </div>
-                          </div>
-
-                          <div className="text-center">
-                            <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
-                              <Calendar className="w-3 h-3" />
-                              <span>Entrega</span>
-                            </div>
-                            <div className="font-semibold text-blue-600">
-                              {importItem.estimatedDelivery ? 
-                                new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
-                                'N/A'
-                              }
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right Section - Status & Actions */}
-                        <div className="flex items-center space-x-3">
-                          {getStatusBadge(importItem.status)}
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="opacity-70 hover:opacity-100">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setLocation(`/imports/details/${importItem.id}`)}>
-                                <Eye className="w-4 h-4 mr-2" />
-                                Ver Detalhes
-                              </DropdownMenuItem>
-                              {canEdit(importItem) && (
-                                <DropdownMenuItem onClick={() => setLocation(`/imports/edit/${importItem.id}`)}>
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                              )}
-                              {canCancel(importItem) && (
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                      Cancelar
-                                    </DropdownMenuItem>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleCancelImport(importItem.id)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Confirmar Cancelamento
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.products?.length || 'N/A'}
                         </div>
                       </div>
 
-                      {/* Additional Info Row - Products Preview */}
-                      {importItem.products && importItem.products.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Package className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-500">
-                                Produtos ({importItem.products.length})
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {importItem.products.slice(0, 3).map((product: any, index: number) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {product.name}
-                                </Badge>
-                              ))}
-                              {importItem.products.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{importItem.products.length - 3} mais
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <DollarSign className="w-4 h-4" />
+                          <span>Valor Total</span>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                        <div className="font-semibold text-green-600">
+                          {importItem.totalValue ? 
+                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
+                            'N/A'
+                          }
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <Truck className="w-4 h-4" />
+                          <span>Transporte</span>
+                        </div>
+                        <div className="font-semibold text-gray-900">
+                          {importItem.cargoType || 'N/A'}
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm mb-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>Prazo</span>
+                        </div>
+                        <div className="font-semibold text-blue-600">
+                          {importItem.estimatedDelivery ? 
+                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
+                            'N/A'
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Section - Status & Actions */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                       <Badge className={`flex items-center gap-1 text-xs ${getStatusColor(importItem.status)}`}>
+                              {getStatusIcon(importItem.status)}
+                              {getStatusLabel(importItem.status)}
+                            </Badge>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            setLocation(`/imports/details/${importItem.id}`);
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes
+                          </DropdownMenuItem>
+                          {(importItem.status === 'planning' || !isFinanceira) && (
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              setLocation(`/imports/edit/${importItem.id}`);
+                            }}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                          )}
+                          {!['completed', 'cancelled'].includes(importItem.status) && !isFinanceira && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Não, manter</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => cancelImportMutation.mutate(importItem.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Sim, cancelar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  {/* Mobile View - Additional Info */}
+                  <div className="md:hidden mt-4 pt-4 border-t border-gray-100">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Qtd:</span>
+                        <span className="font-medium">{importItem.products?.length || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Valor:</span>
+                        <span className="font-medium text-green-600">
+                          {importItem.totalValue ? 
+                            `${importItem.currency || 'USD'} ${formatCurrency(parseFloat(importItem.totalValue))}` : 
+                            'N/A'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Transporte:</span>
+                        <span className="font-medium">{importItem.cargoType || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">Prazo:</span>
+                        <span className="font-medium text-blue-600">
+                          {importItem.estimatedDelivery ? 
+                            new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 
+                            'N/A'
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              ))}
             </div>
           )}
         </CardContent>

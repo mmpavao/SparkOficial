@@ -20,7 +20,7 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     finalCreditLimit: application.creditLimit || "",
-    finalApprovedTerms: "", // Iniciar vazio para evitar concatenação
+    finalApprovedTerms: application.approvedTerms || "",
     finalDownPayment: application.finalDownPayment || "10",
     adminFinalNotes: application.adminFinalNotes || ""
   });

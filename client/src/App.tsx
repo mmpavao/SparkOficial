@@ -13,7 +13,7 @@ import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
 import NewImportPage from "@/pages/import-complete";
-import ImportDetailsPage from "@/pages/import-details-new";
+import ImportDetailsPage from "@/pages/import-details";
 import ImportEditPage from "@/pages/import-edit";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
@@ -23,9 +23,6 @@ import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
-import PaymentDetailsPage from "@/pages/payment-details";
-import PaymentPayPage from "@/pages/payment-pay";
-import PaymentEditPage from "@/pages/payment-edit";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -63,9 +60,6 @@ function Router() {
             <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />
             <Route path="/suppliers/edit/:id" component={SupplierEditPage} />
             <Route path="/suppliers/new" component={SupplierNewPage} />
-            <Route path="/payments/details/:id" component={PaymentDetailsPage} />
-            <Route path="/payments/pay/:id" component={PaymentPayPage} />
-            <Route path="/payments/edit/:id" component={PaymentEditPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />

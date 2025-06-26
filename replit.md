@@ -400,55 +400,6 @@ Changelog:
   * Separated application submission from document uploads to prevent payload size issues
   * Maintained backward compatibility while optimizing for large file handling
   * Application now handles document uploads up to 10MB per file efficiently without server errors
-- June 25, 2025. Payment terms duplication fix and insurance policy upload system:
-  * Fixed critical payment terms duplication issue where both Financeira and Admin terms were showing to importers
-  * Implemented logic to show only Admin-finalized terms when available, hiding Financeira terms from importers
-  * Added insurance policy upload system with attachments field in database schema
-  * Created secure upload endpoints for admin/financeira roles only with proper authentication
-  * Fixed AdminFinalizationPanel initialization to prevent terms concatenation from previous approvals
-  * Enhanced role-based visibility: importers see only admin final terms and notes, not financial observations
-- June 26, 2025. Credit usage display fix in credit application details:
-  * Fixed critical credit usage display showing incorrect "US$ 0" instead of actual usage
-  * Implemented real-time credit usage query fetching actual data from linked imports
-  * Added dynamic calculation showing US$ 120,000 in use and US$ 30,000 available from US$ 150,000 limit
-  * Enhanced credit details page with authentic usage data without modifying other system components
-  * Maintained backward compatibility with fallback logic for applications without usage data
-- June 26, 2025. Payment schedule system overhaul with authentic credit terms:
-  * Corrected down payment calculation from 10% to 30% (US$ 36,000 from US$ 120,000 import)
-  * Implemented proper payment terms using admin-finalized terms: 30, 60, 90, 120 days
-  * Fixed remaining amount calculation: 70% (US$ 84,000) divided into 4 installments of US$ 21,000 each
-  * Updated import status flow: Estimativa → Produção → Entregue Agente → Transporte Marítimo/Aéreo → Desembaraço → Transporte Nacional → Concluído
-  * Established payment term start date logic: countdown begins when import status changes to "entregue_agente"
-  * Regenerated existing payment schedules with correct financial calculations based on approved credit terms
-  * Enhanced payment schedule generation to use finalApprovedTerms from admin-finalized credit applications
-- June 26, 2025. Enhanced imports interface visual design to match credit applications:
-  * Redesigned imports page with professional card layout identical to credit applications interface
-  * Implemented color-coded status badges with proper visual hierarchy and border indicators
-  * Added comprehensive product preview section with badge display for multiple products
-  * Enhanced dropdown actions menu with proper AlertDialog confirmations for cancellation
-  * Integrated role-based company identification badges for admin/financeira users
-  * Improved responsive design with centered metrics display and consistent spacing
-  * Maintained all existing functionality while upgrading visual presentation to match credit module standards
-- June 26, 2025. Complete import details page visual overhaul with professional design:
-  * Redesigned import details page with same visual standards as credit application details
-  * Implemented highlighted financial analysis card with gradient background and prominent value display
-  * Added comprehensive timeline component with status indicators and visual progress tracking
-  * Enhanced product section with individual cards, hover effects, and structured information display
-  * Created three-column layout with proper spacing and professional typography
-  * Integrated visual status badges with color coding matching the new imports list interface
-  * Added financial metrics highlighting with US$ formatting and prominent value presentation
-  * Maintained all existing functionality while providing significantly improved visual experience
-- June 26, 2025. Complete payment workflow system with comprehensive actions menu:
-  * Implemented PaymentCard component with dropdown actions menu (Ver detalhes, Pagar, Editar, Cancelar)
-  * Created payment details page with supplier payment data, bank information, and receipt management
-  * Built payment processing page with USD amount display, receipt upload, and method selection
-  * Developed payment editing interface with amount and date modification capabilities
-  * Added confirmation dialogs for all payment actions with proper error handling
-  * Integrated payment status management (pending, paid, overdue) with visual indicators
-  * Created backend endpoints for payment CRUD operations with proper authentication
-  * Implemented receipt upload system with base64 storage and download functionality
-  * Added supplier data integration showing bank details and contact information for payments
-  * Established complete payment workflow from creation to completion with comprehensive tracking
 ```
 
 ## User Preferences
