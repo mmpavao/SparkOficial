@@ -258,35 +258,135 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Financial Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Informações Financeiras
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Valor Total</label>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {importData.currency} {parseFloat(importData.totalValue).toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Moeda</label>
-                  <p className="text-sm text-gray-900">{importData.currency}</p>
-                </div>
-                {importData.incoterms && (
+          {/* Financial Analysis with Admin Fee */}
+          {creditApplication ? (
+            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-800">
+                  <Calculator className="w-5 h-5" />
+                  Análise Financeira
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const importValue = parseFloat(importData.totalValue) || 0;
+                  const adminFeePercentage = getAdminFeeFromCredit(creditApplication);
+                  const downPaymentPercentage = getDownPaymentFromCredit(creditApplication);
+                  
+                  const calculation = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
+                  
+                  return (
+                    <div className="space-y-4">
+                      {/* Valor Principal da Importação */}
+                      <div className="bg-white p-4 rounded-lg border border-amber-300">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-gray-600 mb-1">Valor da Importação</div>
+                          <div className="text-2xl font-bold text-amber-800">{formatUSD(calculation.importValue)}</div>
+                        </div>
+                      </div>
+
+                      {/* Detalhamento dos Cálculos */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-amber-200">
+                          <div>
+                            <span className="text-sm font-medium text-gray-700">Entrada Requerida</span>
+                            <div className="text-xs text-gray-500">({calculation.downPaymentPercentage}% do valor total)</div>
+                          </div>
+                          <span className="font-bold text-yellow-700">-{formatUSD(calculation.downPaymentAmount)}</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-amber-200">
+                          <div>
+                            <span className="text-sm font-medium text-gray-700">Valor Financiado</span>
+                            <div className="text-xs text-gray-500">Importação - Entrada</div>
+                          </div>
+                          <span className="font-bold text-blue-700">{formatUSD(calculation.financedAmount)}</span>
+                        </div>
+                        
+                        {adminFeePercentage > 0 ? (
+                          <>
+                            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                              <div>
+                                <span className="text-sm font-medium text-orange-800">Taxa Administrativa</span>
+                                <div className="text-xs text-orange-600">{adminFeePercentage}% sobre valor financiado</div>
+                              </div>
+                              <span className="font-bold text-orange-700">+{formatUSD(calculation.adminFeeAmount)}</span>
+                            </div>
+                            
+                            <div className="border-t-2 border-amber-300 pt-3">
+                              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border-2 border-amber-300">
+                                <div>
+                                  <span className="text-lg font-bold text-amber-900">TOTAL GERAL</span>
+                                  <div className="text-xs text-amber-700">Entrada + Financiado + Taxa</div>
+                                </div>
+                                <span className="text-2xl font-bold text-amber-900">{formatUSD(calculation.totalWithFee)}</span>
+                              </div>
+                            </div>
+
+                            {/* Resumo Explicativo */}
+                            <div className="bg-amber-100 border border-amber-200 rounded-lg p-3">
+                              <div className="text-xs text-amber-800">
+                                <strong>Resumo do Pagamento:</strong> Entrada de {formatUSD(calculation.downPaymentAmount)} + Financiamento de {formatUSD(calculation.financedAmount + calculation.adminFeeAmount)} (incluindo taxa administrativa de {adminFeePercentage}%)
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="bg-gray-100 border border-gray-200 rounded-lg p-3">
+                              <div className="text-center">
+                                <div className="text-sm font-medium text-gray-600 mb-1">Taxa Administrativa</div>
+                                <div className="text-lg font-bold text-gray-500">0%</div>
+                                <div className="text-xs text-gray-500 mt-1">Nenhuma taxa configurada</div>
+                              </div>
+                            </div>
+                            
+                            <div className="border-t-2 border-gray-300 pt-3">
+                              <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg border-2 border-gray-300">
+                                <div>
+                                  <span className="text-lg font-bold text-gray-700">TOTAL GERAL</span>
+                                  <div className="text-xs text-gray-600">Entrada + Financiado</div>
+                                </div>
+                                <span className="text-2xl font-bold text-gray-700">{formatUSD(calculation.importValue)}</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Informações Financeiras
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Incoterms</label>
-                    <p className="text-sm text-gray-900">{importData.incoterms}</p>
+                    <label className="text-sm font-medium text-gray-600">Valor Total</label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {importData.currency} {parseFloat(importData.totalValue).toLocaleString()}
+                    </p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Moeda</label>
+                    <p className="text-sm text-gray-900">{importData.currency}</p>
+                  </div>
+                  {importData.incoterms && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Incoterms</label>
+                      <p className="text-sm text-gray-900">{importData.incoterms}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Cargo Information */}
           <Card>
@@ -417,106 +517,6 @@ export default function ImportDetailsPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Financial Analysis with Admin Fee */}
-          {creditApplication && (
-            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-amber-800">
-                  <Calculator className="w-5 h-5" />
-                  Análise Financeira
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(() => {
-                  const importValue = parseFloat(importData.totalValue) || 0;
-                  const adminFeePercentage = getAdminFeeFromCredit(creditApplication);
-                  const downPaymentPercentage = getDownPaymentFromCredit(creditApplication);
-                  
-                  const calculation = calculateAdminFee(importValue, downPaymentPercentage, adminFeePercentage);
-                  
-                  return (
-                    <div className="space-y-4">
-                      {/* Valor Principal da Importação */}
-                      <div className="bg-white p-4 rounded-lg border border-amber-300">
-                        <div className="text-center">
-                          <div className="text-sm font-medium text-gray-600 mb-1">Valor da Importação</div>
-                          <div className="text-2xl font-bold text-amber-800">{formatUSD(calculation.importValue)}</div>
-                        </div>
-                      </div>
-
-                      {/* Detalhamento dos Cálculos */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-amber-200">
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">Entrada Requerida</span>
-                            <div className="text-xs text-gray-500">({calculation.downPaymentPercentage}% do valor total)</div>
-                          </div>
-                          <span className="font-bold text-yellow-700">-{formatUSD(calculation.downPaymentAmount)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-amber-200">
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">Valor Financiado</span>
-                            <div className="text-xs text-gray-500">Importação - Entrada</div>
-                          </div>
-                          <span className="font-bold text-blue-700">{formatUSD(calculation.financedAmount)}</span>
-                        </div>
-                        
-                        {adminFeePercentage > 0 ? (
-                          <>
-                            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
-                              <div>
-                                <span className="text-sm font-medium text-orange-800">Taxa Administrativa</span>
-                                <div className="text-xs text-orange-600">{adminFeePercentage}% sobre valor financiado</div>
-                              </div>
-                              <span className="font-bold text-orange-700">+{formatUSD(calculation.adminFeeAmount)}</span>
-                            </div>
-                            
-                            <div className="border-t-2 border-amber-300 pt-3">
-                              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border-2 border-amber-300">
-                                <div>
-                                  <span className="text-lg font-bold text-amber-900">TOTAL GERAL</span>
-                                  <div className="text-xs text-amber-700">Entrada + Financiado + Taxa</div>
-                                </div>
-                                <span className="text-2xl font-bold text-amber-900">{formatUSD(calculation.totalWithFee)}</span>
-                              </div>
-                            </div>
-
-                            {/* Resumo Explicativo */}
-                            <div className="bg-amber-100 border border-amber-200 rounded-lg p-3">
-                              <div className="text-xs text-amber-800">
-                                <strong>Resumo do Pagamento:</strong> Entrada de {formatUSD(calculation.downPaymentAmount)} + Financiamento de {formatUSD(calculation.financedAmount + calculation.adminFeeAmount)} (incluindo taxa administrativa de {adminFeePercentage}%)
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="bg-gray-100 border border-gray-200 rounded-lg p-3">
-                              <div className="text-center">
-                                <div className="text-sm font-medium text-gray-600 mb-1">Taxa Administrativa</div>
-                                <div className="text-lg font-bold text-gray-500">0%</div>
-                                <div className="text-xs text-gray-500 mt-1">Nenhuma taxa configurada</div>
-                              </div>
-                            </div>
-                            
-                            <div className="border-t-2 border-gray-300 pt-3">
-                              <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg border-2 border-gray-300">
-                                <div>
-                                  <span className="text-lg font-bold text-gray-700">TOTAL GERAL</span>
-                                  <div className="text-xs text-gray-600">Entrada + Financiado</div>
-                                </div>
-                                <span className="text-2xl font-bold text-gray-700">{formatUSD(calculation.importValue)}</span>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Quick Actions */}
           <Card>
