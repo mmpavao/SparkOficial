@@ -2954,24 +2954,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Recent activity - last 5 imports and credit applications
       const recentImports = imports
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
         .slice(0, 5)
         .map(imp => ({
           id: imp.id,
           name: imp.importName || `Importação #${imp.id}`,
           status: imp.status,
           value: imp.totalValue || '0',
-          date: imp.createdAt
+          date: imp.createdAt || new Date().toISOString()
         }));
 
       const recentCreditApplications = creditApplications
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
         .slice(0, 3)
         .map(app => ({
           id: app.id,
           status: app.adminStatus || app.status,
-          amount: app.finalCreditLimit || app.creditAmount || '0',
-          date: app.createdAt
+          amount: app.finalCreditLimit || app.requestedAmount || '0',
+          date: app.createdAt || new Date().toISOString()
         }));
 
       const dashboardData = {
