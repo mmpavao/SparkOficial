@@ -510,7 +510,7 @@ export default function ImportDetailsPage() {
   const [, params] = useRoute("/imports/details/:id");
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { permissions } = useUserPermissions();
+  const permissions = useUserPermissions();
   const importId = params?.id ? parseInt(params.id) : null;
 
   const { data: importData, isLoading, error } = useQuery({
