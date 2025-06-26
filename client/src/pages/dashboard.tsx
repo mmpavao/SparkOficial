@@ -220,7 +220,7 @@ export default function Dashboard() {
                     <span className="font-medium text-blue-800">Em Uso</span>
                   </div>
                   <span className="text-lg font-bold text-blue-600">
-                    {formatCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.8).replace('R$', 'US$')}
+                    {formatCurrency(totalInUse).replace('R$', 'US$')}
                   </span>
                 </div>
 
@@ -233,7 +233,7 @@ export default function Dashboard() {
                     <span className="font-medium text-emerald-800">Disponível</span>
                   </div>
                   <span className="text-lg font-bold text-emerald-600">
-                    {formatCurrency((adminMetrics?.approvedCreditVolume || 0) * 0.2).replace('R$', 'US$')}
+                    {formatCurrency(totalAvailable).replace('R$', 'US$')}
                   </span>
                 </div>
 
@@ -241,10 +241,10 @@ export default function Dashboard() {
                 <div className="pt-3 border-t border-gray-200">
                   <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
                     <span className="font-medium">Taxa de Utilização</span>
-                    <span className="text-lg font-semibold text-gray-800">80%</span>
+                    <span className="text-lg font-semibold text-gray-800">{utilizationRate.toFixed(1)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{ width: '80%' }}></div>
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{ width: `${Math.min(utilizationRate, 100)}%` }}></div>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>0%</span>
