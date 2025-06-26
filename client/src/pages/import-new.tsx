@@ -423,8 +423,11 @@ export default function NewImportPage() {
                                   <Input
                                     type="number"
                                     placeholder="1000"
-                                    value={product.quantity}
-                                    onChange={(e) => updateProduct(index, 'quantity', parseInt(e.target.value))}
+                                    value={product.quantity || ''}
+                                    onChange={(e) => {
+                                      const value = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                                      updateProduct(index, 'quantity', value);
+                                    }}
                                   />
                                 </div>
                                 
