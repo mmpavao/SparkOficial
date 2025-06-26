@@ -1194,6 +1194,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update import (PUT)
+  app.put('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Only allow editing if import is in planning status
+      if (importRecord.status !== 'planning') {
+        return res.status(400).json({ 
+          message: "Apenas importações em planejamento podem ser editadas" 
+        });
+      }
+
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+
+      // Remove fields that shouldn't be updated directly
+      delete updateData.id;
+      delete updateData.userId;
+      delete updateData.createdAt;
+
+      const updatedImport = await storage.updateImport(id, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import:", error);
+      res.status(500).json({ message: "Erro ao atualizar importação" });
+    }
+  });
+
+  // Delete/Cancel import (DELETE)
+  app.delete('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Don't allow deletion of completed imports
+      if (importRecord.status === 'completed') {
+        return res.status(400).json({ 
+          message: "Importações concluídas não podem ser canceladas" 
+        });
+      }
+
+      // Update status to cancelled instead of actual deletion
+      const cancelledImport = await storage.updateImportStatus(id, 'cancelled', {
+        cancelledAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // Release reserved credit if any
+      if (importRecord.creditApplicationId && importRecord.creditUsed) {
+        try {
+          await storage.releaseCredit(importRecord.creditApplicationId, id);
+        } catch (creditError) {
+          console.error("Error releasing credit:", creditError);
+          // Don't fail the cancellation if credit release fails
+        }
+      }
+
+      res.json({ 
+        message: "Importação cancelada com sucesso", 
+        import: cancelledImport 
+      });
+    } catch (error) {
+      console.error("Error cancelling import:", error);
+      res.status(500).json({ message: "Erro ao cancelar importação" });
+    }
+  });
+
   // Pipeline update route
   app.put('/api/imports/:id/pipeline', requireAuth, async (req: any, res) => {
     try {

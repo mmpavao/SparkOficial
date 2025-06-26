@@ -208,6 +208,25 @@ export class DatabaseStorage {
     return importRecord;
   }
 
+  async updateImport(id: number, updateData: any): Promise<Import> {
+    const [importRecord] = await db
+      .update(imports)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(imports.id, id))
+      .returning();
+    return importRecord;
+  }
+
+  async releaseCredit(creditApplicationId: number, importId: number): Promise<void> {
+    // Remove credit usage record
+    await db
+      .delete(creditUsage)
+      .where(and(
+        eq(creditUsage.creditApplicationId, creditApplicationId),
+        eq(creditUsage.importId, importId)
+      ));
+  }
+
   // ===== SUPPLIER OPERATIONS =====
 
   async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
