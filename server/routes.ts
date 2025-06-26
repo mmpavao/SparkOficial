@@ -2211,6 +2211,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Payment endpoints
+  
+  // Get individual payment details
+  app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.getPaymentById(paymentId);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      
+      // Get import to check ownership
+      const importData = await storage.getImport(payment.importId);
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error("Error fetching payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get supplier data for payment
+  app.get('/api/payments/:id/supplier', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.getPaymentById(paymentId);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Get import and supplier data
+      const importData = await storage.getImport(payment.importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      const isOwner = importData.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Get supplier from the first product (simplified)
+      let supplierData = null;
+      if (importData.products && importData.products.length > 0) {
+        const firstProduct = importData.products[0];
+        if (firstProduct.supplierName) {
+          // Find supplier by name
+          const suppliers = await storage.getSuppliers(importData.userId);
+          supplierData = suppliers.find(s => s.companyName === firstProduct.supplierName);
+        }
+      }
+
+      if (!supplierData) {
+        return res.status(404).json({ message: "Dados do fornecedor não encontrados" });
+      }
+
+      res.json(supplierData);
+    } catch (error) {
+      console.error("Error fetching supplier data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process payment with receipt upload
+  app.post('/api/payments/:id/pay', requireAuth, upload.single('receipt'), async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { paymentMethod, notes } = req.body;
+      
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser processados" });
+      }
+
+      // Handle receipt upload
+      let receiptUrl = null;
+      if (req.file) {
+        const receiptData = req.file.buffer.toString('base64');
+        receiptUrl = `data:${req.file.mimetype};base64,${receiptData}`;
+      }
+
+      // Update payment status
+      const updatedPayment = await storage.updatePayment(paymentId, {
+        status: 'paid',
+        paymentMethod,
+        notes,
+        receiptUrl,
+        paidDate: new Date()
+      });
+
+      res.json({
+        message: "Pagamento processado com sucesso",
+        payment: updatedPayment
+      });
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      res.status(500).json({ message: "Erro ao processar pagamento" });
+    }
+  });
+
+  // Update payment details
+  app.put('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { dueDate, amount, notes } = req.body;
+      
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser editados" });
+      }
+
+      const updatedPayment = await storage.updatePayment(paymentId, {
+        dueDate: new Date(dueDate),
+        amount: amount.toString(),
+        notes
+      });
+
+      res.json(updatedPayment);
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      res.status(500).json({ message: "Erro ao atualizar pagamento" });
+    }
+  });
+
+  // Cancel payment
+  app.delete('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser cancelados" });
+      }
+
+      await storage.deletePayment(paymentId);
+
+      res.json({ message: "Pagamento cancelado com sucesso" });
+    } catch (error) {
+      console.error("Error canceling payment:", error);
+      res.status(500).json({ message: "Erro ao cancelar pagamento" });
+    }
+  });
+
   // Download document endpoint with real file retrieval
   app.get('/api/documents/download/:documentKey/:applicationId', requireAuth, async (req: any, res) => {
     try {

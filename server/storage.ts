@@ -757,6 +757,50 @@ export class DatabaseStorage {
       .where(eq(paymentSchedules.importId, importId))
       .orderBy(paymentSchedules.dueDate);
   }
+
+  // Get individual payment by ID
+  async getPaymentById(paymentId: number) {
+    const result = await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.id, paymentId))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  // Update payment details
+  async updatePayment(paymentId: number, updates: any) {
+    const result = await db
+      .update(paymentSchedules)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, paymentId))
+      .returning();
+    return result[0];
+  }
+
+  // Delete payment
+  async deletePayment(paymentId: number) {
+    await db
+      .delete(paymentSchedules)
+      .where(eq(paymentSchedules.id, paymentId));
+  }
+
+  // Get all suppliers for a user (for admin or user's own suppliers)
+  async getSuppliers(userId?: number) {
+    if (userId) {
+      return await db
+        .select()
+        .from(suppliers)
+        .where(eq(suppliers.userId, userId));
+    } else {
+      return await db
+        .select()
+        .from(suppliers);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
