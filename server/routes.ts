@@ -1703,13 +1703,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFinalNotes } = req.body;
+      const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFee, adminFinalNotes } = req.body;
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, {
         adminStatus: 'admin_finalized',
         finalCreditLimit,
         finalApprovedTerms,
         finalDownPayment,
+        adminFee,
         adminFinalNotes,
         adminFinalizedBy: userId,
         adminFinalizedAt: new Date(),

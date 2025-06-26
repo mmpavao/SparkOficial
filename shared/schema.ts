@@ -184,6 +184,7 @@ export const creditApplications = pgTable("credit_applications", {
   finalCreditLimit: text("final_credit_limit"), // Limite final definido pelo admin
   finalApprovedTerms: text("final_approved_terms"), // Prazos finais definidos pelo admin
   finalDownPayment: text("final_down_payment").default("10"), // Percentual de entrada final
+  adminFee: text("admin_fee").default("0"), // Taxa administrativa em percentual (aplicada apenas no valor financiado)
   adminFinalNotes: text("admin_final_notes"), // Observações finais do admin
   adminFinalizedBy: integer("admin_finalized_by").references(() => users.id),
   adminFinalizedAt: timestamp("admin_finalized_at"),
