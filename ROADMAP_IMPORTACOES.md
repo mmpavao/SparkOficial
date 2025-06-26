@@ -71,11 +71,12 @@ Implementação completa do módulo de importações integrado ao sistema de cr�
 - `client/src/components/ui/StatusBadge.tsx` - Badges de status (reutilizar)
 
 **Features:**
-- [ ] Cards visuais com dropdown actions
-- [ ] Filtros por status, fornecedor, período, valor
-- [ ] Métricas: Total, Em Andamento, Concluídas, Valor Total
-- [ ] Paginação e ordenação
-- [ ] Badges de empresa para admins
+- [x] Cards visuais com dropdown actions (ImportCard.tsx)
+- [x] Filtros por status, fornecedor, período, valor (ImportFilters.tsx)
+- [x] Métricas: Total, Em Andamento, Concluídas, Valor Total + 4 métricas adicionais (ImportMetrics.tsx)
+- [x] Interface completa integrada (imports-new-integrated.tsx)
+- [x] Sistema de permissões role-based implementado
+- [x] Formatação compacta de números para métricas (formatCompactNumber)
 
 #### **Sprint 2.2: Formulário de Nova Importação**
 **Componentes a criar:**
