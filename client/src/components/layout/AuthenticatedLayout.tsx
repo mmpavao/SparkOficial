@@ -34,7 +34,8 @@ import {
   Users,
   UserCog,
   FileCheck,
-  Truck
+  Truck,
+  Package
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -122,6 +123,15 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       path: "/credit", 
       icon: CreditCard, 
       label: (isAdmin || isFinanceira) ? "Análise de Crédito" : t.nav.credit 
+    },
+    { 
+      path: "/imports", 
+      icon: Package, 
+      label: isFinanceira 
+        ? "Análise de Importações" 
+        : isAdmin 
+          ? "Todas as Importações" 
+          : "Minhas Importações"
     },
     { 
       path: "/suppliers", 
