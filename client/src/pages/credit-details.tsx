@@ -364,7 +364,7 @@ export default function CreditDetailsPage() {
   };
 
   // Generate dynamic mandatory documents based on shareholders
-  const shareholders = application.shareholders || [];
+  const shareholders = application?.shareholders || [];
   const mandatoryDocuments = generateMandatoryDocuments(shareholders);
 
   const optionalDocuments = [
