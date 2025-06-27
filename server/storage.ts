@@ -958,23 +958,38 @@ export class DatabaseStorage {
   ) {
     const statusMessages = {
       approved: {
-        title: "Crédito Aprovado! 🎉",
-        message: "Sua solicitação de crédito foi aprovada. Você já pode criar importações.",
+        title: "Crédito Aprovado!",
+        message: `Sua solicitação de crédito #${applicationId} foi aprovada. Você já pode criar importações.`,
         priority: "high",
       },
       rejected: {
-        title: "Solicitação de Crédito",
-        message: "Sua solicitação de crédito foi rejeitada. Entre em contato conosco para mais informações.",
+        title: "Solicitação de Crédito Rejeitada",
+        message: `Sua solicitação de crédito #${applicationId} foi rejeitada. Entre em contato conosco para mais informações.`,
         priority: "high",
       },
       under_review: {
         title: "Análise em Andamento",
-        message: "Sua solicitação de crédito está sendo analisada por nossa equipe.",
+        message: `Sua solicitação de crédito #${applicationId} está sendo analisada por nossa equipe.`,
         priority: "normal",
       },
       needs_documents: {
         title: "Documentos Necessários",
-        message: "Documentos adicionais são necessários para sua solicitação de crédito.",
+        message: `Documentos adicionais são necessários para sua solicitação de crédito #${applicationId}.`,
+        priority: "high",
+      },
+      pre_approved: {
+        title: "Crédito Pré-Aprovado",
+        message: `Sua solicitação de crédito #${applicationId} foi pré-aprovada e enviada para análise final.`,
+        priority: "normal",
+      },
+      submitted_to_financial: {
+        title: "Enviado à Financeira",
+        message: `Sua solicitação de crédito #${applicationId} foi enviada para análise financeira final.`,
+        priority: "normal",
+      },
+      admin_finalized: {
+        title: "Crédito Finalizado",
+        message: `Os termos finais do seu crédito #${applicationId} foram definidos e estão disponíveis para consulta.`,
         priority: "high",
       },
     };
@@ -991,6 +1006,69 @@ export class DatabaseStorage {
           applicationId,
           status: newStatus,
           ...additionalData,
+        },
+      });
+    }
+  }
+
+  // New method for message notifications
+  async notifyNewMessage(
+    userId: number,
+    applicationId: number,
+    messageType: string,
+    senderRole: string
+  ) {
+    const messageTypes = {
+      observation: {
+        title: "Nova Observação Administrativa",
+        message: `Nova observação recebida para crédito #${applicationId}. Verifique os detalhes.`,
+      },
+      document_request: {
+        title: "Documentos Solicitados",
+        message: `Novos documentos foram solicitados para crédito #${applicationId}. Envie o quanto antes.`,
+      },
+      analysis_note: {
+        title: "Nova Nota de Análise",
+        message: `Nova nota de análise disponível para crédito #${applicationId}.`,
+      },
+    };
+
+    const config = messageTypes[messageType as keyof typeof messageTypes];
+    if (config) {
+      await this.createNotification({
+        userId,
+        type: "new_message",
+        title: config.title,
+        message: config.message,
+        priority: messageType === 'document_request' ? "high" : "normal",
+        data: {
+          applicationId,
+          messageType,
+          senderRole,
+        },
+      });
+    }
+  }
+
+  // Method for document-related notifications
+  async notifyDocumentStatus(
+    userId: number,
+    applicationId: number,
+    documentsNeeded: number,
+    documentsUploaded: number
+  ) {
+    if (documentsNeeded > documentsUploaded) {
+      await this.createNotification({
+        userId,
+        type: "documents_pending",
+        title: "Documentos Pendentes",
+        message: `Você possui ${documentsNeeded - documentsUploaded} documento(s) pendente(s) para crédito #${applicationId}.`,
+        priority: "high",
+        data: {
+          applicationId,
+          documentsNeeded,
+          documentsUploaded,
+          documentsPending: documentsNeeded - documentsUploaded,
         },
       });
     }

@@ -2008,6 +2008,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date()
       });
 
+      // Notify user about submission to financial
+      await storage.notifyCreditStatusChange(
+        application.userId,
+        applicationId,
+        'submitted_to_financial'
+      );
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error submitting to financial:", error);
@@ -2053,6 +2060,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date()
       });
 
+      // Notify user about admin finalization
+      await storage.notifyCreditStatusChange(
+        application.userId,
+        applicationId,
+        'admin_finalized'
+      );
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error finalizing credit application:", error);
@@ -2095,6 +2109,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+      
+      // Send notification to importer about new message
+      await storage.notifyNewMessage(
+        application.userId,
+        applicationId,
+        type,
+        currentUser.role || 'admin'
+      );
       
       res.json(updatedApplication);
     } catch (error) {
