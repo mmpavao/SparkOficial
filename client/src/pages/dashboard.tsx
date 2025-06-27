@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { formatCompactCurrency } from '@/lib/numberFormat';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { 
   Users, 
   CreditCard, 
@@ -43,6 +43,7 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isFinanceira = user?.role === 'financeira';
   const isImporter = !isAdmin && !isFinanceira;
@@ -54,6 +55,19 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { playApprovalSound, playPaymentSound, playStatusChangeSound, playNotificationSound } = useSoundEffects();
+
+  // Navigation handlers
+  const handleCreditClick = (creditId: number) => {
+    setLocation(`/credit/details/${creditId}`);
+  };
+
+  const handleImportClick = (importId: number) => {
+    setLocation(`/imports/details/${importId}`);
+  };
+
+  const handleSupplierClick = (supplierId: number) => {
+    setLocation(`/suppliers/details/${supplierId}`);
+  };
 
   // Test notification mutation
   const testNotificationMutation = useMutation({
@@ -1008,7 +1022,11 @@ export default function Dashboard() {
                 {(importerData?.recentActivity?.imports?.length || 0) > 0 ? (
                   <div className="space-y-3">
                     {importerData?.recentActivity?.imports?.map((import_) => (
-                      <div key={import_.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div 
+                        key={import_.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => handleImportClick(import_.id)}
+                      >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Package className="w-4 h-4 text-gray-500" />
@@ -1062,7 +1080,11 @@ export default function Dashboard() {
                 {(importerData?.recentActivity?.creditApplications?.length || 0) > 0 ? (
                   <div className="space-y-3">
                     {importerData?.recentActivity?.creditApplications?.map((app) => (
-                      <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div 
+                        key={app.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => handleCreditClick(app.id)}
+                      >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <CreditCard className="w-4 h-4 text-gray-500" />
