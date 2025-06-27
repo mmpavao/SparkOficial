@@ -273,6 +273,62 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Notification Test Panel */}
+          <Card className="border-l-4 border-l-indigo-500 mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Sistema de Notificações Inteligente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Sistema de notificações contextuais que detecta automaticamente mudanças de status, 
+                novas mensagens e necessidades de documentos.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => testNotificationMutation.mutate('status_change')}
+                  disabled={testNotificationMutation.isPending}
+                  className="w-full"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Testar Mudança Status
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => testNotificationMutation.mutate('message')}
+                  disabled={testNotificationMutation.isPending}
+                  className="w-full"
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Testar Nova Mensagem
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => testNotificationMutation.mutate('documents')}
+                  disabled={testNotificationMutation.isPending}
+                  className="w-full"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Testar Documentos
+                </Button>
+              </div>
+              
+              <div className="text-xs text-gray-500 mt-2">
+                Clique nos botões acima para testar o sistema de notificações. 
+                As notificações aparecem no sino no canto superior direito.
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Admin Detailed Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Status das Aplicações */}
