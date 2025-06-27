@@ -489,9 +489,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               </div>
 
               {/* Action Buttons for Admin - Adaptive based on status */}
-              <div className="flex gap-2 pt-4">
-                {(application.status === 'pending' || application.preAnalysisStatus === 'pending') && (
-                  <>
+              <div className="pt-4">
+                {/* Status: PENDING - Show approve/reject buttons */}
+                {(application.status === 'pending') && (
+                  <div className="flex gap-2">
                     <Button 
                       onClick={handleApprove}
                       disabled={updateStatusMutation.isPending}
@@ -508,14 +509,15 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       <XCircle className="w-4 h-4 mr-2" />
                       Rejeitar
                     </Button>
-                  </>
+                  </div>
                 )}
                 
+                {/* Status: PRE_APPROVED - Show submit to financial */}
                 {application.status === 'pre_approved' && (
-                  <>
-                    <div className="bg-green-50 p-3 rounded-lg mb-3">
-                      <p className="text-sm text-green-700 mb-2">
-                        <CheckCircle className="w-4 h-4 inline mr-1" />
+                  <div className="space-y-3">
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <p className="text-sm text-green-700 mb-2 flex items-center">
+                        <CheckCircle className="w-4 h-4 mr-1" />
                         Aplicação pré-aprovada com sucesso!
                       </p>
                       <p className="text-xs text-green-600">
@@ -528,23 +530,25 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                         data: { submittedToFinancialAt: new Date() }
                       })}
                       disabled={updateStatusMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 w-full"
                     >
                       <FileText className="w-4 h-4 mr-2" />
                       Submeter à Financeira
                     </Button>
-                  </>
+                  </div>
                 )}
                 
+                {/* Status: SUBMITTED_TO_FINANCIAL - Show waiting message */}
                 {application.status === 'submitted_to_financial' && (
                   <div className="bg-yellow-50 p-3 rounded-lg">
-                    <p className="text-sm text-yellow-700">
-                      <AlertTriangle className="w-4 h-4 inline mr-1" />
+                    <p className="text-sm text-yellow-700 flex items-center">
+                      <AlertTriangle className="w-4 h-4 mr-1" />
                       Aplicação enviada à financeira - aguardando análise
                     </p>
                   </div>
                 )}
                 
+                {/* Status: APPROVED by financial - Show finalize button */}
                 {application.status === 'approved' && application.financialStatus === 'approved' && !application.adminStatus && (
                   <Button 
                     onClick={() => updateStatusMutation.mutate({
@@ -552,17 +556,18 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       data: { adminStatus: 'admin_finalized', adminFinalizedAt: new Date() }
                     })}
                     disabled={updateStatusMutation.isPending}
-                    className="bg-amber-600 hover:bg-amber-700"
+                    className="bg-amber-600 hover:bg-amber-700 w-full"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Finalizar Termos
                   </Button>
                 )}
                 
+                {/* Status: ADMIN_FINALIZED - Show completion message */}
                 {application.adminStatus === 'admin_finalized' && (
                   <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-sm text-green-700">
-                      <CheckCircle className="w-4 h-4 inline mr-1" />
+                    <p className="text-sm text-green-700 flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-1" />
                       Processo concluído - termos finalizados
                     </p>
                   </div>
