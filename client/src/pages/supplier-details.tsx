@@ -20,7 +20,8 @@ import {
 
 export default function SupplierDetailsPage() {
   const [, setLocation] = useLocation();
-  const supplierId = window.location.pathname.split('/').pop();
+  const pathParts = window.location.pathname.split('/');
+  const supplierId = pathParts[pathParts.length - 1];
 
   // Check if user is admin to determine which endpoint to use
   const { data: user } = useQuery({
@@ -31,7 +32,7 @@ export default function SupplierDetailsPage() {
   
   const { data: supplier, isLoading } = useQuery({
     queryKey: isAdmin ? [`/api/admin/suppliers/${supplierId}`] : [`/api/suppliers/${supplierId}`],
-    enabled: !!supplierId,
+    enabled: !!supplierId && !isNaN(parseInt(supplierId)),
   });
 
   if (isLoading) {
