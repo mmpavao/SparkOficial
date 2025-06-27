@@ -3121,21 +3121,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      // Find the document in required or optional documents
-      let documentData = null;
-      const mandatoryDocs = [
-        'business_license', 'cnpj_certificate', 'financial_statements', 'bank_statements',
-        'articles_of_incorporation', 'board_resolution', 'tax_registration', 
-        'social_security_clearance', 'labor_clearance', 'income_tax_return'
-      ];
+      // Parse document key and get documents from database
+      const requiredDocs = application.requiredDocuments || {};
+      const optionalDocs = application.optionalDocuments || {};
+      
+      console.log(`Looking for document: ${documentKey}`);
+      console.log('Required docs keys:', Object.keys(requiredDocs));
+      console.log('Optional docs keys:', Object.keys(optionalDocs));
 
-      if (mandatoryDocs.includes(documentKey)) {
-        documentData = application.requiredDocuments?.[documentKey];
-      } else {
-        documentData = application.optionalDocuments?.[documentKey];
+      // Try to find in required documents first
+      let documentData = requiredDocs[documentKey];
+      
+      // If not found, try optional documents
+      if (!documentData) {
+        documentData = optionalDocs[documentKey];
+      }
+
+      // Handle indexed documents (like cnpj_certificate_0, cnpj_certificate_2)
+      if (!documentData && documentKey.includes('_')) {
+        const parts = documentKey.split('_');
+        const baseKey = parts.slice(0, -1).join('_'); // Remove last part (index)
+        const index = parseInt(parts[parts.length - 1]);
+        
+        console.log(`Trying base key: ${baseKey} with index: ${index}`);
+        
+        // Check in required docs
+        const baseDoc = requiredDocs[baseKey] || optionalDocs[baseKey];
+        if (Array.isArray(baseDoc) && baseDoc[index]) {
+          documentData = baseDoc[index];
+        }
       }
 
       if (!documentData || !documentData.data) {
+        console.log(`Document not found: ${documentKey}`);
         return res.status(404).json({ message: "Documento não encontrado" });
       }
 
