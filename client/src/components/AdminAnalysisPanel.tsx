@@ -157,6 +157,11 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               financialNotes: financialData.financialNotes,
               financialStatus: 'approved'
             }
+          }, {
+            onSuccess: () => {
+              // Force refresh da página para garantir que todos os dados sejam atualizados
+              window.location.reload();
+            }
           });
         }
       );
