@@ -45,13 +45,13 @@ const importSchema = z.object({
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
   estimatedDelivery: z.string().optional(),
-  
+
   // Para FCL - produto único
   productName: z.string().optional(),
   productDescription: z.string().optional(),
   productHsCode: z.string().optional(),
   totalValue: z.number().optional(),
-  
+
   // Para LCL - múltiplos produtos
   products: z.array(productSchema).optional(),
 });
@@ -71,7 +71,7 @@ export default function NewImportPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [showFinancialPreview, setShowFinancialPreview] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -160,7 +160,7 @@ export default function NewImportPage() {
   // Cálculos financeiros
   const calculateTotals = () => {
     let importValue = 0;
-    
+
     if (cargoType === "FCL") {
       importValue = totalValue || 0;
     } else {
@@ -168,12 +168,12 @@ export default function NewImportPage() {
         return sum + (product.quantity * product.unitPrice);
       }, 0);
     }
-    
+
     const downPayment = importValue * 0.3; // 30%
     const financedAmount = importValue * 0.7; // 70%
     const adminFeeAmount = financedAmount * (adminFee / 100);
     const totalCost = importValue + adminFeeAmount;
-    
+
     return {
       importValue,
       downPayment,
@@ -208,13 +208,13 @@ export default function NewImportPage() {
       });
       return;
     }
-    
+
     setConfirmDialogOpen(true);
   };
 
   const confirmSubmit = () => {
     const formData = form.getValues();
-    
+
     let submitData: any = {
       importName: formData.importName,
       cargoType: formData.cargoType,
@@ -251,6 +251,17 @@ export default function NewImportPage() {
     setConfirmDialogOpen(false);
   };
 
+    const { data: creditUsage } = useQuery({
+    queryKey: ['/api/user/credit-info'],
+    queryFn: () => apiRequest('/api/user/credit-info', 'GET'),
+    onSuccess: (data) => {
+      console.log('Credit info loaded:', data);
+    },
+    onError: (error) => {
+      console.error('Error loading credit info:', error);
+    }
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -275,7 +286,7 @@ export default function NewImportPage() {
         <div className="lg:col-span-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
+
               {/* Informações Básicas */}
               <Card>
                 <CardHeader>

@@ -36,7 +36,8 @@ export function ImportFinancialPreview({
     const totalAmount = calculationValue + calculatedAdminFee;
     const installmentAmount = financedAmount / paymentTerms.length;
 
-    const availableCredit = creditUsage ? creditUsage.available : 0;
+    // Use creditUsage.availableCredit from the standardized endpoint
+    const availableCredit = creditUsage ? creditUsage.availableCredit || creditUsage.available : 0;
     const exceedsLimit = calculationValue > availableCredit;
 
     return {
