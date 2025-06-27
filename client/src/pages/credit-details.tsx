@@ -702,13 +702,13 @@ export default function CreditDetailsPage() {
                             if (permissions.isFinanceira) {
                               return application.approvedTerms || '30';
                             }
-                            // Para outros usuários, mostrar termos finais do Admin se existirem
-                            if (application.finalApprovedTerms) {
+                            // Para importadores e admins, mostrar apenas termos finais do Admin se existirem
+                            if (application.adminStatus === 'admin_finalized' && application.finalApprovedTerms) {
                               return application.finalApprovedTerms;
                             }
-                            // Senão, mostrar os termos da Financeira
-                            return application.approvedTerms || '30';
-                          })()} dias
+                            // Se não finalizado pelo admin, não mostrar termos
+                            return 'Aguardando finalização';
+                          })()} {application.adminStatus === 'admin_finalized' && application.finalApprovedTerms ? 'dias' : ''}
                         </Badge>
                       </div>
 
@@ -721,9 +721,13 @@ export default function CreditDetailsPage() {
                             if (permissions.isFinanceira) {
                               return (application.downPayment || 30);
                             }
-                            // Para outros usuários, mostrar configuração final do Admin
-                            return (application.finalDownPayment || 30);
-                          })()}% do valor do pedido
+                            // Para importadores e admins, mostrar apenas dados finalizados pelo Admin
+                            if (application.adminStatus === 'admin_finalized' && application.finalDownPayment) {
+                              return application.finalDownPayment;
+                            }
+                            // Se não finalizado pelo admin, não mostrar valor
+                            return 'Aguardando';
+                          })()}{application.adminStatus === 'admin_finalized' && application.finalDownPayment ? '% do valor do pedido' : ' finalização'}
                         </Badge>
                       </div>
 
