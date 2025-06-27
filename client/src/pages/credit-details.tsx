@@ -110,9 +110,10 @@ export default function CreditDetailsPage() {
       return response.json();
     },
     onSuccess: () => {
-      // Invalida todas as queries relacionadas à aplicação
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      queryClient.invalidateQueries({ queryKey: ["credit-applications"] });
+      // Force cache removal and refetch
+      queryClient.removeQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.removeQueries({ queryKey: ["credit-applications"] });
+      // Immediately refetch with fresh data
       queryClient.refetchQueries({ queryKey: ["/api/credit/applications", applicationId] });
       toast({
         title: "Sucesso!",
@@ -180,9 +181,10 @@ export default function CreditDetailsPage() {
       return response.json();
     },
     onSuccess: () => {
-      // Invalida todas as queries relacionadas à aplicação
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      queryClient.invalidateQueries({ queryKey: ["credit-applications"] });
+      // Force cache removal and refetch
+      queryClient.removeQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.removeQueries({ queryKey: ["credit-applications"] });
+      // Immediately refetch with fresh data
       queryClient.refetchQueries({ queryKey: ["/api/credit/applications", applicationId] });
       toast({
         title: "Documento removido!",
