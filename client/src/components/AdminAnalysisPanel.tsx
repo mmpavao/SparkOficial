@@ -77,11 +77,13 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           ? `/api/financeira/credit-applications/${application.id}/reject`
           : `/api/financeira/credit-applications/${application.id}/update-analysis`;
       } else {
-        // Admin endpoints for pre-approval
+        // Admin endpoints for pre-approval and workflow
         endpoint = status === 'pre_approved' 
           ? `/api/admin/credit/applications/${application.id}/approve`
           : status === 'rejected'
           ? `/api/admin/credit/applications/${application.id}/reject`
+          : status === 'submitted_to_financial'
+          ? `/api/admin/credit-applications/${application.id}/submit-financial`
           : `/api/admin/credit/applications/${application.id}/update-analysis`;
       }
 
@@ -114,6 +116,39 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       description,
       action
     });
+  };
+
+  const handleSubmitToFinancial = () => {
+    handleConfirmAction(
+      "Submeter à Financeira",
+      "Tem certeza que deseja enviar esta aplicação para análise financeira? Certifique-se de que todos os documentos necessários foram revisados.",
+      () => {
+        updateStatusMutation.mutate({
+          status: 'submitted_to_financial',
+          data: {
+            submittedToFinancialAt: new Date(),
+            submittedBy: 'admin'
+          }
+        });
+      }
+    );
+  };
+
+  const handleFinalize = () => {
+    handleConfirmAction(
+      "Finalizar Termos",
+      "Tem certeza que deseja finalizar os termos desta aplicação de crédito?",
+      () => {
+        updateStatusMutation.mutate({
+          status: 'admin_finalized',
+          data: {
+            adminStatus: 'admin_finalized',
+            adminFinalizedAt: new Date(),
+            adminFinalizedBy: 'admin'
+          }
+        });
+      }
+    );
   };
 
   const handleApprove = () => {
@@ -253,9 +288,11 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       pending: { label: "Pendente", color: "bg-gray-100 text-gray-800" },
       under_review: { label: "Em Análise", color: "bg-blue-100 text-blue-800" },
       pre_approved: { label: "Pré-Aprovado", color: "bg-green-100 text-green-800" },
+      submitted_to_financial: { label: "Enviado à Financeira", color: "bg-yellow-100 text-yellow-800" },
       needs_documents: { label: "Precisa Documentos", color: "bg-yellow-100 text-yellow-800" },
       needs_clarification: { label: "Precisa Esclarecimentos", color: "bg-orange-100 text-orange-800" },
-      approved: { label: "Aprovado", color: "bg-green-100 text-green-800" },
+      approved: { label: "Aprovado pela Financeira", color: "bg-green-100 text-green-800" },
+      admin_finalized: { label: "Finalizado", color: "bg-green-200 text-green-900" },
       rejected: { label: "Rejeitado", color: "bg-red-100 text-red-800" },
     };
 
@@ -482,24 +519,79 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 </Button>
               </div>
 
-              {/* Action Buttons for Admin */}
+              {/* Action Buttons for Admin - Adaptive based on status */}
               <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={handleApprove}
-                  disabled={updateStatusMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Pré-aprovar
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={handleReject}
-                  disabled={updateStatusMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Rejeitar
-                </Button>
+                {(application.status === 'pending' || application.preAnalysisStatus === 'pending') && (
+                  <>
+                    <Button 
+                      onClick={handleApprove}
+                      disabled={updateStatusMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Pré-aprovar
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      onClick={handleReject}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Rejeitar
+                    </Button>
+                  </>
+                )}
+                
+                {application.status === 'pre_approved' && (
+                  <>
+                    <div className="bg-green-50 p-3 rounded-lg mb-3">
+                      <p className="text-sm text-green-700 mb-2">
+                        <CheckCircle className="w-4 h-4 inline mr-1" />
+                        Aplicação pré-aprovada com sucesso!
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Confira todos os documentos antes de enviar à financeira
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={handleSubmitToFinancial}
+                      disabled={updateStatusMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Submeter à Financeira
+                    </Button>
+                  </>
+                )}
+                
+                {application.status === 'submitted_to_financial' && (
+                  <div className="bg-yellow-50 p-3 rounded-lg">
+                    <p className="text-sm text-yellow-700">
+                      <AlertTriangle className="w-4 h-4 inline mr-1" />
+                      Aplicação enviada à financeira - aguardando análise
+                    </p>
+                  </div>
+                )}
+                
+                {application.status === 'approved' && application.financialStatus === 'approved' && !application.adminStatus && (
+                  <Button 
+                    onClick={handleFinalize}
+                    disabled={updateStatusMutation.isPending}
+                    className="bg-amber-600 hover:bg-amber-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Finalizar Termos
+                  </Button>
+                )}
+                
+                {application.adminStatus === 'admin_finalized' && (
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <p className="text-sm text-green-700">
+                      <CheckCircle className="w-4 h-4 inline mr-1" />
+                      Processo concluído - termos finalizados
+                    </p>
+                  </div>
+                )}
               </div>
             </>
           )}
