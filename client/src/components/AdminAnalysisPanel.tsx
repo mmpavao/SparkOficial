@@ -445,20 +445,46 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               </div>
             </>
           ) : permissions.isFinanceira && application.financialStatus === 'approved' ? (
-            // Financeira Interface - Already approved, show edit/block options
+            // Financeira Interface - Already approved, show approved credit details
             <>
               <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                 <div className="flex items-start gap-2">
                   <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
+                  <div className="w-full">
                     <h4 className="font-medium text-green-800">Crédito Aprovado</h4>
                     <p className="text-sm text-green-700 mt-1">
                       Esta solicitação já foi aprovada pela instituição financeira.
                     </p>
+
+                    {/* Approved Credit Details */}
+                    <div className="mt-3 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Limite Aprovado:</span>
+                        <span className="font-medium text-green-800">
+                          US$ {Number(application.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      {application.approvedTerms && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Prazos Aprovados:</span>
+                          <span className="font-medium text-green-800">
+                            {application.approvedTerms} dias
+                          </span>
+                        </div>
+                      )}
+                      {application.downPayment && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Entrada Requerida:</span>
+                          <span className="font-medium text-green-800">
+                            {application.downPayment}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex gap-2 pt-4">
                 <Button 
                   variant="outline"
@@ -575,7 +601,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                     </Button>
                   </div>
                 )}
-                
+
                 {/* Status: PRE_APPROVED - Show submit to financial */}
                 {(application.status === 'pre_approved' || application.preAnalysisStatus === 'pre_approved') && (
                   <div className="space-y-3">
@@ -601,7 +627,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                     </Button>
                   </div>
                 )}
-                
+
                 {/* Status: SUBMITTED_TO_FINANCIAL - Show waiting message */}
                 {application.status === 'submitted_to_financial' && (
                   <div className="bg-yellow-50 p-3 rounded-lg">
@@ -611,7 +637,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                     </p>
                   </div>
                 )}
-                
+
                 {/* Status: APPROVED by financial - Show finalize button */}
                 {application.status === 'approved' && application.financialStatus === 'approved' && !application.adminStatus && (
                   <Button 
@@ -626,7 +652,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                     Finalizar Termos
                   </Button>
                 )}
-                
+
                 {/* Status: ADMIN_FINALIZED - Show completion message */}
                 {application.adminStatus === 'admin_finalized' && (
                   <div className="bg-green-50 p-3 rounded-lg">
