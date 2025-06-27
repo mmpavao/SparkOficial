@@ -386,13 +386,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
           <Separator />
 
-          {/* Debug info - remover após teste */}
-          {permissions.isFinanceira && (
-            <div className="text-xs text-gray-500 mb-2">
-              Debug: financialStatus = "{application.financialStatus}" | isFinanceira = {permissions.isFinanceira ? 'true' : 'false'}
-            </div>
-          )}
-          
+
           {permissions.isFinanceira && application.financialStatus === 'approved' ? (
             // Financeira Interface - Already approved, show approved credit details
             <>
