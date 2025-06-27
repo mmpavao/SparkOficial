@@ -1455,6 +1455,7 @@ export default function CreditApplicationPage() {
                     documentKey={doc.key}
                     documentLabel={doc.label}
                     documentSubtitle={doc.subtitle}
+                    documentObservation={doc.observation}
                     isRequired={doc.required}
                     uploadedDocuments={uploadedDocuments}
                     applicationId={0} // Placeholder for new applications
@@ -1486,6 +1487,7 @@ export default function CreditApplicationPage() {
                       documentKey={doc.key}
                       documentLabel={doc.label}
                       documentSubtitle={doc.subtitle}
+                      documentObservation={doc.observation}
                       isRequired={doc.required}
                       uploadedDocuments={uploadedDocuments}
                       applicationId={0} // Placeholder for new applications

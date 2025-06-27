@@ -985,7 +985,7 @@ function DocumentUploadSection({
   onRemove,
   uploadedDocuments
 }: {
-  documentInfo: { key: string; label: string; subtitle?: string; required: boolean };
+  documentInfo: { key: string; label: string; subtitle?: string; observation?: string; required: boolean };
   applicationId: number;
   isUploading: boolean;
   onUpload: (file: File) => void;
@@ -997,6 +997,7 @@ function DocumentUploadSection({
       documentKey={documentInfo.key}
       documentLabel={documentInfo.label}
       documentSubtitle={documentInfo.subtitle}
+      documentObservation={documentInfo.observation}
       isRequired={documentInfo.required}
       uploadedDocuments={uploadedDocuments}
       applicationId={applicationId}
