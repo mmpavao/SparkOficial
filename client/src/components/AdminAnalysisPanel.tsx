@@ -1,3 +1,6 @@
+// CRITICAL - DO NOT MODIFY WITHOUT AUTHORIZATION
+// This component handles the 4-tier approval workflow:
+// 1. Importador applies → 2. Admin pre-approves → 3. Financeira approves → 4. Admin finalizes
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";

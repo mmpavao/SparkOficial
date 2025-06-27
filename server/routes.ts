@@ -1934,7 +1934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         riskAssessment,
         adminRecommendation,
         analyzedBy: req.session.userId,
-        analyzedAt: new Date().toISOString()
+        analyzedAt: new Date()
       };
 
       const application = await storage.updateCreditApplicationStatus(
@@ -2263,7 +2263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminRecommendation,
         riskAssessment,
         analyzedBy: req.session.userId,
-        analyzedAt: new Date().toISOString()
+        analyzedAt: new Date()
       };
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, { reviewNotes: JSON.stringify(analysisData) });
@@ -2281,7 +2281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedApplication = await storage.updateCreditApplicationStatus(applicationId, 'submitted_to_financial', {
         submittedBy: req.session.userId,
-        submittedAt: new Date().toISOString()
+        submittedAt: new Date()
       });
 
       res.json(updatedApplication);
