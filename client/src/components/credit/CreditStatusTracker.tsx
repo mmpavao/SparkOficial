@@ -107,6 +107,36 @@ const statusSteps: Record<string, CreditStatusStep[]> = {
       status: 'pending'
     }
   ],
+  'submitted_to_financial': [
+    {
+      id: 'submitted',
+      title: 'Solicitação Enviada',
+      description: 'Sua aplicação foi recebida com sucesso',
+      icon: FileText,
+      status: 'completed'
+    },
+    {
+      id: 'pre_analysis',
+      title: 'Pré-análise Concluída',
+      description: 'Pré-aprovação realizada pela equipe',
+      icon: Check,
+      status: 'completed'
+    },
+    {
+      id: 'financial_review',
+      title: 'Análise Financeira',
+      description: 'Em análise pela instituição financeira',
+      icon: Clock,
+      status: 'current'
+    },
+    {
+      id: 'final_approval',
+      title: 'Aprovação Final',
+      description: 'Finalização dos termos e condições',
+      icon: Shield,
+      status: 'pending'
+    }
+  ],
   'financially_approved': [
     {
       id: 'submitted',
@@ -207,9 +237,10 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
 }) => {
   // Determine the effective status based on all status fields
   const getEffectiveStatus = () => {
-    if (adminStatus === 'finalized' || currentStatus === 'approved') return 'approved';
+    if (adminStatus === 'finalized' || adminStatus === 'admin_finalized' || currentStatus === 'approved') return 'approved';
     if (financialStatus === 'approved') return 'financially_approved';
-    if (preAnalysisStatus === 'pre_approved') return 'pre_approved';
+    if (currentStatus === 'submitted_to_financial') return 'submitted_to_financial';
+    if (preAnalysisStatus === 'pre_approved' || currentStatus === 'pre_approved') return 'pre_approved';
     if (currentStatus === 'rejected') return 'rejected';
     if (currentStatus === 'under_review') return 'under_review';
     return 'pending';

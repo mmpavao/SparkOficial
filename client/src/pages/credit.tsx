@@ -578,8 +578,9 @@ export default function CreditPage() {
           ) : (
             <div className="space-y-6">
               {applications.map((application: any) => {
-                  // Determinar status visual e cor
+                  // Determinar status visual e cor baseado no fluxo correto
                   const getStatusInfo = () => {
+                    // Status final: Aprovado e finalizado pelo admin
                     if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
                       return { 
                         label: 'Aprovado', 
@@ -587,28 +588,45 @@ export default function CreditPage() {
                         bgColor: 'bg-green-50',
                         borderColor: 'border-l-green-500'
                       };
-                    } else if (application.financialStatus === 'rejected') {
+                    } 
+                    // Status: Rejeitado pela financeira
+                    else if (application.financialStatus === 'rejected') {
                       return { 
                         label: 'Rejeitado', 
                         color: 'bg-red-100 text-red-800 border-red-200',
                         bgColor: 'bg-red-50',
                         borderColor: 'border-l-red-500'
                       };
-                    } else if (application.financialStatus === 'approved') {
+                    } 
+                    // Status: Aprovado pela financeira, aguardando finalização admin
+                    else if (application.financialStatus === 'approved') {
                       return { 
                         label: 'Análise Final', 
                         color: 'bg-blue-100 text-blue-800 border-blue-200',
                         bgColor: 'bg-blue-50',
                         borderColor: 'border-l-blue-500'
                       };
-                    } else if (application.preAnalysisStatus === 'pre_approved') {
+                    } 
+                    // Status: Submetido à financeira (status principal = submitted_to_financial)
+                    else if (application.status === 'submitted_to_financial') {
+                      return { 
+                        label: 'Em Análise Final', 
+                        color: 'bg-purple-100 text-purple-800 border-purple-200',
+                        bgColor: 'bg-purple-50',
+                        borderColor: 'border-l-purple-500'
+                      };
+                    } 
+                    // Status: Pré-aprovado pelo admin, aguardando submissão
+                    else if (application.preAnalysisStatus === 'pre_approved' || application.status === 'pre_approved') {
                       return { 
                         label: 'Pré-Aprovado', 
                         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
                         bgColor: 'bg-yellow-50',
                         borderColor: 'border-l-yellow-500'
                       };
-                    } else {
+                    } 
+                    // Status padrão: Em pré-análise
+                    else {
                       return { 
                         label: 'Pré-Análise', 
                         color: 'bg-gray-100 text-gray-800 border-gray-200',
