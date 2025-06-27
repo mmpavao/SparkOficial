@@ -838,15 +838,14 @@ export default function CreditDetailsPage() {
   );
 }
 
-// Smart Document Upload Component Integration
+// Document Upload Section using Robust Component
 function DocumentUploadSection({ 
   documentInfo, 
   applicationId, 
   isUploading, 
   onUpload, 
   onRemove,
-  uploadedDocuments,
-  onValidation
+  uploadedDocuments
 }: {
   documentInfo: { key: string; label: string; subtitle?: string; required: boolean };
   applicationId: number;
@@ -854,25 +853,18 @@ function DocumentUploadSection({
   onUpload: (file: File) => void;
   onRemove: (documentId: string) => void;
   uploadedDocuments: Record<string, any>;
-  onValidation?: (result: ValidationResult) => void;
 }) {
-  // Converter documentos para o formato esperado pelo novo componente
-  const documentsForKey = uploadedDocuments[documentInfo.key] || [];
-  const documentFiles = Array.isArray(documentsForKey) ? documentsForKey : 
-    documentsForKey ? [documentsForKey] : [];
-
   return (
-    <SmartDocumentUpload
+    <RobustDocumentUpload
       documentKey={documentInfo.key}
       documentLabel={documentInfo.label}
       documentSubtitle={documentInfo.subtitle}
       isRequired={documentInfo.required}
-      uploadedDocuments={documentFiles}
+      uploadedDocuments={uploadedDocuments}
+      applicationId={applicationId}
       isUploading={isUploading}
       onUpload={onUpload}
       onRemove={onRemove}
-      onValidation={onValidation}
-      applicationId={applicationId}
     />
   );
 }
