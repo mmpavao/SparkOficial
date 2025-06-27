@@ -2208,11 +2208,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
 
-      // Get user's approved credit applications
+      // Get ALL user's approved credit applications
       const creditApps = await storage.getCreditApplicationsByUser(userId);
-      const approvedCredit = creditApps.find(app => app.status === 'approved');
+      const approvedCredits = creditApps.filter(app => 
+        app.adminStatus === 'admin_finalized' || 
+        app.adminStatus === 'finalized' || 
+        app.status === 'approved' || 
+        app.status === 'finalized'
+      );
 
-      if (!approvedCredit) {
+      if (approvedCredits.length === 0) {
         return res.json({
           totalCredit: 0,
           usedCredit: 0,
@@ -2221,17 +2226,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate used credit from imports
+      // Calculate total credit from ALL approved applications
+      const totalCredit = approvedCredits.reduce((sum, app) => {
+        const creditLimit = app.finalCreditLimit 
+          ? parseFloat(app.finalCreditLimit)
+          : parseFloat(app.requestedAmount || '0');
+        return sum + creditLimit;
+      }, 0);
+
+      // Calculate used credit from imports linked to any approved application
       const imports = await storage.getImportsByUser(userId);
+      const approvedIds = approvedCredits.map(app => app.id);
       const activeImports = imports.filter(imp => 
         imp.status !== 'cancelado' && 
         imp.status !== 'cancelled' &&
         imp.status !== 'planejamento' && // Crédito só é usado quando sai do planejamento
-        imp.creditApplicationId === approvedCredit.id
+        approvedIds.includes(imp.creditApplicationId)
       );
 
       const usedCredit = activeImports.reduce((total, imp) => {
-        const importValue = parseFloat(imp.totalValue);
+        const importValue = parseFloat(imp.totalValue || '0');
         // Credit usage is the full FOB value, not just financed amount
         return total + importValue;
       }, 0);
@@ -2239,11 +2253,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get admin fee percentage
       const adminFee = await storage.getAdminFeeForUser(userId);
       const adminFeePercentage = adminFee ? parseFloat(adminFee.feePercentage) : 10;
-
-      // Use final admin terms if available, otherwise use financial terms
-      const totalCredit = approvedCredit.finalCreditLimit 
-        ? parseFloat(approvedCredit.finalCreditLimit)
-        : parseFloat(approvedCredit.creditAmount);
 
       const availableCredit = Math.max(0, totalCredit - usedCredit);
 
