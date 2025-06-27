@@ -598,8 +598,17 @@ export default function CreditPage() {
                         borderColor: 'border-l-red-500'
                       };
                     } 
-                    // Aprovado pela financeira
-                    else if (application.financialStatus === 'approved') {
+                    // Aprovado pela financeira mas aguardando finalização admin
+                    else if (application.financialStatus === 'approved' && application.adminStatus !== 'admin_finalized') {
+                      return { 
+                        label: 'Análise Final', 
+                        color: 'bg-blue-100 text-blue-800 border-blue-200',
+                        bgColor: 'bg-blue-50',
+                        borderColor: 'border-l-blue-500'
+                      };
+                    }
+                    // Aprovado e finalizado pelo admin
+                    else if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
                       return { 
                         label: 'Aprovado', 
                         color: 'bg-green-100 text-green-800 border-green-200',
