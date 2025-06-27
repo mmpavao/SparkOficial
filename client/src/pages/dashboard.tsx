@@ -6,6 +6,7 @@ import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useSoundEffects } from '@/utils/soundEffects';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import {
   AlertCircle,
   Factory,
   BarChart3,
+  Volume2,
   Plus,
   Calculator,
   Percent,
@@ -51,6 +53,7 @@ export default function Dashboard() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { playApprovalSound, playPaymentSound, playStatusChangeSound, playNotificationSound } = useSoundEffects();
 
   // Test notification mutation
   const testNotificationMutation = useMutation({
@@ -273,31 +276,90 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Notification Test Panel */}
-          <Card className="border-l-4 border-l-indigo-500 mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Sistema de Notificações Inteligente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Sistema de notificações contextuais que detecta automaticamente mudanças de status, 
-                novas mensagens e necessidades de documentos.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => testNotificationMutation.mutate('status_change')}
-                  disabled={testNotificationMutation.isPending}
-                  className="w-full"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Testar Mudança Status
-                </Button>
+          {/* Sound Effects & Notification Test Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Sound Effects Test Panel */}
+            <Card className="border-l-4 border-l-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Volume2 className="h-5 w-5" />
+                  Efeitos Sonoros Financeiros
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Sistema de micro-interações sonoras para ações financeiras positivas.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={playApprovalSound}
+                    className="w-full text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Aprovação de Crédito
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={playPaymentSound}
+                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Pagamento Concluído
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={playStatusChangeSound}
+                    className="w-full text-orange-600 border-orange-200 hover:bg-orange-50"
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Mudança de Status
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={playNotificationSound}
+                    className="w-full text-purple-600 border-purple-200 hover:bg-purple-50"
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    Nova Notificação
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notification Test Panel */}
+            <Card className="border-l-4 border-l-indigo-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Sistema de Notificações Inteligente
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Sistema de notificações contextuais que detecta automaticamente mudanças de status, 
+                  novas mensagens e necessidades de documentos.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => testNotificationMutation.mutate('status_change')}
+                    disabled={testNotificationMutation.isPending}
+                    className="w-full"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Testar Mudança Status
+                  </Button>
                 
                 <Button
                   variant="outline"
@@ -328,6 +390,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
+          </div>
 
           {/* Admin Detailed Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
