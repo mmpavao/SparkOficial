@@ -3,6 +3,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { useImporterDashboard } from '@/hooks/useImporterDashboard';
 import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +31,8 @@ import {
   Plus,
   Calculator,
   Percent,
+  Bell,
+  TestTube,
   Target,
   Activity,
   Banknote,
@@ -43,6 +48,32 @@ export default function Dashboard() {
   const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
   const { data: importerData, isLoading: importerDataLoading, error } = useImporterDashboard(isImporter);
   const { data: financeiraMetrics, isLoading: financeiraMetricsLoading } = useFinanceiraMetrics(isFinanceira);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Test notification mutation
+  const testNotificationMutation = useMutation({
+    mutationFn: async (type: string) => {
+      return apiRequest('/api/test/notification', 'POST', { type, applicationId: 42 });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Notificação Criada",
+        description: "Notificação de teste enviada com sucesso!",
+      });
+      // Invalidate notifications to refresh the bell icon
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao criar notificação de teste",
+        variant: "destructive",
+      });
+    },
+  });
 
   if ((isAdmin && adminMetricsLoading) || (isImporter && importerDataLoading) || (isFinanceira && financeiraMetricsLoading)) {
     return (

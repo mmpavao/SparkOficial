@@ -2175,6 +2175,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TEST: Generate sample notification (for testing purposes)
+  app.post('/api/test/notification', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { applicationId, type } = req.body;
+
+      if (type === 'status_change') {
+        await storage.notifyCreditStatusChange(userId, applicationId || 42, 'approved');
+      } else if (type === 'message') {
+        await storage.notifyNewMessage(userId, applicationId || 42, 'document_request', 'admin');
+      } else if (type === 'documents') {
+        await storage.notifyDocumentStatus(userId, applicationId || 42, 10, 3);
+      }
+
+      res.json({ success: true, message: "Notificação de teste criada" });
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      res.status(500).json({ message: "Erro ao criar notificação de teste" });
+    }
+  });
+
   // Get user's credit information for financial calculations
   app.get('/api/user/credit-info', requireAuth, async (req: any, res) => {
     try {
