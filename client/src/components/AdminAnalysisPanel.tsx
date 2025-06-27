@@ -25,6 +25,7 @@ import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare, DollarSig
 import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
+import { useSoundEffects } from "@/utils/soundEffects";
 
 interface AdminAnalysisPanelProps {
   application: any;
@@ -34,6 +35,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   const permissions = useUserPermissions();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { playApprovalSound, playStatusChangeSound, playSubmitSound } = useSoundEffects();
 
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
@@ -89,11 +91,21 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
       return await apiRequest(endpoint, "PUT", data);
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications"] });
+
+      // Play appropriate sound based on action type
+      const { status } = variables;
+      if (status === 'pre_approved' || status === 'approved') {
+        playApprovalSound();
+      } else if (status === 'submitted_to_financial') {
+        playSubmitSound();
+      } else {
+        playStatusChangeSound();
+      }
 
       toast({
         title: "Sucesso!",

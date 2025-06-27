@@ -14,6 +14,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications, type Notification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useSoundEffects } from "@/utils/soundEffects";
+import { useEffect, useRef } from "react";
 
 function NotificationItem({ 
   notification, 
@@ -99,6 +101,17 @@ export default function NotificationCenter() {
     markAllAsRead,
     isMarkingAllAsRead,
   } = useNotifications(20);
+
+  const { playNotificationSound } = useSoundEffects();
+  const previousUnreadCount = useRef<number>(0);
+
+  // Play sound when new notifications arrive
+  useEffect(() => {
+    if (unreadCount > previousUnreadCount.current && previousUnreadCount.current !== 0) {
+      playNotificationSound();
+    }
+    previousUnreadCount.current = unreadCount;
+  }, [unreadCount, playNotificationSound]);
 
   return (
     <DropdownMenu>
