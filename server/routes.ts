@@ -2609,22 +2609,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         creditLimit: creditLimit,
         approvedTerms: approvedTerms,
         financialNotes: financialNotes || '',
+        financialStatus: 'approved',
         financialAnalyzedBy: req.session.userId,
-        financialAnalyzedAt: new Date()
+        financialAnalyzedAt: new Date(),
+        status: 'approved'
       };
 
-      // Update financial status to approved
-      const updatedApplication = await storage.updateFinancialStatus(
+      // Update application with financial approval
+      const updatedApplication = await storage.updateCreditApplication(
         applicationId,
-        'approved',
         financialData
-      );
-
-      // Also update main status to approved
-      const finalApplication = await storage.updateCreditApplicationStatus(
-        applicationId, 
-        'approved',
-        {}
       );
 
       // Create notification for user

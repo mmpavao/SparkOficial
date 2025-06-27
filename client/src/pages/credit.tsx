@@ -585,8 +585,8 @@ export default function CreditPage() {
               {applications.map((application: any) => {
                   // Determinar status visual baseado nos dados reais do banco
                   const getStatusInfo = () => {
-                    // Final: Aprovado e finalizado pelo admin
-                    if (application.financialStatus === 'approved' && (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized')) {
+                    // Aprovado pela financeira - mostrar como aprovado para usuários Financeira
+                    if (application.financialStatus === 'approved') {
                       return { 
                         label: 'Aprovado', 
                         color: 'bg-green-100 text-green-800 border-green-200',
@@ -601,24 +601,6 @@ export default function CreditPage() {
                         color: 'bg-red-100 text-red-800 border-red-200',
                         bgColor: 'bg-red-50',
                         borderColor: 'border-l-red-500'
-                      };
-                    } 
-                    // Aprovado pela financeira mas aguardando finalização admin
-                    else if (application.financialStatus === 'approved' && application.adminStatus !== 'admin_finalized') {
-                      return { 
-                        label: 'Análise Final', 
-                        color: 'bg-blue-100 text-blue-800 border-blue-200',
-                        bgColor: 'bg-blue-50',
-                        borderColor: 'border-l-blue-500'
-                      };
-                    }
-                    // Aprovado e finalizado pelo admin
-                    else if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
-                      return { 
-                        label: 'Aprovado', 
-                        color: 'bg-green-100 text-green-800 border-green-200',
-                        bgColor: 'bg-green-50',
-                        borderColor: 'border-l-green-500'
                       };
                     } 
                     // Status approved (aplicações antigas) OU submetido à financeira
