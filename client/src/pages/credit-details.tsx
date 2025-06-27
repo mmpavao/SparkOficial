@@ -42,6 +42,77 @@ import {
   X
 } from "lucide-react";
 
+// Dynamic document generation function for shareholders
+const generateMandatoryDocuments = (shareholders: any[] = []) => {
+  const baseMandatoryDocuments = [
+    {
+      key: "company_documents",
+      label: "Documentos da Empresa",
+      subtitle: "Articles of Association",
+      required: true
+    },
+    {
+      key: "business_license",
+      label: "Licença de Funcionamento",
+      subtitle: "Business License",
+      required: true
+    },
+    {
+      key: "financial_statements",
+      label: "Demonstrações Financeiras",
+      subtitle: "Financial Statements",
+      required: true
+    },
+    {
+      key: "bank_statement",
+      label: "Extrato Bancário",
+      subtitle: "Bank Statement",
+      required: true
+    },
+    {
+      key: "tax_clearance",
+      label: "Certidão Negativa de Débitos",
+      subtitle: "Tax Clearance Certificate",
+      required: true
+    },
+    {
+      key: "import_license",
+      label: "Licença de Importação",
+      subtitle: "Import License",
+      required: true
+    },
+    {
+      key: "board_resolution",
+      label: "Ata da Diretoria",
+      subtitle: "Board Resolution",
+      required: true
+    }
+  ];
+
+  // If there are 2 or more shareholders, add specific documents
+  if (shareholders && shareholders.length >= 2) {
+    // Add social contract for multiple partners
+    baseMandatoryDocuments.unshift({
+      key: "social_contract",
+      label: "Contrato Social",
+      subtitle: "Articles of Association",
+      required: true
+    });
+
+    // Add individual documents for each shareholder
+    shareholders.forEach((shareholder, index) => {
+      baseMandatoryDocuments.push({
+        key: `shareholder_${index + 1}_rg`,
+        label: `Documentos dos Sócios (CPF e RG)${shareholder.name ? ` - ${shareholder.name}` : `${index + 1}`}`,
+        subtitle: "Legal Representative ID Copy",
+        required: true
+      });
+    });
+  }
+
+  return baseMandatoryDocuments;
+};
+
 export default function CreditDetailsPage() {
   const [match, params] = useRoute("/credit/details/:id");
   const { toast } = useToast();
@@ -277,10 +348,9 @@ export default function CreditDetailsPage() {
     );
   };
 
-  const mandatoryDocuments = [
-    { key: 'articles_of_incorporation', label: 'Contrato Social', subtitle: 'Articles of Association', required: true },
-    { key: 'cnpj_certificate', label: 'Documentos dos Sócios (CPF e RG/CNH)', subtitle: 'Legal Representative ID Copy', required: true },
-  ];
+  // Generate dynamic mandatory documents based on shareholders
+  const shareholders = application.shareholders || [];
+  const mandatoryDocuments = generateMandatoryDocuments(shareholders);
 
   const optionalDocuments = [
     { key: 'business_license', label: 'Licença de Funcionamento', subtitle: 'Business License', required: false },
