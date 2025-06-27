@@ -125,11 +125,43 @@ const revenueRanges = [
   "Acima de R$ 100 milhões"
 ];
 
-// Document definitions - must match credit-details.tsx exactly
-const mandatoryDocuments = [
-  { key: 'articles_of_incorporation', label: 'Contrato Social', subtitle: 'Articles of Association', required: true },
-  { key: 'cnpj_certificate', label: 'Documentos dos Sócios (CPF e RG/CNH)', subtitle: 'Legal Representative ID Copy', required: true },
-];
+// Generate dynamic mandatory documents based on shareholders
+const generateMandatoryDocuments = (shareholders: Array<{name: string; cpf: string; percentage: number}>) => {
+  const baseDocs = [
+    { key: 'articles_of_incorporation', label: 'Contrato Social', subtitle: 'Articles of Association', required: true },
+  ];
+
+  // If multiple shareholders, add specific documents for each
+  if (shareholders.length >= 2) {
+    // Add contract social as mandatory
+    baseDocs.push({
+      key: 'partnership_agreement',
+      label: 'Contrato Social Atualizado',
+      subtitle: 'Updated Partnership Agreement',
+      required: true
+    });
+
+    // Add documents for each shareholder
+    shareholders.forEach((shareholder, index) => {
+      baseDocs.push({
+        key: `shareholder_docs_${index + 1}`,
+        label: `Documentos do Sócio ${index + 1} - ${shareholder.name}`,
+        subtitle: `Documents for ${shareholder.name} (CPF: ${shareholder.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.**$4')})`,
+        required: true
+      });
+    });
+  } else {
+    // Single shareholder - use original simple document
+    baseDocs.push({
+      key: 'cnpj_certificate',
+      label: 'Documentos dos Sócios (CPF e RG/CNH)',
+      subtitle: 'Legal Representative ID Copy',
+      required: true
+    });
+  }
+
+  return baseDocs;
+};
 
 const optionalDocuments = [
   { key: 'business_license', label: 'Licença de Funcionamento', subtitle: 'Business License', required: false },
@@ -1258,69 +1290,67 @@ export default function CreditApplicationPage() {
       )}
 
       {/* Step 4: Documentation */}
-      {currentStep === 4 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5 text-orange-600" />
-              Documentação
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Required Documents */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <h3 className="text-lg font-semibold text-red-700">Documentos Obrigatórios</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Para prosseguir com a solicitação, você deve anexar <strong>ambos os documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
-              </p>
+      {currentStep === 4 && (() => {
+        // Calculate dynamic mandatory documents based on shareholders
+        const shareholders = companyForm.getValues().shareholders || [];
+        const dynamicMandatoryDocuments = generateMandatoryDocuments(shareholders);
+        const minimumRequired = Math.max(2, dynamicMandatoryDocuments.length);
 
-              {/* Progress indicator */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-blue-800">
-                    Documentos Obrigatórios Anexados: {mandatoryDocuments.filter(doc => uploadedDocuments[doc.key]).length} / {mandatoryDocuments.length}
-                  </span>
-                  <span className="text-xs text-blue-600">
-                    Mínimo: 2 para enviar solicitação
-                  </span>
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="w-5 h-5 text-orange-600" />
+                Documentação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Multiple shareholders notification */}
+              {shareholders.length >= 2 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-amber-800">Documentação para Múltiplos Sócios</h4>
+                      <p className="text-sm text-amber-700 mt-1">
+                        Detectamos {shareholders.length} sócios na empresa. Documentos específicos são necessários para cada sócio:
+                      </p>
+                      <ul className="text-sm text-amber-700 mt-2 space-y-1">
+                        {shareholders.map((shareholder, index) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                            <strong>{shareholder.name}</strong> - {shareholder.percentage}% da empresa
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {mandatoryDocuments.map((doc) => (
-                <RobustDocumentUpload
-                  key={doc.key}
-                  documentKey={doc.key}
-                  documentLabel={doc.label}
-                  documentSubtitle={doc.subtitle}
-                  isRequired={doc.required}
-                  uploadedDocuments={uploadedDocuments}
-                  applicationId={0} // Placeholder for new applications
-                  isUploading={uploadingDocument === doc.key}
-                  onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                  onRemove={(documentKey) => {
-                    const updatedDocs = { ...uploadedDocuments };
-                    delete updatedDocs[documentKey];
-                    setUploadedDocuments(updatedDocs);
-                  }}
-                />
-              ))}
-            </div>
+              {/* Required Documents */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <h3 className="text-lg font-semibold text-red-700">Documentos Obrigatórios</h3>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Para prosseguir com a solicitação, você deve anexar <strong>todos os documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
+                </p>
 
-            {/* Optional Documents */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-500" />
-                <h3 className="text-lg font-semibold text-blue-700">Documentos Complementares</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Estes documentos podem ser anexados agora ou posteriormente. Quanto mais documentos fornecidos, mais rápida será a análise:
-              </p>
+                {/* Progress indicator */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-blue-800">
+                      Documentos Obrigatórios Anexados: {dynamicMandatoryDocuments.filter(doc => uploadedDocuments[doc.key]).length} / {dynamicMandatoryDocuments.length}
+                    </span>
+                    <span className="text-xs text-blue-600">
+                      Mínimo: {minimumRequired} para enviar solicitação
+                    </span>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {optionalDocuments.map((doc) => (
+                {dynamicMandatoryDocuments.map((doc) => (
                   <RobustDocumentUpload
                     key={doc.key}
                     documentKey={doc.key}
@@ -1332,21 +1362,52 @@ export default function CreditApplicationPage() {
                     isUploading={uploadingDocument === doc.key}
                     onUpload={(file) => handleDocumentUpload(doc.key, file)}
                     onRemove={(documentKey) => {
-                      // Handle removal of specific document from array
-                      setUploadedDocuments(prev => {
-                        const updatedDocs = { ...prev };
-                        
-                        // If it's an array, remove the entire array (for now)
-                        // Future enhancement: could remove specific document by index
-                        if (updatedDocs[documentKey]) {
-                          delete updatedDocs[documentKey];
-                        }
-                        
-                        return updatedDocs;
-                      });
+                      const updatedDocs = { ...uploadedDocuments };
+                      delete updatedDocs[documentKey];
+                      setUploadedDocuments(updatedDocs);
                     }}
                   />
                 ))}
+              </div>
+
+              {/* Optional Documents */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold text-blue-700">Documentos Complementares</h3>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Estes documentos podem ser anexados agora ou posteriormente. Quanto mais documentos fornecidos, mais rápida será a análise:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {optionalDocuments.map((doc) => (
+                    <RobustDocumentUpload
+                      key={doc.key}
+                      documentKey={doc.key}
+                      documentLabel={doc.label}
+                      documentSubtitle={doc.subtitle}
+                      isRequired={doc.required}
+                      uploadedDocuments={uploadedDocuments}
+                      applicationId={0} // Placeholder for new applications
+                      isUploading={uploadingDocument === doc.key}
+                      onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                      onRemove={(documentKey) => {
+                        // Handle removal of specific document from array
+                        setUploadedDocuments(prev => {
+                          const updatedDocs = { ...prev };
+                          
+                          // If it's an array, remove the entire array (for now)
+                          // Future enhancement: could remove specific document by index
+                          if (updatedDocs[documentKey]) {
+                            delete updatedDocs[documentKey];
+                          }
+                          
+                          return updatedDocs;
+                        });
+                      }}
+                    />
+                  ))}
               </div>
             </div>
 
@@ -1364,7 +1425,8 @@ export default function CreditApplicationPage() {
             </div>
           </CardContent>
         </Card>
-      )}
+        );
+      })()}
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
