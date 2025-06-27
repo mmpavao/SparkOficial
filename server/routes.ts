@@ -1564,6 +1564,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cache for credit applications to improve performance
   let creditApplicationsCache: any = null;
   let creditApplicationsCacheTime = 0;
+  
+  // Function to invalidate credit application cache
+  function invalidateCreditApplicationCache() {
+    creditApplicationsCache = null;
+    creditApplicationsCacheTime = 0;
+    console.log("Credit applications cache invalidated");
+  }
 
   // Get all credit applications (admin only)
   app.get('/api/admin/credit-applications', requireAuth, async (req: any, res) => {
@@ -2744,9 +2751,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Perform single database update with all changes
-      await storage.updateCreditApplication(applicationId, updateData);
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+
+      // Invalidate caches
+      invalidateCreditApplicationCache();
+      if (creditDetailsCache[applicationId]) {
+        delete creditDetailsCache[applicationId];
+      }
 
       console.log(`Document uploaded successfully: ${documentInfo.originalName} for application ${applicationId}`);
+      
+      // Return updated application data to help with cache management
       res.json({ 
         success: true, 
         document: {
@@ -2754,7 +2769,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           size: documentInfo.size,
           type: documentInfo.type,
           uploadedAt: documentInfo.uploadedAt
-        }
+        },
+        application: updatedApplication
       });
     } catch (error) {
       console.error("Error uploading document:", error);
@@ -2831,7 +2847,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
       
+      // Invalidate caches
+      invalidateCreditApplicationCache();
+      if (creditDetailsCache[applicationId]) {
+        delete creditDetailsCache[applicationId];
+      }
+      
       res.json({ 
+        success: true,
         message: "Documento removido com sucesso",
         application: updatedApplication 
       });

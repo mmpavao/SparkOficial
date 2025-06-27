@@ -90,12 +90,31 @@ export function RobustDocumentUpload({
   };
 
   const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = `/api/documents/download/${documentKey}/${applicationId}`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (!currentDoc || !currentDoc.data) {
+      toast({
+        title: "Erro no download",
+        description: "Documento não encontrado ou dados corrompidos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      link.href = `/api/documents/download/${documentKey}/${applicationId}`;
+      link.target = '_blank';
+      link.download = currentDoc.originalName || currentDoc.filename || `documento_${documentKey}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível fazer o download do documento",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

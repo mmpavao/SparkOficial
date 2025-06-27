@@ -101,23 +101,32 @@ export default function CreditDetailsPage() {
       const response = await fetch(`/api/credit/applications/${applicationId}/documents`, {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error('Falha no upload do documento');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Falha no upload do documento');
       }
 
       return response.json();
     },
     onSuccess: () => {
-      // FORCE COMPLETE CACHE CLEAR AND IMMEDIATE REFETCH
-      queryClient.clear();
-      window.location.reload();
+      // Invalidate specific queries instead of clearing all cache
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
+      setUploadingDocument(null);
+      toast({
+        title: "Documento enviado",
+        description: "O documento foi enviado com sucesso.",
+      });
     },
     onError: (error: any) => {
+      console.error("Upload error:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível enviar o documento. Tente novamente.",
+        title: "Erro no upload",
+        description: error.message || "Não foi possível enviar o documento. Tente novamente.",
         variant: "destructive",
       });
       setUploadingDocument(null);
@@ -165,20 +174,28 @@ export default function CreditDetailsPage() {
     mutationFn: async ({ documentId }: { documentId: string }) => {
       const response = await fetch(`/api/credit/applications/${applicationId}/documents/${documentId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao remover documento');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Falha ao remover documento');
       }
 
       return response.json();
     },
     onSuccess: () => {
-      // FORCE COMPLETE CACHE CLEAR AND IMMEDIATE REFETCH
-      queryClient.clear();
-      window.location.reload();
+      // Invalidate specific queries instead of clearing all cache
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
+      toast({
+        title: "Documento removido",
+        description: "O documento foi removido com sucesso.",
+      });
     },
     onError: (error: any) => {
+      console.error("Delete error:", error);
       toast({
         title: "Erro ao remover documento",
         description: error.message || "Tente novamente mais tarde.",
