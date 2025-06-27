@@ -185,6 +185,19 @@ export default function NewImportPage() {
 
   const { importValue, downPayment, financedAmount, adminFeeAmount, totalCost } = calculateTotals();
 
+  // Buscar crédito disponível
+  const { data: creditUsage } = useQuery({
+    queryKey: ['/api/user/credit-info'],
+    queryFn: () => apiRequest('/api/user/credit-info', 'GET'),
+    enabled: !!user,
+    onSuccess: (data) => {
+      console.log('Credit info loaded:', data);
+    },
+    onError: (error) => {
+      console.error('Error loading credit info:', error);
+    }
+  });
+
   // Verificar crédito disponível - usando valor financiado (70%) como regra de negócio
   const availableCredit = creditUsage?.availableCredit || 0;
   const hasEnoughCredit = financedAmount <= availableCredit;
@@ -250,16 +263,7 @@ export default function NewImportPage() {
     setConfirmDialogOpen(false);
   };
 
-    const { data: creditUsage } = useQuery({
-    queryKey: ['/api/user/credit-info'],
-    queryFn: () => apiRequest('/api/user/credit-info', 'GET'),
-    onSuccess: (data) => {
-      console.log('Credit info loaded:', data);
-    },
-    onError: (error) => {
-      console.error('Error loading credit info:', error);
-    }
-  });
+    
 
   return (
     <div className="space-y-6">
