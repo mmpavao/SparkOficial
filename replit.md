@@ -588,6 +588,12 @@ Changelog:
   * Ensured applications in financeira tab never display "Pré-Análise" status as this violates workflow logic
   * Updated CreditStatusTracker to map submitted_to_financial status to financially_approved state
   * Maintained existing workflow structure while fixing inconsistent status presentation across interface
+- June 27, 2025. Database status synchronization and AdminAnalysisPanel corrections:
+  * Fixed applications 40 and 41 that were stuck in "Análise Final" despite multiple approvals
+  * Updated database: set financial_status='approved' for applications 40 and 41 with proper timestamps
+  * Corrected AdminAnalysisPanel to show "Crédito Aprovado" interface instead of approval buttons for approved applications
+  * Fixed getStatusInfo() function in credit.tsx to display "Aprovado" in green for applications with financial_status='approved'
+  * All three applications (40, 41, 42) now consistently show approved status without duplicate approval workflows
 ```
 
 ## User Preferences
