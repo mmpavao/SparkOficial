@@ -2765,6 +2765,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete document from credit application
+  app.delete('/api/credit/applications/:id/documents/:documentId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const documentId = req.params.documentId;
+
+      console.log(`Document deletion attempt: ${documentId} for application ${applicationId}`);
+
+      // Check if user owns the application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      if (application.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Get current documents
+      const currentRequired = typeof application.requiredDocuments === 'object' && application.requiredDocuments !== null 
+        ? application.requiredDocuments 
+        : {};
+      const currentOptional = typeof application.optionalDocuments === 'object' && application.optionalDocuments !== null 
+        ? application.optionalDocuments 
+        : {};
+
+      let updateData: any = {};
+      let documentFound = false;
+
+      // Check if document exists in required documents
+      if (currentRequired[documentId]) {
+        const updatedRequired = { ...currentRequired };
+        delete updatedRequired[documentId];
+        updateData.requiredDocuments = updatedRequired;
+        documentFound = true;
+
+        // Update status based on remaining mandatory documents
+        const mandatoryDocKeys = ['business_license', 'cnpj_certificate'];
+        const uploadedMandatory = Object.keys(updatedRequired).filter(key => mandatoryDocKeys.includes(key)).length;
+        
+        if (uploadedMandatory === 0) {
+          updateData.documentsStatus = 'pending';
+          if (application.status === 'pre_analysis') {
+            updateData.status = 'pending';
+          }
+        } else if (uploadedMandatory < mandatoryDocKeys.length) {
+          updateData.documentsStatus = 'partial';
+        }
+      }
+
+      // Check if document exists in optional documents
+      if (currentOptional[documentId]) {
+        const updatedOptional = { ...currentOptional };
+        delete updatedOptional[documentId];
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+      }
+
+      if (!documentFound) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      console.log(`Removing document ${documentId} from application ${applicationId}`);
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+      
+      res.json({ 
+        message: "Documento removido com sucesso",
+        application: updatedApplication 
+      });
+    } catch (error) {
+      console.error("Error removing document:", error);
+      res.status(500).json({ message: "Erro ao remover documento" });
+    }
+  });
+
   // Payment endpoints
 
   // Get individual payment details

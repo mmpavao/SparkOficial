@@ -516,6 +516,7 @@ export default function CreditDetailsPage() {
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                      onRemove={handleDocumentRemove}
                       uploadedDocuments={application.optionalDocuments || {}}
                       onValidation={(result) => {
                         setValidationResults(prev => ({
