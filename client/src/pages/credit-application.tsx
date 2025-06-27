@@ -464,33 +464,39 @@ export default function CreditApplicationPage() {
       const uploadPromises = [];
       let uploadErrors = [];
 
-      for (const [key, docInfo] of Object.entries(uploadedDocuments)) {
-        if (docInfo.file) {
-          const uploadPromise = (async () => {
-            try {
-              const formData = new FormData();
-              formData.append('document', docInfo.file);
-              formData.append('documentType', key);
-              formData.append('isMandatory', mandatoryDocKeys.includes(key).toString());
+      for (const [key, docData] of Object.entries(uploadedDocuments)) {
+        // Handle both single documents and arrays of documents
+        const documentsArray = Array.isArray(docData) ? docData : [docData];
+        
+        for (const docInfo of documentsArray) {
+          if (docInfo && docInfo.file) {
+            const uploadPromise = (async () => {
+              try {
+                const formData = new FormData();
+                formData.append('document', docInfo.file);
+                formData.append('documentType', key);
+                formData.append('isMandatory', mandatoryDocKeys.includes(key).toString());
 
-              const uploadResponse = await fetch(`/api/credit/applications/${applicationId}/documents`, {
-                method: 'POST',
-                body: formData,
-              });
+                const uploadResponse = await fetch(`/api/credit/applications/${applicationId}/documents`, {
+                  method: 'POST',
+                  body: formData,
+                  credentials: 'include',
+                });
 
-              if (!uploadResponse.ok) {
-                const errorData = await uploadResponse.json();
-                throw new Error(`Erro no upload de ${docInfo.filename}: ${errorData.message || 'Erro desconhecido'}`);
+                if (!uploadResponse.ok) {
+                  const errorData = await uploadResponse.json();
+                  throw new Error(`Erro no upload de ${docInfo.filename}: ${errorData.message || 'Erro desconhecido'}`);
+                }
+
+                return await uploadResponse.json();
+              } catch (error: any) {
+                uploadErrors.push(error.message);
+                console.error(`Upload error for ${key}:`, error);
               }
-
-              return await uploadResponse.json();
-            } catch (error: any) {
-              uploadErrors.push(error.message);
-              console.error(`Upload error for ${key}:`, error);
-            }
-          })();
-          
-          uploadPromises.push(uploadPromise);
+            })();
+            
+            uploadPromises.push(uploadPromise);
+          }
         }
       }
 
