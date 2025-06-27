@@ -776,6 +776,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Invalidate caches when data changes
       invalidateAdminCaches();
+      
+      res.json(updatedApplication);
     } catch (error) {
       console.error("Error approving credit application:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -811,6 +813,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Invalidate caches when data changes
       invalidateAdminCaches();
+      
+      res.json(updatedApplication);
     } catch (error) {
       console.error("Error rejecting credit application:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
