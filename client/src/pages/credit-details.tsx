@@ -45,7 +45,7 @@ import {
 // Dynamic document generation function for shareholders
 const generateMandatoryDocuments = (shareholders: any[] = []) => {
   const baseMandatoryDocuments = [
-    // 📁 1. Documentação Jurídica e Societária
+    // 📁 1. Contrato Social (OBRIGATÓRIO)
     { 
       key: 'articles_of_association', 
       label: '🇧🇷 Contrato Social registrado na Junta Comercial', 
@@ -53,57 +53,18 @@ const generateMandatoryDocuments = (shareholders: any[] = []) => {
       observation: '💬 Instruir o cliente a enviar o contrato social completo e atualizado, com carimbo da Junta Comercial.',
       required: true 
     },
+    // 🆔 2. Cartão CNPJ (OBRIGATÓRIO)
     { 
       key: 'business_license', 
       label: '🇧🇷 Cartão do CNPJ ou Certidão Simplificada da Junta Comercial', 
       subtitle: 'Business License',
       observation: '💬 Se preferir: pedir o comprovante de inscrição e situação cadastral da Receita Federal.',
       required: true 
-    },
-    { 
-      key: 'certificate_of_incorporation', 
-      label: '🇧🇷 Certidão Simplificada da Junta Comercial', 
-      subtitle: 'Certificate of Incorporation',
-      observation: '💬 Documento pode ser emitido online no site da Junta Comercial do estado da empresa.',
-      required: true 
-    },
-    // 📊 2. Documentação Financeira
-    { 
-      key: 'financial_statements', 
-      label: '🇧🇷 Balanços patrimoniais e DRE assinados pelo contador (últimos 3 anos)', 
-      subtitle: 'Financial Statements (Last 3 Years)',
-      observation: '💬 Idealmente com carimbo do CRC e assinatura digital. Se não houver balanço, pode-se aceitar declaração de faturamento.',
-      required: true 
-    },
-    // 🧾 3. Documentação Fiscal
-    { 
-      key: 'tax_registration_certificate', 
-      label: '🇧🇷 Certidões Negativas de Débito (CND)', 
-      subtitle: 'Tax Registration Certificate',
-      observation: '💬 Receita Federal (Dívida Ativa + Tributos Federais), Estadual e Municipal. Todas podem ser obtidas gratuitamente nos sites dos respectivos órgãos.',
-      required: true 
-    },
-    // 🌎 4. Comércio Exterior e Operação
-    { 
-      key: 'export_import_license', 
-      label: '🇧🇷 Habilitação no RADAR (Siscomex) ou Licença de Importação atual', 
-      subtitle: 'Export/Import License',
-      observation: '💬 Enviar cópia do comprovante de habilitação (print do portal Gov.br/Siscomex).',
-      required: true 
     }
   ];
 
-  // If there are 2 or more shareholders, add specific documents
+  // 3. Documentos dos Sócios (OBRIGATÓRIO)
   if (shareholders && shareholders.length >= 2) {
-    // Add shareholding structure document
-    baseMandatoryDocuments.push({
-      key: 'shareholding_structure',
-      label: '🇧🇷 Cláusula de composição societária + Tabela simples com CPF e percentual de cada sócio',
-      subtitle: 'Shareholding Structure',
-      observation: '💬 Se não constar claramente no contrato social, solicitar planilha/tabela com nome, CPF e percentual de cada sócio.',
-      required: true
-    });
-
     // Add individual documents for each shareholder
     shareholders.forEach((shareholder, index) => {
       baseMandatoryDocuments.push({
@@ -368,6 +329,37 @@ export default function CreditDetailsPage() {
   const mandatoryDocuments = generateMandatoryDocuments(shareholders);
 
   const optionalDocuments = [
+    // 🧾 Documentação Fiscal (Agora Opcional)
+    { 
+      key: 'tax_registration_certificate', 
+      label: '🇧🇷 Certidões Negativas de Débito (CND)', 
+      subtitle: 'Tax Registration Certificate',
+      observation: '💬 Receita Federal (Dívida Ativa + Tributos Federais), Estadual e Municipal. Todas podem ser obtidas gratuitamente nos sites dos respectivos órgãos.',
+      required: false 
+    },
+    { 
+      key: 'certificate_of_incorporation', 
+      label: '🇧🇷 Certidão Simplificada da Junta Comercial', 
+      subtitle: 'Certificate of Incorporation',
+      observation: '💬 Documento pode ser emitido online no site da Junta Comercial do estado da empresa.',
+      required: false 
+    },
+    // 📊 Documentação Financeira (Agora Opcional)
+    { 
+      key: 'financial_statements', 
+      label: '🇧🇷 Balanços patrimoniais e DRE assinados pelo contador (últimos 3 anos)', 
+      subtitle: 'Financial Statements (Last 3 Years)',
+      observation: '💬 Idealmente com carimbo do CRC e assinatura digital. Se não houver balanço, pode-se aceitar declaração de faturamento.',
+      required: false 
+    },
+    // 🌎 Comércio Exterior (Agora Opcional)
+    { 
+      key: 'export_import_license', 
+      label: '🇧🇷 Habilitação no RADAR (Siscomex) ou Licença de Importação atual', 
+      subtitle: 'Export/Import License',
+      observation: '💬 Enviar cópia do comprovante de habilitação (print do portal Gov.br/Siscomex).',
+      required: false 
+    },
     // 📊 2. Documentação Financeira
     { 
       key: 'bank_reference_letter', 

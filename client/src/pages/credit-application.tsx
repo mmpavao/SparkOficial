@@ -127,7 +127,7 @@ const revenueRanges = [
 // Generate dynamic mandatory documents based on shareholders
 const generateMandatoryDocuments = (shareholders: Array<{name: string; cpf: string; percentage: number}>) => {
   const baseDocs = [
-    // 📁 1. Documentação Jurídica e Societária (OBRIGATÓRIO)
+    // 📁 1. Contrato Social (OBRIGATÓRIO)
     { 
       key: 'articles_of_association', 
       label: '🇧🇷 Contrato Social registrado na Junta Comercial', 
@@ -145,17 +145,8 @@ const generateMandatoryDocuments = (shareholders: Array<{name: string; cpf: stri
     }
   ];
 
-  // If multiple shareholders, add specific documents for each
+  // 3. Documentos dos Sócios (OBRIGATÓRIO)
   if (shareholders.length >= 2) {
-    // Add shareholding structure document
-    baseDocs.push({
-      key: 'shareholding_structure',
-      label: '🇧🇷 Cláusula de composição societária + Tabela simples com CPF e percentual de cada sócio',
-      subtitle: 'Shareholding Structure',
-      observation: '💬 Se não constar claramente no contrato social, solicitar planilha/tabela com nome, CPF e percentual de cada sócio.',
-      required: true
-    });
-
     // Add documents for each shareholder
     shareholders.forEach((shareholder, index) => {
       baseDocs.push({
@@ -1419,7 +1410,7 @@ export default function CreditApplicationPage() {
         // Calculate dynamic mandatory documents based on shareholders
         const shareholders = companyForm.getValues().shareholders || [];
         const dynamicMandatoryDocuments = generateMandatoryDocuments(shareholders);
-        const minimumRequired = Math.max(2, dynamicMandatoryDocuments.length);
+        const minimumRequired = dynamicMandatoryDocuments.length; // Only the 3 mandatory documents
 
         return (
           <Card>
