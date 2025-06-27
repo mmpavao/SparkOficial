@@ -449,10 +449,12 @@ export default function CreditApplicationPage() {
                creditData.monthlyImportVolume && creditData.justification;
       case 4:
         // Must have all mandatory documents uploaded to complete step 4
-        const mandatoryUploaded = mandatoryDocuments.filter(doc => 
+        const currentShareholders = companyForm.getValues().shareholders || [];
+        const currentDynamicMandatoryDocuments = generateMandatoryDocuments(currentShareholders);
+        const mandatoryUploaded = currentDynamicMandatoryDocuments.filter(doc => 
           uploadedDocuments[doc.key]
         ).length;
-        return mandatoryUploaded >= mandatoryDocuments.length;
+        return mandatoryUploaded >= currentDynamicMandatoryDocuments.length;
       default:
         return false;
     }
@@ -462,14 +464,16 @@ export default function CreditApplicationPage() {
     setIsSubmitting(true);
     try {
       // Calculate documents status based on uploaded documents
-      const mandatoryUploaded = mandatoryDocuments.filter(doc => 
+      const currentShareholders = companyForm.getValues().shareholders || [];
+      const currentDynamicMandatoryDocuments = generateMandatoryDocuments(currentShareholders);
+      const mandatoryUploaded = currentDynamicMandatoryDocuments.filter(doc => 
         uploadedDocuments[doc.key]
       ).length;
 
       let documentsStatus = "pending";
       let applicationStatus = "pre_analysis";
 
-      if (mandatoryUploaded >= mandatoryDocuments.length) {
+      if (mandatoryUploaded >= currentDynamicMandatoryDocuments.length) {
         documentsStatus = "complete";
         applicationStatus = "pre_analysis";
       } else if (mandatoryUploaded > 0) {
@@ -492,7 +496,7 @@ export default function CreditApplicationPage() {
       const applicationId = response.id;
 
       // Upload documents separately using FormData with error handling
-      const mandatoryDocKeys = mandatoryDocuments.map(doc => doc.key);
+      const mandatoryDocKeys = currentDynamicMandatoryDocuments.map(doc => doc.key);
       const uploadPromises = [];
       let uploadErrors = [];
 
