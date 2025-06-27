@@ -147,6 +147,10 @@ export default function ImportCard({ importData }: ImportCardProps) {
     setShowCancelDialog(true);
   };
 
+  const handleCardClick = () => {
+    setLocation(`/imports/details/${importData.id}`);
+  };
+
   const confirmCancel = () => {
     cancelMutation.mutate();
   };
@@ -164,7 +168,10 @@ export default function ImportCard({ importData }: ImportCardProps) {
 
   return (
     <>
-      <Card className={`hover:shadow-md transition-shadow border-l-4 ${getBorderColor(importData.status)}`}>
+      <Card 
+        className={`hover:shadow-md transition-shadow border-l-4 ${getBorderColor(importData.status)} cursor-pointer`}
+        onClick={handleCardClick}
+      >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             {/* Left side - Icon and Basic Info */}

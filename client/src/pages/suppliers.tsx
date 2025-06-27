@@ -48,6 +48,11 @@ export default function SuppliersPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
+  // Navigation handler for card clicks
+  const handleSupplierCardClick = (supplierId: number) => {
+    setLocation(`/suppliers/details/${supplierId}`);
+  };
+
   // Use unified endpoint system
   const { 
     isAdmin, 
@@ -229,7 +234,11 @@ export default function SuppliersPage() {
           ) : (
             <div className="space-y-3">
               {filteredSuppliers.map((supplier: any) => (
-                <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div 
+                  key={supplier.id} 
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => handleSupplierCardClick(supplier.id)}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">
                       <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
