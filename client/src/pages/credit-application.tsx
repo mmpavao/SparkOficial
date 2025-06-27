@@ -420,9 +420,7 @@ export default function CreditApplicationPage() {
         userId: user?.id,
         status: applicationStatus,
         currentStep: 4,
-        documentsStatus: documentsStatus,
-        requiredDocuments: {},
-        optionalDocuments: {}
+        documentsStatus: documentsStatus
       };
 
       // Submit application first to get ID

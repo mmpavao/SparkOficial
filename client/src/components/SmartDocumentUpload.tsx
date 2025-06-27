@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Upload, 
@@ -11,7 +12,8 @@ import {
   Loader2,
   FileText,
   Trash2,
-  Download
+  Download,
+  X
 } from "lucide-react";
 
 interface ValidationResult {
@@ -31,14 +33,26 @@ interface ValidationResult {
   };
 }
 
+interface DocumentFile {
+  id: string;
+  filename: string;
+  originalName: string;
+  size: number;
+  type: string;
+  uploadedAt: string;
+  uploadedBy: number;
+  data?: string;
+}
+
 interface SmartDocumentUploadProps {
   documentKey: string;
   documentLabel: string;
   documentSubtitle?: string;
   isRequired: boolean;
-  isUploaded: boolean;
+  uploadedDocuments: DocumentFile[];
   isUploading: boolean;
   onUpload: (file: File) => void;
+  onRemove?: (documentId: string) => void;
   onValidation?: (result: ValidationResult) => void;
   applicationId?: number;
 }
@@ -48,9 +62,10 @@ export function SmartDocumentUpload({
   documentLabel,
   documentSubtitle,
   isRequired,
-  isUploaded,
+  uploadedDocuments,
   isUploading,
   onUpload,
+  onRemove,
   onValidation,
   applicationId
 }: SmartDocumentUploadProps) {
