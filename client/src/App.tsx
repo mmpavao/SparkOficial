@@ -38,6 +38,8 @@ import AdminRoute from "@/components/AdminRoute";
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
+  console.log('Router state:', { user, isLoading, isAuthenticated });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -49,48 +51,48 @@ function Router() {
     );
   }
 
+  if (!isAuthenticated) {
+    console.log('Not authenticated, showing auth page');
+    return <Route path="/" component={AuthPage} />;
+  }
+
+  console.log('Authenticated, showing main app');
 
 
   return (
-    <Switch>
-      {isAuthenticated ? (
-        <AuthenticatedLayout>
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/credit" component={CreditPage} />
-            <Route path="/credit/new" component={CreditApplicationPage} />
-            <Route path="/credit/details/:id" component={CreditDetailsPage} />
-            <Route path="/credit/edit/:id" component={CreditEditPage} />
+    <AuthenticatedLayout>
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/credit" component={CreditPage} />
+        <Route path="/credit/new" component={CreditApplicationPage} />
+        <Route path="/credit/details/:id" component={CreditDetailsPage} />
+        <Route path="/credit/edit/:id" component={CreditEditPage} />
 
-            <Route path="/imports" component={ImportsPage} />
-            <Route path="/imports/new" component={NewImportPage} />
-            <Route path="/imports/new-form" component={ImportNewFormPage} />
-            <Route path="/imports/pipeline-demo" component={PipelineDemoPage} />
-            <Route path="/imports/pipeline" component={PipelineSimplePage} />
-            <Route path="/imports/:id" component={ImportDetailsPage} />
-            <Route path="/imports/:id/edit" component={ImportEdit} />
+        <Route path="/imports" component={ImportsPage} />
+        <Route path="/imports/new" component={NewImportPage} />
+        <Route path="/imports/new-form" component={ImportNewFormPage} />
+        <Route path="/imports/pipeline-demo" component={PipelineDemoPage} />
+        <Route path="/imports/pipeline" component={PipelineSimplePage} />
+        <Route path="/imports/:id" component={ImportDetailsPage} />
+        <Route path="/imports/:id/edit" component={ImportEdit} />
 
-            <Route path="/suppliers" component={SuppliersPage} />
-            <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />
-            <Route path="/suppliers/edit/:id" component={SupplierEditPage} />
-            <Route path="/suppliers/new" component={SupplierNewPage} />
-            <Route path="/payments/details/:id" component={PaymentDetailsPage} />
-            <Route path="/payments/pay/:id" component={PaymentPayPage} />
-            <Route path="/payments/edit/:id" component={PaymentEditPage} />
-            <Route path="/reports" component={ReportsPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
-            <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
-            <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
-            <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
+        <Route path="/suppliers" component={SuppliersPage} />
+        <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />
+        <Route path="/suppliers/edit/:id" component={SupplierEditPage} />
+        <Route path="/suppliers/new" component={SupplierNewPage} />
+        <Route path="/payments/details/:id" component={PaymentDetailsPage} />
+        <Route path="/payments/pay/:id" component={PaymentPayPage} />
+        <Route path="/payments/edit/:id" component={PaymentEditPage} />
+        <Route path="/reports" component={ReportsPage} />
+        <Route path="/settings" component={SettingsPage} />
+        <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
+        <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
+        <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
+        <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
 
-            <Route component={NotFound} />
-          </Switch>
-        </AuthenticatedLayout>
-      ) : (
-        <Route path="/" component={AuthPage} />
-      )}
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+    </AuthenticatedLayout>
   );
 }
 
