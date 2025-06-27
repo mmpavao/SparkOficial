@@ -2841,10 +2841,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseDocumentId = parts[0];
       const docIndex = parts.length > 1 ? parseInt(parts[1]) : null;
 
+      console.log(`Attempting to remove document: ${documentId}, base: ${baseDocumentId}, index: ${docIndex}`);
+
       // Check if document exists in required documents
       if (currentRequired[baseDocumentId]) {
         const updatedRequired = { ...currentRequired };
         const existingDoc = updatedRequired[baseDocumentId];
+        
+        console.log(`Found in required documents:`, existingDoc);
         
         if (Array.isArray(existingDoc)) {
           if (docIndex !== null && docIndex >= 0 && docIndex < existingDoc.length) {
@@ -2859,36 +2863,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               updatedRequired[baseDocumentId] = newArray;
             }
+            documentFound = true;
           } else {
-            // Remove all documents for this key
+            // Invalid index, remove all documents for this key
             delete updatedRequired[baseDocumentId];
+            documentFound = true;
           }
         } else {
           // Remove single document
           delete updatedRequired[baseDocumentId];
+          documentFound = true;
         }
         
-        updateData.requiredDocuments = updatedRequired;
-        documentFound = true;
+        if (documentFound) {
+          updateData.requiredDocuments = updatedRequired;
 
-        // Update status based on remaining mandatory documents
-        const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
-        const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
-        
-        if (uploadedMandatory === 0) {
-          updateData.documentsStatus = 'pending';
-          if (application.status === 'pre_analysis') {
-            updateData.status = 'pending';
+          // Update status based on remaining mandatory documents
+          const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
+          const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
+          
+          if (uploadedMandatory === 0) {
+            updateData.documentsStatus = 'pending';
+            if (application.status === 'pre_analysis') {
+              updateData.status = 'pending';
+            }
+          } else if (uploadedMandatory < mandatoryDocKeys.length) {
+            updateData.documentsStatus = 'partial';
           }
-        } else if (uploadedMandatory < mandatoryDocKeys.length) {
-          updateData.documentsStatus = 'partial';
         }
       }
 
-      // Check if document exists in optional documents
-      if (currentOptional[baseDocumentId]) {
+      // Check if document exists in optional documents (only if not found in required)
+      if (!documentFound && currentOptional[baseDocumentId]) {
         const updatedOptional = { ...currentOptional };
         const existingDoc = updatedOptional[baseDocumentId];
+        
+        console.log(`Found in optional documents:`, existingDoc);
         
         if (Array.isArray(existingDoc)) {
           if (docIndex !== null && docIndex >= 0 && docIndex < existingDoc.length) {
@@ -2903,17 +2913,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               updatedOptional[baseDocumentId] = newArray;
             }
+            documentFound = true;
           } else {
-            // Remove all documents for this key
+            // Invalid index, remove all documents for this key
             delete updatedOptional[baseDocumentId];
+            documentFound = true;
           }
         } else {
           // Remove single document
           delete updatedOptional[baseDocumentId];
+          documentFound = true;
         }
         
-        updateData.optionalDocuments = updatedOptional;
-        documentFound = true;
+        if (documentFound) {
+          updateData.optionalDocuments = updatedOptional;
+        }
       }
 
       if (!documentFound) {

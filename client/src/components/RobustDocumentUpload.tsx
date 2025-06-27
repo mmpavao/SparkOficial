@@ -87,23 +87,16 @@ export function RobustDocumentUpload({
     }
   };
 
-  const handleRemoveDocument = (docId?: any) => {
-    if (documentList.length === 1 || !docId) {
-      // Remove all documents for this key
+  const handleRemoveDocument = (docIndex?: any) => {
+    if (documentList.length === 1) {
+      // Remove single document
       onRemove(documentKey);
+    } else if (typeof docIndex === 'number' && docIndex >= 0 && docIndex < documentList.length) {
+      // Remove specific document by index for multiple documents
+      onRemove(`${documentKey}_${docIndex}`);
     } else {
-      // Remove specific document by ID
-      const docToRemove = documentList[docId];
-      if(docToRemove){
-           onRemove(`${documentKey}_${docToRemove.id}`);
-      } else {
-        toast({
-          title: "Erro ao remover",
-          description: "Documento não encontrado",
-          variant: "destructive",
-        });
-      }
-
+      // Fallback: remove all documents for this key
+      onRemove(documentKey);
     }
   };
 
