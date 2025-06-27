@@ -158,9 +158,39 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               financialStatus: 'approved'
             }
           }, {
-            onSuccess: () => {
-              // Force refresh da página para garantir que todos os dados sejam atualizados
-              window.location.reload();
+            onSuccess: (data) => {
+              // Atualização otimística do cache com dados da resposta
+              queryClient.setQueryData(
+                [`/api/financeira/credit-applications/${application.id}`],
+                (oldData: any) => ({
+                  ...oldData,
+                  financialStatus: 'approved',
+                  creditLimit: financialData.creditLimit,
+                  approvedTerms: financialData.approvedTerms.join(','),
+                  downPayment: financialData.downPayment,
+                  financialNotes: financialData.financialNotes
+                })
+              );
+              
+              // Invalidar queries relacionadas
+              queryClient.invalidateQueries({ 
+                queryKey: ["/api/financeira/credit-applications"] 
+              });
+              queryClient.invalidateQueries({ 
+                queryKey: [`/api/credit/applications/${application.id}`] 
+              });
+              
+              // Força refetch para garantir sincronização
+              setTimeout(() => {
+                queryClient.refetchQueries({ 
+                  queryKey: [`/api/financeira/credit-applications/${application.id}`] 
+                });
+              }, 100);
+              
+              toast({
+                title: "Crédito Aprovado!",
+                description: "A aprovação foi processada com sucesso.",
+              });
             }
           });
         }
@@ -356,6 +386,13 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
           <Separator />
 
+          {/* Debug info - remover após teste */}
+          {permissions.isFinanceira && (
+            <div className="text-xs text-gray-500 mb-2">
+              Debug: financialStatus = "{application.financialStatus}" | isFinanceira = {permissions.isFinanceira ? 'true' : 'false'}
+            </div>
+          )}
+          
           {permissions.isFinanceira && application.financialStatus === 'approved' ? (
             // Financeira Interface - Already approved, show approved credit details
             <>
