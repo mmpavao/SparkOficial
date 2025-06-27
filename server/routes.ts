@@ -3386,7 +3386,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user's credit applications
       const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
-      const approvedApplication = creditApplications.find(app => 
+      
+      // Get ALL approved applications - not just one
+      const approvedApplications = creditApplications.filter(app => 
         app.adminStatus === 'admin_finalized' || 
         app.adminStatus === 'finalized' || 
         app.status === 'approved' || 
@@ -3399,7 +3401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user's suppliers
       const suppliers = await storage.getSuppliersByUser(req.session.userId);
 
-      // Calculate credit metrics
+      // Calculate credit metrics from ALL approved applications
       let creditMetrics = {
         approvedAmount: 0,
         usedAmount: 0,
@@ -3407,19 +3409,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         utilizationRate: 0
       };
 
-      if (approvedApplication) {
-        const creditLimit = parseFloat(
-          approvedApplication.finalCreditLimit || 
-          approvedApplication.requestedAmount || 
-          '0'
-        );
+      if (approvedApplications.length > 0) {
+        // Sum all approved credit limits
+        const totalCreditLimit = approvedApplications.reduce((sum, app) => {
+          return sum + parseFloat(app.finalCreditLimit || app.requestedAmount || '0');
+        }, 0);
 
-        // Calculate used credit from active imports (not in planning stage)
-        // Credit usage is the full FOB value of imports, not just financed amount
+        // Calculate used credit from active imports linked to any approved application
+        const approvedIds = approvedApplications.map(app => app.id);
         const activeImports = imports.filter(imp => 
           imp.status !== 'planejamento' && 
           imp.status !== 'cancelado' && 
-          imp.creditApplicationId === approvedApplication.id
+          approvedIds.includes(imp.creditApplicationId)
         );
 
         const usedAmount = activeImports.reduce((sum, imp) => {
@@ -3427,10 +3428,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }, 0);
 
         creditMetrics = {
-          approvedAmount: creditLimit,
+          approvedAmount: totalCreditLimit,
           usedAmount: usedAmount,
-          availableAmount: creditLimit - usedAmount,
-          utilizationRate: creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0
+          availableAmount: totalCreditLimit - usedAmount,
+          utilizationRate: totalCreditLimit > 0 ? (usedAmount / totalCreditLimit) * 100 : 0
         };
       }
 
