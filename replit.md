@@ -603,6 +603,13 @@ Changelog:
   * Created SISTEMA_DOCUMENTOS_PROTECAO.md with strict protection rules to prevent future modifications
   * System tested and confirmed 100% functional with multiple document upload and complete persistence
   * Document management development phase officially completed and locked for protection
+- June 27, 2025. Critical financial approval synchronization fix and admin module restoration:
+  * Fixed backend-frontend synchronization issue preventing financeira interface from updating after approval
+  * Replaced window.location.reload() with optimistic cache updates and specific query invalidation
+  * Corrected database inconsistency in application #46 (financial_status updated to 'approved')
+  * Implemented targeted fix for admin module: restored pre-analysis buttons without affecting financeira functionality
+  * Added role-based isolation using !permissions.isFinanceira to prevent cross-module interference
+  * Both admin and financeira modules now function independently with proper workflow separation
 ```
 
 ## User Preferences
