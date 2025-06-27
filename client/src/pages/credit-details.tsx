@@ -110,7 +110,10 @@ export default function CreditDetailsPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalida todas as queries relacionadas à aplicação
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["credit-applications"] });
+      queryClient.refetchQueries({ queryKey: ["/api/credit/applications", applicationId] });
       toast({
         title: "Sucesso!",
         description: "Documento enviado com sucesso.",
@@ -161,6 +164,42 @@ export default function CreditDetailsPage() {
   const handleDocumentUpload = (documentType: string, file: File) => {
     setUploadingDocument(documentType);
     uploadDocumentMutation.mutate({ documentType, file });
+  };
+
+  // Delete document mutation
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async ({ documentId }: { documentId: string }) => {
+      const response = await fetch(`/api/credit/applications/${applicationId}/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao remover documento');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalida todas as queries relacionadas à aplicação
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["credit-applications"] });
+      queryClient.refetchQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      toast({
+        title: "Documento removido!",
+        description: "Documento foi removido com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao remover documento",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDocumentRemove = (documentId: string) => {
+    deleteDocumentMutation.mutate({ documentId });
   };
 
   const initializeEditMode = () => {
@@ -441,6 +480,7 @@ export default function CreditDetailsPage() {
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                      onRemove={handleDocumentRemove}
                       uploadedDocuments={application.requiredDocuments || {}}
                       onValidation={(result) => {
                         setValidationResults(prev => ({
@@ -803,6 +843,7 @@ function DocumentUploadSection({
   applicationId, 
   isUploading, 
   onUpload, 
+  onRemove,
   uploadedDocuments,
   onValidation
 }: {
@@ -810,6 +851,7 @@ function DocumentUploadSection({
   applicationId: number;
   isUploading: boolean;
   onUpload: (file: File) => void;
+  onRemove: (documentId: string) => void;
   uploadedDocuments: Record<string, any>;
   onValidation?: (result: ValidationResult) => void;
 }) {
@@ -827,10 +869,7 @@ function DocumentUploadSection({
       uploadedDocuments={documentFiles}
       isUploading={isUploading}
       onUpload={onUpload}
-      onRemove={(documentId) => {
-        // Implementar remoção de documento específico
-        console.log('Removendo documento:', documentId);
-      }}
+      onRemove={onRemove}
       onValidation={onValidation}
       applicationId={applicationId}
     />
