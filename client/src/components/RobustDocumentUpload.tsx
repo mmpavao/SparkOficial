@@ -20,6 +20,7 @@ interface DocumentFile {
   uploadedAt: string;
   uploadedBy: number;
   data?: string;
+  id?: string;
 }
 
 interface RobustDocumentUploadProps {
@@ -48,9 +49,10 @@ export function RobustDocumentUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Get current document for this key
-  const currentDoc = uploadedDocuments[documentKey];
-  const hasDocument = !!currentDoc && currentDoc.filename;
+  // Get current documents for this key (can be single document or array)
+  const currentDocs = uploadedDocuments[documentKey];
+  const documentList = Array.isArray(currentDocs) ? currentDocs : (currentDocs ? [currentDocs] : []);
+  const hasDocument = documentList.length > 0;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,12 +87,18 @@ export function RobustDocumentUpload({
     }
   };
 
-  const handleRemoveDocument = () => {
-    onRemove(documentKey);
+  const handleRemoveDocument = (docId?: string) => {
+    if (documentList.length === 1 || !docId) {
+      // Remove all documents for this key
+      onRemove(documentKey);
+    } else {
+      // Remove specific document by ID
+      onRemove(`${documentKey}_${docId}`);
+    }
   };
 
-  const handleDownload = () => {
-    if (!currentDoc || !currentDoc.data) {
+  const handleDownload = (doc: DocumentFile, index: number = 0) => {
+    if (!doc || !doc.data) {
       toast({
         title: "Erro no download",
         description: "Documento não encontrado ou dados corrompidos",
@@ -101,9 +109,10 @@ export function RobustDocumentUpload({
 
     try {
       const link = document.createElement('a');
-      link.href = `/api/documents/download/${documentKey}/${applicationId}`;
+      const downloadKey = documentList.length > 1 ? `${documentKey}_${index}` : documentKey;
+      link.href = `/api/documents/download/${downloadKey}/${applicationId}`;
       link.target = '_blank';
-      link.download = currentDoc.originalName || currentDoc.filename || `documento_${documentKey}`;
+      link.download = doc.originalName || doc.filename || `documento_${documentKey}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -128,7 +137,7 @@ export function RobustDocumentUpload({
             {hasDocument && (
               <Badge variant="outline" className="text-xs text-green-600 border-green-300">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Enviado
+                {documentList.length === 1 ? "Enviado" : `${documentList.length} Enviados`}
               </Badge>
             )}
             {!hasDocument && (
@@ -145,63 +154,73 @@ export function RobustDocumentUpload({
 
       {/* Document Display */}
       {hasDocument && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-green-800">
-                  {currentDoc.originalName || currentDoc.filename}
-                </p>
-                <p className="text-xs text-green-600">
-                  {currentDoc.size ? `${(currentDoc.size / 1024 / 1024).toFixed(2)} MB` : ''} • 
-                  {currentDoc.uploadedAt ? new Date(currentDoc.uploadedAt).toLocaleDateString() : ''}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {/* Download Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownload}
-                className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-300"
-              >
-                <Download className="w-3 h-3" />
-              </Button>
-              
-              {/* Remove Button */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+        <div className="space-y-2">
+          {documentList.map((doc, index) => (
+            <div key={`${documentKey}_${index}`} className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">
+                      {doc.originalName || doc.filename}
+                      {documentList.length > 1 && (
+                        <span className="ml-2 text-xs bg-green-200 text-green-700 px-2 py-0.5 rounded">
+                          {index + 1} de {documentList.length}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      {doc.size ? `${(doc.size / 1024 / 1024).toFixed(2)} MB` : ''} • 
+                      {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : ''}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Download Button */}
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                    onClick={() => handleDownload(doc, index)}
+                    className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-300"
                   >
-                    <X className="w-3 h-3" />
+                    <Download className="w-3 h-3" />
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Remover documento</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja remover o documento "{currentDoc.originalName || currentDoc.filename}"? Esta ação não pode ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleRemoveDocument}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Remover
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                  
+                  {/* Remove Button */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover documento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja remover o documento "{doc.originalName || doc.filename}"? Esta ação não pode ser desfeita.
+                          {documentList.length > 1 && " Os outros documentos desta categoria serão mantidos."}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleRemoveDocument(doc.id || index.toString())}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Remover
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       )}
 

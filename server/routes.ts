@@ -2731,22 +2731,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
         const updatedRequired = { ...currentRequired };
-        updatedRequired[documentType] = documentInfo;
+        
+        // Handle multiple documents for the same key
+        const existingDoc = updatedRequired[documentType];
+        if (existingDoc) {
+          // If there's already a document, convert to array or add to existing array
+          if (Array.isArray(existingDoc)) {
+            updatedRequired[documentType] = [...existingDoc, documentInfo];
+          } else {
+            updatedRequired[documentType] = [existingDoc, documentInfo];
+          }
+        } else {
+          updatedRequired[documentType] = documentInfo;
+        }
+        
         updateData.requiredDocuments = updatedRequired;
 
-        // Update status based on mandatory documents
-        const uploadedMandatory = Object.keys(updatedRequired).length;
-        if (uploadedMandatory >= mandatoryDocKeys.length) {
+        // Update status based on mandatory documents (check if all mandatory types have at least one document)
+        const uploadedMandatoryTypes = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
+        if (uploadedMandatoryTypes >= mandatoryDocKeys.length) {
           updateData.documentsStatus = 'complete';
           if (application.status === 'pending' || application.status === 'draft') {
             updateData.status = 'pre_analysis';
           }
-        } else if (uploadedMandatory > 0) {
+        } else if (uploadedMandatoryTypes > 0) {
           updateData.documentsStatus = 'partial';
         }
       } else {
         const updatedOptional = { ...currentOptional };
-        updatedOptional[documentType] = documentInfo;
+        
+        // Handle multiple documents for the same key
+        const existingDoc = updatedOptional[documentType];
+        if (existingDoc) {
+          // If there's already a document, convert to array or add to existing array
+          if (Array.isArray(existingDoc)) {
+            updatedOptional[documentType] = [...existingDoc, documentInfo];
+          } else {
+            updatedOptional[documentType] = [existingDoc, documentInfo];
+          }
+        } else {
+          updatedOptional[documentType] = documentInfo;
+        }
+        
         updateData.optionalDocuments = updatedOptional;
       }
 
@@ -2810,16 +2836,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let updateData: any = {};
       let documentFound = false;
 
+      // Parse document ID to handle multiple documents
+      const parts = documentId.split('_');
+      const baseDocumentId = parts[0];
+      const docIndex = parts.length > 1 ? parseInt(parts[1]) : null;
+
       // Check if document exists in required documents
-      if (currentRequired[documentId]) {
+      if (currentRequired[baseDocumentId]) {
         const updatedRequired = { ...currentRequired };
-        delete updatedRequired[documentId];
+        const existingDoc = updatedRequired[baseDocumentId];
+        
+        if (Array.isArray(existingDoc)) {
+          if (docIndex !== null && docIndex < existingDoc.length) {
+            // Remove specific document from array
+            const newArray = existingDoc.filter((_, index) => index !== docIndex);
+            if (newArray.length === 1) {
+              // Convert back to single document if only one remains
+              updatedRequired[baseDocumentId] = newArray[0];
+            } else if (newArray.length === 0) {
+              // Remove key if no documents remain
+              delete updatedRequired[baseDocumentId];
+            } else {
+              updatedRequired[baseDocumentId] = newArray;
+            }
+          } else {
+            // Remove all documents for this key
+            delete updatedRequired[baseDocumentId];
+          }
+        } else {
+          // Remove single document
+          delete updatedRequired[baseDocumentId];
+        }
+        
         updateData.requiredDocuments = updatedRequired;
         documentFound = true;
 
         // Update status based on remaining mandatory documents
-        const mandatoryDocKeys = ['business_license', 'cnpj_certificate'];
-        const uploadedMandatory = Object.keys(updatedRequired).filter(key => mandatoryDocKeys.includes(key)).length;
+        const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
+        const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
         
         if (uploadedMandatory === 0) {
           updateData.documentsStatus = 'pending';
@@ -2832,9 +2886,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if document exists in optional documents
-      if (currentOptional[documentId]) {
+      if (currentOptional[baseDocumentId]) {
         const updatedOptional = { ...currentOptional };
-        delete updatedOptional[documentId];
+        const existingDoc = updatedOptional[baseDocumentId];
+        
+        if (Array.isArray(existingDoc)) {
+          if (docIndex !== null && docIndex < existingDoc.length) {
+            // Remove specific document from array
+            const newArray = existingDoc.filter((_, index) => index !== docIndex);
+            if (newArray.length === 1) {
+              // Convert back to single document if only one remains
+              updatedOptional[baseDocumentId] = newArray[0];
+            } else if (newArray.length === 0) {
+              // Remove key if no documents remain
+              delete updatedOptional[baseDocumentId];
+            } else {
+              updatedOptional[baseDocumentId] = newArray;
+            }
+          } else {
+            // Remove all documents for this key
+            delete updatedOptional[baseDocumentId];
+          }
+        } else {
+          // Remove single document
+          delete updatedOptional[baseDocumentId];
+        }
+        
         updateData.optionalDocuments = updatedOptional;
         documentFound = true;
       }
