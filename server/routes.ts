@@ -2759,12 +2759,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? application.optionalDocuments 
         : {};
 
-      // Check if it's a mandatory document
+      // Check if it's a mandatory document - include dynamic shareholder documents
       const mandatoryDocKeys = ['articles_of_association', 'business_license', 'legal_representative_id'];
+      const isDynamicShareholderDoc = documentType.startsWith('legal_representative_id_');
+      const isMandatoryDoc = mandatoryDocKeys.includes(documentType) || isDynamicShareholderDoc || isMandatory === 'true';
 
       let updateData: any = {};
 
-      if (mandatoryDocKeys.includes(documentType) || isMandatory === 'true') {
+      if (isMandatoryDoc) {
         const updatedRequired = { ...currentRequired };
         
         // Handle multiple documents for the same key
@@ -2783,13 +2785,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.requiredDocuments = updatedRequired;
 
         // Update status based on mandatory documents (check if all mandatory types have at least one document)
-        const uploadedMandatoryTypes = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
-        if (uploadedMandatoryTypes >= mandatoryDocKeys.length) {
+        const baseUploadedCount = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
+        
+        // Count shareholder documents
+        const shareholderDocKeys = Object.keys(updatedRequired).filter(key => key.startsWith('legal_representative_id_'));
+        const hasShareholderDocs = shareholderDocKeys.length > 0;
+        
+        // For status completion, we need all 3 base docs + at least 1 shareholder doc
+        const hasAllBaseDocs = baseUploadedCount === mandatoryDocKeys.length;
+        const isComplete = hasAllBaseDocs && (hasShareholderDocs || updatedRequired['legal_representative_id']);
+        
+        if (isComplete) {
           updateData.documentsStatus = 'complete';
           if (application.status === 'pending' || application.status === 'draft') {
             updateData.status = 'pre_analysis';
           }
-        } else if (uploadedMandatoryTypes > 0) {
+        } else if (baseUploadedCount > 0 || hasShareholderDocs) {
           updateData.documentsStatus = 'partial';
         }
       } else {
