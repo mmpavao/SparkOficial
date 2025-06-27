@@ -260,9 +260,9 @@ export function SmartDocumentUpload({
       {/* Lista de documentos existentes */}
       {hasUploadedFiles && (
         <div className="space-y-2">
-          {uploadedDocuments.map((doc) => (
+          {uploadedDocuments.map((doc, index) => (
             <div
-              key={doc.id}
+              key={doc.id || `doc-${documentKey}-${index}`}
               className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
             >
               <div className="flex items-center gap-2">
