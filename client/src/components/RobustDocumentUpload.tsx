@@ -77,6 +77,7 @@ export function RobustDocumentUpload({
       return;
     }
 
+    console.log('RobustDocumentUpload: calling onUpload with file:', file.name);
     onUpload(file);
     
     // Reset input

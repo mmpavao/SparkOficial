@@ -162,7 +162,20 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentUpload = (documentType: string, file: File) => {
+    console.log('credit-details: handleDocumentUpload called with:', documentType, file.name);
+    console.log('File size:', file.size, 'File type:', file.type);
     setUploadingDocument(documentType);
+    
+    // Create FormData manually to ensure proper format
+    const formData = new FormData();
+    formData.append('documentType', documentType);
+    formData.append('file', file);
+    
+    console.log('FormData entries:');
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+    
     uploadDocumentMutation.mutate({ documentType, file });
   };
 
@@ -863,7 +876,10 @@ function DocumentUploadSection({
       uploadedDocuments={uploadedDocuments}
       applicationId={applicationId}
       isUploading={isUploading}
-      onUpload={onUpload}
+      onUpload={(file) => {
+        console.log('DocumentUploadSection: calling onUpload for', documentInfo.key, file.name);
+        onUpload(file);
+      }}
       onRemove={onRemove}
     />
   );
