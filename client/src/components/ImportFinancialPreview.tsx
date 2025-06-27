@@ -38,7 +38,8 @@ export function ImportFinancialPreview({
 
     // Use creditUsage.availableCredit from the standardized endpoint
     const availableCredit = creditUsage ? creditUsage.availableCredit || creditUsage.available : 0;
-    const exceedsLimit = calculationValue > availableCredit;
+    // Compare financed amount (70%) with available credit, not total FOB value
+    const exceedsLimit = financedAmount > availableCredit;
 
     return {
       fobValue: calculationValue,
@@ -52,7 +53,7 @@ export function ImportFinancialPreview({
       paymentTerms,
       availableCredit,
       exceedsLimit,
-      remainingCredit: availableCredit - calculationValue
+      remainingCredit: availableCredit - financedAmount
     };
   }, [importValue, creditApplication, creditUsage, adminFeeData]);
 
@@ -181,7 +182,7 @@ export function ImportFinancialPreview({
               <div className="text-sm">
                 <p className="font-medium text-red-800">Limite Insuficiente</p>
                 <p className="text-red-700 mt-1">
-                  Valor a financiar excede o crédito disponível em US$ {Math.abs(remainingCredit).toLocaleString()}
+                  Valor a financiar (US$ {financedAmount.toLocaleString()}) excede o crédito disponível em US$ {Math.abs(remainingCredit).toLocaleString()}
                 </p>
               </div>
             </div>
