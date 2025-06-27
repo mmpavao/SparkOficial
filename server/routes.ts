@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Hash password with consistent salt rounds
-      const saltRounds = 12;
+      const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
       console.log("Password hashed successfully for user:", userData.email);
       console.log("Hash length:", hashedPassword.length);

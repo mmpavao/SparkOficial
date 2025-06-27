@@ -61,7 +61,8 @@ export class DatabaseStorage {
   }
 
   async createUser(insertUser: Omit<InsertUser, 'confirmPassword'>): Promise<User> {
-    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
     const [user] = await db
       .insert(users)
       .values({ ...insertUser, password: hashedPassword })
@@ -647,7 +648,8 @@ export class DatabaseStorage {
   // ===== USER MANAGEMENT =====
 
   async createUserByAdmin(userData: Omit<InsertUser, 'confirmPassword'>, createdBy: number): Promise<User> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
     const [user] = await db
       .insert(users)
       .values({ 
