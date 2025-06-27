@@ -58,14 +58,17 @@ export default function Dashboard() {
 
   // Navigation handlers
   const handleCreditClick = (creditId: number) => {
+    console.log('Navegando para crédito:', creditId);
     setLocation(`/credit/details/${creditId}`);
   };
 
   const handleImportClick = (importId: number) => {
+    console.log('Navegando para importação:', importId);
     setLocation(`/imports/details/${importId}`);
   };
 
   const handleSupplierClick = (supplierId: number) => {
+    console.log('Navegando para fornecedor:', supplierId);
     setLocation(`/suppliers/details/${supplierId}`);
   };
 
@@ -1025,7 +1028,12 @@ export default function Dashboard() {
                       <div 
                         key={import_.id} 
                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => handleImportClick(import_.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Card de importação clicado!', import_.id);
+                          handleImportClick(import_.id);
+                        }}
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -1083,7 +1091,12 @@ export default function Dashboard() {
                       <div 
                         key={app.id} 
                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => handleCreditClick(app.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Card clicado!', app.id);
+                          handleCreditClick(app.id);
+                        }}
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
