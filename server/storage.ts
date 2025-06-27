@@ -31,8 +31,28 @@ export class DatabaseStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    try {
+      const normalizedEmail = email.toLowerCase().trim();
+      console.log("Searching for user with email:", normalizedEmail);
+
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, normalizedEmail))
+        .limit(1);
+
+      if (user) {
+        console.log("User found - ID:", user.id, "Email:", user.email, "Status:", user.status);
+        console.log("Password hash exists:", !!user.password);
+      } else {
+        console.log("No user found for email:", normalizedEmail);
+      }
+
+      return user || null;
+    } catch (error) {
+      console.error("Error fetching user by email:", error);
+      throw error;
+    }
   }
 
   async getUserByCnpj(cnpj: string): Promise<User | undefined> {

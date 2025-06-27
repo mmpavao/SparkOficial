@@ -150,10 +150,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
+      
+      // Normalize email
+      userData.email = userData.email.toLowerCase().trim();
+      console.log("Registration attempt for email:", userData.email);
 
       // Check if user already exists
       const existingUserByEmail = await storage.getUserByEmail(userData.email);
       if (existingUserByEmail) {
+        console.log("User already exists with email:", userData.email);
         return res.status(409).json({ 
           message: "Este e-mail já possui uma conta cadastrada", 
           type: "email_exists",
@@ -170,8 +175,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(userData.password, 12);
+      // Hash password with consistent salt rounds
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+      console.log("Password hashed successfully for user:", userData.email);
+      console.log("Hash length:", hashedPassword.length);
+      console.log("Hash starts with:", hashedPassword.substring(0, 10));
 
       // Create user (exclude confirmPassword)
       const { confirmPassword, ...userToCreate } = userData;
@@ -179,6 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...userToCreate,
         password: hashedPassword,
       });
+
+      console.log("User created with ID:", user.id, "Email:", user.email);
 
       // Set session
       req.session.userId = user.id;
@@ -201,8 +212,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
-      console.log("Login attempt for:", req.body.email);
-      const { email, password } = loginSchema.parse(req.body);
+      const { email: rawEmail, password } = loginSchema.parse(req.body);
+      const email = rawEmail.toLowerCase().trim();
+      console.log("Login attempt for:", email);
 
       const user = await storage.getUserByEmail(email);
       if (!user) {
@@ -210,10 +222,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Email ou senha inválidos" });
       }
 
+      // Debug logging for password comparison
+      console.log("Stored password hash length:", user.password?.length);
+      console.log("Input password length:", password?.length);
+      
+      // Ensure both password and hash exist
+      if (!user.password || !password) {
+        console.log("Missing password data - user.password:", !!user.password, "input password:", !!password);
+        return res.status(401).json({ message: "Email ou senha inválidos" });
+      }
+
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        console.log("Invalid password for user:", email);
+        console.log("Password comparison failed for user:", email);
+        console.log("Password hash starts with:", user.password.substring(0, 10));
         return res.status(401).json({ message: "Email ou senha inválidos" });
+      }
+
+      // Verify user is active
+      if (user.status === 'inactive') {
+        console.log("Inactive user attempting login:", email);
+        return res.status(401).json({ message: "Conta inativa. Entre em contato com o suporte." });
       }
 
       // Set session
@@ -226,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Session save error:", err);
           return res.status(500).json({ message: "Erro ao salvar sessão" });
         }
-        console.log("Session saved successfully");
+        console.log("Session saved successfully for user:", user.email);
 
         // Return user without password
         const { password: _, ...userResponse } = user;
