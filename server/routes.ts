@@ -2725,7 +2725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : {};
 
       // Check if it's a mandatory document
-      const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
+      const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
 
       let updateData: any = {};
 
@@ -2850,7 +2850,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Removed from required documents: ${documentId}`);
 
         // Update status based on remaining mandatory documents
-        const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
+        const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
         const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
         
         if (uploadedMandatory === 0) {
