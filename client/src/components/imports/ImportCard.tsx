@@ -136,7 +136,7 @@ export default function ImportCard({ importData }: ImportCardProps) {
   });
 
   const handleViewDetails = () => {
-    setLocation(`/imports/${importData.id}`);
+    setLocation(`/imports/details/${importData.id}`);
   };
 
   const handleEdit = () => {

@@ -69,6 +69,7 @@ function Router() {
         <Route path="/imports/new-form" component={ImportNewFormPage} />
         <Route path="/imports/pipeline-demo" component={PipelineDemoPage} />
         <Route path="/imports/pipeline" component={PipelineSimplePage} />
+        <Route path="/imports/details/:id" component={ImportDetailsPage} />
         <Route path="/imports/:id" component={ImportDetailsPage} />
         <Route path="/imports/:id/edit" component={ImportEdit} />
 
