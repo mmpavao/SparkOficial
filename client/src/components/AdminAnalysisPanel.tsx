@@ -133,8 +133,8 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       }
 
       handleConfirmAction(
-        "Aprovar Crédito",
-        "Tem certeza que deseja aprovar esta solicitação de crédito com limite final?",
+        "Aprovação Final",
+        "Tem certeza que deseja conceder a aprovação final desta solicitação de crédito?",
         () => {
           updateStatusMutation.mutate({
             status: 'approved',
@@ -386,10 +386,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
               {/* Financial Notes */}
               <div className="space-y-2">
-                <Label htmlFor="financialNotes">Observações Financeiras</Label>
+                <Label htmlFor="financialNotes">Observações da Aprovação Final</Label>
                 <Textarea
                   id="financialNotes"
-                  placeholder="Adicione observações sobre a análise financeira..."
+                  placeholder="Adicione observações sobre a aprovação final do crédito..."
                   value={financialData.financialNotes}
                   onChange={(e) => setFinancialData(prev => ({ ...prev, financialNotes: e.target.value }))}
                   rows={3}
@@ -404,7 +404,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Aprovar Crédito
+                  Aprovação Final
                 </Button>
                 <Button 
                   variant="destructive"

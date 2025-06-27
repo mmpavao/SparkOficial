@@ -782,7 +782,7 @@ export default function CreditDetailsPage() {
                     <div className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
-                        <p className="font-medium text-amber-800">Solicitação em análise</p>
+                        <p className="font-medium text-amber-800">Solicitação aprovada em análise final</p>
                         <p className="text-amber-700 mt-1">
                           Você pode enviar documentos pendentes, mas não pode mais editar os dados da solicitação.
                         </p>

@@ -578,10 +578,10 @@ export default function CreditPage() {
           ) : (
             <div className="space-y-6">
               {applications.map((application: any) => {
-                  // Determinar status visual baseado na lógica de fluxo existente
+                  // Determinar status visual baseado nos dados reais do banco
                   const getStatusInfo = () => {
                     // Final: Aprovado e finalizado pelo admin
-                    if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
+                    if (application.financialStatus === 'approved' && (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized')) {
                       return { 
                         label: 'Aprovado', 
                         color: 'bg-green-100 text-green-800 border-green-200',
@@ -607,8 +607,8 @@ export default function CreditPage() {
                         borderColor: 'border-l-blue-500'
                       };
                     } 
-                    // Submetido à financeira - usar mesmo label "Análise Final"
-                    else if (application.status === 'submitted_to_financial') {
+                    // Status approved (aplicações antigas) OU submetido à financeira
+                    else if (application.status === 'approved' || application.status === 'submitted_to_financial') {
                       return { 
                         label: 'Análise Final', 
                         color: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -616,16 +616,7 @@ export default function CreditPage() {
                         borderColor: 'border-l-blue-500'
                       };
                     } 
-                    // Pré-aprovado pelo admin
-                    else if (application.preAnalysisStatus === 'pre_approved' || application.status === 'pre_approved') {
-                      return { 
-                        label: 'Pré-Aprovado', 
-                        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                        bgColor: 'bg-yellow-50',
-                        borderColor: 'border-l-yellow-500'
-                      };
-                    } 
-                    // Status inicial
+                    // Status inicial ou outros casos
                     else {
                       return { 
                         label: 'Pré-Análise', 
