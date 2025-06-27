@@ -681,20 +681,18 @@ export default function CreditDetailsPage() {
                 <h4 className="font-medium text-gray-900 mb-3">Documentos Obrigatórios</h4>
                 <div className="space-y-3">
                   {mandatoryDocuments.map((doc) => (
-                    <DocumentUploadSection
+                    <RobustDocumentUpload
                       key={doc.key}
-                      documentInfo={doc}
+                      documentKey={doc.key}
+                      documentLabel={doc.label}
+                      documentSubtitle={doc.subtitle}
+                      documentObservation={doc.observation}
+                      isRequired={doc.required}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
                       onRemove={handleDocumentRemove}
                       uploadedDocuments={application.requiredDocuments || {}}
-                      onValidation={(result) => {
-                        setValidationResults(prev => ({
-                          ...prev,
-                          [doc.key]: result
-                        }));
-                      }}
                     />
                   ))}
                 </div>
@@ -717,20 +715,18 @@ export default function CreditDetailsPage() {
                 </div>
                 <div className="space-y-3">
                   {optionalDocuments.map((doc) => (
-                    <DocumentUploadSection
+                    <RobustDocumentUpload
                       key={doc.key}
-                      documentInfo={doc}
+                      documentKey={doc.key}
+                      documentLabel={doc.label}
+                      documentSubtitle={doc.subtitle}
+                      documentObservation={doc.observation}
+                      isRequired={doc.required}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
                       onRemove={handleDocumentRemove}
                       uploadedDocuments={application.optionalDocuments || {}}
-                      onValidation={(result) => {
-                        setValidationResults(prev => ({
-                          ...prev,
-                          [doc.key]: result
-                        }));
-                      }}
                     />
                   ))}
                 </div>
@@ -1045,34 +1041,3 @@ export default function CreditDetailsPage() {
   );
 }
 
-// Document Upload Section using Robust Component
-function DocumentUploadSection({ 
-  documentInfo, 
-  applicationId, 
-  isUploading, 
-  onUpload, 
-  onRemove,
-  uploadedDocuments
-}: {
-  documentInfo: { key: string; label: string; subtitle?: string; observation?: string; required: boolean };
-  applicationId: number;
-  isUploading: boolean;
-  onUpload: (file: File) => void;
-  onRemove: (documentId: string) => void;
-  uploadedDocuments: Record<string, any>;
-}) {
-  return (
-    <RobustDocumentUpload
-      documentKey={documentInfo.key}
-      documentLabel={documentInfo.label}
-      documentSubtitle={documentInfo.subtitle}
-      documentObservation={documentInfo.observation}
-      isRequired={documentInfo.required}
-      uploadedDocuments={uploadedDocuments}
-      applicationId={applicationId}
-      isUploading={isUploading}
-      onUpload={onUpload}
-      onRemove={onRemove}
-    />
-  );
-}
