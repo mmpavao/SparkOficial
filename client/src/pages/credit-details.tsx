@@ -17,7 +17,7 @@ import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import CreditCommunication from "@/components/CreditCommunication";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
-import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
+import { RobustDocumentUpload } from "@/components/RobustDocumentUpload";
 import { ValidationResult } from "@/lib/documentValidation";
 import { 
   ArrowLeft, 

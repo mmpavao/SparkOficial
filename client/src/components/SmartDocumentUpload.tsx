@@ -316,7 +316,7 @@ export function SmartDocumentUpload({
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => onRemove(doc.id)}
+                          onClick={() => onRemove(documentKey)}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           Remover
