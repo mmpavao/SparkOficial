@@ -50,7 +50,7 @@ export function RobustDocumentUpload({
 
   // Get current document for this key
   const currentDoc = uploadedDocuments[documentKey];
-  const hasDocument = !!currentDoc;
+  const hasDocument = !!currentDoc && currentDoc.filename;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,7 +77,6 @@ export function RobustDocumentUpload({
       return;
     }
 
-    console.log('RobustDocumentUpload: calling onUpload with file:', file.name);
     onUpload(file);
     
     // Reset input
