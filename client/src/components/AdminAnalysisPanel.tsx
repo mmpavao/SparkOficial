@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare, DollarSign } from "lucide-react";
+import { CheckCircle, XCircle, FileText, AlertTriangle, MessageSquare, DollarSign, Edit, Ban } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
@@ -323,8 +323,8 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
           <Separator />
 
-          {permissions.isFinanceira ? (
-            // Financeira Interface - Final Approval with Credit Limits and Payment Terms
+          {permissions.isFinanceira && application.financialStatus !== 'approved' ? (
+            // Financeira Interface - Final Approval with Credit Limits and Payment Terms (only if not already approved)
             <>
               {/* Credit Limit Input */}
               <div className="space-y-2">
@@ -413,6 +413,38 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 >
                   <XCircle className="w-4 h-4 mr-2" />
                   Rejeitar
+                </Button>
+              </div>
+            </>
+          ) : permissions.isFinanceira && application.financialStatus === 'approved' ? (
+            // Financeira Interface - Already approved, show edit/block options
+            <>
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-green-800">Crédito Aprovado</h4>
+                    <p className="text-sm text-green-700 mt-1">
+                      Esta solicitação já foi aprovada pela instituição financeira.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="outline"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar Termos
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-red-300 text-red-700 hover:bg-red-50"
+                >
+                  <Ban className="w-4 h-4 mr-2" />
+                  Bloquear Crédito
                 </Button>
               </div>
             </>
