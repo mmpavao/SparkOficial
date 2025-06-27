@@ -60,9 +60,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  X,
   Minus,
   Trash2,
-  X,
   XCircle,
   BarChart3
 } from "lucide-react";
@@ -354,6 +354,30 @@ export default function CreditApplicationPage() {
 
   // Submit application state
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Custom documents functions
+  const addCustomDocument = () => {
+    if (newDocumentName.trim()) {
+      const customKey = `custom_${Date.now()}`;
+      const newDoc = {
+        key: customKey,
+        name: newDocumentName.trim(),
+        observation: "Documento adicional fornecido pelo cliente"
+      };
+      setCustomDocuments(prev => [...prev, newDoc]);
+      setNewDocumentName("");
+    }
+  };
+
+  const removeCustomDocument = (key: string) => {
+    setCustomDocuments(prev => prev.filter(doc => doc.key !== key));
+    // Also remove from uploaded documents
+    setUploadedDocuments(prev => {
+      const updatedDocs = { ...prev };
+      delete updatedDocs[key];
+      return updatedDocs;
+    });
+  };
 
   // Add/remove shareholders
   const addShareholder = () => {
@@ -1513,6 +1537,78 @@ export default function CreditApplicationPage() {
                     />
                   ))}
               </div>
+            </div>
+
+            {/* Custom Documents Module */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-green-500" />
+                <h3 className="text-lg font-semibold text-green-700">Documentos Adicionais</h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                Tem algum documento específico que gostaria de anexar? Adicione documentos personalizados abaixo:
+              </p>
+
+              {/* Add Custom Document Input */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nome do documento (ex: Certificado ISO, Licença Específica, etc.)"
+                    value={newDocumentName}
+                    onChange={(e) => setNewDocumentName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={addCustomDocument}
+                    disabled={!newDocumentName.trim()}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+              </div>
+
+              {/* List of Custom Documents */}
+              {customDocuments.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-green-700">Seus Documentos Adicionais:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {customDocuments.map((customDoc) => (
+                      <div key={customDoc.key} className="relative">
+                        <RobustDocumentUpload
+                          documentKey={customDoc.key}
+                          documentLabel={`🇧🇷 ${customDoc.name}`}
+                          documentSubtitle="Custom Document"
+                          documentObservation={customDoc.observation || "Documento adicional fornecido pelo cliente"}
+                          isRequired={false}
+                          uploadedDocuments={uploadedDocuments}
+                          applicationId={0}
+                          isUploading={uploadingDocument === customDoc.key}
+                          onUpload={(file) => handleDocumentUpload(customDoc.key, file)}
+                          onRemove={(documentKey) => {
+                            setUploadedDocuments(prev => {
+                              const updatedDocs = { ...prev };
+                              delete updatedDocs[documentKey];
+                              return updatedDocs;
+                            });
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeCustomDocument(customDoc.key)}
+                          className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Information Note */}
