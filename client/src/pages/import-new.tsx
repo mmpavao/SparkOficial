@@ -183,8 +183,6 @@ export default function NewImportPage() {
     };
   };
 
-  const { importValue, downPayment, financedAmount, adminFeeAmount, totalCost } = calculateTotals();
-
   // Buscar crédito disponível
   const { data: creditUsage } = useQuery({
     queryKey: ['/api/user/credit-info'],
@@ -197,6 +195,8 @@ export default function NewImportPage() {
       console.error('Error loading credit info:', error);
     }
   });
+
+  const { importValue, downPayment, financedAmount, adminFeeAmount, totalCost } = calculateTotals();
 
   // Verificar crédito disponível - usando valor financiado (70%) como regra de negócio
   const availableCredit = creditUsage?.availableCredit || 0;
