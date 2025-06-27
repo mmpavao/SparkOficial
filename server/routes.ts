@@ -1977,6 +1977,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin submission to financial (after pre-approval)
+  app.put('/api/admin/credit-applications/:id/submit-financial', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const currentUser = await storage.getUser(userId);
+
+      // Only admins can submit to financial
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Only allow submission if pre-approved
+      if (application.status !== 'pre_approved') {
+        return res.status(400).json({ 
+          message: "Apenas aplicações pré-aprovadas podem ser submetidas à financeira" 
+        });
+      }
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+        status: 'submitted_to_financial',
+        submittedToFinancialAt: new Date(),
+        submittedBy: userId,
+        updatedAt: new Date()
+      });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error submitting to financial:", error);
+      res.status(500).json({ message: "Erro ao submeter à financeira" });
+    }
+  });
+
   // Admin finalization of credit terms (after financial approval)
   app.put('/api/admin/credit/applications/:id/finalize', requireAuth, async (req: any, res) => {
     try {

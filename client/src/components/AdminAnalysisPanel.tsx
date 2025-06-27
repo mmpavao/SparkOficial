@@ -118,38 +118,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     });
   };
 
-  const handleSubmitToFinancial = () => {
-    handleConfirmAction(
-      "Submeter à Financeira",
-      "Tem certeza que deseja enviar esta aplicação para análise financeira? Certifique-se de que todos os documentos necessários foram revisados.",
-      () => {
-        updateStatusMutation.mutate({
-          status: 'submitted_to_financial',
-          data: {
-            submittedToFinancialAt: new Date(),
-            submittedBy: 'admin'
-          }
-        });
-      }
-    );
-  };
 
-  const handleFinalize = () => {
-    handleConfirmAction(
-      "Finalizar Termos",
-      "Tem certeza que deseja finalizar os termos desta aplicação de crédito?",
-      () => {
-        updateStatusMutation.mutate({
-          status: 'admin_finalized',
-          data: {
-            adminStatus: 'admin_finalized',
-            adminFinalizedAt: new Date(),
-            adminFinalizedBy: 'admin'
-          }
-        });
-      }
-    );
-  };
 
   const handleApprove = () => {
     if (permissions.isFinanceira) {
@@ -554,7 +523,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       </p>
                     </div>
                     <Button 
-                      onClick={handleSubmitToFinancial}
+                      onClick={() => updateStatusMutation.mutate({
+                        status: 'submitted_to_financial',
+                        data: { submittedToFinancialAt: new Date() }
+                      })}
                       disabled={updateStatusMutation.isPending}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
@@ -575,7 +547,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 
                 {application.status === 'approved' && application.financialStatus === 'approved' && !application.adminStatus && (
                   <Button 
-                    onClick={handleFinalize}
+                    onClick={() => updateStatusMutation.mutate({
+                      status: 'admin_finalized',
+                      data: { adminStatus: 'admin_finalized', adminFinalizedAt: new Date() }
+                    })}
                     disabled={updateStatusMutation.isPending}
                     className="bg-amber-600 hover:bg-amber-700"
                   >
