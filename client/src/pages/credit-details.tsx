@@ -110,16 +110,9 @@ export default function CreditDetailsPage() {
       return response.json();
     },
     onSuccess: () => {
-      // Force cache removal and refetch
-      queryClient.removeQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      queryClient.removeQueries({ queryKey: ["credit-applications"] });
-      // Immediately refetch with fresh data
-      queryClient.refetchQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      toast({
-        title: "Sucesso!",
-        description: "Documento enviado com sucesso.",
-      });
-      setUploadingDocument(null);
+      // FORCE COMPLETE CACHE CLEAR AND IMMEDIATE REFETCH
+      queryClient.clear();
+      window.location.reload();
     },
     onError: (error: any) => {
       toast({
@@ -181,15 +174,9 @@ export default function CreditDetailsPage() {
       return response.json();
     },
     onSuccess: () => {
-      // Force cache removal and refetch
-      queryClient.removeQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      queryClient.removeQueries({ queryKey: ["credit-applications"] });
-      // Immediately refetch with fresh data
-      queryClient.refetchQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      toast({
-        title: "Documento removido!",
-        description: "Documento foi removido com sucesso.",
-      });
+      // FORCE COMPLETE CACHE CLEAR AND IMMEDIATE REFETCH
+      queryClient.clear();
+      window.location.reload();
     },
     onError: (error: any) => {
       toast({
