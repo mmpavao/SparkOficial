@@ -27,6 +27,7 @@ interface RobustDocumentUploadProps {
   documentKey: string;
   documentLabel: string;
   documentSubtitle?: string;
+  documentObservation?: string;
   isRequired: boolean;
   uploadedDocuments: Record<string, any>;
   applicationId: number;
@@ -39,6 +40,7 @@ export function RobustDocumentUpload({
   documentKey,
   documentLabel,
   documentSubtitle,
+  documentObservation,
   isRequired,
   uploadedDocuments,
   applicationId,
@@ -192,6 +194,11 @@ export function RobustDocumentUpload({
           </div>
           {documentSubtitle && (
             <span className="text-xs text-gray-500 italic">{documentSubtitle}</span>
+          )}
+          {documentObservation && (
+            <div className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-1 mt-1">
+              {documentObservation}
+            </div>
           )}
         </div>
       </div>

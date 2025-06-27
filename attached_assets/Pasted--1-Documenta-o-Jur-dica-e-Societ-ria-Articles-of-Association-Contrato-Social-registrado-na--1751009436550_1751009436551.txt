@@ -1,0 +1,106 @@
+📁 1. Documentação Jurídica e Societária
+Articles of Association
+🇧🇷 Contrato Social registrado na Junta Comercial
+
+💬 Instruir o cliente a enviar o contrato social completo e atualizado, com carimbo da Junta Comercial.
+
+Legal Representative ID Copy
+🇧🇷 Documento de identificação do(s) sócio(s) — CPF + RG ou CNH
+
+💬 Solicitar documentos pessoais dos sócios administradores, preferencialmente em um único arquivo por sócio.
+
+Business License
+🇧🇷 Cartão do CNPJ ou Certidão Simplificada da Junta Comercial
+
+💬 Se preferir: pedir o comprovante de inscrição e situação cadastral da Receita Federal.
+
+Certificate of Incorporation
+🇧🇷 Certidão Simplificada da Junta Comercial
+
+💬 Documento pode ser emitido online no site da Junta Comercial do estado da empresa.
+
+Shareholding Structure
+🇧🇷 Cláusula de composição societária + Tabela simples com CPF e percentual de cada sócio
+
+💬 Se não constar claramente no contrato social, solicitar planilha/tabela com nome, CPF e percentual de cada sócio.
+
+📊 2. Documentação Financeira
+Financial Statements (Last 3 Years)
+🇧🇷 Balanços patrimoniais e DRE assinados pelo contador (últimos 3 anos)
+
+💬 Idealmente com carimbo do CRC e assinatura digital. Se não houver balanço, pode-se aceitar declaração de faturamento.
+
+Bank Reference Letter
+🇧🇷 Carta do banco da empresa atestando relacionamento positivo
+
+💬 Pode ser um e-mail oficial do gerente com assinatura eletrônica ou papel timbrado.
+
+Credit Report
+🇧🇷 Relatório da Serasa Experian / Boa Vista / Quod ou similar
+
+💬 Documento não obrigatório, mas fortemente recomendado. Pode ser solicitado diretamente pela empresa no portal do bureau.
+
+🧾 3. Documentação Fiscal
+Tax Registration Certificate
+🇧🇷 Certidões Negativas de Débito (CND)
+
+Receita Federal (Dívida Ativa + Tributos Federais)
+
+Estadual
+
+Municipal
+
+💬 Todas podem ser obtidas gratuitamente nos sites dos respectivos órgãos. Recomendado enviar as três.
+
+🌎 4. Comércio Exterior e Operação
+Export/Import License
+🇧🇷 Habilitação no RADAR (Siscomex) ou Licença de Importação atual
+
+💬 Enviar cópia do comprovante de habilitação (print do portal Gov.br/Siscomex).
+
+Customs Registration Certificate
+🇧🇷 Mesmo documento do RADAR ou comprovante de atuação com despacho aduaneiro
+
+💬 Pode ser o mesmo arquivo usado na linha anterior.
+
+Business Operation Certificates
+🇧🇷 Alvará de Funcionamento ou Licença Municipal
+
+💬 Documento expedido pela prefeitura ou secretaria de desenvolvimento econômico local.
+
+🤝 5. Comercial
+Supplier Contract Sample
+🇧🇷 Modelo de contrato com clientes ou fornecedores
+
+💬 Pode ser um modelo padrão, mesmo que em português. O objetivo é mostrar como a empresa formaliza negócios.
+
+Main Customers List
+🇧🇷 Lista dos principais clientes, com país de destino e valor médio
+
+💬 Enviar como tabela simples com Nome da empresa, País, Produto e Valor médio/ano.
+
+Sales Contracts / Purchase Orders
+🇧🇷 Exemplos reais de pedidos recentes ou contratos assinados
+
+💬 Aceita até 3 PDFs ou imagens de pedidos/contratos de venda recentes (últimos 6 meses).
+
+Insurance Claim Record (if any)
+🇧🇷 Histórico de uso de seguro comercial ou declaração de que nunca utilizou
+
+💬 Se houver, anexar comprovação. Caso contrário, instruir o cliente a anexar uma declaração assinada de que não há sinistros anteriores.
+
+🤖 Instrução para o Assistente (exemplo)
+Ao orientar o cliente durante a aplicação:
+
+Sempre mostre o nome do documento exigido pela Sinosure (em inglês) e o equivalente brasileiro (em destaque).
+
+Caso o cliente não tenha um dos documentos, ofereça a alternativa compatível no Brasil (ex: Cartão CNPJ no lugar de Business License).
+
+Certifique-se de que os documentos estejam em boa qualidade e legíveis.
+
+Para documentos ausentes, aceite uma declaração simples assinada se for permitido.
+
+Nunca solicite documentos desnecessários. Apenas os que estão listados acima.
+
+Os uploads devem manter o padrão atual do sistema: .pdf, .jpg, .png, até 10MB por arquivo.
+

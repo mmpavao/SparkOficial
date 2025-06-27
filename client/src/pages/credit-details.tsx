@@ -45,68 +45,83 @@ import {
 // Dynamic document generation function for shareholders
 const generateMandatoryDocuments = (shareholders: any[] = []) => {
   const baseMandatoryDocuments = [
-    {
-      key: "company_documents",
-      label: "Documentos da Empresa",
-      subtitle: "Articles of Association",
-      required: true
+    // 📁 1. Documentação Jurídica e Societária
+    { 
+      key: 'articles_of_association', 
+      label: '🇧🇷 Contrato Social registrado na Junta Comercial', 
+      subtitle: 'Articles of Association',
+      observation: '💬 Instruir o cliente a enviar o contrato social completo e atualizado, com carimbo da Junta Comercial.',
+      required: true 
     },
-    {
-      key: "business_license",
-      label: "Licença de Funcionamento",
-      subtitle: "Business License",
-      required: true
+    { 
+      key: 'business_license', 
+      label: '🇧🇷 Cartão do CNPJ ou Certidão Simplificada da Junta Comercial', 
+      subtitle: 'Business License',
+      observation: '💬 Se preferir: pedir o comprovante de inscrição e situação cadastral da Receita Federal.',
+      required: true 
     },
-    {
-      key: "financial_statements",
-      label: "Demonstrações Financeiras",
-      subtitle: "Financial Statements",
-      required: true
+    { 
+      key: 'certificate_of_incorporation', 
+      label: '🇧🇷 Certidão Simplificada da Junta Comercial', 
+      subtitle: 'Certificate of Incorporation',
+      observation: '💬 Documento pode ser emitido online no site da Junta Comercial do estado da empresa.',
+      required: true 
     },
-    {
-      key: "bank_statement",
-      label: "Extrato Bancário",
-      subtitle: "Bank Statement",
-      required: true
+    // 📊 2. Documentação Financeira
+    { 
+      key: 'financial_statements', 
+      label: '🇧🇷 Balanços patrimoniais e DRE assinados pelo contador (últimos 3 anos)', 
+      subtitle: 'Financial Statements (Last 3 Years)',
+      observation: '💬 Idealmente com carimbo do CRC e assinatura digital. Se não houver balanço, pode-se aceitar declaração de faturamento.',
+      required: true 
     },
-    {
-      key: "tax_clearance",
-      label: "Certidão Negativa de Débitos",
-      subtitle: "Tax Clearance Certificate",
-      required: true
+    // 🧾 3. Documentação Fiscal
+    { 
+      key: 'tax_registration_certificate', 
+      label: '🇧🇷 Certidões Negativas de Débito (CND)', 
+      subtitle: 'Tax Registration Certificate',
+      observation: '💬 Receita Federal (Dívida Ativa + Tributos Federais), Estadual e Municipal. Todas podem ser obtidas gratuitamente nos sites dos respectivos órgãos.',
+      required: true 
     },
-    {
-      key: "import_license",
-      label: "Licença de Importação",
-      subtitle: "Import License",
-      required: true
-    },
-    {
-      key: "board_resolution",
-      label: "Ata da Diretoria",
-      subtitle: "Board Resolution",
-      required: true
+    // 🌎 4. Comércio Exterior e Operação
+    { 
+      key: 'export_import_license', 
+      label: '🇧🇷 Habilitação no RADAR (Siscomex) ou Licença de Importação atual', 
+      subtitle: 'Export/Import License',
+      observation: '💬 Enviar cópia do comprovante de habilitação (print do portal Gov.br/Siscomex).',
+      required: true 
     }
   ];
 
   // If there are 2 or more shareholders, add specific documents
   if (shareholders && shareholders.length >= 2) {
-    // Add social contract for multiple partners
-    baseMandatoryDocuments.unshift({
-      key: "social_contract",
-      label: "Contrato Social",
-      subtitle: "Articles of Association",
+    // Add shareholding structure document
+    baseMandatoryDocuments.push({
+      key: 'shareholding_structure',
+      label: '🇧🇷 Cláusula de composição societária + Tabela simples com CPF e percentual de cada sócio',
+      subtitle: 'Shareholding Structure',
+      observation: '💬 Se não constar claramente no contrato social, solicitar planilha/tabela com nome, CPF e percentual de cada sócio.',
       required: true
     });
 
     // Add individual documents for each shareholder
     shareholders.forEach((shareholder, index) => {
       baseMandatoryDocuments.push({
-        key: `shareholder_${index + 1}_rg`,
-        label: `Documentos dos Sócios (CPF e RG)${shareholder.name ? ` - ${shareholder.name}` : `${index + 1}`}`,
-        subtitle: "Legal Representative ID Copy",
+        key: `legal_representative_id_${index + 1}`,
+        label: `🇧🇷 Documento de identificação do sócio ${shareholder.name || `${index + 1}`} — CPF + RG ou CNH`,
+        subtitle: 'Legal Representative ID Copy',
+        observation: '💬 Solicitar documentos pessoais dos sócios administradores, preferencialmente em um único arquivo por sócio.',
         required: true
       });
+    });
+  } else {
+    // Single shareholder
+    baseMandatoryDocuments.push({
+      key: 'legal_representative_id',
+      label: '🇧🇷 Documento de identificação do(s) sócio(s) — CPF + RG ou CNH',
+      subtitle: 'Legal Representative ID Copy',
+      observation: '💬 Solicitar documentos pessoais dos sócios administradores, preferencialmente em um único arquivo por sócio.',
+      required: true
     });
   }
 
@@ -353,18 +368,65 @@ export default function CreditDetailsPage() {
   const mandatoryDocuments = generateMandatoryDocuments(shareholders);
 
   const optionalDocuments = [
-    { key: 'business_license', label: 'Licença de Funcionamento', subtitle: 'Business License', required: false },
-    { key: 'quality_certificates', label: 'Certificado de Constituição', subtitle: 'Certificate of Incorporation', required: false },
-    { key: 'financial_statements', label: 'Demonstrações Financeiras (últimos 3 anos)', subtitle: 'Financial Statements (Last 3 Years)', required: false },
-    { key: 'bank_references', label: 'Carta de Referência Bancária', subtitle: 'Bank Reference Letter', required: false },
-    { key: 'commercial_references', label: 'Relatório de Crédito da Empresa', subtitle: 'Credit Report', required: false },
-    { key: 'tax_clearance', label: 'Certificado de Regularidade Fiscal', subtitle: 'Tax Registration Certificate', required: false },
-    { key: 'import_licenses', label: 'Licença ou Registro de Importação', subtitle: 'Export and Import License', required: false },
-    { key: 'tax_registration', label: 'Registro Alfandegário', subtitle: 'Customs Registration Certificate', required: false },
-    { key: 'product_catalogs', label: 'Lista de Principais Clientes', subtitle: 'Main Customers List', required: false },
-    { key: 'board_resolution', label: 'Contratos ou Pedidos de Compra Recentes', subtitle: 'Sales Contracts / Purchase Orders', required: false },
-    { key: 'bank_statements', label: 'Modelo de Contrato com Clientes', subtitle: 'Supplier Contract Sample', required: false },
-    { key: 'insurance_policies', label: 'Histórico de Sinistros (se houver)', subtitle: 'Insurance Claim Record (if any)', required: false },
+    // 📊 2. Documentação Financeira
+    { 
+      key: 'bank_reference_letter', 
+      label: '🇧🇷 Carta do banco da empresa atestando relacionamento positivo', 
+      subtitle: 'Bank Reference Letter',
+      observation: '💬 Pode ser um e-mail oficial do gerente com assinatura eletrônica ou papel timbrado.',
+      required: false 
+    },
+    { 
+      key: 'credit_report', 
+      label: '🇧🇷 Relatório da Serasa Experian / Boa Vista / Quod ou similar', 
+      subtitle: 'Credit Report',
+      observation: '💬 Documento não obrigatório, mas fortemente recomendado. Pode ser solicitado diretamente pela empresa no portal do bureau.',
+      required: false 
+    },
+    // 🌎 4. Comércio Exterior e Operação
+    { 
+      key: 'customs_registration_certificate', 
+      label: '🇧🇷 Mesmo documento do RADAR ou comprovante de atuação com despacho aduaneiro', 
+      subtitle: 'Customs Registration Certificate',
+      observation: '💬 Pode ser o mesmo arquivo usado na linha anterior.',
+      required: false 
+    },
+    { 
+      key: 'business_operation_certificates', 
+      label: '🇧🇷 Alvará de Funcionamento ou Licença Municipal', 
+      subtitle: 'Business Operation Certificates',
+      observation: '💬 Documento expedido pela prefeitura ou secretaria de desenvolvimento econômico local.',
+      required: false 
+    },
+    // 🤝 5. Comercial
+    { 
+      key: 'supplier_contract_sample', 
+      label: '🇧🇷 Modelo de contrato com clientes ou fornecedores', 
+      subtitle: 'Supplier Contract Sample',
+      observation: '💬 Pode ser um modelo padrão, mesmo que em português. O objetivo é mostrar como a empresa formaliza negócios.',
+      required: false 
+    },
+    { 
+      key: 'main_customers_list', 
+      label: '🇧🇷 Lista dos principais clientes, com país de destino e valor médio', 
+      subtitle: 'Main Customers List',
+      observation: '💬 Enviar como tabela simples com Nome da empresa, País, Produto e Valor médio/ano.',
+      required: false 
+    },
+    { 
+      key: 'sales_contracts_purchase_orders', 
+      label: '🇧🇷 Exemplos reais de pedidos recentes ou contratos assinados', 
+      subtitle: 'Sales Contracts / Purchase Orders',
+      observation: '💬 Aceita até 3 PDFs ou imagens de pedidos/contratos de venda recentes (últimos 6 meses).',
+      required: false 
+    },
+    { 
+      key: 'insurance_claim_record', 
+      label: '🇧🇷 Histórico de uso de seguro comercial ou declaração de que nunca utilizou', 
+      subtitle: 'Insurance Claim Record (if any)',
+      observation: '💬 Se houver, anexar comprovação. Caso contrário, instruir o cliente a anexar uma declaração assinada de que não há sinistros anteriores.',
+      required: false 
+    }
   ];
 
   if (!match) {
