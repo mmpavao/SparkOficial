@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
@@ -39,7 +40,8 @@ import {
   AlertCircle,
   Edit,
   Save,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 
 // Dynamic document generation function for shareholders
@@ -91,6 +93,7 @@ const generateMandatoryDocuments = (shareholders: any[] = []) => {
 
 export default function CreditDetailsPage() {
   const [match, params] = useRoute("/credit/details/:id");
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -277,6 +280,33 @@ export default function CreditDetailsPage() {
       downPaymentPercentage: 30,
       adminFee: 0
     });
+  };
+
+  // Cancel application mutation
+  const cancelApplicationMutation = useMutation({
+    mutationFn: async (applicationId: number) => {
+      return await apiRequest(`/api/credit/applications/${applicationId}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação de crédito cancelada com sucesso.",
+      });
+      // Navigate back to credit applications list
+      setLocation('/credit');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar a solicitação. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancelApplication = (applicationId: number) => {
+    cancelApplicationMutation.mutate(applicationId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -471,6 +501,53 @@ export default function CreditDetailsPage() {
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(application.status)}
+          
+          {/* Action Buttons - Show only for pending/under_review status */}
+          {(application.status === 'pending' || application.status === 'under_review') && !permissions.isAdmin && !permissions.isFinanceira && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation(`/credit/edit/${application.id}`)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Editar
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Cancelar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja cancelar esta solicitação de crédito? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        // Cancel application logic here
+                        handleCancelApplication(application.id);
+                      }}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Confirmar Cancelamento
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
         </div>
       </div>
 
