@@ -614,8 +614,8 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               <div className="pt-4">
                 {/* Show pre-approval buttons for admin when application needs pre-analysis */}
                 {!permissions.isFinanceira && 
-                 (application.status === 'pending' || application.status === 'under_review') && 
-                 (!application.preAnalysisStatus || application.preAnalysisStatus === 'pending_admin') && 
+                 (application.status === 'pending' || application.status === 'under_review' || application.status === 'pre_analysis') && 
+                 (!application.preAnalysisStatus || application.preAnalysisStatus === 'pending' || application.preAnalysisStatus === 'pending_admin') && 
                  application.preAnalysisStatus !== 'pre_approved' && (
                   <div className="flex gap-2">
                     <Button 
