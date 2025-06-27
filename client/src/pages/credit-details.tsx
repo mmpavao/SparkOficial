@@ -14,6 +14,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
+import CreditCommunication from "@/components/CreditCommunication";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
@@ -407,54 +408,8 @@ export default function CreditDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Administrative Communications */}
-          {(application.requestedDocuments || application.adminObservations || application.analysisNotes) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5" />
-                  Comunicações da Administração
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {application.requestedDocuments && (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <FileText className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-yellow-800 mb-2">Documentos Solicitados</h4>
-                        <p className="text-yellow-700 text-sm whitespace-pre-wrap">{application.requestedDocuments}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {application.adminObservations && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <User className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-blue-800 mb-2">Observações e Esclarecimentos</h4>
-                        <p className="text-blue-700 text-sm whitespace-pre-wrap">{application.adminObservations}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {application.analysisNotes && permissions.canManageApplications && (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <FileText className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-gray-800 mb-2">Notas da Análise (Admin)</h4>
-                        <p className="text-gray-700 text-sm whitespace-pre-wrap">{application.analysisNotes}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* Communication System */}
+          <CreditCommunication application={application} />
 
           {/* Documents Section */}
           <Card>

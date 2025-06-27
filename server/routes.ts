@@ -2060,6 +2060,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Communication endpoints for credit applications
+  app.put('/api/credit-applications/:id/admin-message', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const { message, type } = req.body; // type: 'observation', 'document_request', 'analysis_note'
+
+      const currentUser = await storage.getUser(userId);
+
+      // Only admin/super_admin/financeira can send messages
+      if (!['admin', 'super_admin', 'financeira'].includes(currentUser?.role || '')) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Update the appropriate field based on message type and user role
+      let updateData: any = {};
+      
+      if (type === 'observation') {
+        updateData.adminObservations = message;
+      } else if (type === 'document_request') {
+        updateData.requestedDocuments = message;
+      } else if (type === 'analysis_note') {
+        if (currentUser.role === 'financeira') {
+          updateData.financialNotes = message;
+        } else {
+          updateData.analysisNotes = message;
+        }
+      }
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error sending admin message:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint for importers to reply to admin messages
+  app.put('/api/credit-applications/:id/importer-reply', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const { reply } = req.body;
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Only the application owner can reply
+      if (application.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Add reply to existing observations or create new field
+      const currentObservations = application.adminObservations || '';
+      const timestamp = new Date().toLocaleString('pt-BR');
+      const newReply = `\n\n[RESPOSTA DO IMPORTADOR - ${timestamp}]\n${reply}`;
+      
+      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+        adminObservations: currentObservations + newReply
+      });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error sending importer reply:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Get admin fee for current user
   app.get('/api/user/admin-fee', requireAuth, async (req: any, res) => {
     try {

@@ -204,6 +204,32 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     }
   };
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ message, type }: { message: string; type: string }) => {
+      return apiRequest(`/api/credit-applications/${application.id}/admin-message`, "PUT", {
+        message,
+        type
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Mensagem enviada",
+        description: "Sua mensagem foi enviada com sucesso",
+      });
+      // Invalidate cache to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/credit/applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar mensagem",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleRequestDocuments = () => {
     if (!analysisData.requestedDocuments.trim()) {
       toast({
@@ -214,14 +240,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       return;
     }
 
-    updateStatusMutation.mutate({
-      status: 'needs_documents',
-      data: {
-        requestedDocuments: analysisData.requestedDocuments,
-        analysisNotes: analysisData.notes,
-        riskLevel: analysisData.riskLevel,
-        preAnalysisStatus: 'needs_documents'
-      }
+    sendMessageMutation.mutate({
+      message: analysisData.requestedDocuments,
+      type: 'document_request'
     });
 
     // Clear the field after sending
@@ -238,14 +259,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       return;
     }
 
-    updateStatusMutation.mutate({
-      status: 'needs_clarification',
-      data: {
-        adminObservations: analysisData.observations,
-        analysisNotes: analysisData.notes,
-        riskLevel: analysisData.riskLevel,
-        preAnalysisStatus: 'needs_clarification'
-      }
+    sendMessageMutation.mutate({
+      message: analysisData.observations,
+      type: 'observation'
     });
 
     // Clear the field after sending
