@@ -14,6 +14,8 @@ export default function StatusBadge({ status, type = 'default' }: StatusBadgePro
         approved: { label: "Aprovado", className: "bg-green-100 text-green-800" },
         rejected: { label: "Rejeitado", className: "bg-red-100 text-red-800" },
         under_review: { label: "Em Análise", className: "bg-blue-100 text-blue-800" },
+        submitted_to_financial: { label: "Análise Final", className: "bg-blue-100 text-blue-800" },
+        pending_financial: { label: "Análise Final", className: "bg-blue-100 text-blue-800" },
       },
       import: {
         planning: { label: "Planejamento", className: "bg-gray-100 text-gray-800" },
