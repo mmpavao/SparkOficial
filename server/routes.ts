@@ -2847,7 +2847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingDoc = updatedRequired[baseDocumentId];
         
         if (Array.isArray(existingDoc)) {
-          if (docIndex !== null && docIndex < existingDoc.length) {
+          if (docIndex !== null && docIndex >= 0 && docIndex < existingDoc.length) {
             // Remove specific document from array
             const newArray = existingDoc.filter((_, index) => index !== docIndex);
             if (newArray.length === 1) {
@@ -2891,7 +2891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingDoc = updatedOptional[baseDocumentId];
         
         if (Array.isArray(existingDoc)) {
-          if (docIndex !== null && docIndex < existingDoc.length) {
+          if (docIndex !== null && docIndex >= 0 && docIndex < existingDoc.length) {
             // Remove specific document from array
             const newArray = existingDoc.filter((_, index) => index !== docIndex);
             if (newArray.length === 1) {

@@ -80,20 +80,30 @@ export function RobustDocumentUpload({
     }
 
     onUpload(file);
-    
+
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleRemoveDocument = (docId?: string) => {
+  const handleRemoveDocument = (docId?: any) => {
     if (documentList.length === 1 || !docId) {
       // Remove all documents for this key
       onRemove(documentKey);
     } else {
       // Remove specific document by ID
-      onRemove(`${documentKey}_${docId}`);
+      const docToRemove = documentList[docId];
+      if(docToRemove){
+           onRemove(`${documentKey}_${docToRemove.id}`);
+      } else {
+        toast({
+          title: "Erro ao remover",
+          description: "Documento não encontrado",
+          variant: "destructive",
+        });
+      }
+
     }
   };
 
@@ -175,7 +185,7 @@ export function RobustDocumentUpload({
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   {/* Download Button */}
                   <Button
@@ -186,7 +196,7 @@ export function RobustDocumentUpload({
                   >
                     <Download className="w-3 h-3" />
                   </Button>
-                  
+
                   {/* Remove Button */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -209,7 +219,7 @@ export function RobustDocumentUpload({
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleRemoveDocument(doc.id || index.toString())}
+                          onClick={() => handleRemoveDocument(index)}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           Remover
@@ -243,7 +253,7 @@ export function RobustDocumentUpload({
           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
           onChange={handleFileSelect}
         />
-        
+
         <div className="flex flex-col items-center gap-2">
           {hasDocument ? (
             <>
