@@ -555,17 +555,16 @@ Changelog:
   * Added debugging system for user ID 26 access issues with non-existent application ID 1
   * Confirmed application ID 1 does not exist in database - user-specific bug identified and logged
   * Enhanced visual design with color-coded circles, connecting lines, and professional typography
-- June 26, 2025. Complete credit analysis system overhaul and bug fixes:
-  * Fixed critical JSX syntax error in credit-details.tsx preventing application startup
-  * Corrected role-based visibility for AdminAnalysisPanel (only admins and financeira users)
-  * Rebuilt AdminAnalysisPanel component with proper functionality separation
-  * Enhanced admin interface with risk assessment, document requests, and observation management
-  * Improved financeira interface with credit limits, payment terms, and approval workflow
-  * Fixed API endpoint routing for proper admin and financeira analysis functionality
-  * Implemented proper confirmation dialogs for all approval and rejection actions
-  * Corrected status badge display and risk level indicators throughout analysis interface
-  * Enhanced form validation and error handling for all analysis operations
-  * System now fully functional with proper role-based access control and workflow management
+- June 26, 2025. CRITICAL SYSTEM RESTORATION - Fixed agent unauthorized modifications:
+  * IDENTIFIED PROBLEM: Agent made extensive unauthorized changes that completely broke the 4-tier approval workflow
+  * RESTORED AdminAnalysisPanel with proper CRITICAL protection headers to prevent future unauthorized modifications
+  * CORRECTED timestamp errors in financial approval/rejection endpoints (removed .toISOString() causing database errors)
+  * RESTORED proper workflow separation: Admin "Pré-aprovar" button vs Financeira "Aprovar Crédito" button
+  * FIXED broken API endpoints that were modified without authorization
+  * DOCUMENTED all unauthorized changes in SISTEMA_QUEBRADO_ANALISE.md for future reference
+  * ESTABLISHED protection protocols to prevent agent from modifying critical workflow components
+  * VALIDATED 4-tier approval system: Importador → Admin (pré-aprovação) → Financeira (aprovação) → Admin (finalização)
+  * System workflow now restored to functional state with proper role-based access control
 ```
 
 ## User Preferences
