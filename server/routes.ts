@@ -2836,98 +2836,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let updateData: any = {};
       let documentFound = false;
 
-      // Parse document ID to handle multiple documents
-      const parts = documentId.split('_');
-      const baseDocumentId = parts[0];
-      const docIndex = parts.length > 1 ? parseInt(parts[1]) : null;
+      console.log(`Attempting to remove document: ${documentId}`);
+      console.log('Current required documents:', Object.keys(currentRequired));
+      console.log('Current optional documents:', Object.keys(currentOptional));
 
-      console.log(`Attempting to remove document: ${documentId}, base: ${baseDocumentId}, index: ${docIndex}`);
-
-      // Check if document exists in required documents
-      if (currentRequired[baseDocumentId]) {
+      // First, try to find the document by exact key match in required documents
+      if (currentRequired[documentId]) {
         const updatedRequired = { ...currentRequired };
-        const existingDoc = updatedRequired[baseDocumentId];
+        delete updatedRequired[documentId];
+        updateData.requiredDocuments = updatedRequired;
+        documentFound = true;
         
-        console.log(`Found in required documents:`, existingDoc);
-        
-        if (Array.isArray(existingDoc)) {
-          if (docIndex !== null && docIndex >= 0 && docIndex < existingDoc.length) {
-            // Remove specific document from array
-            const newArray = existingDoc.filter((_, index) => index !== docIndex);
-            if (newArray.length === 1) {
-              // Convert back to single document if only one remains
-              updatedRequired[baseDocumentId] = newArray[0];
-            } else if (newArray.length === 0) {
-              // Remove key if no documents remain
-              delete updatedRequired[baseDocumentId];
-            } else {
-              updatedRequired[baseDocumentId] = newArray;
-            }
-            documentFound = true;
-          } else {
-            // Invalid index, remove all documents for this key
-            delete updatedRequired[baseDocumentId];
-            documentFound = true;
-          }
-        } else {
-          // Remove single document
-          delete updatedRequired[baseDocumentId];
-          documentFound = true;
-        }
-        
-        if (documentFound) {
-          updateData.requiredDocuments = updatedRequired;
+        console.log(`Removed from required documents: ${documentId}`);
 
-          // Update status based on remaining mandatory documents
-          const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
-          const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
-          
-          if (uploadedMandatory === 0) {
-            updateData.documentsStatus = 'pending';
-            if (application.status === 'pre_analysis') {
-              updateData.status = 'pending';
-            }
-          } else if (uploadedMandatory < mandatoryDocKeys.length) {
-            updateData.documentsStatus = 'partial';
+        // Update status based on remaining mandatory documents
+        const mandatoryDocKeys = ['articles_of_incorporation', 'cnpj_certificate'];
+        const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
+        
+        if (uploadedMandatory === 0) {
+          updateData.documentsStatus = 'pending';
+          if (application.status === 'pre_analysis') {
+            updateData.status = 'pending';
           }
+        } else if (uploadedMandatory < mandatoryDocKeys.length) {
+          updateData.documentsStatus = 'partial';
         }
       }
 
       // Check if document exists in optional documents (only if not found in required)
-      if (!documentFound && currentOptional[baseDocumentId]) {
+      if (!documentFound && currentOptional[documentId]) {
         const updatedOptional = { ...currentOptional };
-        const existingDoc = updatedOptional[baseDocumentId];
+        delete updatedOptional[documentId];
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
         
-        console.log(`Found in optional documents:`, existingDoc);
-        
-        if (Array.isArray(existingDoc)) {
-          if (docIndex !== null && docIndex >= 0 && docIndex < existingDoc.length) {
-            // Remove specific document from array
-            const newArray = existingDoc.filter((_, index) => index !== docIndex);
-            if (newArray.length === 1) {
-              // Convert back to single document if only one remains
-              updatedOptional[baseDocumentId] = newArray[0];
-            } else if (newArray.length === 0) {
-              // Remove key if no documents remain
-              delete updatedOptional[baseDocumentId];
-            } else {
-              updatedOptional[baseDocumentId] = newArray;
-            }
-            documentFound = true;
-          } else {
-            // Invalid index, remove all documents for this key
-            delete updatedOptional[baseDocumentId];
-            documentFound = true;
-          }
-        } else {
-          // Remove single document
-          delete updatedOptional[baseDocumentId];
-          documentFound = true;
-        }
-        
-        if (documentFound) {
-          updateData.optionalDocuments = updatedOptional;
-        }
+        console.log(`Removed from optional documents: ${documentId}`);
       }
 
       if (!documentFound) {
