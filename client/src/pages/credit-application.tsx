@@ -265,7 +265,7 @@ export default function CreditApplicationPage() {
     }
   };
 
-  // Handle document upload in step 4 - Upload directly like in details page
+  // Handle document upload in step 4 - Support multiple documents like details page
   const handleDocumentUpload = async (documentKey: string, file: File) => {
     setUploadingDocument(documentKey);
 
@@ -281,27 +281,59 @@ export default function CreditApplicationPage() {
         throw new Error(`Formato não suportado. Use: ${validExtensions.join(', ')}`);
       }
 
-      // Store file info for submission tracking
-      const documentInfo = {
-        filename: file.name,
-        originalName: file.name,
-        size: file.size,
-        type: file.type,
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: user?.id || 'temp_user',
-        file: file // Store actual file object for later upload
+      // Convert file to base64 for local storage
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result as string;
+        const documentInfo = {
+          filename: file.name,
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: user?.id || 'temp_user',
+          data: base64Data.split(',')[1], // Remove data:type;base64, prefix
+          file: file // Store actual file object for later upload
+        };
+
+        setUploadedDocuments(prev => {
+          const currentDocs = prev[documentKey];
+          
+          // If no documents exist for this key, create array with first document
+          if (!currentDocs) {
+            return {
+              ...prev,
+              [documentKey]: [documentInfo]
+            };
+          }
+          
+          // If current value is not an array, convert to array and add new document
+          if (!Array.isArray(currentDocs)) {
+            return {
+              ...prev,
+              [documentKey]: [currentDocs, documentInfo]
+            };
+          }
+          
+          // Add to existing array
+          return {
+            ...prev,
+            [documentKey]: [...currentDocs, documentInfo]
+          };
+        });
+
+        setUploadingDocument(null);
+        toast({
+          title: "Documento preparado!",
+          description: `${file.name} será enviado com a solicitação.`,
+        });
       };
 
-      setUploadedDocuments(prev => ({
-        ...prev,
-        [documentKey]: documentInfo
-      }));
+      reader.onerror = () => {
+        throw new Error('Erro ao processar o arquivo');
+      };
 
-      setUploadingDocument(null);
-      toast({
-        title: "Documento preparado!",
-        description: `${file.name} será enviado com a solicitação.`,
-      });
+      reader.readAsDataURL(file);
     } catch (error: any) {
       setUploadingDocument(null);
       toast({
@@ -1294,9 +1326,18 @@ export default function CreditApplicationPage() {
                     isUploading={uploadingDocument === doc.key}
                     onUpload={(file) => handleDocumentUpload(doc.key, file)}
                     onRemove={(documentKey) => {
-                      const updatedDocs = { ...uploadedDocuments };
-                      delete updatedDocs[documentKey];
-                      setUploadedDocuments(updatedDocs);
+                      // Handle removal of specific document from array
+                      setUploadedDocuments(prev => {
+                        const updatedDocs = { ...prev };
+                        
+                        // If it's an array, remove the entire array (for now)
+                        // Future enhancement: could remove specific document by index
+                        if (updatedDocs[documentKey]) {
+                          delete updatedDocs[documentKey];
+                        }
+                        
+                        return updatedDocs;
+                      });
                     }}
                   />
                 ))}
