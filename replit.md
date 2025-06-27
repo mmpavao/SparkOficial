@@ -581,6 +581,13 @@ Changelog:
   * Documented current functional state as baseline for protection: adaptive interface, conditional buttons, clean layout
   * Protection activated at user's explicit request to prevent unauthorized modifications to working system
   * System locked at optimal functional state with fluxo inteligente operational and interface perfected
+- June 27, 2025. Critical status flow corrections completed:
+  * Fixed status display logic to use only existing labels without creating new status terms
+  * Corrected applications with status 'submitted_to_financial' to show "Análise Final" consistently
+  * Eliminated status divergence between "Análise Final" and "Em Análise Final" - standardized to single label
+  * Ensured applications in financeira tab never display "Pré-Análise" status as this violates workflow logic
+  * Updated CreditStatusTracker to map submitted_to_financial status to financially_approved state
+  * Maintained existing workflow structure while fixing inconsistent status presentation across interface
 ```
 
 ## User Preferences

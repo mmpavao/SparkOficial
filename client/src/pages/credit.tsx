@@ -578,9 +578,9 @@ export default function CreditPage() {
           ) : (
             <div className="space-y-6">
               {applications.map((application: any) => {
-                  // Determinar status visual e cor baseado no fluxo correto
+                  // Determinar status visual baseado na lógica de fluxo existente
                   const getStatusInfo = () => {
-                    // Status final: Aprovado e finalizado pelo admin
+                    // Final: Aprovado e finalizado pelo admin
                     if (application.financialStatus === 'approved' && application.adminStatus === 'admin_finalized') {
                       return { 
                         label: 'Aprovado', 
@@ -589,7 +589,7 @@ export default function CreditPage() {
                         borderColor: 'border-l-green-500'
                       };
                     } 
-                    // Status: Rejeitado pela financeira
+                    // Rejeitado pela financeira
                     else if (application.financialStatus === 'rejected') {
                       return { 
                         label: 'Rejeitado', 
@@ -598,7 +598,7 @@ export default function CreditPage() {
                         borderColor: 'border-l-red-500'
                       };
                     } 
-                    // Status: Aprovado pela financeira, aguardando finalização admin
+                    // Aprovado pela financeira, aguardando finalização admin
                     else if (application.financialStatus === 'approved') {
                       return { 
                         label: 'Análise Final', 
@@ -607,16 +607,16 @@ export default function CreditPage() {
                         borderColor: 'border-l-blue-500'
                       };
                     } 
-                    // Status: Submetido à financeira (status principal = submitted_to_financial)
+                    // Submetido à financeira - usar mesmo label "Análise Final"
                     else if (application.status === 'submitted_to_financial') {
                       return { 
-                        label: 'Em Análise Final', 
-                        color: 'bg-purple-100 text-purple-800 border-purple-200',
-                        bgColor: 'bg-purple-50',
-                        borderColor: 'border-l-purple-500'
+                        label: 'Análise Final', 
+                        color: 'bg-blue-100 text-blue-800 border-blue-200',
+                        bgColor: 'bg-blue-50',
+                        borderColor: 'border-l-blue-500'
                       };
                     } 
-                    // Status: Pré-aprovado pelo admin, aguardando submissão
+                    // Pré-aprovado pelo admin
                     else if (application.preAnalysisStatus === 'pre_approved' || application.status === 'pre_approved') {
                       return { 
                         label: 'Pré-Aprovado', 
@@ -625,7 +625,7 @@ export default function CreditPage() {
                         borderColor: 'border-l-yellow-500'
                       };
                     } 
-                    // Status padrão: Em pré-análise
+                    // Status inicial
                     else {
                       return { 
                         label: 'Pré-Análise', 
