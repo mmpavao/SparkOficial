@@ -33,8 +33,7 @@ import {
   type InsertCreditApplication 
 } from "@shared/schema";
 import { 
-  ArrowLeft,
-  ArrowRight,
+
   Building,
   User,
   Users,
