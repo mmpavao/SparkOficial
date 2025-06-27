@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
-import { SmartDocumentUpload } from "@/components/SmartDocumentUpload";
+import { RobustDocumentUpload } from "@/components/RobustDocumentUpload";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
@@ -1252,22 +1252,21 @@ export default function CreditApplicationPage() {
               </div>
 
               {mandatoryDocuments.map((doc) => (
-                <SmartDocumentUpload
+                <RobustDocumentUpload
                   key={doc.key}
                   documentKey={doc.key}
                   documentLabel={doc.label}
                   documentSubtitle={doc.subtitle}
                   isRequired={doc.required}
-                  uploadedDocuments={uploadedDocuments[doc.key] ? [uploadedDocuments[doc.key]] : []}
+                  uploadedDocuments={uploadedDocuments}
+                  applicationId={0} // Placeholder for new applications
                   isUploading={uploadingDocument === doc.key}
                   onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                  onRemove={(documentId) => {
-                    // Implementar remoção de documento específico no formulário
+                  onRemove={(documentKey) => {
                     const updatedDocs = { ...uploadedDocuments };
-                    delete updatedDocs[doc.key];
+                    delete updatedDocs[documentKey];
                     setUploadedDocuments(updatedDocs);
                   }}
-                  applicationId={undefined} // Not saved yet, so no download available
                 />
               ))}
             </div>
@@ -1284,22 +1283,21 @@ export default function CreditApplicationPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {optionalDocuments.map((doc) => (
-                  <SmartDocumentUpload
+                  <RobustDocumentUpload
                     key={doc.key}
                     documentKey={doc.key}
                     documentLabel={doc.label}
                     documentSubtitle={doc.subtitle}
                     isRequired={doc.required}
-                    uploadedDocuments={uploadedDocuments[doc.key] ? [uploadedDocuments[doc.key]] : []}
+                    uploadedDocuments={uploadedDocuments}
+                    applicationId={0} // Placeholder for new applications
                     isUploading={uploadingDocument === doc.key}
                     onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                    onRemove={(documentId) => {
-                      // Implementar remoção de documento específico no formulário
+                    onRemove={(documentKey) => {
                       const updatedDocs = { ...uploadedDocuments };
-                      delete updatedDocs[doc.key];
+                      delete updatedDocs[documentKey];
                       setUploadedDocuments(updatedDocs);
                     }}
-                    applicationId={undefined} // Not saved yet, so no download available
                   />
                 ))}
               </div>

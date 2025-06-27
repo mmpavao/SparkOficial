@@ -101,6 +101,47 @@ export function RobustDocumentUpload({
   };
 
   const handleDownload = (doc: DocumentFile, index: number = 0) => {
+    // For new applications (applicationId = 0), handle local download
+    if (applicationId === 0) {
+      if (!doc.data) {
+        toast({
+          title: "Erro no download",
+          description: "Dados do documento não disponíveis",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        // Convert base64 to blob for local download
+        const byteCharacters = atob(doc.data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: doc.type });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.originalName || doc.filename || `documento_${documentKey}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Local download error:", error);
+        toast({
+          title: "Erro no download",
+          description: "Não foi possível fazer o download do documento",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // For saved applications, use server endpoint
     if (!doc || !doc.data) {
       toast({
         title: "Erro no download",
