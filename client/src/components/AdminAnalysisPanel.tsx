@@ -548,10 +548,11 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 </Button>
               </div>
 
-              {/* Action Buttons for Admin - Always show for pending applications */}
+              {/* Action Buttons for Admin - Only show for pending applications */}
               <div className="pt-4">
-                {/* Always show these buttons for admin users when status is pending or needs action */}
-                {(application.status === 'pending' || application.status === 'under_review' || !application.preAnalysisStatus || application.preAnalysisStatus === 'pending') && (
+                {/* Show pre-approval buttons only when status is pending and NOT submitted to financial */}
+                {(application.status === 'pending' || application.status === 'under_review' || (!application.preAnalysisStatus || application.preAnalysisStatus === 'pending')) && 
+                 application.status !== 'submitted_to_financial' && (
                   <div className="flex gap-2">
                     <Button 
                       onClick={handleApprove}
