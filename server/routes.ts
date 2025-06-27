@@ -2725,7 +2725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : {};
 
       // Check if it's a mandatory document
-      const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
+      const mandatoryDocKeys = ['articles_of_association', 'business_license', 'legal_representative_id'];
 
       let updateData: any = {};
 
