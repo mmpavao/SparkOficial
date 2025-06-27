@@ -172,6 +172,11 @@ export default function CreditPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
+  // Navigation handler for card clicks
+  const handleCreditCardClick = (creditId: number) => {
+    setLocation(`/credit/details/${creditId}`);
+  };
+
   const form = useForm<CreditApplicationForm>({
     resolver: zodResolver(createCreditApplicationSchema(t)),
     defaultValues: {
@@ -641,7 +646,11 @@ export default function CreditPage() {
                   const hasApprovedCredit = application.financialStatus === 'approved' && finalCreditAmount;
 
                   return (
-                    <Card key={application.id} className={`border-l-4 ${statusInfo.borderColor} hover:shadow-md transition-all duration-200`}>
+                    <Card 
+                      key={application.id} 
+                      className={`border-l-4 ${statusInfo.borderColor} hover:shadow-md transition-all duration-200 cursor-pointer`}
+                      onClick={() => handleCreditCardClick(application.id)}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           {/* Left Section - Main Info */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,11 +42,17 @@ interface ImportItem {
 export default function ImportsPage() {
   const { user } = useAuth();
   const { isAdmin, isFinanceira } = useUserPermissions();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedImport, setSelectedImport] = useState<ImportItem | null>(null);
+
+  // Navigation handler for card clicks
+  const handleImportCardClick = (importId: number) => {
+    setLocation(`/imports/details/${importId}`);
+  };
 
   // Determinar endpoint baseado no papel do usuário
   const endpoint = (isAdmin || isFinanceira) ? "/api/admin/imports" : "/api/imports";
