@@ -813,7 +813,10 @@ function DocumentUploadSection({
   uploadedDocuments: Record<string, any>;
   onValidation?: (result: ValidationResult) => void;
 }) {
-  const isUploaded = uploadedDocuments[documentInfo.key];
+  // Converter documentos para o formato esperado pelo novo componente
+  const documentsForKey = uploadedDocuments[documentInfo.key] || [];
+  const documentFiles = Array.isArray(documentsForKey) ? documentsForKey : 
+    documentsForKey ? [documentsForKey] : [];
 
   return (
     <SmartDocumentUpload
@@ -821,9 +824,13 @@ function DocumentUploadSection({
       documentLabel={documentInfo.label}
       documentSubtitle={documentInfo.subtitle}
       isRequired={documentInfo.required}
-      isUploaded={isUploaded}
+      uploadedDocuments={documentFiles}
       isUploading={isUploading}
       onUpload={onUpload}
+      onRemove={(documentId) => {
+        // Implementar remoção de documento específico
+        console.log('Removendo documento:', documentId);
+      }}
       onValidation={onValidation}
       applicationId={applicationId}
     />

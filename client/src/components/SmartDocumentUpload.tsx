@@ -195,17 +195,19 @@ export function SmartDocumentUpload({
     };
   };
 
+  const hasUploadedFiles = uploadedDocuments && uploadedDocuments.length > 0;
+
   const getStatusIcon = () => {
     if (isValidating) return <Loader2 className="w-4 h-4 animate-spin text-blue-600" />;
     if (validationResult?.isValid) return <CheckCircle2 className="w-4 h-4 text-green-600" />;
     if (validationResult && !validationResult.isValid) return <XCircle className="w-4 h-4 text-red-600" />;
-    if (isUploaded) return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+    if (hasUploadedFiles) return <CheckCircle2 className="w-4 h-4 text-green-600" />;
     return <Upload className="w-4 h-4 text-gray-400" />;
   };
 
   const getStatusColor = () => {
     if (isValidating) return "border-blue-300 bg-blue-50";
-    if (validationResult?.isValid || isUploaded) return "border-green-300 bg-green-50";
+    if (validationResult?.isValid || hasUploadedFiles) return "border-green-300 bg-green-50";
     if (validationResult && !validationResult.isValid) return "border-red-300 bg-red-50";
     return "border-gray-300 hover:border-gray-400";
   };
@@ -216,15 +218,21 @@ export function SmartDocumentUpload({
 
   return (
     <div className="space-y-3">
-      {/* Cabeçalho com Download visível */}
+      {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">{documentLabel}</label>
             {isRequired && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
-            {!isUploaded && !validationResult && (
+            {!hasUploadedFiles && !validationResult && (
               <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
                 Pendente
+              </Badge>
+            )}
+            {/* Contador de documentos */}
+            {hasUploadedFiles && (
+              <Badge variant="outline" className="text-xs text-green-600 border-green-300">
+                {uploadedDocuments.length} {uploadedDocuments.length === 1 ? 'documento' : 'documentos'}
               </Badge>
             )}
           </div>
@@ -234,27 +242,6 @@ export function SmartDocumentUpload({
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Download Button - Mais visível */}
-          {isUploaded && applicationId && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                const link = document.createElement('a');
-                link.href = `/api/documents/download/${documentKey}/${applicationId}`;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-              className="h-7 px-3 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-300"
-            >
-              <Download className="w-3 h-3 mr-1" />
-              Download
-            </Button>
-          )}
-          
           {/* Score Badge */}
           {validationResult && (
             <Badge 
@@ -270,6 +257,81 @@ export function SmartDocumentUpload({
         </div>
       </div>
 
+      {/* Lista de documentos existentes */}
+      {hasUploadedFiles && (
+        <div className="space-y-2">
+          {uploadedDocuments.map((doc) => (
+            <div
+              key={doc.id}
+              className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-600" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">{doc.originalName}</p>
+                  <p className="text-xs text-green-600">
+                    {(doc.size / 1024 / 1024).toFixed(2)} MB • {new Date(doc.uploadedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {/* Download Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const link = document.createElement('a');
+                    link.href = `/api/documents/download/${documentKey}/${applicationId}`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-300"
+                >
+                  <Download className="w-3 h-3" />
+                </Button>
+                
+                {/* Remove Button */}
+                {onRemove && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover documento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja remover o documento "{doc.originalName}"? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => onRemove(doc.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Remover
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Área de upload */}
       <div
         className={`
           border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer
@@ -304,12 +366,12 @@ export function SmartDocumentUpload({
                   {validationResult.isValid ? ' Válido' : ' Requer atenção'}
                 </p>
               </div>
-            ) : isUploaded ? (
+            ) : hasUploadedFiles ? (
               <div className="w-full">
                 <div className="flex items-center justify-center">
                   <div className="text-center">
-                    <p className="text-sm font-medium text-green-700">✓ Documento enviado</p>
-                    <p className="text-xs text-gray-500">Clique aqui para substituir</p>
+                    <p className="text-sm font-medium text-green-700">+ Adicionar mais documentos</p>
+                    <p className="text-xs text-gray-500">Clique aqui para anexar outro arquivo</p>
                   </div>
                 </div>
               </div>

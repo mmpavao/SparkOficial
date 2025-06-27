@@ -1258,9 +1258,15 @@ export default function CreditApplicationPage() {
                   documentLabel={doc.label}
                   documentSubtitle={doc.subtitle}
                   isRequired={doc.required}
-                  isUploaded={!!uploadedDocuments[doc.key]}
+                  uploadedDocuments={uploadedDocuments[doc.key] ? [uploadedDocuments[doc.key]] : []}
                   isUploading={uploadingDocument === doc.key}
                   onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                  onRemove={(documentId) => {
+                    // Implementar remoção de documento específico no formulário
+                    const updatedDocs = { ...uploadedDocuments };
+                    delete updatedDocs[doc.key];
+                    setUploadedDocuments(updatedDocs);
+                  }}
                   applicationId={undefined} // Not saved yet, so no download available
                 />
               ))}
@@ -1284,9 +1290,15 @@ export default function CreditApplicationPage() {
                     documentLabel={doc.label}
                     documentSubtitle={doc.subtitle}
                     isRequired={doc.required}
-                    isUploaded={!!uploadedDocuments[doc.key]}
+                    uploadedDocuments={uploadedDocuments[doc.key] ? [uploadedDocuments[doc.key]] : []}
                     isUploading={uploadingDocument === doc.key}
                     onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                    onRemove={(documentId) => {
+                      // Implementar remoção de documento específico no formulário
+                      const updatedDocs = { ...uploadedDocuments };
+                      delete updatedDocs[doc.key];
+                      setUploadedDocuments(updatedDocs);
+                    }}
                     applicationId={undefined} // Not saved yet, so no download available
                   />
                 ))}
