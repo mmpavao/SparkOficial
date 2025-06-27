@@ -351,7 +351,65 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
           <Separator />
 
-          {permissions.isFinanceira && application.financialStatus !== 'approved' ? (
+          {permissions.isFinanceira && application.financialStatus === 'approved' ? (
+            // Financeira Interface - Already approved, show approved credit details
+            <>
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div className="w-full">
+                    <h4 className="font-medium text-green-800">Crédito Aprovado</h4>
+                    <p className="text-sm text-green-700 mt-1">
+                      Esta solicitação já foi aprovada pela instituição financeira.
+                    </p>
+
+                    {/* Approved Credit Details */}
+                    <div className="mt-3 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Limite Aprovado:</span>
+                        <span className="font-medium text-green-800">
+                          US$ {Number(application.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      {application.approvedTerms && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Prazos Aprovados:</span>
+                          <span className="font-medium text-green-800">
+                            {application.approvedTerms} dias
+                          </span>
+                        </div>
+                      )}
+                      {application.downPayment && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Entrada Requerida:</span>
+                          <span className="font-medium text-green-800">
+                            {application.downPayment}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="outline"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar Termos
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-red-300 text-red-700 hover:bg-red-50"
+                >
+                  <Ban className="w-4 h-4 mr-2" />
+                  Bloquear Crédito
+                </Button>
+              </div>
+            </>
+          ) : permissions.isFinanceira && application.financialStatus !== 'approved' ? (
             // Financeira Interface - Final Approval with Credit Limits and Payment Terms (only if not already approved)
             <>
               {/* Credit Limit Input */}
@@ -441,64 +499,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 >
                   <XCircle className="w-4 h-4 mr-2" />
                   Rejeitar
-                </Button>
-              </div>
-            </>
-          ) : permissions.isFinanceira && application.financialStatus === 'approved' ? (
-            // Financeira Interface - Already approved, show approved credit details
-            <>
-              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div className="w-full">
-                    <h4 className="font-medium text-green-800">Crédito Aprovado</h4>
-                    <p className="text-sm text-green-700 mt-1">
-                      Esta solicitação já foi aprovada pela instituição financeira.
-                    </p>
-
-                    {/* Approved Credit Details */}
-                    <div className="mt-3 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Limite Aprovado:</span>
-                        <span className="font-medium text-green-800">
-                          US$ {Number(application.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      {application.approvedTerms && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Prazos Aprovados:</span>
-                          <span className="font-medium text-green-800">
-                            {application.approvedTerms} dias
-                          </span>
-                        </div>
-                      )}
-                      {application.downPayment && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Entrada Requerida:</span>
-                          <span className="font-medium text-green-800">
-                            {application.downPayment}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  variant="outline"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar Termos
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="border-red-300 text-red-700 hover:bg-red-50"
-                >
-                  <Ban className="w-4 h-4 mr-2" />
-                  Bloquear Crédito
                 </Button>
               </div>
             </>
