@@ -128,7 +128,7 @@ const revenueRanges = [
 // Generate dynamic mandatory documents based on shareholders
 const generateMandatoryDocuments = (shareholders: Array<{name: string; cpf: string; percentage: number}>) => {
   const baseDocs = [
-    // 📁 1. Documentação Jurídica e Societária
+    // 📁 1. Documentação Jurídica e Societária (OBRIGATÓRIO)
     { 
       key: 'articles_of_association', 
       label: '🇧🇷 Contrato Social registrado na Junta Comercial', 
@@ -136,42 +136,12 @@ const generateMandatoryDocuments = (shareholders: Array<{name: string; cpf: stri
       observation: '💬 Instruir o cliente a enviar o contrato social completo e atualizado, com carimbo da Junta Comercial.',
       required: true 
     },
+    // 🆔 2. Cartão CNPJ (OBRIGATÓRIO)
     { 
       key: 'business_license', 
       label: '🇧🇷 Cartão do CNPJ ou Certidão Simplificada da Junta Comercial', 
       subtitle: 'Business License',
       observation: '💬 Se preferir: pedir o comprovante de inscrição e situação cadastral da Receita Federal.',
-      required: true 
-    },
-    { 
-      key: 'certificate_of_incorporation', 
-      label: '🇧🇷 Certidão Simplificada da Junta Comercial', 
-      subtitle: 'Certificate of Incorporation',
-      observation: '💬 Documento pode ser emitido online no site da Junta Comercial do estado da empresa.',
-      required: true 
-    },
-    // 📊 2. Documentação Financeira
-    { 
-      key: 'financial_statements', 
-      label: '🇧🇷 Balanços patrimoniais e DRE assinados pelo contador (últimos 3 anos)', 
-      subtitle: 'Financial Statements (Last 3 Years)',
-      observation: '💬 Idealmente com carimbo do CRC e assinatura digital. Se não houver balanço, pode-se aceitar declaração de faturamento.',
-      required: true 
-    },
-    // 🧾 3. Documentação Fiscal
-    { 
-      key: 'tax_registration_certificate', 
-      label: '🇧🇷 Certidões Negativas de Débito (CND)', 
-      subtitle: 'Tax Registration Certificate',
-      observation: '💬 Receita Federal (Dívida Ativa + Tributos Federais), Estadual e Municipal. Todas podem ser obtidas gratuitamente nos sites dos respectivos órgãos.',
-      required: true 
-    },
-    // 🌎 4. Comércio Exterior e Operação
-    { 
-      key: 'export_import_license', 
-      label: '🇧🇷 Habilitação no RADAR (Siscomex) ou Licença de Importação atual', 
-      subtitle: 'Export/Import License',
-      observation: '💬 Enviar cópia do comprovante de habilitação (print do portal Gov.br/Siscomex).',
       required: true 
     }
   ];
@@ -212,6 +182,37 @@ const generateMandatoryDocuments = (shareholders: Array<{name: string; cpf: stri
 };
 
 const optionalDocuments = [
+  // 🧾 Documentação Fiscal (Agora Opcional)
+  { 
+    key: 'tax_registration_certificate', 
+    label: '🇧🇷 Certidões Negativas de Débito (CND)', 
+    subtitle: 'Tax Registration Certificate',
+    observation: '💬 Receita Federal (Dívida Ativa + Tributos Federais), Estadual e Municipal. Todas podem ser obtidas gratuitamente nos sites dos respectivos órgãos.',
+    required: false 
+  },
+  { 
+    key: 'certificate_of_incorporation', 
+    label: '🇧🇷 Certidão Simplificada da Junta Comercial', 
+    subtitle: 'Certificate of Incorporation',
+    observation: '💬 Documento pode ser emitido online no site da Junta Comercial do estado da empresa.',
+    required: false 
+  },
+  // 📊 Documentação Financeira (Agora Opcional)
+  { 
+    key: 'financial_statements', 
+    label: '🇧🇷 Balanços patrimoniais e DRE assinados pelo contador (últimos 3 anos)', 
+    subtitle: 'Financial Statements (Last 3 Years)',
+    observation: '💬 Idealmente com carimbo do CRC e assinatura digital. Se não houver balanço, pode-se aceitar declaração de faturamento.',
+    required: false 
+  },
+  // 🌎 Comércio Exterior (Agora Opcional)
+  { 
+    key: 'export_import_license', 
+    label: '🇧🇷 Habilitação no RADAR (Siscomex) ou Licença de Importação atual', 
+    subtitle: 'Export/Import License',
+    observation: '💬 Enviar cópia do comprovante de habilitação (print do portal Gov.br/Siscomex).',
+    required: false 
+  },
   // 📊 2. Documentação Financeira
   { 
     key: 'bank_reference_letter', 
@@ -282,6 +283,8 @@ export default function CreditApplicationPage() {
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState("");
+  const [customDocuments, setCustomDocuments] = useState<Array<{key: string; name: string; observation?: string}>>([]);
+  const [newDocumentName, setNewDocumentName] = useState("");
   const [, setLocation] = useLocation();
 
   const { toast } = useToast();
