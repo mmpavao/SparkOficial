@@ -2725,13 +2725,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Arquivo muito grande (máximo 10MB)" });
       }
 
-      // Check if user owns the application
+      // Check if user owns the application or has admin/financeira access
       const application = await storage.getCreditApplication(applicationId);
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
-      if (application.userId !== req.session.userId) {
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -2845,13 +2850,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Document deletion attempt: ${documentId} for application ${applicationId}`);
 
-      // Check if user owns the application
+      // Check if user owns the application or has admin/financeira access
       const application = await storage.getCreditApplication(applicationId);
       if (!application) {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
 
-      if (application.userId !== req.session.userId) {
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
