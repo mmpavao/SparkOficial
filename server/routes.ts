@@ -517,7 +517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Credit application routes
-  app.post('/api/credit/applications', requireAuth, async (req: any, res) => {
+  app.post('/api/credit/applications', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
     try {
       const userId = req.session.userId;
       const applicationData = { ...req.body, userId };
@@ -2491,7 +2491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes for credit analysis
-  app.get("/api/admin/credit-applications/:id", requireAuth, async (req: any, res) => {
+  app.get("/api/admin/credit-applications/:id", requireAuth, moduleProtection(['ADMIN']), async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
       const application = await storage.getCreditApplication(applicationId);

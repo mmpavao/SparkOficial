@@ -100,7 +100,7 @@ function App() {
       <I18nProvider>
         <TooltipProvider>
           <Toaster />
-          <ModuleProvider>
+          <ModuleProvider module="IMPORTER">
             <Router />
           </ModuleProvider>
         </TooltipProvider>
