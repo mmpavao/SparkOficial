@@ -1071,8 +1071,7 @@ export const zhTranslations: Translations = {
     company: '公司',
     requestDate: '申请日期',
     overview: '概览',
-    ```text
-applications: '申请',
+    applications: '申请',
     users: '用户',
     imports: '进口',
     name: '姓名',
