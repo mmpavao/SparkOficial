@@ -162,8 +162,9 @@ export default function ImportEditPage() {
       // Populate products
       if (importData.products) {
         try {
-          const parsedProducts = JSON.parse(importData.products);
-          const formattedProducts = parsedProducts.map((product: any, index: number) => ({
+          const productsData = typeof importData.products === 'string' ? 
+            JSON.parse(importData.products) : importData.products;
+          const formattedProducts = productsData.map((product: any, index: number) => ({
             ...product,
             id: index.toString(),
             quantity: Number(product.quantity) || 1,

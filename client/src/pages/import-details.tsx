@@ -82,7 +82,8 @@ export default function ImportDetailsPage() {
   }
 
   const statusInfo = getStatusInfo(importData.status);
-  const products = importData.products ? JSON.parse(importData.products) : [];
+  const products = importData.products ? 
+    (typeof importData.products === 'string' ? JSON.parse(importData.products) : importData.products) : [];
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
