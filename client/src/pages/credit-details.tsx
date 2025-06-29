@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -94,10 +94,16 @@ const generateMandatoryDocuments = (shareholders: any[] = []) => {
 export default function CreditDetailsPage() {
   const [match, params] = useRoute("/credit/details/:id");
   const [, setLocation] = useLocation();
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
   const permissions = useUserPermissions();
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
@@ -451,8 +457,13 @@ export default function CreditDetailsPage() {
     }
   ];
 
-  if (!match) {
-    return <div>Página não encontrada</div>;
+  // Prevent SSR/hydration issues in production
+  if (!mounted || !match) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600"></div>
+      </div>
+    );
   }
 
   if (isLoading) {
@@ -488,7 +499,7 @@ export default function CreditDetailsPage() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => window.history.back()}
+          onClick={() => mounted && setLocation('/credit')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
@@ -508,7 +519,7 @@ export default function CreditDetailsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation(`/credit/edit/${application.id}`)}
+                onClick={() => mounted && setLocation(`/credit/edit/${application.id}`)}
                 className="flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />

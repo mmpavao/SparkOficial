@@ -1,0 +1,37 @@
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.2
+npm notice To update run: npm install -g npm@11.4.2
+npm notice
+
+2025-06-29T04:28:34Z info: Pushing pid1 binary layer...
+2025-06-29T04:28:35Z info: Pushing Repl layer...
+2025-06-29T04:28:35Z info: Pushing hosting layer...
+2025-06-29T04:28:35Z warning: Detected broken symlink! The path "/tmp/pulse-A0CykwIP4sKl" does not exist.
+2025-06-29T04:28:35Z warning: Detected broken symlink! The path "/tmp/pulse-J0p1FQ67UnHj" does not exist.
+2025-06-29T04:28:35Z warning: Detected broken symlink! The path "/tmp/pulse-PG1GXvm23Fzq" does not exist.
+2025-06-29T04:28:35Z warning: Detected broken symlink! The path "/tmp/pulse-JLtb4MN696fZ" does not exist.
+2025-06-29T04:28:35Z warning: Detected broken symlink! The path "/tmp/pulse-EyFJNO6dC3Gu" does not exist.
+2025-06-29T04:28:35Z warning: Detected broken symlink! The path "/tmp/pulse-J9xUUI8ZucJT" does not exist.
+2025-06-29T04:28:35Z info: Retrieved cached nix layer
+2025-06-29T04:28:35Z info: Created hosting layer
+2025-06-29T04:28:36Z info: Created pid1 binary layer
+2025-06-29T04:29:05Z info: Created Repl layer
+2025-06-29T04:29:06Z info: Pushed image manifest
+2025-06-29T04:29:06Z info: Pushed soci index manifest
+2025-06-29T04:29:10Z info: Creating Autoscale service
+forwarding local port 5000 to external port 80 (mapped as 1104)
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+starting up user application
+4:29:29 AM [express] serving on port 5000
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+> NODE_ENV=production node dist/index.js
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+> rest-express@1.0.0 start
+2025-06-29T04:29:34Z info: Waiting for service to be ready
+2025-06-29T04:29:37Z info: Deployment successful
