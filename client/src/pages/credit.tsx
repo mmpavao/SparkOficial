@@ -657,16 +657,15 @@ export default function CreditPage() {
                                   {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                                 </p>
                                 {(() => {
-                                  // Generate the same mandatory/optional document arrays used in the interface
+                                  // Use exact same logic as credit-details.tsx
                                   const shareholders = application?.shareholders || [];
                                   
-                                  // Base mandatory documents
+                                  // Generate mandatory documents (same as credit-details.tsx)
                                   const baseMandatoryDocuments = [
                                     'articles_of_association', 
                                     'business_license'
                                   ];
                                   
-                                  // Add shareholder documents
                                   let mandatoryDocumentKeys = [...baseMandatoryDocuments];
                                   if (shareholders && shareholders.length >= 2) {
                                     shareholders.forEach((_, index) => {
@@ -676,7 +675,7 @@ export default function CreditPage() {
                                     mandatoryDocumentKeys.push('legal_representative_id');
                                   }
                                   
-                                  // Optional document keys (same as in credit-details.tsx)
+                                  // Optional document keys (same as credit-details.tsx)
                                   const optionalDocumentKeys = [
                                     'tax_registration_certificate',
                                     'certificate_of_incorporation',
@@ -692,32 +691,35 @@ export default function CreditPage() {
                                     'insurance_claim_record'
                                   ];
 
-                                  // Calculate actual uploaded documents
+                                  // Count documents exactly like in credit-details.tsx
                                   const requiredDocs = application.requiredDocuments || {};
                                   const optionalDocs = application.optionalDocuments || {};
                                   
-                                  let mandatoryUploaded = 0;
-                                  let optionalUploaded = 0;
+                                  let totalUploaded = 0;
                                   
-                                  // Count mandatory documents
-                                  mandatoryDocumentKeys.forEach(key => {
-                                    if (requiredDocs[key]) {
-                                      mandatoryUploaded += Array.isArray(requiredDocs[key]) ? requiredDocs[key].length : 1;
+                                  // Count required documents (can be arrays or single documents)
+                                  Object.values(requiredDocs).forEach(doc => {
+                                    if (Array.isArray(doc)) {
+                                      totalUploaded += doc.length;
+                                    } else if (doc) {
+                                      totalUploaded += 1;
                                     }
                                   });
                                   
-                                  // Count optional documents
-                                  optionalDocumentKeys.forEach(key => {
-                                    if (optionalDocs[key]) {
-                                      optionalUploaded += Array.isArray(optionalDocs[key]) ? optionalDocs[key].length : 1;
+                                  // Count optional documents (can be arrays or single documents)
+                                  Object.values(optionalDocs).forEach(doc => {
+                                    if (Array.isArray(doc)) {
+                                      totalUploaded += doc.length;
+                                    } else if (doc) {
+                                      totalUploaded += 1;
                                     }
                                   });
                                   
-                                  const totalMandatory = mandatoryDocumentKeys.length;
-                                  const totalOptional = optionalDocumentKeys.length;
-                                  const totalPossibleDocuments = totalMandatory + totalOptional;
-                                  const totalUploaded = mandatoryUploaded + optionalUploaded;
-                                  const mandatoryPending = totalMandatory - Object.keys(requiredDocs).length;
+                                  // Count mandatory document types uploaded (not individual files)
+                                  const mandatoryUploaded = mandatoryDocumentKeys.filter(key => 
+                                    application.requiredDocuments?.[key]
+                                  ).length;
+                                  const mandatoryPending = mandatoryDocumentKeys.length - mandatoryUploaded;
 
                                   return (
                                     <div className="flex items-center gap-2 text-xs">
