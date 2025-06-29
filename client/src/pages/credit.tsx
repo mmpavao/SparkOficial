@@ -656,88 +656,77 @@ export default function CreditPage() {
                                 <p className="text-sm text-gray-600">
                                   {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                                 </p>
-                                {(() => {
-                                  // Use exact same logic as credit-details.tsx
-                                  const shareholders = application?.shareholders || [];
-                                  
-                                  // Generate mandatory documents (same as credit-details.tsx)
-                                  const baseMandatoryDocuments = [
-                                    'articles_of_association', 
-                                    'business_license'
-                                  ];
-                                  
-                                  let mandatoryDocumentKeys = [...baseMandatoryDocuments];
-                                  if (shareholders && shareholders.length >= 2) {
-                                    shareholders.forEach((_, index) => {
-                                      mandatoryDocumentKeys.push(`legal_representative_id_${index + 1}`);
-                                    });
-                                  } else {
-                                    mandatoryDocumentKeys.push('legal_representative_id');
-                                  }
-                                  
-                                  // Optional document keys (same as credit-details.tsx)
-                                  const optionalDocumentKeys = [
-                                    'tax_registration_certificate',
-                                    'certificate_of_incorporation',
-                                    'financial_statements',
-                                    'export_import_license',
-                                    'bank_reference_letter',
-                                    'credit_report',
-                                    'customs_registration_certificate',
-                                    'business_operation_certificates',
-                                    'supplier_contract_sample',
-                                    'main_customers_list',
-                                    'sales_contracts_purchase_orders',
-                                    'insurance_claim_record'
-                                  ];
+                                <div className="flex items-center gap-2 text-xs">
+                  {(() => {
+                    // Use EXACT same logic as credit-details.tsx for consistency
+                    const shareholders = application?.shareholders || [];
 
-                                  // Count documents exactly like in credit-details.tsx
-                                  const requiredDocs = application.requiredDocuments || {};
-                                  const optionalDocs = application.optionalDocuments || {};
-                                  
-                                  let totalUploaded = 0;
-                                  
-                                  // Count required documents (can be arrays or single documents)
-                                  Object.values(requiredDocs).forEach(doc => {
-                                    if (Array.isArray(doc)) {
-                                      totalUploaded += doc.length;
-                                    } else if (doc) {
-                                      totalUploaded += 1;
-                                    }
-                                  });
-                                  
-                                  // Count optional documents (can be arrays or single documents)
-                                  Object.values(optionalDocs).forEach(doc => {
-                                    if (Array.isArray(doc)) {
-                                      totalUploaded += doc.length;
-                                    } else if (doc) {
-                                      totalUploaded += 1;
-                                    }
-                                  });
-                                  
-                                  // Count mandatory document types uploaded (not individual files)
-                                  const mandatoryUploaded = mandatoryDocumentKeys.filter(key => 
-                                    application.requiredDocuments?.[key]
-                                  ).length;
-                                  const mandatoryPending = mandatoryDocumentKeys.length - mandatoryUploaded;
+                    // Generate mandatory documents (same as credit-details.tsx)
+                    const baseMandatoryDocuments = [
+                      'articles_of_association', 
+                      'business_license'
+                    ];
 
-                                  return (
-                                    <div className="flex items-center gap-2 text-xs">
-                                      <span className={`px-2 py-1 rounded-full ${
-                                        mandatoryPending === 0 
-                                          ? 'bg-green-100 text-green-700' 
-                                          : mandatoryPending <= 2 
-                                            ? 'bg-yellow-100 text-yellow-700'
-                                            : 'bg-orange-100 text-orange-700'
-                                      }`}>
-                                        {totalUploaded} docs enviados
-                                      </span>
-                                      <span className="text-gray-500 text-xs">
-                                        {mandatoryPending > 0 ? `${mandatoryPending} obr. pendentes` : 'Obrigatórios OK'}
-                                      </span>
-                                    </div>
-                                  );
-                                })()}
+                    let mandatoryDocumentKeys = [...baseMandatoryDocuments];
+                    if (shareholders && shareholders.length >= 2) {
+                      shareholders.forEach((_, index) => {
+                        mandatoryDocumentKeys.push(`legal_representative_id_${index + 1}`);
+                      });
+                    } else {
+                      mandatoryDocumentKeys.push('legal_representative_id');
+                    }
+
+                    // Optional document keys (same as credit-details.tsx)
+                    const optionalDocumentKeys = [
+                      'tax_registration_certificate',
+                      'certificate_of_incorporation',
+                      'financial_statements',
+                      'export_import_license',
+                      'bank_reference_letter',
+                      'credit_report',
+                      'customs_registration_certificate',
+                      'business_operation_certificates',
+                      'supplier_contract_sample',
+                      'main_customers_list',
+                      'sales_contracts_purchase_orders',
+                      'insurance_claim_record'
+                    ];
+
+                    // Count DOCUMENT TYPES (not individual files) - CONSISTENT WITH DETAILS PAGE
+                    const requiredDocs = application.requiredDocuments || {};
+                    const optionalDocs = application.optionalDocuments || {};
+
+                    // Count mandatory document types uploaded
+                    const mandatoryUploaded = mandatoryDocumentKeys.filter(key => 
+                      requiredDocs[key]
+                    ).length;
+
+                    // Count optional document types uploaded  
+                    const optionalUploaded = optionalDocumentKeys.filter(key => 
+                      optionalDocs[key]
+                    ).length;
+
+                    // Total document TYPES uploaded (not individual files)
+                    const totalDocumentTypesUploaded = mandatoryUploaded + optionalUploaded;
+                    const mandatoryPending = mandatoryDocumentKeys.length - mandatoryUploaded;
+
+                    return (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className={`px-2 py-1 rounded-full ${
+                          mandatoryPending === 0 
+                            ? 'bg-green-100 text-green-700' 
+                            : mandatoryPending <= 2 
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {totalDocumentTypesUploaded} tipos enviados
+                        </span>
+                        <span className="text-gray-500 text-xs">
+                          {mandatoryPending > 0 ? `${mandatoryPending} obr. pendentes` : 'Obrigatórios OK'}
+                        </span>
+                      </div>
+                    );
+                  })()</div>
                               </div>
                             </div>
                           </div>
@@ -822,7 +811,7 @@ export default function CreditPage() {
                                       <XCircle className="w-4 h-4 mr-2" />
                                       Rejeitar
                                     </DropdownMenuItem>
-                                  </>
+                                                                 </>
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>

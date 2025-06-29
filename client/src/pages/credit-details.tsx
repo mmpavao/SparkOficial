@@ -669,32 +669,17 @@ export default function CreditDetailsPage() {
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   <span>
                     {(() => {
-                      // Count all uploaded documents correctly
+                      // Count DOCUMENT TYPES (consistent with listing page)
                       const requiredDocs = application.requiredDocuments || {};
                       const optionalDocs = application.optionalDocuments || {};
                       
-                      let totalUploaded = 0;
+                      // Count document types (not individual files)
+                      const requiredTypesCount = Object.keys(requiredDocs).filter(key => requiredDocs[key]).length;
+                      const optionalTypesCount = Object.keys(optionalDocs).filter(key => optionalDocs[key]).length;
+                      const totalDocumentTypes = requiredTypesCount + optionalTypesCount;
                       
-                      // Count required documents (can be arrays or single documents)
-                      Object.values(requiredDocs).forEach(doc => {
-                        if (Array.isArray(doc)) {
-                          totalUploaded += doc.length;
-                        } else if (doc) {
-                          totalUploaded += 1;
-                        }
-                      });
-                      
-                      // Count optional documents (can be arrays or single documents)
-                      Object.values(optionalDocs).forEach(doc => {
-                        if (Array.isArray(doc)) {
-                          totalUploaded += doc.length;
-                        } else if (doc) {
-                          totalUploaded += 1;
-                        }
-                      });
-                      
-                      return totalUploaded;
-                    })()} Enviados
+                      return totalDocumentTypes;
+                    })()} Tipos Enviados
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
