@@ -1029,9 +1029,6 @@ export default function CreditDetailsPage() {
 
           {!permissions.canPerformPreAnalysis && !permissions.canManageApplications && (
             <Card>
-              <CardHeader>
-                <CardTitle>Ações Rápidas</CardTitle>
-              </CardHeader>
               <CardContent className="space-y-3">
                 {/* Só permite edição se status for pending ou under_review */}
                 {(application.status === 'pending' || application.status === 'under_review') && (

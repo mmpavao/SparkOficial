@@ -631,81 +631,69 @@ export default function CreditApplicationPage() {
         applicationStatus = "pre_analysis";
       }
 
-      // Create application data without documents first
+      // Prepare document data for inclusion in application submission
+      const documentsForSubmission: Record<string, any> = {};
+      const mandatoryDocKeys = currentDynamicMandatoryDocuments.map(doc => doc.key);
+
+      // Convert uploaded documents to base64 format for database storage
+      for (const [key, docData] of Object.entries(uploadedDocuments)) {
+        const documentsArray = Array.isArray(docData) ? docData : [docData];
+        const processedDocs = [];
+
+        for (const docInfo of documentsArray) {
+          if (docInfo && docInfo.data) {
+            processedDocs.push({
+              filename: docInfo.filename,
+              originalName: docInfo.originalName,
+              size: docInfo.size,
+              type: docInfo.type,
+              uploadedAt: docInfo.uploadedAt,
+              uploadedBy: docInfo.uploadedBy,
+              data: docInfo.data,
+              isMandatory: mandatoryDocKeys.includes(key)
+            });
+          }
+        }
+
+        if (processedDocs.length > 0) {
+          documentsForSubmission[key] = processedDocs.length === 1 ? processedDocs[0] : processedDocs;
+        }
+      }
+
+      // Separate required and optional documents
+      const requiredDocuments: Record<string, any> = {};
+      const optionalDocuments: Record<string, any> = {};
+
+      for (const [key, docs] of Object.entries(documentsForSubmission)) {
+        if (mandatoryDocKeys.includes(key)) {
+          requiredDocuments[key] = docs;
+        } else {
+          optionalDocuments[key] = docs;
+        }
+      }
+
+      // Create application data with embedded documents
       const applicationData = {
         ...formData,
         ...creditForm.getValues(),
         userId: user?.id,
         status: applicationStatus,
         currentStep: 4,
-        documentsStatus: documentsStatus
+        documentsStatus: documentsStatus,
+        requiredDocuments: requiredDocuments,
+        optionalDocuments: optionalDocuments
       };
 
-      // Submit application first to get ID
+      // Submit application with all documents embedded
       const response = await apiRequest("/api/credit/applications", "POST", applicationData);
       const applicationId = response.id;
 
-      // Upload documents separately using FormData with error handling
-      const mandatoryDocKeys = currentDynamicMandatoryDocuments.map(doc => doc.key);
-      const uploadPromises = [];
-      let uploadErrors = [];
-
-      for (const [key, docData] of Object.entries(uploadedDocuments)) {
-        // Handle both single documents and arrays of documents
-        const documentsArray = Array.isArray(docData) ? docData : [docData];
-
-        for (const docInfo of documentsArray) {
-          if (docInfo && docInfo.file) {
-            const uploadPromise = (async () => {
-              try {
-                const formData = new FormData();
-                formData.append('document', docInfo.file);
-                formData.append('documentType', key);
-                formData.append('isMandatory', mandatoryDocKeys.includes(key).toString());
-
-                const uploadResponse = await fetch(`/api/credit/applications/${applicationId}/documents`, {
-                  method: 'POST',
-                  body: formData,
-                  credentials: 'include',
-                });
-
-                if (!uploadResponse.ok) {
-                  const errorData = await uploadResponse.json();
-                  throw new Error(`Erro no upload de ${docInfo.filename}: ${errorData.message || 'Erro desconhecido'}`);
-                }
-
-                return await uploadResponse.json();
-              } catch (error: any) {
-                uploadErrors.push(error.message);
-                console.error(`Upload error for ${key}:`, error);
-              }
-            })();
-
-            uploadPromises.push(uploadPromise);
-          }
-        }
-      }
-
-      // Wait for all document uploads to complete
-      await Promise.all(uploadPromises);
-
-      // Show warnings if some documents failed
-      if (uploadErrors.length > 0) {
-        toast({
-          title: "Atenção!",
-          description: `Solicitação criada, mas ${uploadErrors.length} documento(s) falharam no upload. Você pode fazer upload posteriormente.`,
-          variant: "destructive",
-        });
-      }
-
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
 
-      if (uploadErrors.length === 0) {
-        toast({
-          title: "Sucesso!",
-          description: "Solicitação de crédito enviada com sucesso.",
-        });
-      }
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação de crédito enviada com sucesso com todos os documentos.",
+      });
 
       setLocation('/credit');
     } catch (error: any) {
