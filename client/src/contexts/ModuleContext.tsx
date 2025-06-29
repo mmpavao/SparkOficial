@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 
@@ -7,7 +6,7 @@ type ModuleType = 'IMPORTER' | 'ADMIN' | 'FINANCEIRA';
 interface ModuleContextType {
   currentModule: ModuleType;
   canAccess: (targetModule: ModuleType) => boolean;
-  protectedAction: <T>(action: () => T, requiredModule: ModuleType) => T | null;
+  protectedAction: (action: () => any, requiredModule: ModuleType) => any;
 }
 
 const ModuleContext = createContext<ModuleContextType | undefined>(undefined);
@@ -17,7 +16,7 @@ interface ModuleProviderProps {
   module?: ModuleType;
 }
 
-export function ModuleProvider({ children, module: initialModule }: ModuleProviderProps) {
+export function ModuleProvider({ children, module: initialModule }: ModuleProviderProps): JSX.Element {
   const [location] = useLocation();
   const [currentModule, setCurrentModule] = useState<ModuleType>(initialModule || 'IMPORTER');
 
@@ -39,15 +38,15 @@ export function ModuleProvider({ children, module: initialModule }: ModuleProvid
       return targetModule === 'IMPORTER';
     }
     if (module === 'ADMIN') {
-      return ['ADMIN', 'IMPORTER'].includes(targetModule); // Admin pode ler importer
+      return ['ADMIN', 'IMPORTER'].includes(targetModule);
     }
     if (module === 'FINANCEIRA') {
-      return ['FINANCEIRA', 'IMPORTER'].includes(targetModule); // Financeira pode ler importer
+      return ['FINANCEIRA', 'IMPORTER'].includes(targetModule);
     }
     return false;
   };
 
-  const protectedAction = <T>(action: () => T, requiredModule: ModuleType): T | null => {
+  const protectedAction = (action: () => any, requiredModule: ModuleType): any => {
     if (!canAccess(requiredModule)) {
       console.error(`❌ PROTEÇÃO MODULAR: Acesso negado de ${module} para ${requiredModule}`);
       return null;
