@@ -50,17 +50,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     secret: process.env.SESSION_SECRET || "spark-comex-secret-key-for-development",
     store: sessionStore,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true to create sessions
     name: 'connect.sid',
     cookie: {
-      httpOnly: false, // Allow JavaScript access for debugging
-      secure: false, // HTTP for development
+      httpOnly: false,
+      secure: false,
       maxAge: sessionTtl,
-      sameSite: 'lax', // More permissive for navigation
+      sameSite: 'lax',
       path: '/',
-      domain: undefined, // Let browser set domain automatically
     },
-    rolling: true, // Reset expiration on each request
+    rolling: true,
   }));
 
   // Session debugging middleware
@@ -71,23 +70,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Force session initialization for authenticated routes
+  // Initialize session for all API routes
   app.use('/api/', (req: any, res, next) => {
-    // Skip session regeneration for login/register routes
-    if (req.path === '/auth/login' || req.path === '/auth/register') {
-      return next();
+    // Ensure session exists
+    if (!req.session) {
+      console.error('No session found on request');
+      return res.status(500).json({ message: "Erro de configuração de sessão" });
     }
-
-    // Ensure session is properly initialized
-    if (req.session && !req.session.initialized) {
-      req.session.initialized = true;
-      req.session.save((err: any) => {
-        if (err) console.error('Session save error:', err);
-        next();
-      });
-    } else {
-      next();
-    }
+    next();
   });
 
   // Authentication middleware
@@ -302,21 +292,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get current user endpoint
-  app.get("/api/auth/user", requireAuth, async (req: any, res) => {
+  // Get current user endpoint (no auth required - returns null if not authenticated)
+  app.get("/api/auth/user", async (req: any, res) => {
     try {
+      // If no session or userId, user is not authenticated
+      if (!req.session?.userId) {
+        return res.json({ user: null, authenticated: false });
+      }
+
       const user = await storage.getUser(req.session.userId);
       if (!user) {
+        // Clear invalid session
         req.session.destroy(() => {});
-        return res.status(401).json({ message: "Usuário não encontrado" });
+        return res.json({ user: null, authenticated: false });
       }
 
       // Return user without password
       const { password, ...userResponse } = user;
-      res.json(userResponse);
+      res.json({ user: userResponse, authenticated: true });
     } catch (error) {
       console.error("Get user error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      res.json({ user: null, authenticated: false });
     }
   });
 
