@@ -18,7 +18,7 @@ export interface Translations {
     users: string;
     logout: string;
   };
-  
+
   // Authentication
   auth: {
     login: string;
@@ -55,7 +55,7 @@ export interface Translations {
     haveAccount: string;
     signInNow: string;
   };
-  
+
   // Dashboard
   dashboard: {
     welcome: string;
@@ -72,7 +72,7 @@ export interface Translations {
     viewAll: string;
     noData: string;
   };
-  
+
   // Credit Management
   credit: {
     title: string;
@@ -100,7 +100,7 @@ export interface Translations {
     cancel: string;
     nextDue: string;
   };
-  
+
   // Import Management
   imports: {
     title: string;
@@ -133,7 +133,7 @@ export interface Translations {
     clickNewImport: string;
     tryChangeFilter: string;
   };
-  
+
   // User Roles
   roles: {
     super_admin: string;
@@ -141,7 +141,7 @@ export interface Translations {
     importer: string;
     inactive: string;
   };
-  
+
   // Currency
   currency: {
     USD: string;
@@ -149,7 +149,7 @@ export interface Translations {
     CNY: string;
     BRL: string;
   };
-  
+
   // Common
   common: {
     save: string;
@@ -182,7 +182,7 @@ export interface Translations {
     no: string;
     all: string;
   };
-  
+
   // Admin
   admin: {
     title: string;
@@ -228,7 +228,7 @@ export interface Translations {
     noCreditApplications: string;
     noImports: string;
   };
-  
+
   // Reports
   reports: {
     title: string;
@@ -253,7 +253,7 @@ export interface Translations {
     selectPeriod: string;
     selectReport: string;
   };
-  
+
   // Settings
   settings: {
     title: string;
@@ -269,7 +269,7 @@ export interface Translations {
     updateProfile: string;
     profileUpdated: string;
   };
-  
+
   // Validation Messages
   validation: {
     required: string;
@@ -281,7 +281,7 @@ export interface Translations {
     maxLength: string;
     invalidCurrency: string;
   };
-  
+
   // Error Messages
   errors: {
     generic: string;
@@ -300,7 +300,7 @@ export interface Translations {
     title: string;
     message: string;
   };
-  
+
 
 }
 
@@ -317,7 +317,7 @@ export const ptTranslations: Translations = {
     users: 'Usuários',
     logout: 'Sair',
   },
-  
+
   auth: {
     login: 'Entrar',
     register: 'Cadastrar',
@@ -353,7 +353,7 @@ export const ptTranslations: Translations = {
     haveAccount: 'Já tem uma conta?',
     signInNow: 'Faça login',
   },
-  
+
   dashboard: {
     welcome: 'Bem-vindo',
     goodMorning: 'Bom dia',
@@ -369,7 +369,7 @@ export const ptTranslations: Translations = {
     viewAll: 'Ver Todas',
     noData: 'Nenhum dado disponível',
   },
-  
+
   credit: {
     title: 'Gestão de Crédito',
     requestCredit: 'Solicitar Crédito',
@@ -396,7 +396,7 @@ export const ptTranslations: Translations = {
     cancel: 'Cancelar',
     nextDue: 'Próximo Vencimento',
   },
-  
+
   imports: {
     title: 'Gestão de Importações',
     newImport: 'Nova Importação',
@@ -428,21 +428,21 @@ export const ptTranslations: Translations = {
     clickNewImport: 'Clique em "Nova Importação" para começar',
     tryChangeFilter: 'Tente alterar o filtro de status',
   },
-  
+
   roles: {
     super_admin: 'Super Administrador',
     admin: 'Administrador',
     importer: 'Importador',
     inactive: 'Inativo',
   },
-  
+
   currency: {
     USD: 'Dólar Americano',
     EUR: 'Euro',
     CNY: 'Yuan Chinês',
     BRL: 'Real Brasileiro',
   },
-  
+
   common: {
     save: 'Salvar',
     cancel: 'Cancelar',
@@ -474,7 +474,7 @@ export const ptTranslations: Translations = {
     no: 'Não',
     all: 'Todos',
   },
-  
+
   admin: {
     title: 'Painel Administrativo',
     userManagement: 'Gestão de Usuários',
@@ -519,7 +519,7 @@ export const ptTranslations: Translations = {
     noCreditApplications: 'Nenhuma solicitação de crédito encontrada',
     noImports: 'Nenhuma importação encontrada',
   },
-  
+
   reports: {
     title: 'Relatórios',
     creditReport: 'Relatório de Crédito',
@@ -543,7 +543,7 @@ export const ptTranslations: Translations = {
     selectPeriod: 'Selecionar período',
     selectReport: 'Selecionar relatório',
   },
-  
+
   settings: {
     title: 'Configurações',
     profile: 'Perfil',
@@ -558,7 +558,7 @@ export const ptTranslations: Translations = {
     updateProfile: 'Atualizar Perfil',
     profileUpdated: 'Perfil atualizado com sucesso!',
   },
-  
+
   validation: {
     required: 'Este campo é obrigatório',
     invalidEmail: 'E-mail inválido',
@@ -569,7 +569,7 @@ export const ptTranslations: Translations = {
     maxLength: 'Máximo de {0} caracteres',
     invalidCurrency: 'Moeda inválida',
   },
-  
+
   errors: {
     generic: 'Ocorreu um erro inesperado',
     networkError: 'Erro de conexão',
@@ -601,7 +601,7 @@ export const enTranslations: Translations = {
     users: 'Users',
     logout: 'Logout',
   },
-  
+
   auth: {
     login: 'Login',
     register: 'Register',
@@ -637,7 +637,7 @@ export const enTranslations: Translations = {
     haveAccount: 'Already have an account?',
     signInNow: 'Sign in now',
   },
-  
+
   dashboard: {
     welcome: 'Welcome',
     goodMorning: 'Good morning',
@@ -653,7 +653,7 @@ export const enTranslations: Translations = {
     viewAll: 'View All',
     noData: 'No data available',
   },
-  
+
   credit: {
     title: 'Credit Management',
     requestCredit: 'Request Credit',
@@ -680,7 +680,7 @@ export const enTranslations: Translations = {
     cancel: 'Cancel',
     nextDue: 'Next Due',
   },
-  
+
   imports: {
     title: 'Import Management',
     newImport: 'New Import',
@@ -712,21 +712,21 @@ export const enTranslations: Translations = {
     clickNewImport: 'Click "New Import" to get started',
     tryChangeFilter: 'Try changing the status filter',
   },
-  
+
   roles: {
     super_admin: 'Super Administrator',
     admin: 'Administrator',
     importer: 'Importer',
     inactive: 'Inactive',
   },
-  
+
   currency: {
     USD: 'US Dollar',
     EUR: 'Euro',
     CNY: 'Chinese Yuan',
     BRL: 'Brazilian Real',
   },
-  
+
   common: {
     save: 'Save',
     cancel: 'Cancel',
@@ -758,7 +758,7 @@ export const enTranslations: Translations = {
     no: 'No',
     all: 'All',
   },
-  
+
   admin: {
     title: 'Admin Panel',
     userManagement: 'User Management',
@@ -803,7 +803,7 @@ export const enTranslations: Translations = {
     noCreditApplications: 'No credit applications found',
     noImports: 'No imports found',
   },
-  
+
   reports: {
     title: 'Reports',
     creditReport: 'Credit Report',
@@ -827,7 +827,7 @@ export const enTranslations: Translations = {
     selectPeriod: 'Select period',
     selectReport: 'Select report',
   },
-  
+
   settings: {
     title: 'Settings',
     profile: 'Profile',
@@ -842,7 +842,7 @@ export const enTranslations: Translations = {
     updateProfile: 'Update Profile',
     profileUpdated: 'Profile updated successfully!',
   },
-  
+
   validation: {
     required: 'This field is required',
     invalidEmail: 'Invalid email',
@@ -853,7 +853,7 @@ export const enTranslations: Translations = {
     maxLength: 'Maximum {0} characters',
     invalidCurrency: 'Invalid currency',
   },
-  
+
   errors: {
     generic: 'An unexpected error occurred',
     networkError: 'Connection error',
@@ -885,7 +885,7 @@ export const zhTranslations: Translations = {
     users: '用户',
     logout: '注销',
   },
-  
+
   auth: {
     login: '登录',
     register: '注册',
@@ -921,7 +921,7 @@ export const zhTranslations: Translations = {
     haveAccount: '已有账户？',
     signInNow: '立即登录',
   },
-  
+
   dashboard: {
     welcome: '欢迎',
     goodMorning: '早上好',
@@ -937,7 +937,7 @@ export const zhTranslations: Translations = {
     viewAll: '查看全部',
     noData: '暂无数据',
   },
-  
+
   credit: {
     title: '信贷管理',
     requestCredit: '申请信贷',
@@ -964,7 +964,7 @@ export const zhTranslations: Translations = {
     cancel: '取消',
     nextDue: '下次到期',
   },
-  
+
   imports: {
     title: '进口管理',
     newImport: '新进口',
@@ -996,21 +996,21 @@ export const zhTranslations: Translations = {
     clickNewImport: '点击"新建进口"开始',
     tryChangeFilter: '尝试更改状态筛选',
   },
-  
+
   roles: {
     super_admin: '超级管理员',
     admin: '管理员',
     importer: '进口商',
     inactive: '未激活',
   },
-  
+
   currency: {
     USD: '美元',
     EUR: '欧元',
     CNY: '人民币',
     BRL: '巴西雷亚尔',
   },
-  
+
   common: {
     save: '保存',
     cancel: '取消',
@@ -1042,7 +1042,7 @@ export const zhTranslations: Translations = {
     no: '否',
     all: '全部',
   },
-  
+
   admin: {
     title: '管理面板',
     userManagement: '用户管理',
@@ -1071,7 +1071,8 @@ export const zhTranslations: Translations = {
     company: '公司',
     requestDate: '申请日期',
     overview: '概览',
-    applications: '申请',
+    ```text
+applications: '申请',
     users: '用户',
     imports: '进口',
     name: '姓名',
@@ -1087,7 +1088,7 @@ export const zhTranslations: Translations = {
     noCreditApplications: '未找到信贷申请',
     noImports: '未找到进口记录',
   },
-  
+
   reports: {
     title: '报告',
     creditReport: '信贷报告',
@@ -1111,7 +1112,7 @@ export const zhTranslations: Translations = {
     selectPeriod: '选择时间段',
     selectReport: '选择报告',
   },
-  
+
   settings: {
     title: '设置',
     profile: '个人资料',
@@ -1126,7 +1127,7 @@ export const zhTranslations: Translations = {
     updateProfile: '更新个人资料',
     profileUpdated: '个人资料更新成功！',
   },
-  
+
   validation: {
     required: '此字段为必填项',
     invalidEmail: '邮箱格式无效',
@@ -1137,7 +1138,7 @@ export const zhTranslations: Translations = {
     maxLength: '最多{0}个字符',
     invalidCurrency: '货币格式无效',
   },
-  
+
   errors: {
     generic: '发生意外错误',
     networkError: '网络连接错误',
@@ -1169,7 +1170,7 @@ export const esTranslations: Translations = {
     users: 'Usuarios',
     logout: 'Cerrar Sesión',
   },
-  
+
   auth: {
     login: 'Iniciar Sesión',
     register: 'Registrarse',
@@ -1205,7 +1206,7 @@ export const esTranslations: Translations = {
     haveAccount: '¿Ya tienes una cuenta?',
     signInNow: 'Iniciar sesión ahora',
   },
-  
+
   dashboard: {
     welcome: 'Bienvenido',
     goodMorning: 'Buenos días',
@@ -1221,7 +1222,7 @@ export const esTranslations: Translations = {
     viewAll: 'Ver Todas',
     noData: 'Sin datos disponibles',
   },
-  
+
   credit: {
     title: 'Gestión de Crédito',
     requestCredit: 'Solicitar Crédito',
@@ -1248,7 +1249,7 @@ export const esTranslations: Translations = {
     cancel: 'Cancelar',
     nextDue: 'Próximo Vencimiento',
   },
-  
+
   imports: {
     title: 'Gestión de Importaciones',
     newImport: 'Nueva Importación',
@@ -1280,21 +1281,21 @@ export const esTranslations: Translations = {
     clickNewImport: 'Haga clic en "Nueva Importación" para comenzar',
     tryChangeFilter: 'Pruebe cambiar el filtro de estado',
   },
-  
+
   roles: {
     super_admin: 'Super Administrador',
     admin: 'Administrador',
     importer: 'Importador',
     inactive: 'Inactivo',
   },
-  
+
   currency: {
     USD: 'Dólar Estadounidense',
     EUR: 'Euro',
     CNY: 'Yuan Chino',
     BRL: 'Real Brasileño',
   },
-  
+
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',
@@ -1326,7 +1327,7 @@ export const esTranslations: Translations = {
     no: 'No',
     all: 'Todos',
   },
-  
+
   admin: {
     title: 'Panel de Administración',
     userManagement: 'Gestión de Usuarios',
@@ -1371,7 +1372,7 @@ export const esTranslations: Translations = {
     noCreditApplications: 'No se encontraron solicitudes de crédito',
     noImports: 'No se encontraron importaciones',
   },
-  
+
   reports: {
     title: 'Informes',
     creditReport: 'Informe de Crédito',
@@ -1395,7 +1396,7 @@ export const esTranslations: Translations = {
     selectPeriod: 'Seleccionar período',
     selectReport: 'Seleccionar informe',
   },
-  
+
   settings: {
     title: 'Configuración',
     profile: 'Perfil',
@@ -1410,7 +1411,7 @@ export const esTranslations: Translations = {
     updateProfile: 'Actualizar Perfil',
     profileUpdated: '¡Perfil actualizado exitosamente!',
   },
-  
+
   validation: {
     required: 'Este campo es obligatorio',
     invalidEmail: 'Correo inválido',
@@ -1421,7 +1422,7 @@ export const esTranslations: Translations = {
     maxLength: 'Máximo {0} caracteres',
     invalidCurrency: 'Moneda inválida',
   },
-  
+
   errors: {
     generic: 'Ocurrió un error inesperado',
     networkError: 'Error de conexión',
@@ -1465,31 +1466,42 @@ export const setLanguage = (language: Language): void => {
 export const getTranslation = (key: string, language?: Language): string => {
   const lang = language || getCurrentLanguage();
   const t = translations[lang];
-  
+
   // Navigate through nested keys (e.g., 'auth.login')
   const keys = key.split('.');
   let value: any = t;
-  
+
   for (const k of keys) {
     value = value?.[k];
     if (value === undefined) break;
   }
-  
+
   // Fallback to Portuguese if translation not found
   if (value === undefined && lang !== 'pt') {
     return getTranslation(key, 'pt');
   }
-  
+
   return value || key;
 };
 
 // Format translation with parameters
 export const formatTranslation = (key: string, params: (string | number)[], language?: Language): string => {
   let translation = getTranslation(key, language);
-  
+
   params.forEach((param, index) => {
     translation = translation.replace(`{${index}}`, String(param));
   });
-  
+
   return translation;
 };
+
+export const applyFixes = (translations: Translations) => {
+  translations.common.allTypes = "Todos os Tipos";
+  return translations;
+}
+
+const fixTranslations = () => {
+  ptTranslations.common.allTypes = "Todos os Tipos";
+}
+
+fixTranslations();
