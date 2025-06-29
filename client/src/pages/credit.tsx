@@ -817,6 +817,7 @@ export default function CreditPage() {
                             </DropdownMenu>
                           </div>
                         </div>
+                        </div>
                       </CardContent>
                     </Card>
                   );
