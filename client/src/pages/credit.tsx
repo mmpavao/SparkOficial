@@ -572,7 +572,7 @@ export default function CreditPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
               <p className="text-gray-600">{t.common.loading}...</p>
             </div>
-          ) : applications.length === 0 ? (
+          ) : (applications as any[]).length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
@@ -582,7 +582,7 @@ export default function CreditPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {applications.map((application: any) => {
+              {(applications as any[]).map((application: any) => {
                   // Determinar status visual baseado nos dados reais do banco
                   const getStatusInfo = () => {
                     // Aprovado pela financeira - mostrar como aprovado para usuários Financeira
@@ -669,7 +669,7 @@ export default function CreditPage() {
 
                     let mandatoryDocumentKeys = [...baseMandatoryDocuments];
                     if (shareholders && shareholders.length >= 2) {
-                      shareholders.forEach((_, index) => {
+                      shareholders.forEach((_: any, index: number) => {
                         mandatoryDocumentKeys.push(`legal_representative_id_${index + 1}`);
                       });
                     } else {
@@ -728,7 +728,6 @@ export default function CreditPage() {
                     );
                   })()}
                 </div>
-                              </div>
                             </div>
                           </div>
 
