@@ -13,7 +13,6 @@ import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
 import ImportsPage from "@/pages/imports";
 import NewImportPage from "@/pages/import-new";
-import ImportNewFormPage from "@/pages/import-new-form";
 import ImportDetailsPage from "@/pages/import-details";
 import ImportEdit from "@/pages/import-edit";
 import PipelineDemoPage from "@/pages/pipeline-demo";
@@ -67,6 +66,8 @@ function Router() {
 
         <Route path="/imports" component={ImportsPage} />
         <Route path="/imports/new" component={NewImportPage} />
+        <Route path="/imports/:id" component={ImportDetailsPage} />
+        <Route path="/imports/:id/edit" component={ImportEdit} />
 
         <Route path="/suppliers" component={SuppliersPage} />
         <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />

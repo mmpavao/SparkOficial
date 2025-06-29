@@ -364,7 +364,7 @@ export default function ImportsPage() {
                               Ver Detalhes
                             </Link>
                           </DropdownMenuItem>
-                          {(!permissions.isFinanceira && importItem.status === 'planning') && (
+                          {(!permissions.isFinanceira && importItem.status === 'planejamento') && (
                             <DropdownMenuItem asChild>
                               <Link href={`/imports/${importItem.id}/edit`} className="flex items-center">
                                 <Edit className="mr-2 h-4 w-4" />
