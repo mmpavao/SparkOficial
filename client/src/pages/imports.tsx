@@ -14,27 +14,24 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { MoreHorizontal } from "lucide-react";
 
-// Mock data structure for imports
+// Database structure for imports
 interface Import {
   id: number;
+  userId: number;
   importName: string;
   importNumber: string;
   totalValue: string;
   currency: string;
-  currentStage: string;
   status: string;
   cargoType: 'FCL' | 'LCL';
   containerNumber?: string;
   estimatedDelivery: string;
   actualDelivery?: string;
   companyName?: string;
+  supplierName?: string;
   createdAt: string;
-  products: Array<{
-    name: string;
-    quantity: number;
-    unitPrice: string;
-    totalValue: string;
-  }>;
+  products?: any;
+  currentStage?: string;
 }
 
 // Status mapping for display
@@ -90,12 +87,13 @@ export default function ImportsPage() {
     queryKey: ['/api/imports'],
   });
 
-  const metrics = calculateMetrics(imports);
+  const typedImports = imports as Import[];
+  const metrics = calculateMetrics(typedImports);
 
   // Filter imports
-  const filteredImports = imports.filter(imp => {
-    const matchesSearch = imp.importName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          imp.importNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredImports = typedImports.filter((imp: Import) => {
+    const matchesSearch = imp.importName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          imp.importNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (imp.companyName && imp.companyName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "all" || imp.status === statusFilter;
     const matchesCargo = cargoFilter === "all" || imp.cargoType === cargoFilter;
@@ -282,7 +280,7 @@ export default function ImportsPage() {
           </Card>
         ) : (
           filteredImports.map((importItem) => {
-            const statusInfo = getStatusInfo(importItem.status, importItem.currentStage);
+            const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status);
             return (
               <Card key={importItem.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
@@ -316,11 +314,11 @@ export default function ImportsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <p className="text-gray-600">Valor Total</p>
-                          <p className="font-medium">{formatCurrency(parseFloat(importItem.totalValue), importItem.currency)}</p>
+                          <p className="font-medium">{formatCurrency(parseFloat(importItem.totalValue || "0"), importItem.currency)}</p>
                         </div>
                         <div>
                           <p className="text-gray-600">Produtos</p>
-                          <p className="font-medium">{importItem.products.length} item{importItem.products.length > 1 ? 's' : ''}</p>
+                          <p className="font-medium">{importItem.products?.length || 0} item{(importItem.products?.length || 0) > 1 ? 's' : ''}</p>
                         </div>
                         {importItem.containerNumber && (
                           <div>
@@ -330,23 +328,25 @@ export default function ImportsPage() {
                         )}
                         <div>
                           <p className="text-gray-600">Entrega Prevista</p>
-                          <p className="font-medium">{new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR')}</p>
+                          <p className="font-medium">{importItem.estimatedDelivery ? new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 'N/A'}</p>
                         </div>
                       </div>
 
                       {/* Products Preview */}
-                      <div className="flex flex-wrap gap-2">
-                        {importItem.products.slice(0, 3).map((product, index) => (
-                          <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700">
-                            {product.name} ({product.quantity})
-                          </Badge>
-                        ))}
-                        {importItem.products.length > 3 && (
-                          <Badge variant="secondary" className="bg-gray-50 text-gray-600">
-                            +{importItem.products.length - 3} mais
-                          </Badge>
-                        )}
-                      </div>
+                      {importItem.products && importItem.products.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {importItem.products.slice(0, 3).map((product: any, index: number) => (
+                            <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700">
+                              {product.name} ({product.quantity || 'N/A'})
+                            </Badge>
+                          ))}
+                          {importItem.products.length > 3 && (
+                            <Badge variant="secondary" className="bg-gray-50 text-gray-600">
+                              +{importItem.products.length - 3} mais
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions Menu */}
