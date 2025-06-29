@@ -244,6 +244,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Debug logging for password comparison
       console.log("Stored password hash length:", user.password?.length);
       console.log("Input password length:", password?.length);
+      console.log("Input password:", password);
+      console.log("Stored hash starts with:", user.password?.substring(0, 20));
       
       // Ensure both password and hash exist
       if (!user.password || !password) {
@@ -251,11 +253,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Email ou senha inválidos" });
       }
 
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        console.log("Password comparison failed for user:", email);
-        console.log("Password hash starts with:", user.password.substring(0, 10));
-        return res.status(401).json({ message: "Email ou senha inválidos" });
+      try {
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        console.log("Password comparison result:", isValidPassword);
+        
+        if (!isValidPassword) {
+          console.log("Password comparison failed for user:", email);
+          console.log("Password hash starts with:", user.password.substring(0, 10));
+          return res.status(401).json({ message: "Email ou senha inválidos" });
+        }
+      } catch (bcryptError) {
+        console.error("Bcrypt comparison error:", bcryptError);
+        return res.status(500).json({ message: "Erro na verificação de senha" });
       }
 
       // Verify user is active
