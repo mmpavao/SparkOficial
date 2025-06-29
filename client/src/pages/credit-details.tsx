@@ -669,24 +669,39 @@ export default function CreditDetailsPage() {
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   <span>
                     {(() => {
-                      // Count DOCUMENT TYPES (consistent with listing page)
+                      // Count INDIVIDUAL FILES uploaded (consistent with listing page)
                       const requiredDocs = application.requiredDocuments || {};
                       const optionalDocs = application.optionalDocuments || {};
                       
-                      // Count document types (not individual files)
-                      const requiredTypesCount = Object.keys(requiredDocs).filter(key => requiredDocs[key]).length;
-                      const optionalTypesCount = Object.keys(optionalDocs).filter(key => optionalDocs[key]).length;
-                      const totalDocumentTypes = requiredTypesCount + optionalTypesCount;
+                      let totalFilesUploaded = 0;
                       
-                      return totalDocumentTypes;
-                    })()} Tipos Enviados
+                      // Count all individual files in required documents
+                      Object.values(requiredDocs).forEach(doc => {
+                        if (Array.isArray(doc)) {
+                          totalFilesUploaded += doc.length;  // Count each file in array
+                        } else if (doc) {
+                          totalFilesUploaded += 1;  // Single file
+                        }
+                      });
+                      
+                      // Count all individual files in optional documents
+                      Object.values(optionalDocs).forEach(doc => {
+                        if (Array.isArray(doc)) {
+                          totalFilesUploaded += doc.length;  // Count each file in array
+                        } else if (doc) {
+                          totalFilesUploaded += 1;  // Single file
+                        }
+                      });
+                      
+                      return `${totalFilesUploaded} Arquivos Enviados`;
+                    })()}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4 text-orange-600" />
                   <span>
                     {(() => {
-                      // Count mandatory documents that have been uploaded (not individual files, but document types)
+                      // Count mandatory documents that have been uploaded (document types for compliance)
                       const mandatoryUploaded = mandatoryDocuments.filter(doc => 
                         application.requiredDocuments?.[doc.key]
                       ).length;
@@ -734,12 +749,19 @@ export default function CreditDetailsPage() {
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       <span>
                         {(() => {
-                          // Count by document types uploaded (not individual files)
-                          const optionalUploaded = optionalDocuments.filter(doc => 
-                            application.optionalDocuments?.[doc.key]
-                          ).length;
+                          // Count individual files in optional documents
+                          const optionalDocs = application.optionalDocuments || {};
+                          let optionalFilesCount = 0;
                           
-                          return `${optionalUploaded} Tipos Enviados`;
+                          Object.values(optionalDocs).forEach(doc => {
+                            if (Array.isArray(doc)) {
+                              optionalFilesCount += doc.length;
+                            } else if (doc) {
+                              optionalFilesCount += 1;
+                            }
+                          });
+                          
+                          return `${optionalFilesCount} Arquivos Enviados`;
                         })()}
                       </span>
                     </div>

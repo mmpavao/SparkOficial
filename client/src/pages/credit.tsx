@@ -634,9 +634,9 @@ export default function CreditPage() {
                       onClick={() => handleCreditCardClick(application.id)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          {/* Left Section - Main Info */}
-                          <div className="flex items-center space-x-4">
+                        <div className="grid grid-cols-12 gap-4 items-center">
+                          {/* Left Section - Icon and Company Info (4 cols) */}
+                          <div className="col-span-4 flex items-center space-x-3">
                             <div className="relative flex-shrink-0">
                               <div className="w-10 h-10 bg-spark-50 rounded-lg flex items-center justify-center">
                                 <FileText className="w-5 h-5 text-spark-600" />
@@ -647,113 +647,88 @@ export default function CreditPage() {
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1">
-                                {`${(application.legalCompanyName || 'Empresa').length > 25 
-                                    ? (application.legalCompanyName || 'Empresa').substring(0, 25) + '...' 
+                              <h3 className="font-semibold text-gray-900 mb-1 text-sm">
+                                {`${(application.legalCompanyName || 'Empresa').length > 20 
+                                    ? (application.legalCompanyName || 'Empresa').substring(0, 20) + '...' 
                                     : (application.legalCompanyName || 'Empresa')} - #${application.id}`}
                               </h3>
-                              <div className="flex flex-col space-y-1">
-                                <p className="text-sm text-gray-600">
-                                  {new Date(application.createdAt).toLocaleDateString('pt-BR')}
-                                </p>
+                              <p className="text-xs text-gray-600 mb-1">
+                                {new Date(application.createdAt).toLocaleDateString('pt-BR')}
+                              </p>
                                 <div className="flex items-center gap-2 text-xs">
                   {(() => {
-                    // Use EXACT same logic as credit-details.tsx for consistency
-                    const shareholders = application?.shareholders || [];
-
-                    // Generate mandatory documents (same as credit-details.tsx)
-                    const baseMandatoryDocuments = [
-                      'articles_of_association', 
-                      'business_license'
-                    ];
-
-                    let mandatoryDocumentKeys = [...baseMandatoryDocuments];
-                    if (shareholders && shareholders.length >= 2) {
-                      shareholders.forEach((_: any, index: number) => {
-                        mandatoryDocumentKeys.push(`legal_representative_id_${index + 1}`);
-                      });
-                    } else {
-                      mandatoryDocumentKeys.push('legal_representative_id');
-                    }
-
-                    // Optional document keys (same as credit-details.tsx)
-                    const optionalDocumentKeys = [
-                      'tax_registration_certificate',
-                      'certificate_of_incorporation',
-                      'financial_statements',
-                      'export_import_license',
-                      'bank_reference_letter',
-                      'credit_report',
-                      'customs_registration_certificate',
-                      'business_operation_certificates',
-                      'supplier_contract_sample',
-                      'main_customers_list',
-                      'sales_contracts_purchase_orders',
-                      'insurance_claim_record'
-                    ];
-
-                    // Count DOCUMENT TYPES (not individual files) - CONSISTENT WITH DETAILS PAGE
+                    // Count INDIVIDUAL FILES uploaded (not document types)
                     const requiredDocs = application.requiredDocuments || {};
                     const optionalDocs = application.optionalDocuments || {};
+                    
+                    let totalFilesUploaded = 0;
+                    
+                    // Count all individual files in required documents
+                    Object.values(requiredDocs).forEach(doc => {
+                      if (Array.isArray(doc)) {
+                        totalFilesUploaded += doc.length;  // Count each file in array
+                      } else if (doc) {
+                        totalFilesUploaded += 1;  // Single file
+                      }
+                    });
+                    
+                    // Count all individual files in optional documents
+                    Object.values(optionalDocs).forEach(doc => {
+                      if (Array.isArray(doc)) {
+                        totalFilesUploaded += doc.length;  // Count each file in array
+                      } else if (doc) {
+                        totalFilesUploaded += 1;  // Single file
+                      }
+                    });
 
-                    // Count mandatory document types uploaded
-                    const mandatoryUploaded = mandatoryDocumentKeys.filter(key => 
-                      requiredDocs[key]
-                    ).length;
-
-                    // Count optional document types uploaded  
-                    const optionalUploaded = optionalDocumentKeys.filter(key => 
-                      optionalDocs[key]
-                    ).length;
-
-                    // Total document TYPES uploaded (not individual files)
-                    const totalDocumentTypesUploaded = mandatoryUploaded + optionalUploaded;
-                    const mandatoryPending = mandatoryDocumentKeys.length - mandatoryUploaded;
+                    // Total possible document slots (15 types as mentioned)
+                    const totalDocumentSlots = 15;
+                    const pendingSlots = Math.max(0, totalDocumentSlots - totalFilesUploaded);
 
                     return (
                       <div className="flex items-center gap-2 text-xs">
                         <span className={`px-2 py-1 rounded-full ${
-                          mandatoryPending === 0 
+                          totalFilesUploaded >= totalDocumentSlots 
                             ? 'bg-green-100 text-green-700' 
-                            : mandatoryPending <= 2 
+                            : totalFilesUploaded >= 10
                               ? 'bg-yellow-100 text-yellow-700'
                               : 'bg-orange-100 text-orange-700'
                         }`}>
-                          {totalDocumentTypesUploaded} tipos enviados
+                          {totalFilesUploaded} docs enviados
                         </span>
                         <span className="text-gray-500 text-xs">
-                          {mandatoryPending > 0 ? `${mandatoryPending} obr. pendentes` : 'Obrigatórios OK'}
+                          {pendingSlots > 0 ? `${pendingSlots} pendentes` : 'Completo'}
                         </span>
                       </div>
                     );
-                  })()}
+                  })()}</div>
                 </div>
                             </div>
                           </div>
 
-                          {/* Center Section - Values */}
-                          <div className="flex items-center space-x-6">
+                          {/* Center Section - Values (4 cols) */}
+                          <div className="col-span-4 flex items-center justify-center space-x-4">
                             <div className="text-center">
-                              <p className="text-sm text-gray-600 mb-1">Valor Solicitado</p>
-                              <p className="text-lg font-bold text-blue-600">
+                              <p className="text-xs text-gray-600 mb-1">Valor Solicitado</p>
+                              <p className="text-sm font-bold text-blue-600">
                                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(application.requestedAmount))}
                               </p>
                             </div>
 
                             {hasApprovedCredit && (
                               <div className="text-center">
-                                <p className="text-sm text-green-700 mb-1">Aprovado</p>
-                                <p className="text-lg font-bold text-green-600">
+                                <p className="text-xs text-green-700 mb-1">Aprovado</p>
+                                <p className="text-sm font-bold text-green-600">
                                   {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(finalCreditAmount))}
                                 </p>
                               </div>
                             )}
                           </div>
 
-                          {/* Right Section - Status & Actions */}
-                          <div className="flex items-center space-x-4">
+                          {/* Right Section - Status & Actions (4 cols) */}
+                          <div className="col-span-4 flex items-center justify-end space-x-3">
                             <div className="text-center">
-                              <Badge variant="outline" className={`${statusInfo.color} mb-2`}>
+                              <Badge variant="outline" className={`${statusInfo.color} mb-1`}>
                                 {statusInfo.label}
                               </Badge>
                               <div className="text-xs text-gray-500">
@@ -816,7 +791,6 @@ export default function CreditPage() {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                        </div>
                         </div>
                       </CardContent>
                     </Card>
