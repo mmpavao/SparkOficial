@@ -91,7 +91,7 @@ export function isValidStatusTransition(
   currentStatus: CreditStatus,
   newStatus: CreditStatus
 ): boolean {
-  const validTransitions = STATUS_TRANSITIONS[currentStatus];
+  const validTransitions = STATUS_TRANSITIONS[currentStatus] || [];
   return validTransitions.includes(newStatus);
 }
 
@@ -99,7 +99,7 @@ export function isValidPreAnalysisTransition(
   currentStatus: PreAnalysisStatus,
   newStatus: PreAnalysisStatus
 ): boolean {
-  const validTransitions = PRE_ANALYSIS_TRANSITIONS[currentStatus];
+  const validTransitions = PRE_ANALYSIS_TRANSITIONS[currentStatus] || [];
   return validTransitions.includes(newStatus);
 }
 
@@ -107,7 +107,7 @@ export function isValidFinancialTransition(
   currentStatus: FinancialStatus,
   newStatus: FinancialStatus
 ): boolean {
-  const validTransitions = FINANCIAL_TRANSITIONS[currentStatus];
+  const validTransitions = FINANCIAL_TRANSITIONS[currentStatus] || [];
   return validTransitions.includes(newStatus);
 }
 
@@ -115,7 +115,7 @@ export function isValidAdminTransition(
   currentStatus: AdminStatus,
   newStatus: AdminStatus
 ): boolean {
-  const validTransitions = ADMIN_TRANSITIONS[currentStatus];
+  const validTransitions = ADMIN_TRANSITIONS[currentStatus] || [];
   return validTransitions.includes(newStatus);
 }
 
