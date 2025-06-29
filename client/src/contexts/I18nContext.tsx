@@ -37,7 +37,9 @@ const defaultTranslations: Record<Language, Translations> = {
       dontHaveAccount: 'Não tem conta?',
       alreadyHaveAccount: 'Já tem conta?',
       loginSuccess: 'Login realizado com sucesso',
-      registerSuccess: 'Cadastro realizado com sucesso'
+      registerSuccess: 'Cadastro realizado com sucesso',
+      welcomeBack: 'Bem-vindo de volta',
+      loginDescription: 'Entre com suas credenciais para acessar sua conta'
     },
     // Credit module
     credit: {

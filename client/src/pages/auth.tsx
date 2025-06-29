@@ -9,7 +9,35 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "@/contexts/I18nContext";
+// Temporary fallback translations while fixing the system
+const authTranslations = {
+  platformDescription: 'Plataforma completa de crédito e importação para empresas brasileiras',
+  secure: 'Seguro',
+  fast: 'Rápido', 
+  efficient: 'Eficiente',
+  welcomeBack: 'Bem-vindo de volta',
+  loginDescription: 'Entre com suas credenciais para acessar sua conta',
+  email: 'E-mail',
+  password: 'Senha',
+  rememberMe: 'Lembrar de mim',
+  forgotPassword: 'Esqueceu a senha?',
+  signIn: 'Entrar',
+  signingIn: 'Entrando...',
+  dontHaveAccount: 'Não tem conta?',
+  registerButton: 'Cadastre-se',
+  createAccount: 'Criar Conta',
+  createAccountDescription: 'Preencha os dados para criar sua conta',
+  companyName: 'Nome da Empresa',
+  cnpj: 'CNPJ',
+  fullName: 'Nome Completo',
+  phone: 'Telefone',
+  confirmPassword: 'Confirmar Senha',
+  acceptTerms: 'Aceito os termos e condições',
+  register: 'Cadastrar',
+  registering: 'Cadastrando...',
+  alreadyHaveAccount: 'Já tem conta?',
+  loginButton: 'Faça login'
+};
 import { apiRequest } from "@/lib/queryClient";
 import { insertUserSchema, loginSchema, type InsertUser, type LoginUser } from "@shared/schema";
 import { formatCnpj, validateCnpj } from "@/lib/cnpj";
@@ -26,7 +54,6 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const loginForm = useForm<LoginUser>({
@@ -153,20 +180,20 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-lg opacity-90 mb-8">
-            {t.auth.platformDescription}
+            {t('auth.platformDescription')}
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm opacity-75">
             <div className="flex items-center">
               <Shield className="w-4 h-4 mr-2" />
-              <span>{t.auth.secure}</span>
+              <span>{t('auth.secure')}</span>
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              <span>{t.auth.fast}</span>
+              <span>{t('auth.fast')}</span>
             </div>
             <div className="flex items-center">
               <TrendingUp className="w-4 h-4 mr-2" />
-              <span>{t.auth.efficient}</span>
+              <span>{t('auth.efficient')}</span>
             </div>
           </div>
         </div>
@@ -187,8 +214,8 @@ export default function AuthPage() {
           {isLogin ? (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.auth.welcomeBack}</h2>
-                <p className="text-gray-600">{t.auth.loginDescription}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.welcomeBack')}</h2>
+                <p className="text-gray-600">{t('auth.loginDescription')}</p>
               </div>
 
               <Form {...loginForm}>
@@ -245,10 +272,10 @@ export default function AuthPage() {
                         onCheckedChange={setRememberMe}
                         className="peer shrink-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 h-6 w-6 border-3 border-gray-600 rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md ml-[0px] mr-[0px] bg-[#e1e3e2]" 
                       />
-                      <span className="ml-2 text-sm text-gray-600">{t.auth.rememberMe}</span>
+                      <span className="ml-2 text-sm text-gray-600">{t('auth.rememberMe')}</span>
                     </label>
                     <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0">
-                      {t.auth.forgotPassword}
+                      {t('auth.forgotPassword')}
                     </Button>
                   </div>
 
