@@ -726,7 +726,8 @@ export default function CreditPage() {
                         </span>
                       </div>
                     );
-                  })()</div>
+                  })()}
+                </div>
                               </div>
                             </div>
                           </div>
