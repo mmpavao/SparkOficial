@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -165,12 +165,18 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
 export default function CreditPage() {
   const [showForm, setShowForm] = useState(false);
   const [filters, setFilters] = useState({});
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
   const permissions = useUserPermissions();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Navigation handler for card clicks
   const handleCreditCardClick = (creditId: number) => {
@@ -343,6 +349,15 @@ export default function CreditPage() {
       </Badge>
     );
   };
+
+  // Prevent SSR/hydration issues in production
+  if (!mounted || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -572,7 +587,7 @@ export default function CreditPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
               <p className="text-gray-600">{t.common.loading}...</p>
             </div>
-          ) : (applications as any[]).length === 0 ? (
+          ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
@@ -582,7 +597,7 @@ export default function CreditPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {(applications as any[]).map((application: any) => {
+              {applications.filter(app => app && app.id).map((application: any) => {
                   // Determinar status visual baseado nos dados reais do banco
                   const getStatusInfo = () => {
                     // Aprovado pela financeira - mostrar como aprovado para usuários Financeira
