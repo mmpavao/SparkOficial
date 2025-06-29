@@ -667,11 +667,46 @@ export default function CreditDetailsPage() {
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span>{Object.keys(application.requiredDocuments || {}).length} Enviados</span>
+                  <span>
+                    {(() => {
+                      // Count all uploaded documents correctly
+                      const requiredDocs = application.requiredDocuments || {};
+                      const optionalDocs = application.optionalDocuments || {};
+                      
+                      let totalUploaded = 0;
+                      
+                      // Count required documents (can be arrays or single documents)
+                      Object.values(requiredDocs).forEach(doc => {
+                        if (Array.isArray(doc)) {
+                          totalUploaded += doc.length;
+                        } else if (doc) {
+                          totalUploaded += 1;
+                        }
+                      });
+                      
+                      // Count optional documents (can be arrays or single documents)
+                      Object.values(optionalDocs).forEach(doc => {
+                        if (Array.isArray(doc)) {
+                          totalUploaded += doc.length;
+                        } else if (doc) {
+                          totalUploaded += 1;
+                        }
+                      });
+                      
+                      return totalUploaded;
+                    })()} Enviados
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4 text-orange-600" />
-                  <span>{mandatoryDocuments.length - Object.keys(application.requiredDocuments || {}).length} Pendentes</span>
+                  <span>
+                    {(() => {
+                      const mandatoryUploaded = mandatoryDocuments.filter(doc => 
+                        application.requiredDocuments?.[doc.key]
+                      ).length;
+                      return mandatoryDocuments.length - mandatoryUploaded;
+                    })()} Pendentes
+                  </span>
                 </div>
               </div>
             </CardHeader>
@@ -709,11 +744,33 @@ export default function CreditDetailsPage() {
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>{Object.keys(application.optionalDocuments || {}).length} Enviados</span>
+                      <span>
+                        {(() => {
+                          const optionalDocs = application.optionalDocuments || {};
+                          let optionalUploaded = 0;
+                          
+                          Object.values(optionalDocs).forEach(doc => {
+                            if (Array.isArray(doc)) {
+                              optionalUploaded += doc.length;
+                            } else if (doc) {
+                              optionalUploaded += 1;
+                            }
+                          });
+                          
+                          return optionalUploaded;
+                        })()} Enviados
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4 text-blue-600" />
-                      <span>{optionalDocuments.length - Object.keys(application.optionalDocuments || {}).length} Pendentes</span>
+                      <span>
+                        {(() => {
+                          const optionalUploaded = optionalDocuments.filter(doc => 
+                            application.optionalDocuments?.[doc.key]
+                          ).length;
+                          return optionalDocuments.length - optionalUploaded;
+                        })()} Pendentes
+                      </span>
                     </div>
                   </div>
                 </div>

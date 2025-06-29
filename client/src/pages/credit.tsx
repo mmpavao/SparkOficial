@@ -645,7 +645,7 @@ export default function CreditPage() {
                                 <span className="text-xs font-bold text-white">#{application.id}</span>
                               </div>
                             </div>
-                            
+
                             <div className="min-w-0 flex-1">
                               <h3 className="font-semibold text-gray-900 mb-1">
                                 {`${(application.legalCompanyName || 'Empresa').length > 25 
@@ -661,12 +661,12 @@ export default function CreditPage() {
                                   const mandatoryDocuments = 2;
                                   const optionalDocuments = 12;
                                   const totalDocuments = mandatoryDocuments + optionalDocuments;
-                                  
+
                                   const mandatoryCount = Object.keys(application.requiredDocuments || {}).length;
                                   const optionalCount = Object.keys(application.optionalDocuments || {}).length;
                                   const uploadedCount = mandatoryCount + optionalCount;
                                   const pendingCount = totalDocuments - uploadedCount;
-                                  
+
                                   return (
                                     <div className="flex items-center gap-2 text-xs">
                                       <span className={`px-2 py-1 rounded-full ${
@@ -719,7 +719,7 @@ export default function CreditPage() {
                                 {new Date(application.updatedAt).toLocaleDateString('pt-BR')}
                               </div>
                             </div>
-                            
+
                             {/* Actions Dropdown */}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -734,7 +734,7 @@ export default function CreditPage() {
                                   <Eye className="w-4 h-4 mr-2" />
                                   Ver Detalhes
                                 </DropdownMenuItem>
-                                
+
                                 {(application.status === 'pending' || application.status === 'under_review') && (
                                   <>
                                     <DropdownMenuItem
