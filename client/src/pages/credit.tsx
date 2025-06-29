@@ -655,8 +655,8 @@ export default function CreditPage() {
                               <p className="text-xs text-gray-600 mb-1">
                                 {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                               </p>
-                                <div className="flex items-center gap-2 text-xs">
-                  {(() => {
+                              <div className="flex items-center gap-2 text-xs">
+                                {(() => {
                     // Count INDIVIDUAL FILES uploaded (not document types)
                     const requiredDocs = application.requiredDocuments || {};
                     const optionalDocs = application.optionalDocuments || {};
@@ -701,7 +701,7 @@ export default function CreditPage() {
                         </span>
                       </div>
                     );
-                  })()}</div>
+                  })()} 
                 </div>
                             </div>
                           </div>
@@ -786,7 +786,7 @@ export default function CreditPage() {
                                       <XCircle className="w-4 h-4 mr-2" />
                                       Rejeitar
                                     </DropdownMenuItem>
-                                                                 </>
+                                  </>
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -800,6 +800,6 @@ export default function CreditPage() {
             )}
           </CardContent>
         </Card>
-    </div>
-  );
-}
+      </div>
+    );
+  }
