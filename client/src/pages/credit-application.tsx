@@ -275,7 +275,7 @@ export default function CreditApplicationPage() {
   const [customDocuments, setCustomDocuments] = useState<Array<{key: string; name: string; observation?: string}>>([]);
   const [newDocumentName, setNewDocumentName] = useState("");
   const [, setLocation] = useLocation();
-  const [temporaryApplicationId, setTemporaryApplicationId] = useState<string | null>(null);
+  const [temporaryApplicationId, setTemporaryApplicationId] = useState<number | null>(null);
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
