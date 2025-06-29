@@ -657,32 +657,82 @@ export default function CreditPage() {
                                   {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                                 </p>
                                 {(() => {
-                                  // Calculate document counts - 2 mandatory + 12 optional = 14 total
-                                  const mandatoryDocuments = 2;
-                                  const optionalDocuments = 12;
-                                  const totalDocuments = mandatoryDocuments + optionalDocuments;
+                                  // Generate the same mandatory/optional document arrays used in the interface
+                                  const shareholders = application?.shareholders || [];
+                                  
+                                  // Base mandatory documents
+                                  const baseMandatoryDocuments = [
+                                    'articles_of_association', 
+                                    'business_license'
+                                  ];
+                                  
+                                  // Add shareholder documents
+                                  let mandatoryDocumentKeys = [...baseMandatoryDocuments];
+                                  if (shareholders && shareholders.length >= 2) {
+                                    shareholders.forEach((_, index) => {
+                                      mandatoryDocumentKeys.push(`legal_representative_id_${index + 1}`);
+                                    });
+                                  } else {
+                                    mandatoryDocumentKeys.push('legal_representative_id');
+                                  }
+                                  
+                                  // Optional document keys (same as in credit-details.tsx)
+                                  const optionalDocumentKeys = [
+                                    'tax_registration_certificate',
+                                    'certificate_of_incorporation',
+                                    'financial_statements',
+                                    'export_import_license',
+                                    'bank_reference_letter',
+                                    'credit_report',
+                                    'customs_registration_certificate',
+                                    'business_operation_certificates',
+                                    'supplier_contract_sample',
+                                    'main_customers_list',
+                                    'sales_contracts_purchase_orders',
+                                    'insurance_claim_record'
+                                  ];
 
-                                  const mandatoryCount = Object.keys(application.requiredDocuments || {}).length;
-                                  const optionalCount = Object.keys(application.optionalDocuments || {}).length;
-                                  const uploadedCount = mandatoryCount + optionalCount;
-                                  const pendingCount = totalDocuments - uploadedCount;
+                                  // Calculate actual uploaded documents
+                                  const requiredDocs = application.requiredDocuments || {};
+                                  const optionalDocs = application.optionalDocuments || {};
+                                  
+                                  let mandatoryUploaded = 0;
+                                  let optionalUploaded = 0;
+                                  
+                                  // Count mandatory documents
+                                  mandatoryDocumentKeys.forEach(key => {
+                                    if (requiredDocs[key]) {
+                                      mandatoryUploaded += Array.isArray(requiredDocs[key]) ? requiredDocs[key].length : 1;
+                                    }
+                                  });
+                                  
+                                  // Count optional documents
+                                  optionalDocumentKeys.forEach(key => {
+                                    if (optionalDocs[key]) {
+                                      optionalUploaded += Array.isArray(optionalDocs[key]) ? optionalDocs[key].length : 1;
+                                    }
+                                  });
+                                  
+                                  const totalMandatory = mandatoryDocumentKeys.length;
+                                  const totalOptional = optionalDocumentKeys.length;
+                                  const totalPossibleDocuments = totalMandatory + totalOptional;
+                                  const totalUploaded = mandatoryUploaded + optionalUploaded;
+                                  const mandatoryPending = totalMandatory - Object.keys(requiredDocs).length;
 
                                   return (
                                     <div className="flex items-center gap-2 text-xs">
                                       <span className={`px-2 py-1 rounded-full ${
-                                        pendingCount === 0 
+                                        mandatoryPending === 0 
                                           ? 'bg-green-100 text-green-700' 
-                                          : pendingCount <= 5 
+                                          : mandatoryPending <= 2 
                                             ? 'bg-yellow-100 text-yellow-700'
                                             : 'bg-orange-100 text-orange-700'
                                       }`}>
-                                        {uploadedCount}/{totalDocuments} docs
+                                        {totalUploaded} docs enviados
                                       </span>
-                                      {pendingCount > 0 && (
-                                        <span className="text-gray-500">
-                                          {pendingCount} pendentes
-                                        </span>
-                                      )}
+                                      <span className="text-gray-500 text-xs">
+                                        {mandatoryPending > 0 ? `${mandatoryPending} obr. pendentes` : 'Obrigatórios OK'}
+                                      </span>
                                     </div>
                                   );
                                 })()}

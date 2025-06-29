@@ -701,11 +701,14 @@ export default function CreditDetailsPage() {
                   <Clock className="w-4 h-4 text-orange-600" />
                   <span>
                     {(() => {
+                      // Count mandatory documents that have been uploaded (not individual files, but document types)
                       const mandatoryUploaded = mandatoryDocuments.filter(doc => 
                         application.requiredDocuments?.[doc.key]
                       ).length;
-                      return mandatoryDocuments.length - mandatoryUploaded;
-                    })()} Pendentes
+                      const mandatoryPending = mandatoryDocuments.length - mandatoryUploaded;
+                      
+                      return `${mandatoryPending} Obrigatórios Pendentes`;
+                    })()}
                   </span>
                 </div>
               </div>
@@ -746,19 +749,13 @@ export default function CreditDetailsPage() {
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       <span>
                         {(() => {
-                          const optionalDocs = application.optionalDocuments || {};
-                          let optionalUploaded = 0;
+                          // Count by document types uploaded (not individual files)
+                          const optionalUploaded = optionalDocuments.filter(doc => 
+                            application.optionalDocuments?.[doc.key]
+                          ).length;
                           
-                          Object.values(optionalDocs).forEach(doc => {
-                            if (Array.isArray(doc)) {
-                              optionalUploaded += doc.length;
-                            } else if (doc) {
-                              optionalUploaded += 1;
-                            }
-                          });
-                          
-                          return optionalUploaded;
-                        })()} Enviados
+                          return `${optionalUploaded} Tipos Enviados`;
+                        })()}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -768,8 +765,9 @@ export default function CreditDetailsPage() {
                           const optionalUploaded = optionalDocuments.filter(doc => 
                             application.optionalDocuments?.[doc.key]
                           ).length;
-                          return optionalDocuments.length - optionalUploaded;
-                        })()} Pendentes
+                          const optionalPending = optionalDocuments.length - optionalUploaded;
+                          return `${optionalPending} Tipos Pendentes`;
+                        })()}
                       </span>
                     </div>
                   </div>
