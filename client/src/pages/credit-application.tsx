@@ -276,6 +276,7 @@ export default function CreditApplicationPage() {
   const [customDocuments, setCustomDocuments] = useState<Array<{key: string; name: string; observation?: string}>>([]);
   const [newDocumentName, setNewDocumentName] = useState("");
   const [, setLocation] = useLocation();
+  const [temporaryApplicationId, setTemporaryApplicationId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -427,7 +428,7 @@ export default function CreditApplicationPage() {
 
       // Convert file to base64 for local storage
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const base64Data = reader.result as string;
         const documentInfo = {
           filename: file.name,
@@ -442,7 +443,7 @@ export default function CreditApplicationPage() {
 
         setUploadedDocuments(prev => {
           const currentDocs = prev[documentKey];
-          
+
           // If no documents exist for this key, create array with first document
           if (!currentDocs) {
             return {
@@ -450,7 +451,7 @@ export default function CreditApplicationPage() {
               [documentKey]: [documentInfo]
             };
           }
-          
+
           // If current value is not an array, convert to array and add new document
           if (!Array.isArray(currentDocs)) {
             return {
@@ -458,7 +459,7 @@ export default function CreditApplicationPage() {
               [documentKey]: [currentDocs, documentInfo]
             };
           }
-          
+
           // Add to existing array
           return {
             ...prev,
@@ -471,6 +472,30 @@ export default function CreditApplicationPage() {
           title: "Documento preparado!",
           description: `${file.name} será enviado com a solicitação.`,
         });
+
+         // Create temporary application if not exists
+         if (!temporaryApplicationId) {
+          const tempAppData = {
+            userId: user?.id,
+            status: 'draft',
+            currentStep: 4,
+            documentsStatus: 'pending',
+            legalCompanyName: companyForm.getValues("legalCompanyName"),
+            cnpj: companyForm.getValues("cnpj"),
+          };
+
+          try {
+            const tempAppResponse = await apiRequest("/api/credit/applications", "POST", tempAppData);
+            setTemporaryApplicationId(tempAppResponse.id);
+          } catch (error: any) {
+            console.error("Temporary application creation error:", error);
+            toast({
+              title: "Erro",
+              description: error.message || "Erro ao criar aplicação temporária",
+              variant: "destructive",
+            });
+          }
+        }
       };
 
       reader.onerror = () => {
@@ -615,7 +640,7 @@ export default function CreditApplicationPage() {
       for (const [key, docData] of Object.entries(uploadedDocuments)) {
         // Handle both single documents and arrays of documents
         const documentsArray = Array.isArray(docData) ? docData : [docData];
-        
+
         for (const docInfo of documentsArray) {
           if (docInfo && docInfo.file) {
             const uploadPromise = (async () => {
@@ -642,7 +667,7 @@ export default function CreditApplicationPage() {
                 console.error(`Upload error for ${key}:`, error);
               }
             })();
-            
+
             uploadPromises.push(uploadPromise);
           }
         }
@@ -661,14 +686,14 @@ export default function CreditApplicationPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
-      
+
       if (uploadErrors.length === 0) {
         toast({
           title: "Sucesso!",
           description: "Solicitação de crédito enviada com sucesso.",
         });
       }
-      
+
       setLocation('/credit');
     } catch (error: any) {
       console.error("Application submission error:", error);
@@ -1475,14 +1500,10 @@ export default function CreditApplicationPage() {
                     documentObservation={doc.observation}
                     isRequired={doc.required}
                     uploadedDocuments={uploadedDocuments}
-                    applicationId={0} // Placeholder for new applications
+                    applicationId={temporaryApplicationId || 0}
                     isUploading={uploadingDocument === doc.key}
                     onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                    onRemove={(documentKey) => {
-                      const updatedDocs = { ...uploadedDocuments };
-                      delete updatedDocs[documentKey];
-                      setUploadedDocuments(updatedDocs);
-                    }}
+                    onRemove={removeDocument}
                   />
                 ))}
               </div>
@@ -1507,23 +1528,10 @@ export default function CreditApplicationPage() {
                       documentObservation={doc.observation}
                       isRequired={doc.required}
                       uploadedDocuments={uploadedDocuments}
-                      applicationId={0} // Placeholder for new applications
+                      applicationId={temporaryApplicationId || 0}
                       isUploading={uploadingDocument === doc.key}
                       onUpload={(file) => handleDocumentUpload(doc.key, file)}
-                      onRemove={(documentKey) => {
-                        // Handle removal of specific document from array
-                        setUploadedDocuments(prev => {
-                          const updatedDocs = { ...prev };
-                          
-                          // If it's an array, remove the entire array (for now)
-                          // Future enhancement: could remove specific document by index
-                          if (updatedDocs[documentKey]) {
-                            delete updatedDocs[documentKey];
-                          }
-                          
-                          return updatedDocs;
-                        });
-                      }}
+                      onRemove={removeDocument}
                     />
                   ))}
               </div>
@@ -1574,16 +1582,10 @@ export default function CreditApplicationPage() {
                           documentObservation={customDoc.observation || "Documento adicional fornecido pelo cliente"}
                           isRequired={false}
                           uploadedDocuments={uploadedDocuments}
-                          applicationId={0}
+                          applicationId={temporaryApplicationId || 0}
                           isUploading={uploadingDocument === customDoc.key}
                           onUpload={(file) => handleDocumentUpload(customDoc.key, file)}
-                          onRemove={(documentKey) => {
-                            setUploadedDocuments(prev => {
-                              const updatedDocs = { ...prev };
-                              delete updatedDocs[documentKey];
-                              return updatedDocs;
-                            });
-                          }}
+                          onRemove={removeDocument}
                         />
                         <Button
                           type="button"
