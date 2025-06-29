@@ -18,7 +18,7 @@ import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import CreditCommunication from "@/components/CreditCommunication";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
-import { RobustDocumentUpload } from "@/components/RobustDocumentUpload";
+import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
 import { ValidationResult } from "@/lib/documentValidation";
 import { 
   ArrowLeft, 
@@ -254,7 +254,7 @@ export default function CreditDetailsPage() {
     },
   });
 
-  const handleDocumentRemove = (documentId: string) => {
+  const handleDocumentRemove = (documentId: string, index?: number) => {
     deleteDocumentMutation.mutate({ documentId });
   };
 
@@ -681,7 +681,7 @@ export default function CreditDetailsPage() {
                 <h4 className="font-medium text-gray-900 mb-3">Documentos Obrigatórios</h4>
                 <div className="space-y-3">
                   {mandatoryDocuments.map((doc) => (
-                    <RobustDocumentUpload
+                    <UnifiedDocumentUpload
                       key={doc.key}
                       documentKey={doc.key}
                       documentLabel={doc.label}
@@ -690,9 +690,13 @@ export default function CreditDetailsPage() {
                       isRequired={doc.required}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
-                      onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                      onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
+                      onDownload={(docKey, index) => {
+                        window.open(`/api/documents/download/${docKey}/${applicationId}`, '_blank');
+                      }}
                       uploadedDocuments={application.requiredDocuments || {}}
+                      allowMultiple={true}
                     />
                   ))}
                 </div>
@@ -715,7 +719,7 @@ export default function CreditDetailsPage() {
                 </div>
                 <div className="space-y-3">
                   {optionalDocuments.map((doc) => (
-                    <RobustDocumentUpload
+                    <UnifiedDocumentUpload
                       key={doc.key}
                       documentKey={doc.key}
                       documentLabel={doc.label}
@@ -724,9 +728,13 @@ export default function CreditDetailsPage() {
                       isRequired={doc.required}
                       applicationId={applicationId!}
                       isUploading={uploadingDocument === doc.key}
-                      onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                      onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
+                      onDownload={(docKey, index) => {
+                        window.open(`/api/documents/download/${docKey}/${applicationId}`, '_blank');
+                      }}
                       uploadedDocuments={application.optionalDocuments || {}}
+                      allowMultiple={true}
                     />
                   ))}
                 </div>

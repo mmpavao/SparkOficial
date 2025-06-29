@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
-import { RobustDocumentUpload } from "@/components/RobustDocumentUpload";
+import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
@@ -513,10 +513,24 @@ export default function CreditApplicationPage() {
     }
   };
 
-  const removeDocument = (documentKey: string) => {
+  const removeDocument = (documentKey: string, index?: number) => {
     setUploadedDocuments(prev => {
       const newDocs = { ...prev };
-      delete newDocs[documentKey];
+      if (index !== undefined) {
+        // Remove specific document from array
+        const currentDocs = newDocs[documentKey];
+        if (Array.isArray(currentDocs)) {
+          const updatedDocs = currentDocs.filter((_, i) => i !== index);
+          if (updatedDocs.length === 0) {
+            delete newDocs[documentKey];
+          } else {
+            newDocs[documentKey] = updatedDocs;
+          }
+        }
+      } else {
+        // Remove entire document key
+        delete newDocs[documentKey];
+      }
       return newDocs;
     });
   };
@@ -1492,7 +1506,7 @@ export default function CreditApplicationPage() {
                 </div>
 
                 {dynamicMandatoryDocuments.map((doc) => (
-                  <RobustDocumentUpload
+                  <UnifiedDocumentUpload
                     key={doc.key}
                     documentKey={doc.key}
                     documentLabel={doc.label}
@@ -1500,10 +1514,11 @@ export default function CreditApplicationPage() {
                     documentObservation={doc.observation}
                     isRequired={doc.required}
                     uploadedDocuments={uploadedDocuments}
-                    applicationId={temporaryApplicationId || 0}
+                    applicationId={temporaryApplicationId}
                     isUploading={uploadingDocument === doc.key}
-                    onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                    onUpload={handleDocumentUpload}
                     onRemove={removeDocument}
+                    allowMultiple={false}
                   />
                 ))}
               </div>
@@ -1520,7 +1535,7 @@ export default function CreditApplicationPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {optionalDocuments.map((doc) => (
-                    <RobustDocumentUpload
+                    <UnifiedDocumentUpload
                       key={doc.key}
                       documentKey={doc.key}
                       documentLabel={doc.label}
@@ -1528,10 +1543,11 @@ export default function CreditApplicationPage() {
                       documentObservation={doc.observation}
                       isRequired={doc.required}
                       uploadedDocuments={uploadedDocuments}
-                      applicationId={temporaryApplicationId || 0}
+                      applicationId={temporaryApplicationId}
                       isUploading={uploadingDocument === doc.key}
-                      onUpload={(file) => handleDocumentUpload(doc.key, file)}
+                      onUpload={handleDocumentUpload}
                       onRemove={removeDocument}
+                      allowMultiple={false}
                     />
                   ))}
               </div>
@@ -1575,17 +1591,18 @@ export default function CreditApplicationPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {customDocuments.map((customDoc) => (
                       <div key={customDoc.key} className="relative">
-                        <RobustDocumentUpload
+                        <UnifiedDocumentUpload
                           documentKey={customDoc.key}
                           documentLabel={`🇧🇷 ${customDoc.name}`}
                           documentSubtitle="Custom Document"
                           documentObservation={customDoc.observation || "Documento adicional fornecido pelo cliente"}
                           isRequired={false}
                           uploadedDocuments={uploadedDocuments}
-                          applicationId={temporaryApplicationId || 0}
+                          applicationId={temporaryApplicationId}
                           isUploading={uploadingDocument === customDoc.key}
-                          onUpload={(file) => handleDocumentUpload(customDoc.key, file)}
+                          onUpload={handleDocumentUpload}
                           onRemove={removeDocument}
+                          allowMultiple={false}
                         />
                         <Button
                           type="button"
