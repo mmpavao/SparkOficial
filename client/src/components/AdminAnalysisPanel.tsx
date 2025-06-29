@@ -26,15 +26,38 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { apiRequest } from "@/lib/queryClient";
 import { useSoundEffects } from "@/utils/soundEffects";
+import { useAuth } from '../hooks/useAuth';
+import { useModuleGuard } from '../hooks/useModuleGuard';
 
 interface AdminAnalysisPanelProps {
   application: any;
 }
 
 export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelProps) {
+  // 🔒 PROTEÇÃO MODULAR - CRÍTICA
+  const { isAuthorized } = useModuleGuard({
+    allowedRoles: ['admin', 'super_admin'],
+    componentName: 'AdminAnalysisPanel',
+    onUnauthorized: () => {
+      console.error('❌ ACESSO NEGADO: AdminAnalysisPanel protegido');
+    }
+  });
+
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Bloqueia renderização se não autorizado
+  if (!isAuthorized) {
+    return (
+      <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+        <p className="text-red-600 font-medium">🔒 Componente Protegido</p>
+        <p className="text-sm text-red-500">Acesso restrito a administradores</p>
+      </div>
+    );
+  }
+
   const permissions = useUserPermissions();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { playApprovalSound, playStatusChangeSound, playSubmitSound } = useSoundEffects();
 
   const [analysisData, setAnalysisData] = useState({
@@ -171,7 +194,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   financialNotes: financialData.financialNotes
                 })
               );
-              
+
               // Invalidar queries relacionadas
               queryClient.invalidateQueries({ 
                 queryKey: ["/api/financeira/credit-applications"] 
@@ -179,14 +202,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               queryClient.invalidateQueries({ 
                 queryKey: [`/api/credit/applications/${application.id}`] 
               });
-              
+
               // Força refetch para garantir sincronização
               setTimeout(() => {
                 queryClient.refetchQueries({ 
                   queryKey: [`/api/financeira/credit-applications/${application.id}`] 
                 });
               }, 100);
-              
+
               toast({
                 title: "Crédito Aprovado!",
                 description: "A aprovação foi processada com sucesso.",

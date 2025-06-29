@@ -146,6 +146,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
+  // 🔒 MIDDLEWARE DE PROTEÇÃO MODULAR
+  const moduleProtection = (allowedModules: string[]) => {
+    return (req: any, res: any, next: any) => {
+      const userRole = req.user?.role;
+      const path = req.path;
+      
+      console.log(`🔍 PROTEÇÃO: ${userRole} tentando acessar ${path}`);
+      
+      // Regras de proteção
+      if (path.startsWith('/api/credit/') && userRole === 'admin') {
+        console.log('⚠️ BLOQUEADO: Admin tentando modificar endpoint de crédito do importador');
+        return res.status(403).json({ 
+          message: "PROTEÇÃO MODULAR: Admin não pode modificar APIs do importador",
+          module: "IMPORTER_PROTECTED"
+        });
+      }
+      
+      if (path.startsWith('/api/admin/') && userRole === 'importer') {
+        console.log('⚠️ BLOQUEADO: Importador tentando acessar endpoint admin');
+        return res.status(403).json({ 
+          message: "PROTEÇÃO MODULAR: Importador não pode acessar APIs admin",
+          module: "ADMIN_PROTECTED"
+        });
+      }
+      
+      next();
+    };
+  };
+
   // Register endpoint
   app.post("/api/auth/register", async (req, res) => {
     try {

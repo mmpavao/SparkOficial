@@ -34,6 +34,7 @@ import PaymentEditPage from "@/pages/payment-edit";
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import AdminRoute from "@/components/AdminRoute";
+import { ModuleProvider } from "./contexts/ModuleContext";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -99,7 +100,9 @@ function App() {
       <I18nProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <ModuleProvider>
+            <Router />
+          </ModuleProvider>
         </TooltipProvider>
       </I18nProvider>
     </QueryClientProvider>
