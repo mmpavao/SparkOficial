@@ -684,6 +684,13 @@ Changelog:
   * Updated complete system documentation reflecting stable enterprise-grade platform
   * Achieved 100% functional multi-tier approval workflow with all roles working correctly
   * System declared stable and ready for Beta production deployment
+- June 30, 2025. Import form financial summary feature removal:
+  * Completely removed financial summary card from ImportForm.tsx due to persistent calculation issues
+  * Eliminated all financial calculations, credit data fetching, and related dependencies
+  * Restored ImportForm to clean, basic functionality focusing on core import creation
+  * System stability maintained by removing problematic feature rather than continuing failed fixes
+  * Import form now operates with essential fields only: basic info, cargo type (FCL/LCL), products for LCL
+  * Feature may be reimplemented later with proper planning and integration
 ```
 
 ## User Preferences
