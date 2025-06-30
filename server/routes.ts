@@ -1165,6 +1165,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
+      
+      console.log('Import creation data:', JSON.stringify(data, null, 2));
 
       // Get user's approved credit application
       const userCreditApps = await storage.getCreditApplicationsByUser(userId);
@@ -1177,7 +1179,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const creditApp = approvedCredits[0];
-      const totalValue = parseFloat(data.totalValue);
+      
+      // Calculate total value from products if not provided
+      let totalValue = parseFloat(data.totalValue) || 0;
+      if (!totalValue && data.products && Array.isArray(data.products)) {
+        totalValue = data.products.reduce((sum: number, product: any) => {
+          const quantity = parseFloat(product.quantity) || 0;
+          const unitPrice = parseFloat(product.unitPrice) || 0;
+          return sum + (quantity * unitPrice);
+        }, 0);
+      }
+
+      console.log('Calculated total value:', totalValue);
+
+      // Ensure we have a valid total value
+      if (!totalValue || totalValue <= 0) {
+        return res.status(400).json({ 
+          message: "Valor total da importação deve ser maior que zero" 
+        });
+      }
 
       // Check available credit
       const creditData = await storage.calculateAvailableCredit(creditApp.id);
@@ -1205,7 +1225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         containerNumber: data.containerNumber || null,
         sealNumber: data.sealNumber || null,
         products: data.products || [],
-        totalValue: data.totalValue,
+        totalValue: totalValue.toString(),
         currency: data.currency || "USD",
         incoterms: data.incoterms,
         shippingMethod: data.shippingMethod,
