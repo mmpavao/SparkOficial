@@ -1,37 +1,32 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Minus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
-import { Supplier } from "@shared/schema";
-import ProductManager from "@/components/imports/ProductManager";
-import ImportFinancialPreview from "@/components/imports/ImportFinancialPreview";
-import TermsConfirmation from "@/components/imports/TermsConfirmation";
-import { Package, Ship, Plane, AlertTriangle, CheckCircle } from "lucide-react";
 
 const importFormSchema = z.object({
-  importName: z.string().min(1, "Nome da importação é obrigatório"),
-  cargoType: z.enum(["FCL", "LCL"], { required_error: "Tipo de carga é obrigatório" }),
-  totalValue: z.number().min(1, "Valor deve ser maior que zero"),
-  currency: z.enum(["USD", "EUR", "CNY"], { required_error: "Moeda é obrigatória" }),
-  incoterms: z.enum(["FOB", "CIF", "EXW"], { required_error: "Incoterms é obrigatório" }),
-  shippingMethod: z.enum(["sea", "air"], { required_error: "Método de envio é obrigatório" }),
-  containerType: z.string().optional(),
+  name: z.string().min(1, "Nome é obrigatório"),
+  supplierId: z.string().optional(),
+  cargoType: z.enum(["FCL", "LCL"]),
+  totalValue: z.number().positive("Valor deve ser positivo"),
+  currency: z.enum(["USD", "CNY", "EUR"]),
+  incoterms: z.enum(["FOB", "CIF", "EXW"]),
+  origin: z.string().min(1, "Origem é obrigatória"),
+  destination: z.string().min(1, "Destino é obrigatório"),
+  estimatedDelivery: z.string().min(1, "Data estimada é obrigatória"),
+  description: z.string().optional(),
   containerNumber: z.string().optional(),
-  sealNumber: z.string().optional(),
-  supplierId: z.number().optional(),
-  estimatedDelivery: z.string().optional(),
-  notes: z.string().optional(),
+  containerSeal: z.string().optional(),
 });
 
 type ImportFormData = z.infer<typeof importFormSchema>;
@@ -45,26 +40,32 @@ interface Product {
   description?: string;
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  location: string;
+}
+
 export default function ImportForm() {
   const [, setLocation] = useLocation();
-  const [showTermsModal, setShowTermsModal] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
   const queryClient = useQueryClient();
+  const [products, setProducts] = useState<Product[]>([]);
 
   const form = useForm<ImportFormData>({
     resolver: zodResolver(importFormSchema),
     defaultValues: {
+      cargoType: "FCL",
       currency: "USD",
       incoterms: "FOB",
-      shippingMethod: "sea",
-      cargoType: "FCL",
+      totalValue: 0,
     },
   });
 
   const cargoType = form.watch("cargoType");
   const totalValue = form.watch("totalValue") || 0;
-  const currency = form.watch("currency");
-  const incoterms = form.watch("incoterms");
 
   // Fetch suppliers for dropdown
   const { data: suppliers = [] } = useQuery<Supplier[]>({
@@ -100,316 +101,287 @@ export default function ImportForm() {
       status: "planejamento",
     };
 
-    setShowTermsModal(true);
-    
-    // Store form data for terms confirmation
-    (window as any).pendingImportData = importData;
-  };
-
-  const handleTermsConfirm = () => {
-    const importData = (window as any).pendingImportData;
     createImportMutation.mutate(importData);
-    setShowTermsModal(false);
   };
 
-  const finalTotalValue = calculateTotalValue();
+  const addProduct = () => {
+    const newProduct: Product = {
+      id: Date.now().toString(),
+      name: "",
+      quantity: 1,
+      unitPrice: 0,
+      description: "",
+    };
+    setProducts([...products, newProduct]);
+  };
+
+  const removeProduct = (id: string) => {
+    setProducts(products.filter(p => p.id !== id));
+  };
+
+  const updateProduct = (id: string, field: keyof Product, value: any) => {
+    setProducts(products.map(p => 
+      p.id === id ? { ...p, [field]: value } : p
+    ));
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Nova Importação</h1>
-        <p className="text-muted-foreground">
-          Crie uma nova importação e gerencie todos os detalhes do processo
-        </p>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Nova Importação</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  Informações Básicas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="importName">Nome da Importação</Label>
-                    <Input
-                      id="importName"
-                      {...form.register("importName")}
-                      placeholder="Ex: Eletrônicos Q1 2025"
-                    />
-                    {form.formState.errors.importName && (
-                      <p className="text-sm text-red-600">{form.formState.errors.importName.message}</p>
-                    )}
-                  </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações Básicas</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Nome da Importação</Label>
+                <Input
+                  id="name"
+                  {...form.register("name")}
+                  placeholder="Ex: Importação Eletrônicos Q1"
+                />
+                {form.formState.errors.name && (
+                  <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="cargoType">Tipo de Carga</Label>
+                <Select value={cargoType} onValueChange={(value) => form.setValue("cargoType", value as "FCL" | "LCL")}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FCL">FCL (Container Completo)</SelectItem>
+                    <SelectItem value="LCL">LCL (Carga Fracionada)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-                  <div className="space-y-2">
-                    <Label>Tipo de Carga</Label>
-                    <Select onValueChange={(value) => form.setValue("cargoType", value as "FCL" | "LCL")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="FCL">FCL - Container Completo</SelectItem>
-                        <SelectItem value="LCL">LCL - Carga Consolidada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="origin">Origem</Label>
+                <Input
+                  id="origin"
+                  {...form.register("origin")}
+                  placeholder="Ex: Shenzhen, China"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="destination">Destino</Label>
+                <Input
+                  id="destination"
+                  {...form.register("destination")}
+                  placeholder="Ex: Santos, Brasil"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="estimatedDelivery">Entrega Estimada</Label>
+                <Input
+                  id="estimatedDelivery"
+                  type="date"
+                  {...form.register("estimatedDelivery")}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="description">Descrição (Opcional)</Label>
+              <Textarea
+                id="description"
+                {...form.register("description")}
+                placeholder="Descrição adicional da importação..."
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cargo Type Specific Content */}
+        {cargoType === "FCL" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Container</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="totalValue">Valor Total (USD)</Label>
+                  <Input
+                    id="totalValue"
+                    type="number"
+                    step="0.01"
+                    {...form.register("totalValue", { valueAsNumber: true })}
+                    placeholder="0.00"
+                  />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Moeda</Label>
-                    <Select onValueChange={(value) => form.setValue("currency", value as "USD" | "EUR" | "CNY")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Incoterms</Label>
-                    <Select onValueChange={(value) => form.setValue("incoterms", value as "FOB" | "CIF" | "EXW")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="FOB">FOB - Free on Board</SelectItem>
-                        <SelectItem value="CIF">CIF - Cost, Insurance & Freight</SelectItem>
-                        <SelectItem value="EXW">EXW - Ex Works</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Método de Envio</Label>
-                    <Select onValueChange={(value) => form.setValue("shippingMethod", value as "sea" | "air")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sea">
-                          <div className="flex items-center gap-2">
-                            <Ship className="w-4 h-4" />
-                            Marítimo
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="air">
-                          <div className="flex items-center gap-2">
-                            <Plane className="w-4 h-4" />
-                            Aéreo
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Supplier Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Fornecedor</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label>Fornecedor Principal</Label>
-                  <Select onValueChange={(value) => form.setValue("supplierId", parseInt(value))}>
+                
+                <div>
+                  <Label htmlFor="currency">Moeda</Label>
+                  <Select value={form.watch("currency")} onValueChange={(value) => form.setValue("currency", value as "USD" | "CNY" | "EUR")}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um fornecedor" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {suppliers.map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                          {supplier.companyName} - {supplier.city}, {supplier.state || supplier.country}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="CNY">CNY</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div>
+                  <Label htmlFor="incoterms">Incoterms</Label>
+                  <Select value={form.watch("incoterms")} onValueChange={(value) => form.setValue("incoterms", value as "FOB" | "CIF" | "EXW")}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FOB">FOB</SelectItem>
+                      <SelectItem value="CIF">CIF</SelectItem>
+                      <SelectItem value="EXW">EXW</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            {/* Products Section */}
-            {cargoType === "LCL" ? (
-              <ProductManager
-                products={products}
-                onProductsChange={setProducts}
-                suppliers={suppliers}
-                currency={currency}
-              />
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Valor da Carga</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Label htmlFor="totalValue">Valor Total ({currency})</Label>
-                    <Input
-                      id="totalValue"
-                      type="number"
-                      step="0.01"
-                      {...form.register("totalValue", { valueAsNumber: true })}
-                      placeholder="0.00"
-                    />
-                    {form.formState.errors.totalValue && (
-                      <p className="text-sm text-red-600">{form.formState.errors.totalValue.message}</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Container Information (FCL only) */}
-            {cargoType === "FCL" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações do Container</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="containerType">Tipo de Container</Label>
-                      <Select onValueChange={(value) => form.setValue("containerType", value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="20ft">20ft Standard</SelectItem>
-                          <SelectItem value="40ft">40ft Standard</SelectItem>
-                          <SelectItem value="40ft-hc">40ft High Cube</SelectItem>
-                          <SelectItem value="45ft">45ft High Cube</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="containerNumber">Número do Container</Label>
-                      <Input
-                        id="containerNumber"
-                        {...form.register("containerNumber")}
-                        placeholder="Ex: TCLU1234567"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="sealNumber">Número do Lacre</Label>
-                      <Input
-                        id="sealNumber"
-                        {...form.register("sealNumber")}
-                        placeholder="Ex: SL123456"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Additional Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações Adicionais</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="estimatedDelivery">Data Estimada de Entrega</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="containerNumber">Número do Container</Label>
                   <Input
-                    id="estimatedDelivery"
-                    type="date"
-                    {...form.register("estimatedDelivery")}
+                    id="containerNumber"
+                    {...form.register("containerNumber")}
+                    placeholder="Ex: MSKU1234567"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Observações</Label>
-                  <Textarea
-                    id="notes"
-                    {...form.register("notes")}
-                    placeholder="Observações adicionais sobre a importação..."
-                    rows={3}
+                
+                <div>
+                  <Label htmlFor="containerSeal">Lacre do Container</Label>
+                  <Input
+                    id="containerSeal"
+                    {...form.register("containerSeal")}
+                    placeholder="Ex: 12345678"
                   />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Submit Button */}
-            <div className="flex gap-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setLocation("/imports")}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createImportMutation.isPending || (cargoType === "LCL" && products.length === 0)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
-              </Button>
-            </div>
-          </form>
-        </div>
-
-        {/* Financial Preview Sidebar */}
-        <div className="space-y-6">
-          <ImportFinancialPreview
-            fobValue={finalTotalValue}
-            currency={currency}
-            incoterms={incoterms}
-            showCreditCheck={true}
-          />
-
-          {/* Quick Summary */}
+        {cargoType === "LCL" && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Resumo</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                Produtos
+                <Button type="button" onClick={addProduct} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Produto
+                </Button>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Tipo:</span>
-                <Badge variant="outline">{cargoType}</Badge>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Envio:</span>
-                <span className="font-medium">
-                  {form.watch("shippingMethod") === "sea" ? "Marítimo" : "Aéreo"}
-                </span>
-              </div>
-              {cargoType === "LCL" && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Produtos:</span>
-                  <span className="font-medium">{products.length}</span>
+            <CardContent className="space-y-4">
+              {products.map((product, index) => (
+                <div key={product.id} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Produto {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeProduct(product.id)}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label>Nome do Produto</Label>
+                      <Input
+                        value={product.name}
+                        onChange={(e) => updateProduct(product.id, "name", e.target.value)}
+                        placeholder="Ex: Smartphone"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Quantidade</Label>
+                      <Input
+                        type="number"
+                        value={product.quantity}
+                        onChange={(e) => updateProduct(product.id, "quantity", parseInt(e.target.value) || 0)}
+                        placeholder="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Preço Unitário (USD)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={product.unitPrice}
+                        onChange={(e) => updateProduct(product.id, "unitPrice", parseFloat(e.target.value) || 0)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Total</Label>
+                      <div className="h-10 px-3 flex items-center bg-gray-50 border rounded-md">
+                        ${(product.quantity * product.unitPrice).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Descrição (Opcional)</Label>
+                    <Input
+                      value={product.description || ""}
+                      onChange={(e) => updateProduct(product.id, "description", e.target.value)}
+                      placeholder="Descrição do produto..."
+                    />
+                  </div>
+                </div>
+              ))}
+              
+              {products.length > 0 && (
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-medium">Valor Total:</span>
+                    <span className="text-xl font-bold">
+                      ${calculateTotalValue().toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+        )}
 
-      {/* Terms Confirmation Modal */}
-      <TermsConfirmation
-        open={showTermsModal}
-        onOpenChange={setShowTermsModal}
-        onConfirm={handleTermsConfirm}
-        importValue={finalTotalValue}
-        currency={currency}
-      />
+        <div className="flex justify-end space-x-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setLocation("/imports")}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            disabled={createImportMutation.isPending}
+          >
+            {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
