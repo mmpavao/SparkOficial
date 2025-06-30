@@ -350,6 +350,22 @@ export default function CreditApplicationPage() {
   // Temporary application ID for immediate document persistence
   const [tempApplicationId, setTempApplicationId] = useState<number | null>(null);
 
+  // Create temporary application for immediate document persistence
+  const createTempApplication = async () => {
+    if (tempApplicationId) return tempApplicationId; // Already created
+
+    try {
+      const response = await apiRequest('/api/credit/applications/temp', 'POST', {});
+      const data = await response.json();
+      setTempApplicationId(data.applicationId);
+      console.log('✅ Temporary application created:', data.applicationId);
+      return data.applicationId;
+    } catch (error) {
+      console.error('Error creating temp application:', error);
+      throw error;
+    }
+  };
+
   // Custom documents functions
   const addCustomDocument = () => {
     if (newDocumentName.trim()) {
@@ -430,7 +446,10 @@ export default function CreditApplicationPage() {
         throw new Error(`Formato não suportado. Use: ${validExtensions.join(', ')}`);
       }
 
-      // Convert file to base64 for local storage
+      // Create temporary application if it doesn't exist
+      const appId = await createTempApplication();
+
+      // Convert file to base64 for immediate persistence
       const reader = new FileReader();
       reader.onload = async () => {
         const base64Data = reader.result as string;
@@ -445,6 +464,7 @@ export default function CreditApplicationPage() {
           file: file // Store actual file object for later upload
         };
 
+        // Update local state first
         setUploadedDocuments(prev => {
           const currentDocs = prev[documentKey];
 
@@ -471,11 +491,29 @@ export default function CreditApplicationPage() {
           };
         });
 
+        // Immediately save document to temporary application
+        try {
+          const documentData = {
+            requiredDocuments: currentDynamicMandatoryDocuments.some(doc => doc.key === documentKey) ? { [documentKey]: [documentInfo] } : {},
+            optionalDocuments: optionalDocuments.some(doc => doc.key === documentKey) ? { [documentKey]: [documentInfo] } : {}
+          };
+
+          await apiRequest(`/api/credit/applications/${appId}/documents-batch`, 'POST', documentData);
+          console.log('✅ Document saved immediately for key:', documentKey);
+          
+          toast({
+            title: "Documento salvo!",
+            description: `${file.name} foi salvo com sucesso.`,
+          });
+        } catch (error) {
+          console.error('Error saving document immediately:', error);
+          toast({
+            title: "Documento preparado!",
+            description: `${file.name} será enviado com a solicitação.`,
+          });
+        }
+
         setUploadingDocument(null);
-        toast({
-          title: "Documento preparado!",
-          description: `${file.name} será enviado com a solicitação.`,
-        });
 
          // Create temporary application if not exists
          if (!temporaryApplicationId) {
@@ -737,31 +775,52 @@ export default function CreditApplicationPage() {
       console.log('RequiredDocuments count:', Object.keys(applicationData.requiredDocuments || {}).length);
       console.log('OptionalDocuments count:', Object.keys(applicationData.optionalDocuments || {}).length);
 
-      // Submit application with documents using chunked approach
+      // Submit application using temporary application if it exists
       console.log('📤 FRONTEND DEBUG - Sending application data...');
       
-      // First, send application without documents
-      const applicationWithoutDocs = { ...applicationData };
-      applicationWithoutDocs.requiredDocuments = {};
-      applicationWithoutDocs.optionalDocuments = {};
+      let applicationId;
       
-      const response = await apiRequest("/api/credit/applications", "POST", applicationWithoutDocs);
-      const applicationId = response.id;
-      
-      console.log('✅ Application created with ID:', applicationId);
-      
-      // Then, send documents separately if any exist
-      if (Object.keys(requiredDocuments).length > 0 || Object.keys(optionalDocuments).length > 0) {
-        console.log('📎 Sending documents separately...');
+      if (tempApplicationId) {
+        // Update existing temporary application to final status
+        console.log('📝 Updating temporary application:', tempApplicationId);
         
-        const documentPayload = {
-          applicationId: applicationId,
-          requiredDocuments: requiredDocuments,
-          optionalDocuments: optionalDocuments
+        const updateData = {
+          ...applicationData,
+          status: 'pending', // Change from draft to pending
+          currentStep: 4,
+          documentsStatus: documentsStatus
         };
         
-        await apiRequest(`/api/credit/applications/${applicationId}/documents-batch`, "POST", documentPayload);
-        console.log('✅ Documents saved successfully');
+        // Remove document fields since they're already saved
+        delete updateData.requiredDocuments;
+        delete updateData.optionalDocuments;
+        
+        await apiRequest(`/api/credit/applications/${tempApplicationId}/finalize`, "PUT", updateData);
+        applicationId = tempApplicationId;
+        console.log('✅ Temporary application finalized with ID:', applicationId);
+      } else {
+        // Create new application without documents
+        const applicationWithoutDocs = { ...applicationData };
+        applicationWithoutDocs.requiredDocuments = {};
+        applicationWithoutDocs.optionalDocuments = {};
+        
+        const response = await apiRequest("/api/credit/applications", "POST", applicationWithoutDocs);
+        applicationId = response.id;
+        console.log('✅ New application created with ID:', applicationId);
+        
+        // Send documents separately if any exist
+        if (Object.keys(requiredDocuments).length > 0 || Object.keys(optionalDocuments).length > 0) {
+          console.log('📎 Sending documents separately...');
+          
+          const documentPayload = {
+            applicationId: applicationId,
+            requiredDocuments: requiredDocuments,
+            optionalDocuments: optionalDocuments
+          };
+          
+          await apiRequest(`/api/credit/applications/${applicationId}/documents-batch`, "POST", documentPayload);
+          console.log('✅ Documents saved successfully');
+        }
       }
 
       // Force immediate cache invalidation and refetch
