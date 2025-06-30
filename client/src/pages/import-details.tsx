@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, Package, Ship, Calendar, DollarSign, Building2, Truck, MapPin, FileText } from "lucide-react";
+import { ArrowLeft, Package, Ship, Calendar, DollarSign, Building2, Truck, MapPin, FileText, CreditCard, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/formatters";
 import { ImportFinancialSummary } from "@/components/imports/ImportFinancialSummary";
 
@@ -130,14 +132,69 @@ export default function ImportDetailsPage() {
         </div>
       </div>
 
-      {/* Financial Summary */}
-      <ImportFinancialSummary 
-        importData={importData} 
-        creditApplication={creditApplication}
-      />
+      {/* Products Section - TOPO DA PÁGINA */}
+      {products.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Produtos da Importação ({products.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {products.map((product: any, index: number) => (
+                <div key={index} className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-lg">{product.name}</h4>
+                      {product.description && (
+                        <p className="text-sm text-gray-600 mt-1">{product.description}</p>
+                      )}
+                    </div>
+                    <Package className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Quantidade:</span>
+                      <span className="font-semibold text-gray-900">{product.quantity || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Preço Unit.:</span>
+                      <span className="font-semibold text-blue-700">
+                        {product.unitPrice ? formatCurrency(parseFloat(product.unitPrice), 'USD') : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                      <span className="text-sm font-medium text-gray-600">Valor Total:</span>
+                      <span className="font-bold text-lg text-blue-800">
+                        {product.totalValue ? formatCurrency(parseFloat(product.totalValue), 'USD') : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Resumo Total dos Produtos */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                  <span className="font-semibold text-emerald-800">Valor Total da Importação:</span>
+                </div>
+                <span className="text-2xl font-bold text-emerald-700">
+                  {formatCurrency(parseFloat(importData.totalValue || "0"), importData.currency)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Content */}
+        {/* Main Content - Detalhes do Pedido */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Information */}
           <Card>
@@ -155,7 +212,7 @@ export default function ImportDetailsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Método de Envio</p>
-                  <p className="text-lg">{importData.shippingMethod === 'sea' ? 'Marítimo' : 'Aéreo'}</p>
+                  <p className="text-lg">{importData.transportMethod === 'maritimo' ? 'Marítimo' : importData.transportMethod === 'aereo' ? 'Aéreo' : 'Terrestre'}</p>
                 </div>
               </div>
 
@@ -176,7 +233,7 @@ export default function ImportDetailsPage() {
 
               <div>
                 <p className="text-sm font-medium text-gray-600">Incoterms</p>
-                <p className="text-lg">{importData.incoterms}</p>
+                <p className="text-lg">{importData.priceType || 'FOB'}</p>
               </div>
             </CardContent>
           </Card>
@@ -192,34 +249,36 @@ export default function ImportDetailsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Porto de Embarque</p>
-                  <p className="text-lg">{importData.portOfLoading || 'N/A'}</p>
+                  <p className="text-sm font-medium text-gray-600">Origem</p>
+                  <p className="text-lg">{importData.origin || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Porto de Desembarque</p>
-                  <p className="text-lg">{importData.portOfDischarge || 'N/A'}</p>
+                  <p className="text-sm font-medium text-gray-600">Destino</p>
+                  <p className="text-lg">{importData.destination || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Destino Final</p>
-                  <p className="text-lg">{importData.finalDestination || 'N/A'}</p>
+                  <p className="text-sm font-medium text-gray-600">Status</p>
+                  <Badge className={`${statusInfo.bgColor} ${statusInfo.color} border`}>
+                    {statusInfo.label}
+                  </Badge>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Data Estimada de Entrega</p>
+                  <p className="text-sm font-medium text-gray-600">Data Estimada de Chegada</p>
                   <p className="text-lg">
-                    {importData.estimatedDelivery 
-                      ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')
+                    {importData.estimatedArrival 
+                      ? new Date(importData.estimatedArrival).toLocaleDateString('pt-BR')
                       : 'N/A'
                     }
                   </p>
                 </div>
-                {importData.actualDelivery && (
+                {importData.actualArrival && (
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Data Real de Entrega</p>
+                    <p className="text-sm font-medium text-gray-600">Data Real de Chegada</p>
                     <p className="text-lg">
-                      {new Date(importData.actualDelivery).toLocaleDateString('pt-BR')}
+                      {new Date(importData.actualArrival).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 )}
@@ -233,52 +292,6 @@ export default function ImportDetailsPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* Products */}
-          {products.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  Produtos ({products.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {products.map((product: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{product.name}</h4>
-                          {product.description && (
-                            <p className="text-sm text-gray-600">{product.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-600">Quantidade:</span>
-                          <span className="ml-2 font-medium">{product.quantity || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Preço Unit.:</span>
-                          <span className="ml-2 font-medium">
-                            {product.unitPrice ? formatCurrency(parseFloat(product.unitPrice), 'USD') : 'N/A'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Total:</span>
-                          <span className="ml-2 font-medium">
-                            {product.totalValue ? formatCurrency(parseFloat(product.totalValue), 'USD') : 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Sidebar */}
@@ -359,6 +372,71 @@ export default function ImportDetailsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Financial Tabs Section - EMBAIXO DOS DETALHES */}
+      {creditApplication && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Análise Financeira
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="resumo" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="resumo" className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Resumo Financeiro
+                </TabsTrigger>
+                <TabsTrigger value="calculadora" className="flex items-center gap-2">
+                  <Calculator className="w-4 h-4" />
+                  Calculadora de Custos
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="resumo" className="mt-6">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="text-center p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <p className="text-sm text-emerald-600 font-medium">Valor da Importação</p>
+                    <p className="text-xl font-bold text-emerald-700">
+                      {formatCurrency(parseFloat(importData.totalValue || "0"), importData.currency)}
+                    </p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-600 font-medium">Taxa Administrativa</p>
+                    <p className="text-xl font-bold text-blue-700">
+                      {creditApplication.adminFee}%
+                    </p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <p className="text-sm text-orange-600 font-medium">Entrada Requerida</p>
+                    <p className="text-xl font-bold text-orange-700">
+                      {creditApplication.finalDownPayment}%
+                    </p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <p className="text-sm text-purple-600 font-medium">Limite de Crédito</p>
+                    <p className="text-xl font-bold text-purple-700">
+                      {formatCurrency(creditApplication.finalCreditLimit, 'USD')}
+                    </p>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="calculadora" className="mt-6">
+                <ImportFinancialSummary 
+                  importData={importData} 
+                  creditApplication={creditApplication}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
