@@ -162,11 +162,10 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen w-full flex">
       {/* Left Panel - Welcome Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-spark-600 to-spark-800 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="relative z-10 flex flex-col justify-center items-center p-12 text-center bg-[#29bc86]">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#29bc86] text-white relative overflow-hidden">
+        <div className="w-full flex flex-col justify-center items-center p-12 text-center">
           <div className="mb-8">
             <img 
               src={logo_spark_fundo_color_} 
@@ -194,7 +193,7 @@ export default function AuthPage() {
         </div>
       </div>
       {/* Right Panel - Auth Forms */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-12">
+      <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center p-8 lg:p-12">
         <div className="max-w-md mx-auto w-full">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
