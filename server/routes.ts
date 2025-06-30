@@ -758,6 +758,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para salvar documentos separadamente
+  app.post('/api/credit/applications/:id/documents-batch', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const { requiredDocuments, optionalDocuments } = req.body;
+
+      console.log('🔍 DOCUMENT BATCH - Receiving documents for application:', applicationId);
+      console.log('Required docs keys:', Object.keys(requiredDocuments || {}));
+      console.log('Optional docs keys:', Object.keys(optionalDocuments || {}));
+
+      // Verificar se a aplicação existe e pertence ao usuário
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application || application.userId !== userId) {
+        return res.status(404).json({ message: "Aplicação não encontrada" });
+      }
+
+      // Atualizar uploadedBy nos documentos
+      const processDocuments = (docs: any) => {
+        if (!docs) return {};
+        
+        const processed: any = {};
+        Object.keys(docs).forEach(key => {
+          const docArray = docs[key];
+          if (Array.isArray(docArray)) {
+            processed[key] = docArray.map((doc: any) => ({
+              ...doc,
+              uploadedBy: userId
+            }));
+          } else if (docArray) {
+            processed[key] = { ...docArray, uploadedBy: userId };
+          }
+        });
+        return processed;
+      };
+
+      const processedRequired = processDocuments(requiredDocuments);
+      const processedOptional = processDocuments(optionalDocuments);
+
+      // Atualizar a aplicação com os documentos
+      const updateData: any = {};
+      if (Object.keys(processedRequired).length > 0) {
+        updateData.requiredDocuments = JSON.stringify(processedRequired);
+      }
+      if (Object.keys(processedOptional).length > 0) {
+        updateData.optionalDocuments = JSON.stringify(processedOptional);
+      }
+
+      // Atualizar status se documentos foram anexados
+      if (Object.keys(processedRequired).length > 0 || Object.keys(processedOptional).length > 0) {
+        updateData.status = 'under_review';
+      }
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+
+      console.log('✅ Documents saved successfully for application:', applicationId);
+      
+      res.json({ 
+        message: "Documentos salvos com sucesso",
+        application: updatedApplication
+      });
+    } catch (error) {
+      console.error("Error saving documents:", error);
+      res.status(500).json({ message: "Erro ao salvar documentos" });
+    }
+  });
+
   // Download attachment (admin/financeira only)
   app.get('/api/credit/applications/:id/attachments/:attachmentId', requireAuth, async (req: any, res) => {
     try {
