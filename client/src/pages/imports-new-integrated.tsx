@@ -23,9 +23,11 @@ export default function ImportsPageIntegrated() {
   const [cancelImportId, setCancelImportId] = useState<number | null>(null);
 
   // Fetch imports data
-  const { data: imports = [], isLoading, refetch } = useQuery({
+  const { data: importsResponse, isLoading, refetch, error } = useQuery({
     queryKey: ['/api/imports', filters],
     queryFn: async () => {
+      console.log('🔍 Fetching imports with filters:', filters);
+      
       const url = new URL('/api/imports', window.location.origin);
       
       // Apply filters to query parameters
@@ -35,17 +37,32 @@ export default function ImportsPageIntegrated() {
         }
       });
 
+      console.log('🌐 Request URL:', url.toString());
+
       const response = await fetch(url.toString(), {
         credentials: 'include'
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch imports');
+        const errorText = await response.text();
+        console.error('❌ Import fetch error:', response.status, errorText);
+        throw new Error(`Failed to fetch imports: ${response.status} ${errorText}`);
       }
       
-      return response.json();
-    }
+      const data = await response.json();
+      console.log('✅ Import data received:', data);
+      return data;
+    },
+    retry: 2,
+    staleTime: 30000, // 30 seconds
   });
+
+  // Extract imports array from response (handle both direct array and paginated response)
+  const imports = Array.isArray(importsResponse) 
+    ? importsResponse 
+    : importsResponse?.imports || [];
+
+  console.log('📊 Final imports array:', imports.length, 'items');
 
   // Calculate metrics from imports data
   const metrics = useMemo(() => {
@@ -144,6 +161,22 @@ export default function ImportsPageIntegrated() {
     return (
       <div className="flex items-center justify-center min-h-64">
         <RefreshCw className="h-8 w-8 animate-spin text-gray-500" />
+        <span className="ml-2 text-gray-500">Carregando importações...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('Import loading error:', error);
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="text-red-500 mb-2">Erro ao carregar importações</div>
+          <Button onClick={() => refetch()} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Tentar Novamente
+          </Button>
+        </div>
       </div>
     );
   }

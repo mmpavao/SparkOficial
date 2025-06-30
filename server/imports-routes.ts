@@ -77,15 +77,21 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       endDate
     } = req.query;
 
-    const currentUser = req.session.user || { id: req.session.userId, role: 'importer' };
+    // Get user info from middleware
+    const currentUser = req.user;
     const offset = (Number(page) - 1) * Number(limit);
+
+    console.log(`Fetching imports - User: ${currentUser?.id}, Role: ${currentUser?.role}`);
 
     // Build query conditions
     let conditions: any[] = [];
     
-    // Role-based access control
+    // Role-based access control - only filter by user for importers
     if (currentUser?.role === 'importer') {
       conditions.push(eq(imports.userId, currentUser.id));
+      console.log(`Filtering imports for importer: ${currentUser.id}`);
+    } else {
+      console.log(`Admin/Financeira access - showing all imports`);
     }
 
     // Apply filters
