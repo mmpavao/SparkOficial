@@ -78,9 +78,9 @@ export default function ImportForm() {
     queryKey: ["/api/suppliers"],
   });
 
-  // Fetch user credit information
-  const { data: creditData } = useQuery({
-    queryKey: ["/api/user/available-credit"],
+  // Fetch user dashboard data for credit information
+  const { data: dashboardData } = useQuery({
+    queryKey: ["/api/dashboard/importer"],
   });
 
   // Fetch admin fee for calculations
@@ -99,7 +99,7 @@ export default function ImportForm() {
     },
   });
 
-  // Calculate total value for LCL from products
+  // Calculate total value and quantity for LCL from products
   const calculateTotalValue = () => {
     if (cargoType === "LCL") {
       return products.reduce((total, product) => total + (product.quantity * product.unitPrice), 0);
@@ -107,16 +107,25 @@ export default function ImportForm() {
     return totalValue;
   };
 
+  const calculateTotalQuantity = () => {
+    if (cargoType === "LCL") {
+      return products.reduce((total, product) => total + product.quantity, 0);
+    }
+    return totalValue > 0 ? 1 : 0;
+  };
+
   // Financial calculations
   const currentTotalValue = calculateTotalValue();
-  const adminFeeRate = (adminFeeData as any)?.feePercentage ? parseFloat((adminFeeData as any).feePercentage) : 2.5;
+  const adminFeeRate = (adminFeeData as any)?.feePercentage ? parseFloat((adminFeeData as any).feePercentage) : 10;
   const adminFeeAmount = (currentTotalValue * adminFeeRate) / 100;
   const totalWithFees = currentTotalValue + adminFeeAmount;
   const downPaymentAmount = (totalWithFees * 30) / 100; // 30% down payment
   const financedAmount = totalWithFees - downPaymentAmount;
   
-  // Payment terms (from credit data)
-  const paymentTerms = (creditData as any)?.paymentTerms || "30,60,90,120";
+  // Get credit data from dashboard
+  const creditMetrics = (dashboardData as any)?.creditMetrics || {};
+  const availableCredit = creditMetrics.availableAmount || 30000;
+  const paymentTerms = "30,60,90,120"; // From approved credit terms
   const termDays = paymentTerms.split(",").map((t: string) => parseInt(t.trim()));
   const installmentAmount = termDays.length > 0 ? financedAmount / termDays.length : 0;
 
@@ -571,7 +580,7 @@ export default function ImportForm() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Total de Produtos:</span>
                   <span className="font-medium">
-                    {cargoType === "LCL" ? products.reduce((sum, p) => sum + p.quantity, 0) : (form.watch("totalValue") ? 1 : 0)}
+                    {calculateTotalQuantity()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
