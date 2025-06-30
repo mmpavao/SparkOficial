@@ -544,9 +544,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Credit application routes
+  // Cache para prevenir duplicatas - userId -> { timestamp, requestedAmount }
+  const submissionCache = new Map();
+  const DUPLICATE_PREVENTION_WINDOW = 60000; // 60 segundos
+
   app.post('/api/credit/applications', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
     try {
       const userId = req.session.userId;
+      const requestedAmount = req.body.requestedAmount;
+      const now = Date.now();
+
+      // Verificar se há submissão recente do mesmo usuário com mesmo valor
+      const lastSubmission = submissionCache.get(userId);
+      if (lastSubmission && 
+          (now - lastSubmission.timestamp) < DUPLICATE_PREVENTION_WINDOW &&
+          lastSubmission.requestedAmount === requestedAmount) {
+        console.log(`🚫 DUPLICATE BLOCKED: User ${userId} attempted duplicate submission within ${DUPLICATE_PREVENTION_WINDOW/1000}s`);
+        return res.status(429).json({ 
+          message: "Aguarde antes de enviar nova solicitação idêntica",
+          retryAfter: Math.ceil((DUPLICATE_PREVENTION_WINDOW - (now - lastSubmission.timestamp)) / 1000)
+        });
+      }
+
+      // Registrar esta submissão no cache
+      submissionCache.set(userId, { timestamp: now, requestedAmount });
+
       const applicationData = { ...req.body, userId };
 
       // Update uploadedBy field in documents to actual user ID and handle arrays
