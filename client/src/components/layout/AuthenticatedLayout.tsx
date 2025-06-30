@@ -387,6 +387,24 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                
+                {/* Versão Beta */}
+                <div className="px-3 py-2 text-xs text-gray-500 border-b bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Spark Comex Beta</span>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span>v1.0.0</span>
+                    </div>
+                  </div>
+                  <div className="mt-1 text-gray-400">
+                    30/06/2025 - 05:05 UTC
+                  </div>
+                  <div className="mt-1 text-gray-400">
+                    Sistema Estável
+                  </div>
+                </div>
+                
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   disabled={logoutMutation.isPending}
