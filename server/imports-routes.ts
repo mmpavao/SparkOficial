@@ -19,43 +19,54 @@ import { storage } from './storage';
 
 // Middleware functions - Updated to work with current auth system
 const requireAuth = async (req: any, res: any, next: any) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
+  const sessionId = req.sessionID;
+  const userId = req.session?.user?.id;
+  
+  console.log(`Auth check - Session ID: ${sessionId} User ID: ${userId}`);
+  
+  if (!userId) {
+    console.log('Authentication failed - no session or user ID');
+    return res.status(401).json({ message: 'Não autorizado' });
   }
   
   try {
-    const user = await storage.getUser(req.session.userId);
+    const user = await storage.getUser(userId);
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      console.log('Authentication failed - user not found');
+      return res.status(401).json({ message: 'Não autorizado' });
     }
+    
+    console.log(`Authentication successful for user: ${userId} Role: ${user.role}`);
     req.user = user;
     next();
   } catch (error) {
-    console.error('Auth error:', error);
-    return res.status(500).json({ error: 'Authentication error' });
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({ message: 'Erro interno' });
   }
 };
 
 const requireAdminOrFinanceira = async (req: any, res: any, next: any) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
+  const userId = req.session?.user?.id;
+  
+  if (!userId) {
+    return res.status(401).json({ message: 'Não autorizado' });
   }
   
   try {
-    const user = await storage.getUser(req.session.userId);
+    const user = await storage.getUser(userId);
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ message: 'Não autorizado' });
     }
     
     if (!['admin', 'financeira', 'super_admin'].includes(user.role || '')) {
-      return res.status(403).json({ error: 'Admin or Financeira access required' });
+      return res.status(403).json({ message: 'Acesso negado' });
     }
     
     req.user = user;
     next();
   } catch (error) {
     console.error('Auth error:', error);
-    return res.status(500).json({ error: 'Authentication error' });
+    return res.status(500).json({ message: 'Erro interno' });
   }
 };
 
@@ -77,10 +88,10 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       endDate
     } = req.query;
 
-    // Get user info from session (fix the user access issue)
-    const userId = req.session.userId;
+    // Get user info from session (using correct session structure)
+    const userId = req.session?.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'User ID not found in session' });
+      return res.status(401).json({ message: 'Não autorizado' });
     }
 
     const currentUser = await storage.getUser(userId);
