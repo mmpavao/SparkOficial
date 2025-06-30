@@ -187,6 +187,9 @@ export class DatabaseStorage {
   }
 
   async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {
+    // Obter dados da aplicação antes da atualização para comparar mudanças
+    const currentApp = await this.getCreditApplication(id);
+    
     const [creditApp] = await db
       .update(creditApplications)
       .set({ 
@@ -196,7 +199,81 @@ export class DatabaseStorage {
       })
       .where(eq(creditApplications.id, id))
       .returning();
+    
+    // Enviar notificação automática se houve mudança relevante
+    if (currentApp && this.shouldNotifyStatusChange(currentApp.status, status)) {
+      await this.createStatusChangeNotification(creditApp, currentApp.status, status);
+    }
+    
     return creditApp;
+  }
+
+  // Função para determinar se deve notificar sobre mudança de status
+  private shouldNotifyStatusChange(oldStatus: string, newStatus: string): boolean {
+    const notifiableChanges = [
+      { from: 'pending', to: 'pre_approved' },
+      { from: 'pre_approved', to: 'submitted_to_financial' },
+      { from: 'submitted_to_financial', to: 'approved' },
+      { from: 'approved', to: 'admin_finalized' },
+      { from: 'pending', to: 'rejected' },
+      { from: 'pre_approved', to: 'rejected' },
+      { from: 'submitted_to_financial', to: 'rejected' }
+    ];
+    
+    return notifiableChanges.some(change => 
+      change.from === oldStatus && change.to === newStatus
+    );
+  }
+
+  // Criar notificação automática para mudança de status
+  private async createStatusChangeNotification(app: CreditApplication, oldStatus: string, newStatus: string): Promise<void> {
+    const statusMessages = {
+      pre_approved: {
+        title: "Crédito Pré-Aprovado",
+        message: `Sua solicitação de crédito de ${app.requestedAmount} foi pré-aprovada e enviada para análise financeira.`,
+        type: "success" as const,
+        priority: "high" as const
+      },
+      submitted_to_financial: {
+        title: "Enviado para Análise Final",
+        message: `Sua solicitação de crédito está em análise final pela equipe financeira.`,
+        type: "info" as const,
+        priority: "normal" as const
+      },
+      approved: {
+        title: "Crédito Aprovado",
+        message: `Parabéns! Sua solicitação de crédito de ${app.requestedAmount} foi aprovada.`,
+        type: "success" as const,
+        priority: "urgent" as const
+      },
+      admin_finalized: {
+        title: "Crédito Disponível",
+        message: `Seu crédito foi finalizado e está disponível para uso. Valor aprovado: ${app.finalCreditLimit || app.requestedAmount}`,
+        type: "success" as const,
+        priority: "urgent" as const
+      },
+      rejected: {
+        title: "Solicitação Rejeitada",
+        message: `Sua solicitação de crédito foi rejeitada. Entre em contato conosco para mais informações.`,
+        type: "error" as const,
+        priority: "high" as const
+      }
+    };
+
+    const notificationData = statusMessages[newStatus as keyof typeof statusMessages];
+    if (notificationData && app.userId) {
+      await this.createNotification({
+        userId: app.userId,
+        title: notificationData.title,
+        message: notificationData.message,
+        type: notificationData.type,
+        priority: notificationData.priority,
+        relatedEntityType: 'credit_application',
+        relatedEntityId: app.id
+      });
+      
+      console.log(`🔔 NOTIFICAÇÃO AUTOMÁTICA: ${notificationData.title} enviada para usuário ${app.userId}`);
+    }
   }
 
   async updateCreditApplication(id: number, data: Partial<InsertCreditApplication>): Promise<CreditApplication> {

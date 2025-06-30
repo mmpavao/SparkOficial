@@ -2147,19 +2147,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const updatedApplication = await storage.updateCreditApplication(applicationId, {
-        status: 'submitted_to_financial',
+      const updatedApplication = await storage.updateCreditApplicationStatus(applicationId, 'submitted_to_financial', {
         submittedToFinancialAt: new Date(),
         submittedBy: userId,
         updatedAt: new Date()
       });
-
-      // Notify user about submission to financial
-      await storage.notifyCreditStatusChange(
-        application.userId,
-        applicationId,
-        'submitted_to_financial'
-      );
 
       res.json(updatedApplication);
     } catch (error) {
@@ -2194,7 +2186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { finalCreditLimit, finalApprovedTerms, finalDownPayment, adminFee, adminFinalNotes } = req.body;
 
-      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+      const updatedApplication = await storage.updateCreditApplicationStatus(applicationId, 'admin_finalized', {
         adminStatus: 'admin_finalized',
         finalCreditLimit,
         finalApprovedTerms,
@@ -2205,13 +2197,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminFinalizedAt: new Date(),
         updatedAt: new Date()
       });
-
-      // Notify user about admin finalization
-      await storage.notifyCreditStatusChange(
-        application.userId,
-        applicationId,
-        'admin_finalized'
-      );
 
       res.json(updatedApplication);
     } catch (error) {
@@ -2751,18 +2736,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'approved'
       };
 
-      // Update application with financial approval
-      const updatedApplication = await storage.updateCreditApplication(
-        applicationId,
-        financialData
-      );
-
-      // Create notification for user
-      await storage.notifyCreditStatusChange(
-        application.userId,
+      // Update application with financial approval using automated notification system
+      const updatedApplication = await storage.updateCreditApplicationStatus(
         applicationId,
         'approved',
-        { creditLimit, approvedTerms }
+        financialData
       );
 
       res.json(updatedApplication);
