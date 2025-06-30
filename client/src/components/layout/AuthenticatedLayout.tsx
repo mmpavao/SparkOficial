@@ -54,7 +54,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
-  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
