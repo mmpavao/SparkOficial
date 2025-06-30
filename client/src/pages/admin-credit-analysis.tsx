@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import type { CreditApplication } from "@shared/schema";
-import CnpjAnalysisPanel from "@/components/admin/CnpjAnalysisPanel";
 
 export default function AdminCreditAnalysisPage() {
   const { id } = useParams();
@@ -345,9 +344,7 @@ export default function AdminCreditAnalysisPage() {
 
         {/* Pre-Analysis Tab */}
         <TabsContent value="analysis" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column - Pre-Analysis Controls */}
-            <Card>
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-orange-600" />
@@ -422,65 +419,45 @@ export default function AdminCreditAnalysisPage() {
             </CardContent>
           </Card>
 
-              {/* Current Analysis Display */}
-              {(reviewData as any)?.preAnalysisStatus && (
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle>Análise Atual</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Status</Label>
-                        <Badge className="mt-1">
-                          {(reviewData as any).preAnalysisStatus}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Risco</Label>
-                        <Badge className="mt-1">
-                          {(reviewData as any).riskAssessment}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Analisado em</Label>
-                        <p className="text-sm mt-1">
-                          {formatDate((reviewData as any).analyzedAt)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {(reviewData as any).adminRecommendation && (
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Recomendação</Label>
-                        <p className="mt-1 p-3 bg-gray-50 rounded-lg">
-                          {(reviewData as any).adminRecommendation}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Right Column - CNPJ Analysis Panel */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Análise de CNPJ
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CnpjAnalysisPanel 
-                    creditApplicationId={Number(id)} 
-                    cnpj={application.cnpj}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          {/* Current Analysis Display */}
+          {(reviewData as any)?.preAnalysisStatus && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Análise Atual</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Status</Label>
+                    <Badge className="mt-1">
+                      {(reviewData as any).preAnalysisStatus}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Risco</Label>
+                    <Badge className="mt-1">
+                      {(reviewData as any).riskAssessment}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Analisado em</Label>
+                    <p className="text-sm mt-1">
+                      {formatDate((reviewData as any).analyzedAt)}
+                    </p>
+                  </div>
+                </div>
+                
+                {(reviewData as any).adminRecommendation && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Recomendação</Label>
+                    <p className="mt-1 p-3 bg-gray-50 rounded-lg">
+                      {(reviewData as any).adminRecommendation}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

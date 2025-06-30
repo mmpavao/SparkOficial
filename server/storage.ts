@@ -9,8 +9,6 @@ import {
   payments,
   importDocuments,
   notifications,
-  apiConfigurations,
-  cnpjAnalyses,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -19,10 +17,6 @@ import {
   type InsertImport,
   type Supplier,
   type InsertSupplier,
-  type ApiConfiguration,
-  type InsertApiConfiguration,
-  type CnpjAnalysis,
-  type InsertCnpjAnalysis,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
@@ -1425,82 +1419,6 @@ export class DatabaseStorage {
         .select()
         .from(suppliers);
     }
-  }
-
-  // ===== API CONFIGURATION OPERATIONS =====
-  
-  async createApiConfiguration(data: InsertApiConfiguration): Promise<ApiConfiguration> {
-    const [result] = await db
-      .insert(apiConfigurations)
-      .values(data)
-      .returning();
-    return result;
-  }
-
-  async getApiConfiguration(serviceName: string): Promise<ApiConfiguration | undefined> {
-    const [result] = await db
-      .select()
-      .from(apiConfigurations)
-      .where(and(
-        eq(apiConfigurations.serviceName, serviceName),
-        eq(apiConfigurations.isActive, true)
-      ))
-      .limit(1);
-    return result;
-  }
-
-  async updateApiConfiguration(serviceName: string, updates: Partial<InsertApiConfiguration>): Promise<ApiConfiguration> {
-    const [result] = await db
-      .update(apiConfigurations)
-      .set({
-        ...updates,
-        updatedAt: new Date()
-      })
-      .where(eq(apiConfigurations.serviceName, serviceName))
-      .returning();
-    return result;
-  }
-
-  async getAllApiConfigurations(): Promise<ApiConfiguration[]> {
-    return await db
-      .select()
-      .from(apiConfigurations)
-      .orderBy(apiConfigurations.serviceName);
-  }
-
-  // ===== CNPJ ANALYSIS OPERATIONS =====
-  
-  async createCnpjAnalysis(data: InsertCnpjAnalysis): Promise<CnpjAnalysis> {
-    const [result] = await db
-      .insert(cnpjAnalyses)
-      .values(data)
-      .returning();
-    return result;
-  }
-
-  async getCnpjAnalysis(cnpj: string): Promise<CnpjAnalysis | undefined> {
-    const [result] = await db
-      .select()
-      .from(cnpjAnalyses)
-      .where(eq(cnpjAnalyses.cnpj, cnpj))
-      .orderBy(desc(cnpjAnalyses.consultedAt))
-      .limit(1);
-    return result;
-  }
-
-  async getCnpjAnalysesByApplication(creditApplicationId: number): Promise<CnpjAnalysis[]> {
-    return await db
-      .select()
-      .from(cnpjAnalyses)
-      .where(eq(cnpjAnalyses.creditApplicationId, creditApplicationId))
-      .orderBy(desc(cnpjAnalyses.consultedAt));
-  }
-
-  async getAllCnpjAnalyses(): Promise<CnpjAnalysis[]> {
-    return await db
-      .select()
-      .from(cnpjAnalyses)
-      .orderBy(desc(cnpjAnalyses.consultedAt));
   }
 }
 
