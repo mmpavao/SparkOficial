@@ -708,6 +708,14 @@ export default function CreditApplicationPage() {
         }
       }
 
+      // Debug: Log document preparation
+      console.log('🔍 FRONTEND DEBUG - Documents prepared for submission:');
+      console.log('uploadedDocuments keys:', Object.keys(uploadedDocuments));
+      console.log('documentsForSubmission keys:', Object.keys(documentsForSubmission));
+      console.log('requiredDocuments keys:', Object.keys(requiredDocuments));
+      console.log('optionalDocuments keys:', Object.keys(optionalDocuments));
+      console.log('mandatoryDocKeys:', mandatoryDocKeys);
+
       // Create application data with embedded documents
       const applicationData = {
         ...formData,
@@ -719,6 +727,12 @@ export default function CreditApplicationPage() {
         requiredDocuments: requiredDocuments,
         optionalDocuments: optionalDocuments
       };
+
+      console.log('🚀 FRONTEND DEBUG - Final applicationData structure:');
+      console.log('Has requiredDocuments:', !!applicationData.requiredDocuments);
+      console.log('Has optionalDocuments:', !!applicationData.optionalDocuments);
+      console.log('RequiredDocuments count:', Object.keys(applicationData.requiredDocuments || {}).length);
+      console.log('OptionalDocuments count:', Object.keys(applicationData.optionalDocuments || {}).length);
 
       // Submit application with all documents embedded
       const response = await apiRequest("/api/credit/applications", "POST", applicationData);
