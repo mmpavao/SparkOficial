@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import type { CreditApplication } from "@shared/schema";
+import CnpjAnalysisPanel from "@/components/admin/CnpjAnalysisPanel";
 
 export default function AdminCreditAnalysisPage() {
   const { id } = useParams();

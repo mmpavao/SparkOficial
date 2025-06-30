@@ -3906,6 +3906,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', importRoutes);
   console.log('Imports routes registered successfully');
 
+  // ===== API CONFIGURATION ENDPOINTS =====
+  
+  // Get API configuration for a service (admin only)
+  app.get('/api/admin/api-config/:serviceName', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { serviceName } = req.params;
+      const config = await storage.getApiConfiguration(serviceName);
+      
+      if (!config) {
+        return res.status(404).json({ message: "Configuração de API não encontrada" });
+      }
+      
+      // Don't send the actual API key in response for security
+      const { apiKey, ...configWithoutKey } = config;
+      res.json({ ...configWithoutKey, hasApiKey: !!apiKey });
+    } catch (error) {
+      console.error("Error fetching API configuration:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Create or update API configuration (admin only)
+  app.post('/api/admin/api-config', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { serviceName, apiKey, baseUrl, description } = req.body;
+      
+      if (!serviceName || !apiKey) {
+        return res.status(400).json({ message: "Nome do serviço e chave da API são obrigatórios" });
+      }
+
+      // Check if configuration already exists
+      const existingConfig = await storage.getApiConfiguration(serviceName);
+      
+      if (existingConfig) {
+        // Update existing configuration
+        const updatedConfig = await storage.updateApiConfiguration(serviceName, {
+          apiKey,
+          baseUrl,
+          description,
+          isActive: true
+        });
+        
+        const { apiKey: _, ...configWithoutKey } = updatedConfig;
+        res.json({ ...configWithoutKey, hasApiKey: true });
+      } else {
+        // Create new configuration
+        const newConfig = await storage.createApiConfiguration({
+          serviceName,
+          apiKey,
+          baseUrl,
+          description,
+          isActive: true
+        });
+        
+        const { apiKey: _, ...configWithoutKey } = newConfig;
+        res.json({ ...configWithoutKey, hasApiKey: true });
+      }
+    } catch (error) {
+      console.error("Error saving API configuration:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all API configurations (admin only)
+  app.get('/api/admin/api-configs', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const configs = await storage.getAllApiConfigurations();
+      
+      // Remove API keys from response for security
+      const sanitizedConfigs = configs.map(({ apiKey, ...config }) => ({
+        ...config,
+        hasApiKey: !!apiKey
+      }));
+      
+      res.json(sanitizedConfigs);
+    } catch (error) {
+      console.error("Error fetching API configurations:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== CNPJ ANALYSIS ENDPOINTS =====
+  
+  // Analyze CNPJ using Consulta Mais API (admin only)
+  app.post('/api/admin/cnpj-analysis', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { cnpj, creditApplicationId } = req.body;
+      
+      if (!cnpj) {
+        return res.status(400).json({ message: "CNPJ é obrigatório" });
+      }
+
+      // Get API configuration for Consulta Mais
+      const apiConfig = await storage.getApiConfiguration('consulta_mais');
+      
+      if (!apiConfig || !apiConfig.apiKey) {
+        return res.status(400).json({ 
+          message: "Configuração da API Consulta Mais não encontrada. Configure a API primeiro." 
+        });
+      }
+
+      // Clean CNPJ (remove formatting)
+      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
+      
+      // Make API call to Consulta Mais
+      const response = await fetch(`${apiConfig.baseUrl}/cnpj/${cleanCnpj}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiConfig.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const cnpjData = await response.json();
+      
+      // Save analysis result to database
+      const analysisResult = await storage.createCnpjAnalysis({
+        cnpj: cleanCnpj,
+        creditApplicationId: creditApplicationId || null,
+        companyData: cnpjData,
+        apiResponse: cnpjData,
+        consultedBy: req.session.userId
+      });
+
+      res.json({
+        success: true,
+        message: "Análise de CNPJ realizada com sucesso",
+        analysis: analysisResult
+      });
+    } catch (error) {
+      console.error("Error analyzing CNPJ:", error);
+      res.status(500).json({ 
+        message: "Erro ao analisar CNPJ",
+        error: error.message
+      });
+    }
+  });
+
+  // Get CNPJ analysis by CNPJ (admin only)
+  app.get('/api/admin/cnpj-analysis/:cnpj', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { cnpj } = req.params;
+      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
+      
+      const analysis = await storage.getCnpjAnalysis(cleanCnpj);
+      
+      if (!analysis) {
+        return res.status(404).json({ message: "Análise de CNPJ não encontrada" });
+      }
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error fetching CNPJ analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get CNPJ analyses by credit application (admin only)
+  app.get('/api/admin/cnpj-analysis/application/:applicationId', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { applicationId } = req.params;
+      
+      const analyses = await storage.getCnpjAnalysesByApplication(parseInt(applicationId));
+      
+      res.json(analyses);
+    } catch (error) {
+      console.error("Error fetching CNPJ analyses for application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all CNPJ analyses (admin only)
+  app.get('/api/admin/cnpj-analyses', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const analyses = await storage.getAllCnpjAnalyses();
+      res.json(analyses);
+    } catch (error) {
+      console.error("Error fetching all CNPJ analyses:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
