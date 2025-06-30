@@ -72,13 +72,6 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
   });
 
   // Get selected credit application for cost calculation
-  const selectedCreditApp = Array.isArray(creditApplications) 
-    ? creditApplications.find(app => app.id === form.watch("creditApplicationId"))
-    : null;
-
-  // Watch totalValue for real-time cost calculation
-  const totalValue = parseFloat(form.watch("totalValue") || "0");
-
   const form = useForm<ImportFormData>({
     resolver: zodResolver(importFormSchema),
     defaultValues: {
@@ -101,6 +94,14 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
       products: initialData?.products || []
     }
   });
+
+  // Get selected credit application for cost calculation
+  const selectedCreditApp = Array.isArray(creditApplications) 
+    ? creditApplications.find(app => app.id === form.watch("creditApplicationId"))
+    : null;
+
+  // Watch totalValue for real-time cost calculation
+  const totalValue = parseFloat(form.watch("totalValue") || "0");
 
   const createImportMutation = useMutation({
     mutationFn: async (data: ImportFormData) => {

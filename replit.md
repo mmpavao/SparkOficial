@@ -691,6 +691,17 @@ Changelog:
   * System stability maintained by removing problematic feature rather than continuing failed fixes
   * Import form now operates with essential fields only: basic info, cargo type (FCL/LCL), products for LCL
   * Feature may be reimplemented later with proper planning and integration
+- June 30, 2025. Complete import details page reorganization with horizontal sub-tabs system:
+  * Moved product cards to top of page with incredible visual design and gradient backgrounds
+  * Reorganized page structure: products (top) → order details (middle) → financial sub-tabs (bottom)
+  * Created horizontal sub-tabs system with 3 sections: "Cálculo de Custos", "Documentos", "Pagamentos"
+  * Implemented comprehensive document management with all import documents organized by category
+  * Added pre-shipment documents (Invoice, Packing List, Purchase Contract, Origin Certificates)
+  * Added transport documents (Bill of Lading, Container Certificate, Booking, Surrender BL)
+  * Added freight agent documents (Vessel Arrival, Cargo Release, DI Declaration, Tax DARF)
+  * Created complete payment schedule system with down payment (30%) and installments tracking
+  * Fixed ImportForm.tsx variable initialization error preventing form component crashes
+  * Maintained transparent cost calculation system in first tab functioning perfectly
 ```
 
 ## User Preferences
