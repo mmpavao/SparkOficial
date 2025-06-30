@@ -29,6 +29,29 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// API configuration table for secure storage of external API keys
+export const apiConfigurations = pgTable("api_configurations", {
+  id: serial("id").primaryKey(),
+  serviceName: text("service_name").notNull().unique(),
+  apiKey: text("api_key").notNull(),
+  apiUrl: text("api_url").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CNPJ analysis results table for persistent storage
+export const cnpjAnalyses = pgTable("cnpj_analyses", {
+  id: serial("id").primaryKey(),
+  cnpj: text("cnpj").notNull(),
+  creditApplicationId: integer("credit_application_id"),
+  companyData: jsonb("company_data"),
+  analysisResult: jsonb("analysis_result"),
+  riskScore: integer("risk_score"),
+  consultedAt: timestamp("consulted_at").defaultNow(),
+  consultedBy: integer("consulted_by"),
+});
+
 export const insertUserSchema = z.object({
   companyName: z.string().min(1, "Nome da empresa é obrigatório"),
   cnpj: z.string()
@@ -580,8 +603,24 @@ export const notifications = pgTable("notifications", {
   readAt: timestamp("read_at"),
 });
 
+// Schemas for new API configuration and CNPJ analysis tables
+export const insertApiConfigurationSchema = createInsertSchema(apiConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCnpjAnalysisSchema = createInsertSchema(cnpjAnalyses).omit({
+  id: true,
+  consultedAt: true,
+});
+
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
+export type ApiConfiguration = typeof apiConfigurations.$inferSelect;
+export type InsertApiConfiguration = z.infer<typeof insertApiConfigurationSchema>;
+export type CnpjAnalysis = typeof cnpjAnalyses.$inferSelect;
+export type InsertCnpjAnalysis = z.infer<typeof insertCnpjAnalysisSchema>;
 
 // Import all imports-related tables and schemas
 export * from './imports-schema';
