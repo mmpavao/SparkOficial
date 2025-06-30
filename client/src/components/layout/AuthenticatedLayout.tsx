@@ -43,7 +43,8 @@ import {
   UserCog,
   FileCheck,
   Truck,
-  Package
+  Package,
+  Upload
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -155,6 +156,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
     { path: "/users", icon: Users, label: "Gerenciar Usuários" },
+    { path: "/admin/csv-import", icon: Upload, label: "Importar CSV" },
   ];
 
   const isActiveRoute = (path: string) => {
