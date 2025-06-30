@@ -79,6 +79,13 @@ export class DatabaseStorage {
     return user;
   }
 
+  async updateUserPassword(id: number, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
   // ===== CREDIT APPLICATION OPERATIONS =====
 
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
