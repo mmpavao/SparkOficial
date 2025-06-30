@@ -738,7 +738,9 @@ export default function CreditApplicationPage() {
       const response = await apiRequest("/api/credit/applications", "POST", applicationData);
       const applicationId = response.id;
 
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      // Force immediate cache invalidation and refetch
+      await queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/credit/applications"] });
 
       // Mark as completed to prevent further submissions
       setSubmissionCompleted(true);
@@ -748,10 +750,10 @@ export default function CreditApplicationPage() {
         description: "Solicitação de crédito enviada com sucesso com todos os documentos.",
       });
 
-      // Wait before navigation to ensure user sees success message
+      // Wait before navigation to ensure cache is updated and user sees success message
       setTimeout(() => {
         setLocation('/credit');
-      }, 2000);
+      }, 1500);
 
     } catch (error: any) {
       console.error("Application submission error:", error);

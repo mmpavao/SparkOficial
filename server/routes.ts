@@ -604,8 +604,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const application = await storage.createCreditApplication(applicationData);
       
-      // Invalidate cache for this user to ensure fresh data
+      // Invalidate all caches for this user to ensure fresh data
       delete userCreditCache[userId];
+      
+      // Clear any global cache that might exist
+      if (global.creditApplicationCache) {
+        delete global.creditApplicationCache;
+      }
       
       res.status(201).json(application);
     } catch (error) {
