@@ -469,7 +469,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="w-5 h-5" />
-                <span>{t.settings.security}</span>
+                <span>Configurações de Segurança</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
