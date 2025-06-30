@@ -353,8 +353,7 @@ export default function CreditPage() {
                     key={application.id}
                     icon={<FileText className="w-6 h-6 text-spark-600" />}
                     title={application.legalCompanyName || `Empresa #${application.id}`}
-                    subtitle={`Solicitação #{application.id}`}
-                    applicationNumber={application.id.toString()}
+                    subtitle={`ID da solicitação: #${application.id}`}
                     companyBadge={permissions.canViewAllApplications ? application.legalCompanyName : undefined}
                     status={statusInfo}
                     miniCards={[
