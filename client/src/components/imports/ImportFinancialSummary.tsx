@@ -1,153 +1,199 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Calculator, CreditCard, TrendingUp } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { DollarSign, CreditCard, Receipt, TrendingUp, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 
 interface ImportFinancialSummaryProps {
-  fobValue: number;
-  adminFeePercentage: number;
-  downPaymentPercentage: number;
-  currency: string;
-  incoterms?: string;
-}
-
-interface FinancialBreakdown {
-  fobValue: number;
-  downPayment: number;
-  financedAmount: number;
-  adminFee: number;
-  totalImportCost: number;
-  totalPayable: number;
-}
-
-export default function ImportFinancialSummary({ 
-  fobValue, 
-  adminFeePercentage = 10, 
-  downPaymentPercentage = 30,
-  currency = "USD",
-  incoterms = "FOB"
-}: ImportFinancialSummaryProps) {
-  
-  const calculateFinancialBreakdown = (): FinancialBreakdown => {
-    const downPayment = fobValue * (downPaymentPercentage / 100);
-    const financedAmount = fobValue - downPayment;
-    const adminFee = financedAmount * (adminFeePercentage / 100);
-    const totalImportCost = fobValue + adminFee;
-    const totalPayable = downPayment + financedAmount + adminFee;
-
-    return {
-      fobValue,
-      downPayment,
-      financedAmount,
-      adminFee,
-      totalImportCost,
-      totalPayable
-    };
+  importData: {
+    totalValue: string;
+    creditApplicationId?: number;
   };
+  creditApplication?: {
+    adminFee: number;
+    finalCreditLimit: number;
+    finalApprovedTerms: string[];
+    finalDownPayment: number;
+  };
+}
 
-  const breakdown = calculateFinancialBreakdown();
+export function ImportFinancialSummary({ importData, creditApplication }: ImportFinancialSummaryProps) {
+  const totalValue = parseFloat(importData.totalValue) || 0;
 
-  return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-blue-900 flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
+  if (!creditApplication || totalValue <= 0) {
+    return (
+      <Card className="border-amber-200 bg-amber-50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+            <AlertCircle className="h-5 w-5" />
             Resumo Financeiro
           </CardTitle>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-            {incoterms}
-          </Badge>
-        </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-amber-700">
+            Dados de crédito não disponíveis para esta importação
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Cálculos financeiros
+  const adminFeeRate = creditApplication.adminFee / 100;
+  const downPaymentRate = creditApplication.finalDownPayment / 100;
+  
+  const downPayment = totalValue * downPaymentRate;
+  const financedAmount = totalValue - downPayment;
+  const adminFeeAmount = financedAmount * adminFeeRate;
+  const totalImportValue = totalValue + adminFeeAmount;
+  
+  const installmentTerms = creditApplication.finalApprovedTerms.length;
+  const installmentValue = installmentTerms > 0 ? financedAmount / installmentTerms : 0;
+
+  return (
+    <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl flex items-center gap-2 text-blue-800">
+          <TrendingUp className="h-6 w-6" />
+          Análise Financeira da Importação
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Main Values Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* FOB Value */}
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">Valor FOB</span>
-              <DollarSign className="w-4 h-4 text-blue-600" />
+      <CardContent className="space-y-6">
+        {/* Seção: Valores Base */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
+            Valores Base
+          </h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
+              <span className="text-sm font-medium">Valor FOB:</span>
+              <span className="font-bold text-lg">{formatCurrency(totalValue, 'USD')}</span>
             </div>
-            <div className="text-xl font-bold text-blue-900">
-              {formatCurrency(breakdown.fobValue, currency)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Valor base da mercadoria</div>
-          </div>
-
-          {/* Down Payment */}
-          <div className="bg-white rounded-lg p-4 border border-orange-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">Entrada ({downPaymentPercentage}%)</span>
-              <CreditCard className="w-4 h-4 text-orange-600" />
-            </div>
-            <div className="text-xl font-bold text-orange-900">
-              {formatCurrency(breakdown.downPayment, currency)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Pagamento à vista</div>
-          </div>
-
-          {/* Total Cost */}
-          <div className="bg-white rounded-lg p-4 border border-green-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">Custo Total</span>
-              <TrendingUp className="w-4 h-4 text-green-600" />
-            </div>
-            <div className="text-xl font-bold text-green-900">
-              {formatCurrency(breakdown.totalImportCost, currency)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">FOB + Taxa administrativa</div>
-          </div>
-        </div>
-
-        {/* Detailed Breakdown */}
-        <div className="bg-white rounded-lg p-4 border border-gray-100">
-          <h4 className="font-semibold text-gray-900 mb-3">Detalhamento dos Custos</h4>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center py-1">
-              <span className="text-sm text-gray-600">Valor da mercadoria (FOB)</span>
-              <span className="font-medium">{formatCurrency(breakdown.fobValue, currency)}</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-t border-gray-100">
-              <span className="text-sm text-gray-600">Entrada ({downPaymentPercentage}%)</span>
-              <span className="font-medium text-orange-700">
-                -{formatCurrency(breakdown.downPayment, currency)}
+            
+            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+              <span className="text-sm font-medium text-red-700">
+                Taxa Admin ({creditApplication.adminFee}%):
               </span>
-            </div>
-            <div className="flex justify-between items-center py-1">
-              <span className="text-sm text-gray-600">Valor financiado</span>
-              <span className="font-medium">{formatCurrency(breakdown.financedAmount, currency)}</span>
-            </div>
-            <div className="flex justify-between items-center py-1">
-              <span className="text-sm text-gray-600">Taxa administrativa ({adminFeePercentage}%)</span>
-              <span className="font-medium text-blue-700">
-                +{formatCurrency(breakdown.adminFee, currency)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-t-2 border-gray-200 font-semibold">
-              <span className="text-gray-900">Total da importação</span>
-              <span className="text-lg text-gray-900">
-                {formatCurrency(breakdown.totalImportCost, currency)}
+              <span className="font-bold text-lg text-red-700">
+                {formatCurrency(adminFeeAmount, 'USD')}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Payment Summary */}
-        <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-          <h4 className="font-semibold text-amber-900 mb-2">Resumo de Pagamentos</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-amber-700">Pagamento imediato:</span>
-              <div className="font-semibold text-amber-900">
-                {formatCurrency(breakdown.downPayment, currency)}
+        <Separator />
+
+        {/* Seção: Pagamento Imediato */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
+            💰 Para Iniciar a Importação
+          </h4>
+          
+          <div className="p-4 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg border border-yellow-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-6 w-6 text-yellow-600" />
+                <div>
+                  <p className="font-semibold text-yellow-800">
+                    Entrada ({creditApplication.finalDownPayment}%)
+                  </p>
+                  <p className="text-xs text-yellow-700">
+                    Pagamento obrigatório para iniciar
+                  </p>
+                </div>
+              </div>
+              <span className="font-bold text-2xl text-yellow-800">
+                {formatCurrency(downPayment, 'USD')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Seção: Financiamento */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
+            Valor Financiado
+          </h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
+              <span className="text-sm font-medium">Valor Financiado:</span>
+              <span className="font-semibold">{formatCurrency(financedAmount, 'USD')}</span>
+            </div>
+            
+            {installmentTerms > 0 && (
+              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                <span className="text-sm font-medium text-green-700">
+                  Parcelas ({installmentTerms}x):
+                </span>
+                <span className="font-semibold text-green-700">
+                  {formatCurrency(installmentValue, 'USD')}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Termos de pagamento */}
+          {creditApplication.finalApprovedTerms.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-muted-foreground mb-2">Prazos aprovados:</p>
+              <div className="flex flex-wrap gap-2">
+                {creditApplication.finalApprovedTerms.map((term) => (
+                  <Badge key={term} variant="outline" className="text-xs bg-blue-50">
+                    {term} dias
+                  </Badge>
+                ))}
               </div>
             </div>
-            <div>
-              <span className="text-amber-700">Parcelado via crédito:</span>
-              <div className="font-semibold text-amber-900">
-                {formatCurrency(breakdown.financedAmount + breakdown.adminFee, currency)}
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Seção: Total Final */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
+            Valor Total da Operação
+          </h4>
+          
+          <div className="p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border border-blue-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Receipt className="h-6 w-6 text-blue-600" />
+                <div>
+                  <p className="font-semibold text-blue-800">
+                    Custo Total (FOB + Taxas)
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    Valor final incluindo todas as taxas
+                  </p>
+                </div>
               </div>
+              <span className="font-bold text-2xl text-blue-800">
+                {formatCurrency(totalImportValue, 'USD')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Resumo de fluxo de caixa */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+          <h5 className="font-medium text-sm text-gray-700 mb-3">💡 Resumo do Fluxo de Caixa:</h5>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>• Pagamento inicial (entrada):</span>
+              <span className="font-semibold">{formatCurrency(downPayment, 'USD')}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>• Total em parcelas:</span>
+              <span className="font-semibold">{formatCurrency(financedAmount, 'USD')}</span>
+            </div>
+            <div className="flex justify-between border-t pt-2 font-semibold">
+              <span>Total da importação:</span>
+              <span>{formatCurrency(totalImportValue, 'USD')}</span>
             </div>
           </div>
         </div>

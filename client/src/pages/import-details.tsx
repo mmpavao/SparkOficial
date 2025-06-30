@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatters";
+import { ImportFinancialSummary } from "@/components/imports/ImportFinancialSummary";
 
 // Status mapping for display
 const getStatusInfo = (status: string) => {

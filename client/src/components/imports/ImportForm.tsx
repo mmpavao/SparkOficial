@@ -16,6 +16,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ProductManager } from "./ProductManager";
+import { ImportCostCalculator } from "./ImportCostCalculator";
 import { z } from "zod";
 
 // Import form schema based on actual fields needed
@@ -69,6 +70,14 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
     queryKey: ['/api/credit/applications'],
     enabled: true
   });
+
+  // Get selected credit application for cost calculation
+  const selectedCreditApp = Array.isArray(creditApplications) 
+    ? creditApplications.find(app => app.id === form.watch("creditApplicationId"))
+    : null;
+
+  // Watch totalValue for real-time cost calculation
+  const totalValue = parseFloat(form.watch("totalValue") || "0");
 
   const form = useForm<ImportFormData>({
     resolver: zodResolver(importFormSchema),
