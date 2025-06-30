@@ -191,6 +191,26 @@ export default function CreditPage() {
     }
   };
 
+  // Cancel application handler
+  const handleCancelApplication = async (applicationId: number) => {
+    if (confirm('Tem certeza que deseja cancelar esta solicitação de crédito?')) {
+      try {
+        await apiRequest(`/api/credit/applications/${applicationId}`, 'DELETE');
+        queryClient.invalidateQueries({ queryKey: [getEndpoint()] });
+        toast({
+          title: "Sucesso",
+          description: "Solicitação de crédito cancelada com sucesso.",
+        });
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao cancelar solicitação de crédito.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const form = useForm<CreditApplicationForm>({
     resolver: zodResolver(createCreditApplicationSchema(t)),
     defaultValues: {
@@ -346,11 +366,21 @@ export default function CreditPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="font-semibold text-gray-900 mb-1 text-sm">
-                              Solicitação de Crédito #{application.id}
+                              {application.legalCompanyName || `Empresa #${application.id}`}
                             </h3>
-                            <p className="text-xs text-gray-600 mb-2">
-                              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.requestedAmount || '0'))}
+                            <p className="text-xs text-gray-500 mb-1">
+                              Solicitação #{application.id}
                             </p>
+                            <div className="space-y-1">
+                              <p className="text-xs text-gray-600">
+                                Solicitado: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.requestedAmount || '0'))}
+                              </p>
+                              {application.finalCreditLimit && (
+                                <p className="text-xs text-green-600 font-medium">
+                                  Aprovado: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit || '0'))}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="col-span-4 flex items-center justify-end space-x-3">
@@ -378,6 +408,29 @@ export default function CreditPage() {
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
+                              {(application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setLocation(`/credit/edit/${application.id}`);
+                                  }}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                              )}
+                              {(application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelApplication(application.id);
+                                  }}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
