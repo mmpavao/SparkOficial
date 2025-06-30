@@ -208,19 +208,19 @@ export default function UnifiedDocumentUpload({
     if (isRequired) {
       return {
         icon: AlertTriangle,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50',
-        borderColor: 'border-red-200',
-        label: 'Obrigatório'
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-50',
+        borderColor: 'border-orange-200',
+        label: 'Pendente'
       };
     }
 
     return {
       icon: Clock,
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-      borderColor: 'border-gray-200',
-      label: 'Opcional'
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      label: 'Pendente'
     };
   };
 

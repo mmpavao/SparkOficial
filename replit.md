@@ -753,6 +753,12 @@ Changelog:
   * Updated HTML input accept attributes to include Excel MIME types (.xls,.xlsx)
   * Updated user-facing text to indicate Excel support (PDF, JPG, PNG, DOC, XLS)
   * All document upload functionality now supports Excel spreadsheets without modifying existing functions
+- June 30, 2025. Orange "Pendente" tags added to document cards without attachments:
+  * Updated UnifiedDocumentUpload component to show orange "Pendente" badges for documents without uploads
+  * Modified DocumentManager component to display orange "Pendente" tags for both required and optional documents
+  * Changed icon colors to orange for pending documents (AlertCircle for required, FileText for optional)
+  * Added orange color scheme (bg-orange-100, text-orange-700, border-orange-300) for consistent visual feedback
+  * Enhanced document status visibility without modifying core system functions or workflows
 ```
 
 ## User Preferences

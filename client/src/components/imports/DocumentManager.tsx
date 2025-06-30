@@ -173,7 +173,10 @@ export default function DocumentManager({ importId, documents = [] }: DocumentMa
                 />
               </div>
             </div>
-            <Badge variant={uploadedCount >= requiredDocs.length ? "default" : "secondary"}>
+            <Badge 
+              variant={uploadedCount >= requiredDocs.length ? "default" : "secondary"}
+              className={uploadedCount >= requiredDocs.length ? "" : "bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200"}
+            >
               {uploadedCount >= requiredDocs.length ? "Completo" : "Pendente"}
             </Badge>
           </div>
@@ -200,10 +203,17 @@ export default function DocumentManager({ importId, documents = [] }: DocumentMa
                   {uploaded ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-red-500" />
+                    <AlertCircle className="w-5 h-5 text-orange-500" />
                   )}
-                  <div>
-                    <p className="font-medium">{doc.name}</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{doc.name}</p>
+                      {!uploaded && (
+                        <Badge className="bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200">
+                          Pendente
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {uploaded ? 'Documento enviado' : 'Documento obrigatório'}
                     </p>
@@ -276,10 +286,17 @@ export default function DocumentManager({ importId, documents = [] }: DocumentMa
                   {uploaded ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
-                    <FileText className="w-5 h-5 text-gray-400" />
+                    <FileText className="w-5 h-5 text-orange-400" />
                   )}
-                  <div>
-                    <p className="font-medium">{doc.name}</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{doc.name}</p>
+                      {!uploaded && (
+                        <Badge className="bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200">
+                          Pendente
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {uploaded ? 'Documento enviado' : 'Documento opcional'}
                     </p>
