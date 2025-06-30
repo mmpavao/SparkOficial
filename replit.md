@@ -746,6 +746,13 @@ Changelog:
   * Added detailed logging: 🔧 AUTO-RECOVERY, ✅ SUCCESS, ❌ FAILED for monitoring
   * Validated complete solution: new user registration → hash corruption → auto-recovery → successful login cycle
   * Authentication issues definitively resolved with zero-intervention self-healing capability
+- June 30, 2025. Excel file support added to document upload system:
+  * Extended file type validation to include .xls and .xlsx formats across all document upload components
+  * Updated SmartDocumentValidator, SmartDocumentUpload, RobustDocumentUpload, and UnifiedDocumentUpload components
+  * Enhanced documentValidation.ts configuration to accept Excel files for financial documents, references, and additional documents
+  * Updated HTML input accept attributes to include Excel MIME types (.xls,.xlsx)
+  * Updated user-facing text to indicate Excel support (PDF, JPG, PNG, DOC, XLS)
+  * All document upload functionality now supports Excel spreadsheets without modifying existing functions
 ```
 
 ## User Preferences

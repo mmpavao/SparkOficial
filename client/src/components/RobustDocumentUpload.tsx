@@ -312,7 +312,7 @@ export function RobustDocumentUpload({
             </>
           )}
           <span className="text-xs text-gray-500">
-            PDF, JPG, PNG, DOC (máx. 10MB)
+            PDF, JPG, PNG, DOC, XLS (máx. 10MB)
           </span>
         </div>
       </div>
