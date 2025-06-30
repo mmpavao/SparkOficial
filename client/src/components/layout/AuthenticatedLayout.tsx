@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
+import sparkLogo from "@assets/logo-spark_1751323949667.png";
 import sparkIcon from "@assets/APP-ICON_1751299739129.png";
 import { 
   Menu, 

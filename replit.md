@@ -759,6 +759,10 @@ Changelog:
   * Changed icon colors to orange for pending documents (AlertCircle for required, FileText for optional)
   * Added orange color scheme (bg-orange-100, text-orange-700, border-orange-300) for consistent visual feedback
   * Enhanced document status visibility without modifying core system functions or workflows
+- June 30, 2025. Sidebar logo updated with new Spark Comex branding:
+  * Replaced sidebar logo with new official Spark Comex logo (logo-spark_1751323949667.png)
+  * Updated import reference in AuthenticatedLayout.tsx to use new logo asset
+  * Maintained existing logo functionality and responsive behavior in sidebar
 ```
 
 ## User Preferences
