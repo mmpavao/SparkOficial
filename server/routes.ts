@@ -548,6 +548,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const submissionCache = new Map();
   const DUPLICATE_PREVENTION_WINDOW = 60000; // 60 segundos
 
+  // Create temporary credit application for immediate document uploads
+  app.post('/api/credit/applications/temp', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      console.log('🔄 Creating temporary application for user:', userId);
+
+      // Create minimal temporary application with required fields
+      const tempData = {
+        userId,
+        legalCompanyName: 'Aplicação Temporária',
+        tradingName: 'Em Preenchimento',
+        cnpj: '00000000000000',
+        address: 'Endereço Temporário',
+        city: 'Cidade',
+        state: 'SP',
+        zipCode: '00000000',
+        email: 'temp@sparkcomex.com',
+        phone: '0000000000',
+        requestedAmount: '0',
+        paymentTerms: '30',
+        businessSectors: JSON.stringify([]),
+        shareholders: JSON.stringify([]),
+        status: 'temp',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const tempApplication = await storage.createCreditApplication(tempData);
+      console.log('✅ Temporary application created with ID:', tempApplication.id);
+
+      res.json({ 
+        message: "Aplicação temporária criada",
+        applicationId: tempApplication.id
+      });
+    } catch (error) {
+      console.error("Error creating temporary application:", error);
+      res.status(500).json({ message: "Erro ao criar aplicação temporária" });
+    }
+  });
+
+  // Finalize credit application with real data
+  app.put('/api/credit/applications/:id/finalize', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      console.log('🎯 Finalizing application:', applicationId, 'for user:', userId);
+
+      // Verify application belongs to user
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application || application.userId !== userId) {
+        return res.status(404).json({ message: "Aplicação não encontrada" });
+      }
+
+      const applicationData = req.body;
+      
+      // Duplicate protection for final submission
+      const duplicateKey = `credit_final_${userId}_${applicationData.requestedAmount}_${Math.floor(Date.now() / 60000)}`;
+      
+      if (globalThis[duplicateKey]) {
+        console.log('🚫 DUPLICATE BLOCKED - Final submission');
+        return res.status(429).json({ 
+          message: "Solicitação já enviada recentemente. Aguarde antes de enviar novamente." 
+        });
+      }
+      
+      globalThis[duplicateKey] = true;
+      setTimeout(() => delete globalThis[duplicateKey], 60000);
+
+      // Update application with real data
+      applicationData.status = 'pending';
+      applicationData.updatedAt = new Date();
+
+      // Convert JSON strings to proper formats
+      if (typeof applicationData.shareholders === 'string') {
+        applicationData.shareholders = JSON.parse(applicationData.shareholders);
+      }
+      if (typeof applicationData.businessSectors === 'string') {
+        applicationData.businessSectors = JSON.parse(applicationData.businessSectors);
+      }
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, applicationData);
+      console.log('✅ Application finalized with ID:', applicationId);
+
+      // Clear cache for real-time updates
+      delete userCreditCache[userId];
+      if (globalThis.creditApplicationCache) {
+        delete globalThis.creditApplicationCache;
+      }
+
+      res.json({ 
+        message: "Solicitação de crédito finalizada com sucesso",
+        applicationId: applicationId,
+        application: updatedApplication
+      });
+    } catch (error) {
+      console.error("Error finalizing credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   app.post('/api/credit/applications', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
     try {
       const userId = req.session.userId;

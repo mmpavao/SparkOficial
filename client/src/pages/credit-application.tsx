@@ -346,6 +346,9 @@ export default function CreditApplicationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitInProgress, setSubmitInProgress] = useState(false);
   const [submissionCompleted, setSubmissionCompleted] = useState(false);
+  
+  // Temporary application ID for immediate document persistence
+  const [tempApplicationId, setTempApplicationId] = useState<number | null>(null);
 
   // Custom documents functions
   const addCustomDocument = () => {
