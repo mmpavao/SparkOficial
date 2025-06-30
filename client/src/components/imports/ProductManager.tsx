@@ -4,371 +4,274 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Trash2, Package, Calculator } from "lucide-react";
+import { Plus, Minus, Package, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
-import { Supplier } from "@shared/schema";
 
 interface Product {
-  id: string;
-  name: string;
+  productName: string;
   quantity: number;
   unitPrice: number;
+  totalValue: number;
   supplierId?: number;
-  description?: string;
 }
 
 interface ProductManagerProps {
   products: Product[];
+  suppliers: any[];
   onProductsChange: (products: Product[]) => void;
-  suppliers: Supplier[];
-  currency: string;
 }
 
-export default function ProductManager({ 
-  products, 
-  onProductsChange, 
-  suppliers, 
-  currency 
-}: ProductManagerProps) {
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
+export function ProductManager({ products, suppliers, onProductsChange }: ProductManagerProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const addNewProduct = () => {
+  const addProduct = () => {
     const newProduct: Product = {
-      id: Date.now().toString(),
-      name: "",
+      productName: "",
       quantity: 1,
       unitPrice: 0,
-      description: "",
+      totalValue: 0,
+      supplierId: undefined
     };
-    setEditingProduct(newProduct);
-    setIsAddingNew(true);
+    onProductsChange([...products, newProduct]);
+    setEditingIndex(products.length);
   };
 
-  const saveProduct = (product: Product) => {
-    if (isAddingNew) {
-      onProductsChange([...products, product]);
-      setIsAddingNew(false);
-    } else {
-      onProductsChange(products.map(p => p.id === product.id ? product : p));
+  const removeProduct = (index: number) => {
+    const updatedProducts = products.filter((_, i) => i !== index);
+    onProductsChange(updatedProducts);
+    if (editingIndex === index) {
+      setEditingIndex(null);
     }
-    setEditingProduct(null);
   };
 
-  const deleteProduct = (productId: string) => {
-    onProductsChange(products.filter(p => p.id !== productId));
+  const updateProduct = (index: number, field: keyof Product, value: any) => {
+    const updatedProducts = [...products];
+    updatedProducts[index] = { ...updatedProducts[index], [field]: value };
+    
+    // Recalculate total value when quantity or unitPrice changes
+    if (field === 'quantity' || field === 'unitPrice') {
+      updatedProducts[index].totalValue = updatedProducts[index].quantity * updatedProducts[index].unitPrice;
+    }
+    
+    onProductsChange(updatedProducts);
   };
 
-  const cancelEdit = () => {
-    setEditingProduct(null);
-    setIsAddingNew(false);
+  const getTotalValue = () => {
+    return products.reduce((sum, product) => sum + product.totalValue, 0);
   };
 
-  const totalValue = products.reduce((sum, product) => sum + (product.quantity * product.unitPrice), 0);
+  const getTotalQuantity = () => {
+    return products.reduce((sum, product) => sum + product.quantity, 0);
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Produtos (LCL)
-          </CardTitle>
-          <Button onClick={addNewProduct} size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Produto
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Products List */}
-        {products.length === 0 && !editingProduct && (
-          <Alert>
-            <Package className="h-4 w-4" />
-            <AlertDescription>
-              Nenhum produto adicionado. Clique em "Adicionar Produto" para começar.
-            </AlertDescription>
-          </Alert>
-        )}
+    <div className="space-y-4">
+      {/* Summary */}
+      {products.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total de Produtos</p>
+                  <p className="text-2xl font-bold">{products.length}</p>
+                </div>
+                <Package className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
 
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            suppliers={suppliers}
-            currency={currency}
-            isEditing={editingProduct?.id === product.id}
-            onEdit={setEditingProduct}
-            onSave={saveProduct}
-            onDelete={deleteProduct}
-            onCancel={cancelEdit}
-          />
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Quantidade Total</p>
+                  <p className="text-2xl font-bold">{getTotalQuantity()}</p>
+                </div>
+                <Package className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Valor Total</p>
+                  <p className="text-2xl font-bold">{formatCurrency(getTotalValue(), 'USD')}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Products List */}
+      <div className="space-y-4">
+        {products.map((product, index) => (
+          <Card key={index} className="border-l-4 border-l-blue-500">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">
+                  Produto {index + 1}
+                  {product.productName && (
+                    <span className="text-sm font-normal text-gray-600 ml-2">
+                      - {product.productName}
+                    </span>
+                  )}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    {formatCurrency(product.totalValue, 'USD')}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingIndex(editingIndex === index ? null : index)}
+                  >
+                    {editingIndex === index ? 'Concluir' : 'Editar'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeProduct(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            {editingIndex === index ? (
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`productName-${index}`}>Nome do Produto *</Label>
+                    <Input
+                      id={`productName-${index}`}
+                      value={product.productName}
+                      onChange={(e) => updateProduct(index, 'productName', e.target.value)}
+                      placeholder="Ex: Smartphone Samsung Galaxy"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`supplier-${index}`}>Fornecedor</Label>
+                    <Select
+                      value={product.supplierId?.toString() || ""}
+                      onValueChange={(value) => updateProduct(index, 'supplierId', value ? parseInt(value) : undefined)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um fornecedor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum fornecedor</SelectItem>
+                        {suppliers.map((supplier: any) => (
+                          <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                            {supplier.companyName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`quantity-${index}`}>Quantidade *</Label>
+                    <Input
+                      id={`quantity-${index}`}
+                      type="number"
+                      min="1"
+                      value={product.quantity}
+                      onChange={(e) => updateProduct(index, 'quantity', parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`unitPrice-${index}`}>Preço Unitário (USD) *</Label>
+                    <Input
+                      id={`unitPrice-${index}`}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={product.unitPrice}
+                      onChange={(e) => updateProduct(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Valor Total:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      {formatCurrency(product.totalValue, 'USD')}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            ) : (
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Quantidade:</span>
+                    <p className="font-medium">{product.quantity}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Preço Unit.:</span>
+                    <p className="font-medium">{formatCurrency(product.unitPrice, 'USD')}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Total:</span>
+                    <p className="font-medium text-green-600">{formatCurrency(product.totalValue, 'USD')}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Fornecedor:</span>
+                    <p className="font-medium">
+                      {product.supplierId 
+                        ? suppliers.find(s => s.id === product.supplierId)?.companyName || 'N/A'
+                        : 'Não especificado'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
         ))}
 
-        {/* Add/Edit Product Form */}
-        {editingProduct && (
-          <ProductForm
-            product={editingProduct}
-            suppliers={suppliers}
-            currency={currency}
-            onSave={saveProduct}
-            onCancel={cancelEdit}
-            isNew={isAddingNew}
-          />
-        )}
-
-        {/* Summary */}
-        {products.length > 0 && (
-          <div className="pt-4 border-t">
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Calculator className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <span className="font-medium text-blue-800">Total da Carga</span>
-                  <p className="text-sm text-blue-600">{products.length} produto(s)</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-900">
-                  {formatCurrency(totalValue, currency)}
-                </div>
-                <div className="text-sm text-blue-600">
-                  Valor total calculado
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-interface ProductCardProps {
-  product: Product;
-  suppliers: Supplier[];
-  currency: string;
-  isEditing: boolean;
-  onEdit: (product: Product) => void;
-  onSave: (product: Product) => void;
-  onDelete: (productId: string) => void;
-  onCancel: () => void;
-}
-
-function ProductCard({ 
-  product, 
-  suppliers, 
-  currency, 
-  isEditing, 
-  onEdit, 
-  onSave, 
-  onDelete, 
-  onCancel 
-}: ProductCardProps) {
-  if (isEditing) {
-    return (
-      <ProductForm
-        product={product}
-        suppliers={suppliers}
-        currency={currency}
-        onSave={onSave}
-        onCancel={onCancel}
-        isNew={false}
-      />
-    );
-  }
-
-  const supplier = suppliers.find(s => s.id === product.supplierId);
-  const totalValue = product.quantity * product.unitPrice;
-
-  return (
-    <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h4 className="font-semibold text-lg">{product.name}</h4>
-            <Badge variant="outline" className="text-xs">
-              {product.quantity}x {formatCurrency(product.unitPrice, currency)}
-            </Badge>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-2">
-            <div>
-              <span className="font-medium">Quantidade:</span> {product.quantity}
-            </div>
-            <div>
-              <span className="font-medium">Preço unitário:</span> {formatCurrency(product.unitPrice, currency)}
-            </div>
-          </div>
-
-          {supplier && (
-            <div className="text-sm text-gray-600 mb-2">
-              <span className="font-medium">Fornecedor:</span> {supplier.companyName}
-            </div>
-          )}
-
-          {product.description && (
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Descrição:</span> {product.description}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 ml-4">
-          <div className="text-right">
-            <div className="text-lg font-bold text-green-600">
-              {formatCurrency(totalValue, currency)}
-            </div>
-            <div className="text-xs text-gray-500">Total</div>
-          </div>
-          <div className="flex flex-col gap-1">
+        {/* Add Product Button */}
+        <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
+          <CardContent className="pt-6">
             <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onEdit(product)}
+              variant="ghost"
+              onClick={addProduct}
+              className="w-full h-16 text-gray-600 hover:text-gray-700"
             >
-              Editar
+              <Plus className="h-6 w-6 mr-2" />
+              Adicionar Produto
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onDelete(product.id)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Validation Messages */}
+      {products.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <Package className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+          <p className="text-lg font-medium">Nenhum produto adicionado</p>
+          <p className="text-sm">Para carga LCL, adicione pelo menos um produto</p>
+        </div>
+      )}
+
+      {products.some(p => !p.productName.trim()) && (
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-800 text-sm">
+            ⚠️ Alguns produtos não possuem nome. Preencha todos os campos obrigatórios.
+          </p>
+        </div>
+      )}
     </div>
-  );
-}
-
-interface ProductFormProps {
-  product: Product;
-  suppliers: Supplier[];
-  currency: string;
-  onSave: (product: Product) => void;
-  onCancel: () => void;
-  isNew: boolean;
-}
-
-function ProductForm({ 
-  product, 
-  suppliers, 
-  currency, 
-  onSave, 
-  onCancel, 
-  isNew 
-}: ProductFormProps) {
-  const [formData, setFormData] = useState<Product>(product);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.name && formData.quantity > 0 && formData.unitPrice > 0) {
-      onSave(formData);
-    }
-  };
-
-  const updateField = (field: keyof Product, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="border rounded-lg p-4 bg-gray-50">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="space-y-2">
-          <Label htmlFor="productName">Nome do Produto *</Label>
-          <Input
-            id="productName"
-            value={formData.name}
-            onChange={(e) => updateField('name', e.target.value)}
-            placeholder="Ex: Smartphone XYZ"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="supplier">Fornecedor</Label>
-          <Select 
-            value={formData.supplierId?.toString() || ""} 
-            onValueChange={(value) => updateField('supplierId', value ? parseInt(value) : undefined)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um fornecedor" />
-            </SelectTrigger>
-            <SelectContent>
-              {suppliers.map((supplier) => (
-                <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                  {supplier.companyName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="space-y-2">
-          <Label htmlFor="quantity">Quantidade *</Label>
-          <Input
-            id="quantity"
-            type="number"
-            min="1"
-            value={formData.quantity}
-            onChange={(e) => updateField('quantity', parseInt(e.target.value) || 1)}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="unitPrice">Preço Unitário ({currency}) *</Label>
-          <Input
-            id="unitPrice"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.unitPrice}
-            onChange={(e) => updateField('unitPrice', parseFloat(e.target.value) || 0)}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2 mb-4">
-        <Label htmlFor="description">Descrição</Label>
-        <Textarea
-          id="description"
-          value={formData.description || ""}
-          onChange={(e) => updateField('description', e.target.value)}
-          placeholder="Descrição detalhada do produto..."
-          rows={2}
-        />
-      </div>
-
-      {/* Preview Total */}
-      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-blue-800">Total deste produto:</span>
-          <span className="text-lg font-bold text-blue-900">
-            {formatCurrency(formData.quantity * formData.unitPrice, currency)}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <Button type="submit" className="bg-green-600 hover:bg-green-700">
-          {isNew ? 'Adicionar' : 'Salvar'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-      </div>
-    </form>
   );
 }

@@ -12,8 +12,8 @@ import CreditPage from "@/pages/credit";
 import CreditApplicationPage from "@/pages/credit-application";
 import CreditDetailsPage from "@/pages/credit-details";
 import CreditEditPage from "@/pages/credit-edit";
-import ImportsPage from "@/pages/imports";
-import NewImportPage from "@/pages/import-new";
+import ImportsPageIntegrated from "@/pages/imports-new-integrated";
+import ImportsNewFormPage from "@/pages/imports-new-form";
 import ImportDetailsPage from "@/pages/import-details";
 import ImportEdit from "@/pages/import-edit";
 import PipelineDemoPage from "@/pages/pipeline-demo";
@@ -65,8 +65,8 @@ function Router() {
         <Route path="/credit/details/:id" component={CreditDetailsPage} />
         <Route path="/credit/edit/:id" component={CreditEditPage} />
 
-        <Route path="/imports" component={ImportsPage} />
-        <Route path="/imports/new" component={NewImportPage} />
+        <Route path="/imports" component={ImportsPageIntegrated} />
+        <Route path="/imports/new" component={ImportsNewFormPage} />
         <Route path="/imports/:id" component={ImportDetailsPage} />
         <Route path="/imports/:id/edit" component={ImportEdit} />
 

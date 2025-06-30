@@ -1,77 +1,67 @@
 /**
- * Utility functions for formatting data consistently across the application
+ * Format currency values
  */
-
-export function formatCurrency(value: number | string, currency: string = 'USD'): string {
-  const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d.-]/g, '')) : value;
+export function formatCurrency(amount: number | string, currency: string = 'USD'): string {
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
   
-  if (isNaN(numValue)) {
-    return 'R$ 0,00';
-  }
-
-  if (currency === 'USD') {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-    }).format(numValue);
-  }
-
-  return new Intl.NumberFormat('pt-BR', {
+  if (isNaN(numericAmount)) return `${currency} 0.00`;
+  
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'BRL',
+    currency: currency,
     minimumFractionDigits: 2,
-  }).format(numValue);
+    maximumFractionDigits: 2
+  }).format(numericAmount);
 }
 
-export function formatDate(date: Date | string | null, locale: string = 'pt-BR'): string {
-  if (!date) return 'N/A';
+/**
+ * Format numbers in compact notation (10k, 1M, etc.)
+ */
+export function formatCompactNumber(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
   
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(num)) return '0';
   
-  if (isNaN(dateObj.getTime())) {
-    return 'N/A';
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k';
   }
-
-  return dateObj.toLocaleDateString(locale);
+  
+  return num.toString();
 }
 
-export function formatDateTime(date: Date | string | null, locale: string = 'pt-BR'): string {
-  if (!date) return 'N/A';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  if (isNaN(dateObj.getTime())) {
-    return 'N/A';
-  }
-
-  return dateObj.toLocaleString(locale);
-}
-
-export function formatCompactNumber(value: number): string {
-  if (value >= 1000000) {
-    return (value / 1000000).toFixed(1) + 'M';
-  }
-  if (value >= 1000) {
-    return (value / 1000).toFixed(1) + 'k';
-  }
-  return value.toString();
-}
-
-export function formatNumber(value: number | string): string {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  
-  if (isNaN(numValue)) {
-    return '0';
-  }
-
-  return new Intl.NumberFormat('pt-BR').format(numValue);
-}
-
+/**
+ * Format percentage values
+ */
 export function formatPercentage(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(value / 100);
+  return `${value.toFixed(1)}%`;
+}
+
+/**
+ * Format date values
+ */
+export function formatDate(date: string | Date): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(dateObj);
+}
+
+/**
+ * Format date and time values
+ */
+export function formatDateTime(date: string | Date): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(dateObj);
 }
