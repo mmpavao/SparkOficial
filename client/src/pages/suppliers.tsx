@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
 import { useAuth } from "@/hooks/useAuth";
+import { UniversalCard } from "@/components/shared/UniversalCard";
 import { 
   Search, 
   Plus, 
@@ -37,7 +38,9 @@ import {
   Trash2,
   Users,
   Building2,
-  TrendingUp
+  TrendingUp,
+  Globe,
+  Factory
 } from "lucide-react";
 
 export default function SuppliersPage() {
@@ -234,78 +237,65 @@ export default function SuppliersPage() {
           ) : (
             <div className="space-y-3">
               {filteredSuppliers.map((supplier: any) => (
-                <div 
-                  key={supplier.id} 
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                <UniversalCard
+                  key={supplier.id}
+                  icon={<Factory className="w-6 h-6 text-green-600" />}
+                  title={supplier.companyName}
+                  subtitle="Fabricante Chinês"
+                  applicationNumber={supplier.id.toString()}
+                  companyBadge={(isAdmin || isFinanceira) && (supplier as any).importerCompanyName ? (supplier as any).importerCompanyName : undefined}
+                  status={{
+                    label: "Ativo",
+                    color: "text-green-600",
+                    bgColor: "bg-green-50",
+                    borderColor: "border-l-green-500"
+                  }}
+                  miniCards={[
+                    {
+                      icon: <Globe className="w-4 h-4 text-blue-600" />,
+                      label: "Localização",
+                      value: `${supplier.city}, ${supplier.country}`,
+                      color: "bg-blue-50 border-blue-200"
+                    },
+                    {
+                      icon: <Phone className="w-4 h-4 text-purple-600" />,
+                      label: "Telefone",
+                      value: supplier.phone || 'N/A',
+                      color: "bg-purple-50 border-purple-200"
+                    },
+                    {
+                      icon: <Mail className="w-4 h-4 text-orange-600" />,
+                      label: "Email",
+                      value: supplier.email || 'N/A',
+                      color: "bg-orange-50 border-orange-200"
+                    },
+                    {
+                      icon: <Building2 className="w-4 h-4 text-green-600" />,
+                      label: "Contato",
+                      value: supplier.contactName || 'N/A',
+                      color: "bg-green-50 border-green-200"
+                    }
+                  ]}
+                  actions={[
+                    {
+                      icon: <Eye className="w-4 h-4" />,
+                      label: "Ver Detalhes",
+                      onClick: () => setLocation(`/suppliers/details/${supplier.id}`)
+                    },
+                    {
+                      icon: <Edit className="w-4 h-4" />,
+                      label: "Editar",
+                      onClick: () => setLocation(`/suppliers/edit/${supplier.id}`)
+                    },
+                    {
+                      icon: <Trash2 className="w-4 h-4" />,
+                      label: "Excluir",
+                      onClick: () => handleDeleteSupplier(supplier),
+                      variant: 'destructive'
+                    }
+                  ]}
                   onClick={() => handleSupplierCardClick(supplier.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-green-600" />
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">
-                            {supplier.companyName}
-                          </h3>
-                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                            Fornecedor Chinês
-                          </Badge>
-                          {(isAdmin || isFinanceira) && (supplier as any).importerCompanyName && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                              {(supplier as any).importerCompanyName}
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-6 text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            <span>Local:</span>
-                            <span className="font-medium">{supplier.city}, {supplier.country}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Phone className="w-4 h-4" />
-                            <span>Tel:</span>
-                            <span className="font-medium">{supplier.phone}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Mail className="w-4 h-4" />
-                            <span>Email:</span>
-                            <span className="font-medium">{supplier.email}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/details/${supplier.id}`)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setLocation(`/suppliers/edit/${supplier.id}`)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteSupplier(supplier)}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+                />
               ))}
             </div>
           )}
