@@ -2,11 +2,12 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Edit, X, Package, MapPin, Calendar, DollarSign } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, X, Package, MapPin, Calendar, DollarSign, Truck, Globe, Clock } from "lucide-react";
 import { Import } from "@shared/imports-schema";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useLocation } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import { UniversalCard } from "@/components/shared/UniversalCard";
 
 interface ImportCardProps {
   importData: Import & {
@@ -78,114 +79,89 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
   const canEdit = permissions.canViewOwnDataOnly && importData.status === 'planejamento';
   const canCancel = permissions.canViewOwnDataOnly && !['concluido', 'cancelado'].includes(importData.status || '');
 
+  const getStatusInfo = () => {
+    const statusColor = getStatusColor(importData.status || '');
+    const statusLabel = getStatusLabel(importData.status || '');
+    
+    return {
+      label: statusLabel,
+      color: statusColor,
+      bgColor: statusColor.includes('blue') ? 'bg-blue-50' : 
+               statusColor.includes('green') ? 'bg-green-50' : 
+               statusColor.includes('orange') ? 'bg-orange-50' : 'bg-gray-50',
+      borderColor: statusColor.includes('blue') ? 'border-l-blue-500' :
+                   statusColor.includes('green') ? 'border-l-green-500' :
+                   statusColor.includes('orange') ? 'border-l-orange-500' : 'border-l-gray-500'
+    };
+  };
+
+  const statusInfo = getStatusInfo();
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Package className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">{importData.importName}</h3>
-              {importData.importCode && (
-                <p className="text-sm text-gray-600">{importData.importCode}</p>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Badge className={`${getStatusColor(importData.status || '')} border`}>
-              {getStatusLabel(importData.status || '')}
-            </Badge>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleViewDetails}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Ver Detalhes
-                </DropdownMenuItem>
-                
-                {canEdit && (
-                  <DropdownMenuItem onClick={handleEdit}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </DropdownMenuItem>
-                )}
-                
-                {canCancel && (
-                  <DropdownMenuItem onClick={handleCancel} className="text-red-600">
-                    <X className="h-4 w-4 mr-2" />
-                    Cancelar
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Company Badge for Admin/Financeira */}
-        {(permissions.isAdmin || permissions.isFinanceira) && importData.user && (
-          <div className="mb-3">
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              {importData.user.companyName}
-            </Badge>
-          </div>
-        )}
-
-        {/* Import Details */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Package className="h-4 w-4" />
-            <span>{importData.cargoType} - {importData.transportMethod}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <DollarSign className="h-4 w-4" />
-            <span>{formatCurrency(importData.totalValue, importData.currency || 'USD')}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="h-4 w-4" />
-            <span>{importData.origin} → {importData.destination}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDate(importData.createdAt)}</span>
-          </div>
-        </div>
-
-        {/* Supplier Info */}
-        {importData.supplier && (
-          <div className="pt-3 border-t">
-            <p className="text-sm text-gray-600">
-              <span className="font-medium">Fornecedor:</span> {importData.supplier.companyName}
-            </p>
-            <p className="text-xs text-gray-500">
-              {importData.supplier.city}, {importData.supplier.country}
-            </p>
-          </div>
-        )}
-
-        {/* Products Preview for LCL */}
-        {importData.cargoType === 'LCL' && importData.products && importData.products.length > 0 && (
-          <div className="pt-3 border-t">
-            <div className="flex items-center justify-between">
+    <UniversalCard
+      icon={<Package className="w-6 h-6 text-blue-600" />}
+      title={importData.importName}
+      subtitle={importData.importCode || `Importação #${importData.id}`}
+      applicationNumber={importData.id.toString()}
+      companyBadge={(permissions.isAdmin || permissions.isFinanceira) && importData.user ? importData.user.companyName : undefined}
+      status={statusInfo}
+      miniCards={[
+        {
+          icon: <Truck className="w-4 h-4 text-purple-600" />,
+          label: "Tipo",
+          value: `${importData.cargoType}`,
+          color: "bg-purple-50 border-purple-200"
+        },
+        {
+          icon: <DollarSign className="w-4 h-4 text-green-600" />,
+          label: "Valor",
+          value: formatCurrency(importData.totalValue, importData.currency || 'USD'),
+          color: "bg-green-50 border-green-200"
+        },
+        {
+          icon: <Globe className="w-4 h-4 text-blue-600" />,
+          label: "Origem",
+          value: importData.origin || 'N/A',
+          color: "bg-blue-50 border-blue-200"
+        },
+        {
+          icon: <Clock className="w-4 h-4 text-orange-600" />,
+          label: "Criado",
+          value: formatDate(importData.createdAt),
+          color: "bg-orange-50 border-orange-200"
+        }
+      ]}
+      actions={[
+        {
+          icon: <Eye className="w-4 h-4" />,
+          label: "Ver Detalhes",
+          onClick: handleViewDetails
+        },
+        {
+          icon: <Edit className="w-4 h-4" />,
+          label: "Editar",
+          onClick: handleEdit,
+          show: canEdit
+        },
+        {
+          icon: <X className="w-4 h-4" />,
+          label: "Cancelar",
+          onClick: handleCancel,
+          variant: 'destructive',
+          show: canCancel
+        }
+      ]}
+      footer={
+        importData.cargoType === 'LCL' && importData.products && importData.products.length > 0 ? (
+          <div>
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Produtos:</span>
               <Badge variant="secondary" className="text-xs">
                 {importData.products.length} {importData.products.length === 1 ? 'produto' : 'produtos'}
               </Badge>
             </div>
-            <div className="mt-2 flex flex-wrap gap-1">
-              {importData.products.slice(0, 3).map((product, index) => (
+            <div className="flex flex-wrap gap-1">
+              {importData.products.slice(0, 3).map((product: any, index: number) => (
                 <Badge key={index} variant="outline" className="text-xs">
                   {product.productName}
                 </Badge>
@@ -197,8 +173,9 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
               )}
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        ) : undefined
+      }
+      onClick={handleViewDetails}
+    />
   );
 }

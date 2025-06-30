@@ -23,6 +23,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useTranslation } from "@/contexts/I18nContext";
 import AdminFilters from "@/components/AdminFilters";
 import { apiRequest } from "@/lib/queryClient";
+import { UniversalCard } from "@/components/shared/UniversalCard";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
 import { 
   Plus, 
@@ -348,95 +349,64 @@ export default function CreditPage() {
                 const statusInfo = getStatusInfo();
 
                 return (
-                  <Card 
-                    key={application.id} 
-                    className={`border-l-4 ${statusInfo.borderColor} hover:shadow-md transition-all duration-200 cursor-pointer`}
+                  <UniversalCard
+                    key={application.id}
+                    icon={<FileText className="w-6 h-6 text-spark-600" />}
+                    title={application.legalCompanyName || `Empresa #${application.id}`}
+                    subtitle={`Solicitação #{application.id}`}
+                    applicationNumber={application.id.toString()}
+                    companyBadge={permissions.canViewAllApplications ? application.legalCompanyName : undefined}
+                    status={statusInfo}
+                    miniCards={[
+                      {
+                        icon: <DollarSign className="w-4 h-4 text-blue-600" />,
+                        label: "Solicitado",
+                        value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.requestedAmount || '0')),
+                        color: "bg-blue-50 border-blue-200"
+                      },
+                      {
+                        icon: <CheckCircle className="w-4 h-4 text-green-600" />,
+                        label: "Aprovado", 
+                        value: application.finalCreditLimit 
+                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
+                          : "Aguardando",
+                        color: application.finalCreditLimit ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
+                      },
+                      {
+                        icon: <Calendar className="w-4 h-4 text-purple-600" />,
+                        label: "Criado em",
+                        value: application.createdAt ? new Date(application.createdAt).toLocaleDateString('pt-BR') : 'N/A',
+                        color: "bg-purple-50 border-purple-200"
+                      },
+                      {
+                        icon: <Clock className="w-4 h-4 text-orange-600" />,
+                        label: "Atualizado",
+                        value: application.updatedAt ? new Date(application.updatedAt).toLocaleDateString('pt-BR') : 'N/A',
+                        color: "bg-orange-50 border-orange-200"
+                      }
+                    ]}
+                    actions={[
+                      {
+                        icon: <Eye className="w-4 h-4" />,
+                        label: "Ver Detalhes",
+                        onClick: () => setLocation(`/credit/details/${application.id}`)
+                      },
+                      {
+                        icon: <Edit className="w-4 h-4" />,
+                        label: "Editar", 
+                        onClick: () => setLocation(`/credit/edit/${application.id}`),
+                        show: (application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira
+                      },
+                      {
+                        icon: <X className="w-4 h-4" />,
+                        label: "Cancelar",
+                        onClick: () => handleCancelApplication(application.id),
+                        variant: 'destructive',
+                        show: (application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira
+                      }
+                    ]}
                     onClick={() => handleCreditCardClick(application.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-12 gap-4 items-center">
-                        <div className="col-span-8 flex items-center space-x-3">
-                          <div className="relative flex-shrink-0">
-                            <div className="w-10 h-10 bg-spark-50 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-spark-600" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-spark-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-bold text-white">#{application.id}</span>
-                            </div>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1 text-sm">
-                              {application.legalCompanyName || `Empresa #${application.id}`}
-                            </h3>
-                            <p className="text-xs text-gray-500 mb-1">
-                              Solicitação #{application.id}
-                            </p>
-                            <div className="space-y-1">
-                              <p className="text-xs text-gray-600">
-                                Solicitado: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.requestedAmount || '0'))}
-                              </p>
-                              {application.finalCreditLimit && (
-                                <p className="text-xs text-green-600 font-medium">
-                                  Aprovado: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit || '0'))}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-span-4 flex items-center justify-end space-x-3">
-                          <div className="text-center">
-                            <Badge variant="outline" className={`${statusInfo.color} mb-1`}>
-                              {statusInfo.label}
-                            </Badge>
-                            <div className="text-xs text-gray-500">
-                              {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString('pt-BR') : ''}
-                            </div>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setLocation(`/credit/details/${application.id}`);
-                                }}
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                Ver Detalhes
-                              </DropdownMenuItem>
-                              {(application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira && (
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setLocation(`/credit/edit/${application.id}`);
-                                  }}
-                                >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                              )}
-                              {(application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira && (
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCancelApplication(application.id);
-                                  }}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <X className="w-4 h-4 mr-2" />
-                                  Cancelar
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  />
                 );
               })}
             </div>
