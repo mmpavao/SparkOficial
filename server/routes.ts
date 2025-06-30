@@ -774,6 +774,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         zipCode: "00000000",
         requestedAmount: "100000",
         status: 'temporary',
+        currentStep: 1,
+        businessSector: "Outro",
+        annualRevenue: "Até R$ 1 milhão",
+        mainImportedProducts: "Temporário",
+        mainOriginMarkets: "Temporário",
+        monthlyImportVolume: "10000",
+        justification: "Aplicação temporária para upload de documentos",
         shareholders: JSON.stringify([]),
         requiredDocuments: JSON.stringify({}),
         optionalDocuments: JSON.stringify({})
@@ -789,6 +796,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating temporary application:", error);
       res.status(500).json({ message: "Erro ao criar aplicação temporária" });
+    }
+  });
+
+  // Endpoint para finalizar aplicação temporária com dados reais
+  app.put('/api/credit/applications/:id/finalize', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const finalData = req.body;
+
+      console.log('🔄 Finalizing temporary application:', applicationId);
+
+      // Verificar se a aplicação existe e pertence ao usuário
+      const existingApp = await storage.getCreditApplication(applicationId);
+      if (!existingApp || existingApp.userId !== userId) {
+        return res.status(404).json({ message: "Aplicação não encontrada" });
+      }
+
+      // Converter shareholders para string se necessário
+      const shareholdersStr = typeof finalData.shareholders === 'string' 
+        ? finalData.shareholders 
+        : JSON.stringify(finalData.shareholders || []);
+
+      // Atualizar com dados finais
+      const updateData = {
+        ...finalData,
+        status: finalData.status || 'pre_analysis',
+        shareholders: shareholdersStr,
+        updatedAt: new Date()
+      };
+
+      await storage.updateCreditApplication(applicationId, updateData);
+      
+      // Buscar aplicação atualizada
+      const finalizedApp = await storage.getCreditApplicationById(applicationId);
+      
+      // Invalidar cache
+      invalidateCreditApplicationCache();
+
+      console.log('✅ Application finalized successfully:', applicationId);
+      
+      res.json({ 
+        id: finalizedApp.id,
+        message: "Aplicação finalizada com sucesso",
+        application: finalizedApp
+      });
+    } catch (error) {
+      console.error("Error finalizing application:", error);
+      res.status(500).json({ message: "Erro ao finalizar aplicação" });
     }
   });
 

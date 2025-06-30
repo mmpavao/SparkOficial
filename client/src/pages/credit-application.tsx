@@ -411,7 +411,7 @@ export default function CreditApplicationPage() {
     }
   };
 
-  // Handle document upload in step 4 - Support multiple documents like details page
+  // Handle document upload in step 4 - with instant saving
   const handleDocumentUpload = async (documentKey: string, file: File) => {
     setUploadingDocument(documentKey);
 
@@ -427,7 +427,7 @@ export default function CreditApplicationPage() {
         throw new Error(`Formato não suportado. Use: ${validExtensions.join(', ')}`);
       }
 
-      // Convert file to base64 for local storage
+      // Convert file to base64
       const reader = new FileReader();
       reader.onload = async () => {
         const base64Data = reader.result as string;
@@ -438,65 +438,232 @@ export default function CreditApplicationPage() {
           type: file.type,
           uploadedAt: new Date().toISOString(),
           uploadedBy: user?.id || 'temp_user',
-          data: base64Data.split(',')[1], // Remove data:type;base64, prefix
-          file: file // Store actual file object for later upload
+          data: base64Data.split(',')[1] // Remove data:type;base64, prefix
         };
 
-        setUploadedDocuments(prev => {
-          const currentDocs = prev[documentKey];
+        // Save document instantly using the new instant upload system
+        await uploadDocumentInstantly(documentKey, documentInfo);
 
-          // If no documents exist for this key, create array with first document
-          if (!currentDocs) {
-            return {
-              ...prev,
-              [documentKey]: [documentInfo]
-            };
-          }
-
-          // If current value is not an array, convert to array and add new document
-          if (!Array.isArray(currentDocs)) {
-            return {
-              ...prev,
-              [documentKey]: [currentDocs, documentInfo]
-            };
-          }
-
-          // Add to existing array
-          return {
-            ...prev,
-            [documentKey]: [...currentDocs, documentInfo]
-          };
+        toast({
+          title: "Documento carregado",
+          description: `${file.name} foi salvo com sucesso`,
         });
 
         setUploadingDocument(null);
+      };
+
+      reader.onerror = () => {
+        throw new Error('Erro ao ler arquivo');
+      };
+
+      reader.readAsDataURL(file);
+
+    } catch (error: any) {
+      console.error("Document upload error:", error);
+      toast({
+        title: "Erro no upload",
+        description: error.message,
+        variant: "destructive"
+      });
+      setUploadingDocument(null);
+    }
+  };
+
+  // Navigation functions
+  const nextStep = () => {
+    // Store current form data before moving to next step
+    if (currentStep === 1) {
+      setFormData(prev => ({ ...prev, company: companyForm.getValues() }));
+    } else if (currentStep === 2) {
+      setFormData(prev => ({ ...prev, commercial: commercialForm.getValues() }));
+    } else if (currentStep === 3) {
+      setFormData(prev => ({ ...prev, credit: creditForm.getValues() }));
+    }
+    setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    // Store current form data before moving to previous step
+    if (currentStep === 2) {
+      if (companyForm.formState.isValid) {
+        setFormData(prev => ({ ...prev, company: companyForm.getValues() }));
+      }
+    } else if (currentStep === 3) {
+      if (commercialForm.formState.isValid) {
+        setFormData(prev => ({ ...prev, commercial: commercialForm.getValues() }));
+      }
+    } else if (currentStep === 4) {
+      if (creditForm.formState.isValid) {
+        setFormData(prev => ({ ...prev, credit: creditForm.getValues() }));
+      }
+    }
+    
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  // Check if step can be navigated to
+  const canNavigateToStep = (step: number) => {
+    if (step <= currentStep) return true;
+    return false;
+  };
+
+  // Check step completion status
+  const getStepStatus = (step: number) => {
+    switch (step) {
+      case 1:
+        const companyData = companyForm.getValues();
+        return companyData.legalCompanyName && companyData.cnpj && companyData.address && 
+               companyData.city && companyData.state && companyData.zipCode && 
+               companyData.phone && companyData.email && companyData.shareholders.length > 0;
+      case 2:
+        const commercialData = commercialForm.getValues();
+        return commercialData.businessSector && commercialData.annualRevenue && 
+               commercialData.mainImportedProducts && commercialData.mainOriginMarkets;
+      case 3:
+        const creditData = creditForm.getValues();
+        return creditData.requestedAmount && 
+               productTags.length > 0 &&
+               creditData.monthlyImportVolume && creditData.justification;
+      case 4:
+        // Must have all mandatory documents uploaded to complete step 4
+        const currentShareholders = companyForm.getValues().shareholders || [];
+        const currentDynamicMandatoryDocuments = generateMandatoryDocuments(currentShareholders);
+        const mandatoryUploaded = currentDynamicMandatoryDocuments.filter(doc => 
+          uploadedDocuments[doc.key]
+        ).length;
+        return mandatoryUploaded >= currentDynamicMandatoryDocuments.length;
+      default:
+        return false;
+    }
+  };
+
+  const submitApplication = async () => {
+    // Enhanced protection against multiple submissions
+    if (isSubmitting || submitInProgress || submissionCompleted) {
+      console.log('Submission blocked - already in progress or completed');
+      return;
+    }
+    
+    // Set all protection flags immediately
+    setIsSubmitting(true);
+    setSubmitInProgress(true);
+    
+    // Add a longer timestamp check to prevent rapid resubmissions
+    const now = Date.now();
+    if ((window as any).lastSubmissionTime && (now - (window as any).lastSubmissionTime) < 30000) {
+      console.log('Submission blocked - too recent (30s cooldown)');
+      setIsSubmitting(false);
+      setSubmitInProgress(false);
+      return;
+    }
+    
+    (window as any).lastSubmissionTime = now;
+    try {
+      // Calculate documents status based on uploaded documents
+      const currentShareholders = companyForm.getValues().shareholders || [];
+      const currentDynamicMandatoryDocuments = generateMandatoryDocuments(currentShareholders);
+      const mandatoryUploaded = currentDynamicMandatoryDocuments.filter(doc => 
+        uploadedDocuments[doc.key]
+      ).length;
+
+      let documentsStatus = "pending";
+      let applicationStatus = "pre_analysis";
+
+      if (mandatoryUploaded >= currentDynamicMandatoryDocuments.length) {
+        documentsStatus = "complete";
+        applicationStatus = "pre_analysis";
+      } else if (mandatoryUploaded > 0) {
+        documentsStatus = "partial";
+        applicationStatus = "pre_analysis";
+      }
+
+      // Prepare document data for inclusion in application submission
+      const documentsForSubmission: Record<string, any> = {};
+      const mandatoryDocKeys = currentDynamicMandatoryDocuments.map(doc => doc.key);
+
+      // Convert uploaded documents to base64 format for database storage
+      for (const [key, docData] of Object.entries(uploadedDocuments)) {
+        const documentsArray = Array.isArray(docData) ? docData : [docData];
+        const processedDocs = [];
+
+        for (const docInfo of documentsArray) {
+          if (docInfo && docInfo.data) {
+            processedDocs.push({
+              filename: docInfo.filename,
+              originalName: docInfo.originalName,
+              size: docInfo.size,
+              type: docInfo.type,
+              uploadedAt: docInfo.uploadedAt,
+              uploadedBy: docInfo.uploadedBy,
+              data: docInfo.data,
+              isMandatory: mandatoryDocKeys.includes(key)
+            });
+          }
+        }
+
+        if (processedDocs.length > 0) {
+          documentsForSubmission[key] = processedDocs.length === 1 ? processedDocs[0] : processedDocs;
+        }
+      }
+
+      // Separate required and optional documents
+      const requiredDocuments: Record<string, any> = {};
+      const optionalDocuments: Record<string, any> = {};
+
+      for (const [key, docData] of Object.entries(documentsForSubmission)) {
+        if (mandatoryDocKeys.includes(key)) {
+          requiredDocuments[key] = docData;
+        } else {
+          optionalDocuments[key] = docData;
+        }
+      }
+
+      // Use temporary application finalization approach
+      if (temporaryApplicationId) {
+        console.log('🔄 Finalizing temporary application with complete data');
+        
+        const finalApplicationData = {
+          ...formData,
+          ...creditForm.getValues(),
+          userId: user?.id,
+          status: applicationStatus,
+          documentsStatus: documentsStatus,
+          currency: "USD",
+          productsToImport: productTags.length > 0 ? productTags : ["Outros"],
+          requiredDocuments: JSON.stringify(requiredDocuments),
+          optionalDocuments: JSON.stringify(optionalDocuments),
+          shareholders: JSON.stringify(currentShareholders)
+        };
+
+        // Finalize the temporary application with complete data
+        const response = await apiRequest(`/api/credit/applications/${temporaryApplicationId}/finalize`, "PUT", finalApplicationData);
+        
+        // Invalidate caches and notify user of success
+        queryClient.invalidateQueries({ queryKey: ['/api/credit/applications'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/dashboard/importer'] });
+        
+        setSubmissionCompleted(true);
+        
         toast({
-          title: "Documento preparado!",
-          description: `${file.name} será enviado com a solicitação.`,
+          title: "Solicitação enviada!",
+          description: "Sua solicitação de crédito foi enviada com sucesso.",
         });
 
-         // Create temporary application if not exists
-         if (!temporaryApplicationId) {
-          const tempAppData = {
-            userId: user?.id,
-            status: 'draft',
-            currentStep: 4,
-            documentsStatus: 'pending',
-            legalCompanyName: companyForm.getValues("legalCompanyName") || "Empresa Temporária",
-            cnpj: companyForm.getValues("cnpj") || "00.000.000/0000-00",
-            address: companyForm.getValues("address") || "Endereço Temporário",
-            city: companyForm.getValues("city") || "Cidade Temporária",
-            state: companyForm.getValues("state") || "SP",
-            zipCode: companyForm.getValues("zipCode") || "00000-000",
-            phone: companyForm.getValues("phone") || "(11) 00000-0000",
-            email: companyForm.getValues("email") || user?.email || "temp@temp.com",
-            shareholders: [{ name: "Temporário", cpf: "000.000.000-00", percentage: 100 }],
-            businessSector: commercialForm.getValues("businessSector") || "outros",
-            annualRevenue: commercialForm.getValues("annualRevenue") || "ate_500k",
-            mainImportedProducts: commercialForm.getValues("mainImportedProducts") || "Produtos Temporários",
-            mainOriginMarkets: commercialForm.getValues("mainOriginMarkets") || "China",
-            requestedAmount: creditForm.getValues("requestedAmount") || "100000",
-            productsToImport: creditForm.getValues("productsToImport") || ["outros"],
-            monthlyImportVolume: creditForm.getValues("monthlyImportVolume") || "10000",
+        // Navigate to credit page
+        setTimeout(() => {
+          setLocation('/credit');
+        }, 1000);
+        
+      } else {
+        // Traditional submission approach as fallback
+        console.log('📋 Using traditional submission approach');
+        
+        const applicationData = {
+          ...formData,
+          ...creditForm.getValues(),
+          userId: user?.id,
             justification: creditForm.getValues("justification") || "Aplicação temporária para upload de documentos"
           };
 
@@ -624,6 +791,47 @@ export default function CreditApplicationPage() {
         return mandatoryUploaded >= currentDynamicMandatoryDocuments.length;
       default:
         return false;
+    }
+  };
+
+  // Create temporary application on first step completion
+  const createTemporaryApplication = async () => {
+    if (temporaryApplicationId) return temporaryApplicationId;
+    
+    try {
+      const response = await apiRequest("/api/credit/applications/temporary", "POST", {});
+      const tempId = response.id;
+      setTemporaryApplicationId(tempId);
+      console.log('✅ Temporary application created with ID:', tempId);
+      return tempId;
+    } catch (error) {
+      console.error("Error creating temporary application:", error);
+      throw error;
+    }
+  };
+
+  // Enhanced document upload with instant saving
+  const uploadDocumentInstantly = async (documentKey: string, documentData: any) => {
+    try {
+      const tempId = await createTemporaryApplication();
+      
+      // Save document immediately to the temporary application
+      const documentPayload = {
+        requiredDocuments: { [documentKey]: documentData },
+        optionalDocuments: {}
+      };
+      
+      await apiRequest(`/api/credit/applications/${tempId}/documents-batch`, "POST", documentPayload);
+      console.log('✅ Document saved instantly:', documentKey);
+      
+      // Update local state
+      setUploadedDocuments(prev => ({
+        ...prev,
+        [documentKey]: documentData
+      }));
+    } catch (error) {
+      console.error("Error uploading document instantly:", error);
+      throw error;
     }
   };
 
