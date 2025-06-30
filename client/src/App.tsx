@@ -30,7 +30,6 @@ import SupplierNewPage from "@/pages/supplier-new";
 import PaymentDetailsPage from "@/pages/payment-details";
 import PaymentPayPage from "@/pages/payment-pay";
 import PaymentEditPage from "@/pages/payment-edit";
-import CsvImportPage from "@/pages/csv-import";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -84,7 +83,6 @@ function Router() {
         <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
         <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
-        <Route path="/admin/csv-import" component={() => <AdminRoute><CsvImportPage /></AdminRoute>} />
 
         <Route component={NotFound} />
       </Switch>
