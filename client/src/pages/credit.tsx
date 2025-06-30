@@ -365,10 +365,12 @@ export default function CreditPage() {
                       },
                       {
                         icon: <CheckCircle className="w-4 h-4 text-green-600" />,
-                        label: "Aprovado", 
+                        label: "Aprovação", 
                         value: application.finalCreditLimit 
                           ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
-                          : "Aguardando",
+                          : application.financialApprovedAt 
+                            ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
+                            : "Pendente",
                         color: application.finalCreditLimit ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
                       },
                       {
