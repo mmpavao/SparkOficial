@@ -20,7 +20,7 @@ import { storage } from './storage';
 // Middleware functions - Updated to work with current auth system
 const requireAuth = async (req: any, res: any, next: any) => {
   const sessionId = req.sessionID;
-  const userId = req.session?.user?.id;
+  const userId = req.session?.userId;
   
   console.log(`Auth check - Session ID: ${sessionId} User ID: ${userId}`);
   
@@ -46,7 +46,7 @@ const requireAuth = async (req: any, res: any, next: any) => {
 };
 
 const requireAdminOrFinanceira = async (req: any, res: any, next: any) => {
-  const userId = req.session?.user?.id;
+  const userId = req.session?.userId;
   
   if (!userId) {
     return res.status(401).json({ message: 'Não autorizado' });
@@ -89,7 +89,7 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     } = req.query;
 
     // Get user info from session (using correct session structure)
-    const userId = req.session?.user?.id;
+    const userId = req.session?.userId;
     if (!userId) {
       return res.status(401).json({ message: 'Não autorizado' });
     }
