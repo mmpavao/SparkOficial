@@ -18,19 +18,28 @@ export default function ImportDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const products = importData?.products ? JSON.parse(importData.products) : [];
+  const products = importData?.products ? (
+    typeof importData.products === 'string' 
+      ? JSON.parse(importData.products) 
+      : importData.products
+  ) : [];
 
   // Status mapping
-  const statusInfo = {
-    planejamento: { label: 'Planejamento', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-    producao: { label: 'Produção', color: 'text-orange-600', bgColor: 'bg-orange-50' },
-    entregue_agente: { label: 'Entregue ao Agente', color: 'text-purple-600', bgColor: 'bg-purple-50' },
-    transporte_maritimo: { label: 'Transporte Marítimo', color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
-    transporte_aereo: { label: 'Transporte Aéreo', color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
-    desembaraco: { label: 'Desembaraço', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
-    transporte_nacional: { label: 'Transporte Nacional', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
-    concluido: { label: 'Concluído', color: 'text-green-600', bgColor: 'bg-green-50' }
-  }[importData?.status] || { label: 'Desconhecido', color: 'text-gray-600', bgColor: 'bg-gray-50' };
+  const getStatusInfo = (status: string) => {
+    const statusMap: Record<string, { label: string; color: string; bgColor: string }> = {
+      planejamento: { label: 'Planejamento', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+      producao: { label: 'Produção', color: 'text-orange-600', bgColor: 'bg-orange-50' },
+      entregue_agente: { label: 'Entregue ao Agente', color: 'text-purple-600', bgColor: 'bg-purple-50' },
+      transporte_maritimo: { label: 'Transporte Marítimo', color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
+      transporte_aereo: { label: 'Transporte Aéreo', color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
+      desembaraco: { label: 'Desembaraço', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+      transporte_nacional: { label: 'Transporte Nacional', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
+      concluido: { label: 'Concluído', color: 'text-green-600', bgColor: 'bg-green-50' }
+    };
+    return statusMap[status] || { label: 'Desconhecido', color: 'text-gray-600', bgColor: 'bg-gray-50' };
+  };
+
+  const statusInfo = getStatusInfo(importData?.status || '');
 
   useEffect(() => {
     const fetchImportData = async () => {
