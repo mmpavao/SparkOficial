@@ -355,8 +355,7 @@ export default function CreditApplicationPage() {
     if (tempApplicationId) return tempApplicationId; // Already created
 
     try {
-      const response = await apiRequest('/api/credit/applications/temp', 'POST', {});
-      const data = await response.json();
+      const data = await apiRequest('/api/credit/applications/temp', 'POST', {});
       setTempApplicationId(data.applicationId);
       console.log('✅ Temporary application created:', data.applicationId);
       return data.applicationId;
@@ -451,7 +450,7 @@ export default function CreditApplicationPage() {
 
       // Convert file to base64 for immediate persistence
       const reader = new FileReader();
-      reader.onload = async () => {
+      reader.onload = () => {
         const base64Data = reader.result as string;
         const documentInfo = {
           filename: file.name,
@@ -492,68 +491,29 @@ export default function CreditApplicationPage() {
         });
 
         // Immediately save document to temporary application
-        try {
-          const documentData = {
-            applicationId: appId,
-            requiredDocuments: { [documentKey]: [documentInfo] },
-            optionalDocuments: {}
-          };
+        const documentData = {
+          applicationId: appId,
+          requiredDocuments: { [documentKey]: [documentInfo] },
+          optionalDocuments: {}
+        };
 
-          await apiRequest(`/api/credit/applications/${appId}/documents-batch`, 'POST', documentData);
-          console.log('✅ Document saved immediately for key:', documentKey);
-          
-          toast({
-            title: "Documento salvo!",
-            description: `${file.name} foi salvo com sucesso.`,
+        apiRequest(`/api/credit/applications/${appId}/documents-batch`, 'POST', documentData)
+          .then(() => {
+            console.log('✅ Document saved immediately for key:', documentKey);
+            toast({
+              title: "Documento salvo!",
+              description: `${file.name} foi salvo com sucesso.`,
+            });
+          })
+          .catch((error) => {
+            console.error('Error saving document immediately:', error);
+            toast({
+              title: "Documento preparado!",
+              description: `${file.name} será enviado com a solicitação.`,
+            });
           });
-        } catch (error) {
-          console.error('Error saving document immediately:', error);
-          toast({
-            title: "Documento preparado!",
-            description: `${file.name} será enviado com a solicitação.`,
-          });
-        }
 
         setUploadingDocument(null);
-
-         // Create temporary application if not exists
-         if (!temporaryApplicationId) {
-          const tempAppData = {
-            userId: user?.id,
-            status: 'draft',
-            currentStep: 4,
-            documentsStatus: 'pending',
-            legalCompanyName: companyForm.getValues("legalCompanyName") || "Empresa Temporária",
-            cnpj: companyForm.getValues("cnpj") || "00.000.000/0000-00",
-            address: companyForm.getValues("address") || "Endereço Temporário",
-            city: companyForm.getValues("city") || "Cidade Temporária",
-            state: companyForm.getValues("state") || "SP",
-            zipCode: companyForm.getValues("zipCode") || "00000-000",
-            phone: companyForm.getValues("phone") || "(11) 00000-0000",
-            email: companyForm.getValues("email") || user?.email || "temp@temp.com",
-            shareholders: [{ name: "Temporário", cpf: "000.000.000-00", percentage: 100 }],
-            businessSector: commercialForm.getValues("businessSector") || "outros",
-            annualRevenue: commercialForm.getValues("annualRevenue") || "ate_500k",
-            mainImportedProducts: commercialForm.getValues("mainImportedProducts") || "Produtos Temporários",
-            mainOriginMarkets: commercialForm.getValues("mainOriginMarkets") || "China",
-            requestedAmount: creditForm.getValues("requestedAmount") || "100000",
-            productsToImport: creditForm.getValues("productsToImport") || ["outros"],
-            monthlyImportVolume: creditForm.getValues("monthlyImportVolume") || "10000",
-            justification: creditForm.getValues("justification") || "Aplicação temporária para upload de documentos"
-          };
-
-          try {
-            const tempAppResponse = await apiRequest("/api/credit/applications", "POST", tempAppData);
-            setTemporaryApplicationId(tempAppResponse.id);
-          } catch (error: any) {
-            console.error("Temporary application creation error:", error);
-            toast({
-              title: "Erro",
-              description: error.message || "Erro ao criar aplicação temporária",
-              variant: "destructive",
-            });
-          }
-        }
       };
 
       reader.onerror = () => {
