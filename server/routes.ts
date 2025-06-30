@@ -1535,8 +1535,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/imports', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
-      const imports = await storage.getImportsByUser(userId);
+      const userId = req.session.user?.id;
+      const currentUser = await storage.getUser(userId);
+      
+      // Debug log for imports fetch
+      console.log(`Fetching imports for user ${userId}, role: ${currentUser?.role}`);
+      
+      let imports;
+      if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira') {
+        // Admin/Financeira users see all imports
+        imports = await storage.getAllImports();
+        console.log(`Admin/Financeira fetched ${imports.length} total imports`);
+      } else {
+        // Regular users see only their imports
+        imports = await storage.getImportsByUser(userId);
+        console.log(`User fetched ${imports.length} personal imports`);
+      }
+      
       res.json(imports);
     } catch (error) {
       console.error("Error fetching imports:", error);
