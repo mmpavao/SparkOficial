@@ -62,7 +62,13 @@ export default function ImportsPageIntegrated() {
     ? importsResponse 
     : importsResponse?.imports || [];
 
+  console.log('📊 Raw response:', importsResponse);
   console.log('📊 Final imports array:', imports.length, 'items');
+  
+  // Additional debugging
+  if (imports.length === 0 && importsResponse) {
+    console.warn('⚠️ No imports found. Response structure:', importsResponse);
+  }
 
   // Calculate metrics from imports data
   const metrics = useMemo(() => {

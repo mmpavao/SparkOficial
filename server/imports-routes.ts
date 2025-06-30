@@ -77,19 +77,20 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       endDate
     } = req.query;
 
-    // Get user info from middleware
-    const currentUser = req.user;
+    // Get user info from session (fix the user access issue)
+    const userId = req.session.userId;
+    const currentUser = await storage.getUser(userId);
     const offset = (Number(page) - 1) * Number(limit);
 
-    console.log(`Fetching imports - User: ${currentUser?.id}, Role: ${currentUser?.role}`);
+    console.log(`Fetching imports - User: ${userId}, Role: ${currentUser?.role}`);
 
     // Build query conditions
     let conditions: any[] = [];
     
     // Role-based access control - only filter by user for importers
     if (currentUser?.role === 'importer') {
-      conditions.push(eq(imports.userId, currentUser.id));
-      console.log(`Filtering imports for importer: ${currentUser.id}`);
+      conditions.push(eq(imports.userId, userId));
+      console.log(`Filtering imports for importer: ${userId}`);
     } else {
       console.log(`Admin/Financeira access - showing all imports`);
     }
@@ -150,7 +151,9 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       .limit(Number(limit))
       .offset(offset);
 
+    console.log(`Executing query with ${conditions.length} conditions`);
     const importsData = await query;
+    console.log(`Query returned ${importsData.length} imports`);
 
     // Get total count for pagination
     const totalQuery = db
@@ -188,15 +191,10 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       products: productsByImport[item.import.id] || []
     }));
 
-    res.json({
-      imports: formattedImports,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: totalCount,
-        pages: Math.ceil(totalCount / Number(limit))
-      }
-    });
+    console.log(`Returning ${formattedImports.length} imports to frontend`);
+
+    // Return direct array for compatibility with existing frontend code
+    res.json(formattedImports);
 
   } catch (error) {
     console.error('Error fetching imports:', error);
