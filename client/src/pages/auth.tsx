@@ -166,7 +166,7 @@ export default function AuthPage() {
       {/* Left Panel - Welcome Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-spark-600 to-spark-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="relative z-10 flex flex-col justify-center items-center p-12 text-center">
+        <div className="relative z-10 flex flex-col justify-center items-center p-12 text-center bg-[#29bc86]">
           <div className="mb-8">
             <img 
               src={logo_spark_fundo_color_} 
@@ -297,7 +297,7 @@ export default function AuthPage() {
             </div>
           ) : (
             /* Register Form */
-            <div className="space-y-6" key="register-form">
+            (<div className="space-y-6" key="register-form">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{authTranslations.createAccount}</h2>
                 <p className="text-gray-600">{authTranslations.createAccountDescription}</p>
@@ -491,7 +491,6 @@ export default function AuthPage() {
                   </Button>
                 </form>
               </Form>
-
               <div className="text-center">
                 <span className="text-gray-600">{authTranslations.alreadyHaveAccount} </span>
                 <Button 
@@ -502,7 +501,7 @@ export default function AuthPage() {
                   {authTranslations.loginButton}
                 </Button>
               </div>
-            </div>
+            </div>)
           )}
         </div>
       </div>
