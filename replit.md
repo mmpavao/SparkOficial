@@ -653,6 +653,8 @@ Changelog:
   * Fixed credit page translation errors causing "Cannot read properties of undefined (reading 'title')" crash
   * Replaced broken translation references with Portuguese text for stable operation
   * Credit module now loads properly without runtime errors
+  * Fixed "Internal Server Error" (500) during document uploads by providing default values for all required fields in temporary application creation
+  * Document upload system now works without errors while maintaining complete upload functionality and persistence
 ```
 
 ## User Preferences

@@ -479,8 +479,23 @@ export default function CreditApplicationPage() {
             status: 'draft',
             currentStep: 4,
             documentsStatus: 'pending',
-            legalCompanyName: companyForm.getValues("legalCompanyName"),
-            cnpj: companyForm.getValues("cnpj"),
+            legalCompanyName: companyForm.getValues("legalCompanyName") || "Empresa Temporária",
+            cnpj: companyForm.getValues("cnpj") || "00.000.000/0000-00",
+            address: companyForm.getValues("address") || "Endereço Temporário",
+            city: companyForm.getValues("city") || "Cidade Temporária",
+            state: companyForm.getValues("state") || "SP",
+            zipCode: companyForm.getValues("zipCode") || "00000-000",
+            phone: companyForm.getValues("phone") || "(11) 00000-0000",
+            email: companyForm.getValues("email") || user?.email || "temp@temp.com",
+            shareholders: [{ name: "Temporário", cpf: "000.000.000-00", percentage: 100 }],
+            businessSector: commercialForm.getValues("businessSector") || "outros",
+            annualRevenue: commercialForm.getValues("annualRevenue") || "ate_500k",
+            mainImportedProducts: commercialForm.getValues("mainImportedProducts") || "Produtos Temporários",
+            mainOriginMarkets: commercialForm.getValues("mainOriginMarkets") || "China",
+            requestedAmount: creditForm.getValues("requestedAmount") || "100000",
+            productsToImport: creditForm.getValues("productsToImport") || ["outros"],
+            monthlyImportVolume: creditForm.getValues("monthlyImportVolume") || "10000",
+            justification: creditForm.getValues("justification") || "Aplicação temporária para upload de documentos"
           };
 
           try {
