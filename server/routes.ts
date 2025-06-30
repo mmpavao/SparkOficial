@@ -2351,13 +2351,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const creditApps = await storage.getCreditApplicationsByUser(userId);
       console.log(`Found ${creditApps.length} credit applications for user ${userId}`);
       
-      // Use EXACTLY the same criteria as dashboard for consistency
+      // CRITICAL: Only show as approved to importers AFTER admin finalization
       const approvedCredits = creditApps.filter(app => {
         const isApproved = app.adminStatus === 'admin_finalized' || 
-                          app.adminStatus === 'finalized' || 
-                          app.status === 'approved' || 
-                          app.status === 'finalized' ||
-                          app.financialStatus === 'approved';
+                          app.adminStatus === 'finalized';
                           
         console.log(`App ${app.id}: status=${app.status}, adminStatus=${app.adminStatus}, financialStatus=${app.financialStatus}, isApproved=${isApproved}`);
         return isApproved;

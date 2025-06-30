@@ -741,16 +741,33 @@ export default function CreditApplicationPage() {
 
     } catch (error: any) {
       console.error("Application submission error:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao enviar solicitação",
-        variant: "destructive",
-      });
       
-      // Reset states on error to allow retry
-      setIsSubmitting(false);
-      setSubmitInProgress(false);
-      // submissionCompleted stays true to prevent immediate resubmission
+      // Handle duplicate submission (HTTP 429)
+      if (error.status === 429) {
+        toast({
+          title: "Solicitação já enviada",
+          description: "Sua solicitação já foi processada com sucesso. Aguarde um momento antes de enviar uma nova.",
+          variant: "default",
+        });
+        
+        // Mark as completed to prevent further attempts
+        setSubmissionCompleted(true);
+        
+        // Navigate after showing success message
+        setTimeout(() => {
+          setLocation('/credit');
+        }, 2000);
+      } else {
+        toast({
+          title: "Erro",
+          description: error.message || "Erro ao enviar solicitação",
+          variant: "destructive",
+        });
+        
+        // Reset states on error to allow retry
+        setIsSubmitting(false);
+        setSubmitInProgress(false);
+      }
     }
   };
 
