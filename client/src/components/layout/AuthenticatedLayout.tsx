@@ -169,7 +169,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         className={`fixed inset-y-0 left-0 bg-white shadow-lg transform transition-all duration-300 ease-in-out z-50 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } ${
-          sidebarCollapsed ? "lg:w-16" : "lg:w-64"
+          sidebarCollapsed ? "lg:w-20" : "lg:w-64"
         } lg:translate-x-0 w-64`}
       >
         <div className="flex items-center justify-between p-6 border-b">
@@ -230,7 +230,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       }`}
                       onClick={() => setLocation(item.path)}
                     >
-                      <Icon className="w-4 h-4 lg:mr-0 mr-3" />
+                      <Icon className="w-5 h-5 lg:mr-0 mr-3" />
                       <span className={`transition-opacity duration-300 ${
                         sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
                       }`}>
@@ -292,7 +292,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       }`}
                       onClick={() => setLocation(item.path)}
                     >
-                      <Icon className="w-4 h-4 lg:mr-0 mr-3" />
+                      <Icon className="w-5 h-5 lg:mr-0 mr-3" />
                       <span className={`transition-opacity duration-300 ${
                         sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
                       }`}>
@@ -314,19 +314,23 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 className="w-full p-3 h-auto hover:bg-gray-50 justify-start"
               >
                 <div className="flex items-center w-full">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarImage src={user?.avatar ? user.avatar : undefined} />
-                    <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
-                      {user?.fullName && getInitials(user.fullName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3 min-w-0 flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {user?.fullName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {user?.role === "admin" ? "Administrador" : user?.role === "financeira" ? "Financeira" : "Importador"}
-                    </p>
+                  <div className={`flex ${sidebarCollapsed ? "lg:justify-center lg:w-full" : "items-center w-full"}`}>
+                    <Avatar className="w-10 h-10 flex-shrink-0">
+                      <AvatarImage src={user?.avatar ? user.avatar : undefined} />
+                      <AvatarFallback className="bg-spark-600 text-white text-sm font-medium">
+                        {user?.fullName && getInitials(user.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className={`ml-3 min-w-0 flex-1 text-left transition-opacity duration-300 ${
+                      sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
+                    }`}>
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user?.fullName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.role === "admin" ? "Administrador" : user?.role === "financeira" ? "Financeira" : "Importador"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Button>
@@ -427,7 +431,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       )}
       {/* Main Content */}
       <div className={`transition-all duration-300 ease-in-out ${
-        sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
+        sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
       }`}>
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b">
