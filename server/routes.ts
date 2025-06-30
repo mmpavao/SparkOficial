@@ -1535,7 +1535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/imports', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.user?.id;
+      const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       
       // Debug log for imports fetch
