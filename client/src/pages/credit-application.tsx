@@ -734,9 +734,32 @@ export default function CreditApplicationPage() {
       console.log('RequiredDocuments count:', Object.keys(applicationData.requiredDocuments || {}).length);
       console.log('OptionalDocuments count:', Object.keys(applicationData.optionalDocuments || {}).length);
 
-      // Submit application with all documents embedded
-      const response = await apiRequest("/api/credit/applications", "POST", applicationData);
+      // Submit application with documents using chunked approach
+      console.log('📤 FRONTEND DEBUG - Sending application data...');
+      
+      // First, send application without documents
+      const applicationWithoutDocs = { ...applicationData };
+      applicationWithoutDocs.requiredDocuments = {};
+      applicationWithoutDocs.optionalDocuments = {};
+      
+      const response = await apiRequest("/api/credit/applications", "POST", applicationWithoutDocs);
       const applicationId = response.id;
+      
+      console.log('✅ Application created with ID:', applicationId);
+      
+      // Then, send documents separately if any exist
+      if (Object.keys(requiredDocuments).length > 0 || Object.keys(optionalDocuments).length > 0) {
+        console.log('📎 Sending documents separately...');
+        
+        const documentPayload = {
+          applicationId: applicationId,
+          requiredDocuments: requiredDocuments,
+          optionalDocuments: optionalDocuments
+        };
+        
+        await apiRequest(`/api/credit/applications/${applicationId}/documents-batch`, "POST", documentPayload);
+        console.log('✅ Documents saved successfully');
+      }
 
       // Force immediate cache invalidation and refetch
       await queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
