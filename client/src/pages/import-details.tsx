@@ -238,7 +238,7 @@ export default function ImportDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Shipping Information */}
+          {/* Shipping Information with Sub-tabs */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -246,50 +246,121 @@ export default function ImportDetailsPage() {
                 Informações de Envio
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Origem</p>
-                  <p className="text-lg">{importData.origin || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Destino</p>
-                  <p className="text-lg">{importData.destination || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Status</p>
-                  <Badge className={`${statusInfo.bgColor} ${statusInfo.color} border`}>
-                    {statusInfo.label}
-                  </Badge>
-                </div>
-              </div>
+            <CardContent>
+              <Tabs defaultValue="envio" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="envio" className="flex items-center gap-2">
+                    <Ship className="w-4 h-4" />
+                    Dados do Envio
+                  </TabsTrigger>
+                  <TabsTrigger value="produtos" className="flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Detalhes dos Produtos
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="envio" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Origem</p>
+                        <p className="text-lg">{importData.origin || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Destino</p>
+                        <p className="text-lg">{importData.destination || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Status</p>
+                        <Badge className={`${statusInfo.bgColor} ${statusInfo.color} border`}>
+                          {statusInfo.label}
+                        </Badge>
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Data Estimada de Chegada</p>
-                  <p className="text-lg">
-                    {importData.estimatedArrival 
-                      ? new Date(importData.estimatedArrival).toLocaleDateString('pt-BR')
-                      : 'N/A'
-                    }
-                  </p>
-                </div>
-                {importData.actualArrival && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Data Real de Chegada</p>
-                    <p className="text-lg">
-                      {new Date(importData.actualArrival).toLocaleDateString('pt-BR')}
-                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Data Estimada de Chegada</p>
+                        <p className="text-lg">
+                          {importData.estimatedArrival 
+                            ? new Date(importData.estimatedArrival).toLocaleDateString('pt-BR')
+                            : 'N/A'
+                          }
+                        </p>
+                      </div>
+                      {importData.actualArrival && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Data Real de Chegada</p>
+                          <p className="text-lg">
+                            {new Date(importData.actualArrival).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {importData.notes && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Observações</p>
+                        <p className="text-lg">{importData.notes}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-
-              {importData.notes && (
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Observações</p>
-                  <p className="text-lg">{importData.notes}</p>
-                </div>
-              )}
+                </TabsContent>
+                
+                <TabsContent value="produtos" className="mt-4">
+                  <div className="space-y-4">
+                    {products.length > 0 ? (
+                      <div className="space-y-3">
+                        {products.map((product: any, index: number) => (
+                          <div key={index} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h5 className="font-medium text-gray-900">{product.name}</h5>
+                                {product.description && (
+                                  <p className="text-sm text-gray-600">{product.description}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              <div>
+                                <span className="text-gray-600">Quantidade:</span>
+                                <span className="ml-2 font-medium">{product.quantity || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Preço Unit.:</span>
+                                <span className="ml-2 font-medium">
+                                  {product.unitPrice ? formatCurrency(parseFloat(product.unitPrice), 'USD') : 'N/A'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Total:</span>
+                                <span className="ml-2 font-medium">
+                                  {product.totalValue ? formatCurrency(parseFloat(product.totalValue), 'USD') : 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {/* Summary */}
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-blue-900">Total Geral dos Produtos:</span>
+                            <span className="text-lg font-bold text-blue-800">
+                              {formatCurrency(parseFloat(importData.totalValue || "0"), importData.currency)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                        <p>Nenhum produto encontrado para esta importação.</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
