@@ -1107,15 +1107,14 @@ export default function Dashboard() {
                         </div>
                         <div className="text-right">
                           <Badge variant={
-                            app.status === 'finalized' ? 'default' : 
-                            app.status === 'approved' ? 'default' : 
+                            app.status === 'finalized' || app.status === 'approved' ? 'default' : 
                             app.status === 'pending' ? 'secondary' : 
                             'outline'
                           }>
                             {app.status === 'finalized' ? 'Finalizado' :
                              app.status === 'approved' ? 'Aprovado' :
                              app.status === 'pending' ? 'Pendente' : 
-                             'Em Análise'}
+                             'Aprovado'}
                           </Badge>
                           <p className="text-xs text-gray-500 mt-1">
                             {formatDate(app.date)}
