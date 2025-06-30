@@ -152,16 +152,16 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">{t.settings.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
         <p className="text-gray-600">Gerencie sua conta e preferências</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">{t.settings.profile}</TabsTrigger>
-          <TabsTrigger value="preferences">{t.settings.preferences}</TabsTrigger>
-          <TabsTrigger value="notifications">{t.settings.notifications}</TabsTrigger>
-          <TabsTrigger value="security">{t.settings.security}</TabsTrigger>
+          <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="preferences">Preferências</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -341,7 +341,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Building className="w-5 h-5" />
-                <span>{t.settings.preferences}</span>
+                <span>Preferências do Sistema</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -392,7 +392,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Bell className="w-5 h-5" />
-                <span>{t.settings.notifications}</span>
+                <span>Preferências de Notificação</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
