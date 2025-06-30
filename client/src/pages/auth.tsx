@@ -55,6 +55,29 @@ export default function AuthPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Form switching handlers with reset
+  const switchToRegister = () => {
+    setIsLogin(false);
+    registerForm.reset({
+      companyName: "",
+      cnpj: "",
+      fullName: "",
+      phone: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      acceptTerms: false,
+    });
+  };
+
+  const switchToLogin = () => {
+    setIsLogin(true);
+    loginForm.reset({
+      email: "",
+      password: "",
+    });
+  };
+
   const loginForm = useForm<LoginUser>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -75,6 +98,7 @@ export default function AuthPage() {
       confirmPassword: "",
       acceptTerms: false,
     },
+    mode: "onChange",
   });
 
   const loginMutation = useMutation({
@@ -264,7 +288,7 @@ export default function AuthPage() {
                 <span className="text-gray-600">{authTranslations.dontHaveAccount} </span>
                 <Button 
                   variant="link" 
-                  onClick={() => setIsLogin(false)}
+                  onClick={switchToRegister}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
                   {authTranslations.registerButton}
@@ -273,12 +297,12 @@ export default function AuthPage() {
             </div>
           ) : (
             /* Register Form */
-            <div className="space-y-6">
+            <div className="space-y-6" key="register-form">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{authTranslations.createAccount}</h2>
                 <p className="text-gray-600">{authTranslations.createAccountDescription}</p>
               </div>
-              <Form {...registerForm}>
+              <Form {...registerForm} key="register-form-inner">
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
@@ -335,11 +359,7 @@ export default function AuthPage() {
                         <FormControl>
                           <Input 
                             placeholder="Seu Nome Completo"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
+                            {...field}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
                         </FormControl>
@@ -476,7 +496,7 @@ export default function AuthPage() {
                 <span className="text-gray-600">{authTranslations.alreadyHaveAccount} </span>
                 <Button 
                   variant="link" 
-                  onClick={() => setIsLogin(true)}
+                  onClick={switchToLogin}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
                   {authTranslations.loginButton}
