@@ -78,7 +78,7 @@ export function UniversalCard({
                 {icon}
               </div>
               {applicationNumber && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-spark-500 rounded-full flex items-center justify-center">
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center z-10 border-2 border-white shadow-lg">
                   <span className="text-xs font-bold text-white">#{applicationNumber}</span>
                 </div>
               )}
