@@ -278,13 +278,13 @@ export default function ImportForm() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-600">Crédito Disponível:</span>
                       <span className="text-lg font-bold text-emerald-600">
-                        US$ {creditData?.available?.toLocaleString() || '0'}
+                        US$ {(creditData as any)?.available?.toLocaleString() || '0'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-600">Valor da Importação:</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        US$ {finalTotalValue.toLocaleString()}
+                        US$ {currentTotalValue.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -328,7 +328,7 @@ export default function ImportForm() {
                       </span>
                     </div>
                     <div className="flex gap-2 mt-2">
-                      {termDays.map((days, index) => (
+                      {termDays.map((days: number, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {days} dias
                         </Badge>
@@ -337,7 +337,7 @@ export default function ImportForm() {
                   </div>
                 )}
                 
-                {finalTotalValue > (creditData?.available || 0) && (
+                {currentTotalValue > ((creditData as any)?.available || 0) && (
                   <Alert className="border-red-200 bg-red-50">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
                     <AlertDescription className="text-red-700">
@@ -474,7 +474,7 @@ export default function ImportForm() {
         {/* Financial Preview Sidebar */}
         <div className="space-y-6">
           <ImportFinancialPreview
-            fobValue={finalTotalValue}
+            fobValue={currentTotalValue}
             currency={currency}
             incoterms={incoterms}
             showCreditCheck={true}
@@ -512,7 +512,7 @@ export default function ImportForm() {
         open={showTermsModal}
         onOpenChange={setShowTermsModal}
         onConfirm={handleTermsConfirm}
-        importValue={finalTotalValue}
+        importValue={currentTotalValue}
         currency={currency}
       />
     </div>
