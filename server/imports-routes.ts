@@ -144,123 +144,73 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       );
     }
 
-    // Execute raw SQL query to bypass ORM issues
-    let whereClause = '';
-    const params: any[] = [];
+    // Execute query with simpler ORM approach
+    let query = db
+      .select({
+        import: imports,
+        supplier: suppliers,
+        user: {
+          id: users.id,
+          companyName: users.companyName,
+          fullName: users.fullName
+        }
+      })
+      .from(imports)
+      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
+      .leftJoin(users, eq(imports.userId, users.id))
+      .orderBy(desc(imports.createdAt))
+      .limit(Number(limit))
+      .offset(offset);
+
+    // Apply role-based filtering
+    if (currentUser.role === 'importer') {
+      query = query.where(eq(imports.userId, userId));
+    }
+
+    console.log(`🔍 Executing ORM query for role: ${currentUser.role}`);
+    const importsData = await query;
+    console.log(`🎯 ORM query returned ${importsData.length} imports`);
+
+    // Get total count
+    let countQuery = db
+      .select({ count: count() })
+      .from(imports);
     
     if (currentUser.role === 'importer') {
-      whereClause = 'WHERE i.user_id = $1';
-      params.push(userId);
+      countQuery = countQuery.where(eq(imports.userId, userId));
     }
     
-    const rawQuery = `
-      SELECT 
-        i.*,
-        s.id as supplier_id,
-        s.company_name as supplier_company_name,
-        s.contact_name as supplier_contact_name,
-        s.email as supplier_email,
-        u.id as user_id,
-        u.company_name as user_company_name,
-        u.full_name as user_full_name
-      FROM imports i
-      LEFT JOIN suppliers s ON i.supplier_id = s.id
-      LEFT JOIN users u ON i.user_id = u.id
-      ${whereClause}
-      ORDER BY i.created_at DESC
-      LIMIT ${Number(limit)} OFFSET ${offset}
-    `;
+    const [{ count: totalCount }] = await countQuery;
 
-    console.log(`🔍 Executing raw SQL query: ${rawQuery}`);
-    console.log(`📝 Parameters: ${JSON.stringify(params)}`);
-    
-    const result = await db.execute(sql.raw(rawQuery, ...params));
-    const importsData = result.rows;
-    console.log(`🎯 Raw query returned ${importsData.length} imports`);
-
-    // Get total count with raw SQL
-    let countQuery = `SELECT COUNT(*) as count FROM imports i`;
-    if (currentUser.role === 'importer') {
-      countQuery += ` WHERE i.user_id = $1`;
-    }
-    
-    const countResult = await db.execute({ 
-      sql: countQuery, 
-      args: currentUser.role === 'importer' ? [userId] : [] 
-    });
-    const totalCount = countResult.rows[0]?.count || 0;
-
-    // Get products for each import if we have imports
-    const importIds = importsData.map((item: any) => item.id);
+    // Get products for each import
+    const importIds = importsData.map(item => item.import.id);
     let productsData: any[] = [];
     
     if (importIds.length > 0) {
-      const productsQuery = `
-        SELECT * FROM import_products 
-        WHERE import_id = ANY($1)
-      `;
-      const productsResult = await db.execute({ 
-        sql: productsQuery, 
-        args: [importIds] 
-      });
-      productsData = productsResult.rows;
+      productsData = await db
+        .select()
+        .from(importProducts)
+        .where(sql`${importProducts.importId} = ANY(${importIds})`);
     }
 
     // Group products by import ID
-    const productsByImport = productsData.reduce((acc: any, product: any) => {
-      if (!acc[product.import_id]) {
-        acc[product.import_id] = [];
+    const productsByImport = productsData.reduce((acc, product) => {
+      if (!acc[product.importId]) {
+        acc[product.importId] = [];
       }
-      acc[product.import_id].push(product);
+      acc[product.importId].push(product);
       return acc;
-    }, {});
+    }, {} as Record<number, any[]>);
 
-    // Format response to match frontend expectations
-    const formattedImports = importsData.map((item: any) => ({
-      // Main import data
-      id: item.id,
-      userId: item.user_id,
-      creditApplicationId: item.credit_application_id,
-      importName: item.import_name,
-      importNumber: item.import_number,
-      cargoType: item.cargo_type,
-      totalValue: item.total_value,
-      currency: item.currency,
-      status: item.status,
-      supplierId: item.supplier_id,
-      shippingMethod: item.shipping_method,
-      originPort: item.origin_port,
-      destinationPort: item.destination_port,
-      estimatedDeparture: item.estimated_departure,
-      estimatedArrival: item.estimated_arrival,
-      actualDeparture: item.actual_departure,
-      actualArrival: item.actual_arrival,
-      containerNumber: item.container_number,
-      sealNumber: item.seal_number,
-      trackingNumber: item.tracking_number,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-      
-      // Supplier data
-      supplier: item.supplier_id ? {
-        id: item.supplier_id,
-        companyName: item.supplier_company_name,
-        contactName: item.supplier_contact_name,
-        email: item.supplier_email
-      } : null,
-      
-      // User data  
-      user: {
-        id: item.user_id,
-        companyName: item.user_company_name,
-        fullName: item.user_full_name
-      },
-      
-      // Products
-      products: productsByImport[item.id] || []
+    // Format response
+    const formattedImports = importsData.map(item => ({
+      ...item.import,
+      supplier: item.supplier,
+      user: item.user,
+      products: productsByImport[item.import.id] || []
     }));
 
-    console.log(`✅ Returning ${formattedImports.length} properly formatted imports to frontend`);
+    console.log(`✅ Returning ${formattedImports.length} formatted imports to frontend`);
 
     // Return direct array for compatibility with existing frontend code
     res.json(formattedImports);
