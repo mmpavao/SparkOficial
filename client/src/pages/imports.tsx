@@ -82,9 +82,17 @@ export default function ImportsPage() {
   const { toast } = useToast();
   const permissions = useUserPermissions();
 
-  // Fetch real imports data from API
+  // Fetch imports data - adaptive endpoint based on user role
+  const getEndpoint = () => {
+    if (permissions.canViewAllApplications) {
+      return "/api/admin/imports";
+    } else {
+      return "/api/imports";
+    }
+  };
+
   const { data: imports = [], isLoading } = useQuery({
-    queryKey: ['/api/imports'],
+    queryKey: [getEndpoint()],
   });
 
   const typedImports = imports as Import[];
@@ -282,77 +290,91 @@ export default function ImportsPage() {
           filteredImports.map((importItem) => {
             const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status);
             return (
-              <Card key={importItem.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{importItem.importName}</h3>
-                          <p className="text-sm text-gray-600">{importItem.importNumber}</p>
+              <Card key={importItem.id} className={`hover:shadow-md transition-shadow ${statusInfo.bgColor} border-l-4 ${statusInfo.borderColor || 'border-l-gray-300'}`}>
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-6 gap-4 items-center">
+                    <div className="col-span-2 flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                          <Package className="w-5 h-5 text-emerald-600" />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="outline" 
-                            className={`${statusInfo.bgColor} ${statusInfo.color} border`}
-                          >
-                            {statusInfo.label}
-                          </Badge>
-                          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                            {importItem.cargoType}
-                          </Badge>
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold text-white">#{importItem.id}</span>
                         </div>
                       </div>
-
-                      {(permissions.isAdmin || permissions.isFinanceira) && importItem.companyName && (
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-600">{importItem.companyName}</span>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600">Valor Total</p>
-                          <p className="font-medium">{formatCurrency(parseFloat(importItem.totalValue || "0"), importItem.currency)}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Produtos</p>
-                          <p className="font-medium">{importItem.products?.length || 0} item{(importItem.products?.length || 0) > 1 ? 's' : ''}</p>
-                        </div>
-                        {importItem.containerNumber && (
-                          <div>
-                            <p className="text-gray-600">Container</p>
-                            <p className="font-medium">{importItem.containerNumber}</p>
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-gray-600">Entrega Prevista</p>
-                          <p className="font-medium">{importItem.estimatedDelivery ? new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1 text-sm">
+                          {(permissions.isAdmin || permissions.isFinanceira) && importItem.companyName 
+                            ? importItem.companyName 
+                            : importItem.importName}
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-1">
+                          Importação #{importItem.id}
+                        </p>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-600">
+                            Valor: {formatCurrency(parseFloat(importItem.totalValue || "0"), importItem.currency)}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            Tipo: {importItem.cargoType} • {importItem.products?.length || 0} produto{(importItem.products?.length || 0) !== 1 ? 's' : ''}
+                          </p>
                         </div>
                       </div>
-
-                      {/* Products Preview */}
-                      {importItem.products && importItem.products.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {importItem.products.slice(0, 3).map((product: any, index: number) => (
-                            <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700">
-                              {product.name} ({product.quantity || 'N/A'})
-                            </Badge>
-                          ))}
-                          {importItem.products.length > 3 && (
-                            <Badge variant="secondary" className="bg-gray-50 text-gray-600">
-                              +{importItem.products.length - 3} mais
-                            </Badge>
-                          )}
-                        </div>
-                      )}
                     </div>
-
-                    {/* Actions Menu */}
-                    <div className="flex items-center">
+                    <div className="col-span-4 flex items-center justify-end space-x-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/imports/${importItem.id}`} className="flex items-center w-full">
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver Detalhes
+                            </Link>
+                          </DropdownMenuItem>
+                          {!permissions.isFinanceira && importItem.status === 'planning' && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/imports/${importItem.id}/edit`} className="flex items-center w-full">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {!permissions.isFinanceira && importItem.status !== 'completed' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600 focus:text-red-600">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja cancelar esta importação? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleCancelImport(importItem.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Confirmar Cancelamento
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
                           <Button variant="ghost" className="h-8 w-8 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
