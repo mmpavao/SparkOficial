@@ -494,8 +494,9 @@ export default function CreditApplicationPage() {
         // Immediately save document to temporary application
         try {
           const documentData = {
-            requiredDocuments: currentDynamicMandatoryDocuments.some(doc => doc.key === documentKey) ? { [documentKey]: [documentInfo] } : {},
-            optionalDocuments: optionalDocuments.some(doc => doc.key === documentKey) ? { [documentKey]: [documentInfo] } : {}
+            applicationId: appId,
+            requiredDocuments: { [documentKey]: [documentInfo] },
+            optionalDocuments: {}
           };
 
           await apiRequest(`/api/credit/applications/${appId}/documents-batch`, 'POST', documentData);
