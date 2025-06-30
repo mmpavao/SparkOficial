@@ -132,66 +132,7 @@ export default function ImportDetailsPage() {
         </div>
       </div>
 
-      {/* Products Section - TOPO DA PÁGINA */}
-      {products.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Produtos da Importação ({products.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {products.map((product: any, index: number) => (
-                <div key={index} className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-lg">{product.name}</h4>
-                      {product.description && (
-                        <p className="text-sm text-gray-600 mt-1">{product.description}</p>
-                      )}
-                    </div>
-                    <Package className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Quantidade:</span>
-                      <span className="font-semibold text-gray-900">{product.quantity || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Preço Unit.:</span>
-                      <span className="font-semibold text-blue-700">
-                        {product.unitPrice ? formatCurrency(parseFloat(product.unitPrice), 'USD') : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                      <span className="text-sm font-medium text-gray-600">Valor Total:</span>
-                      <span className="font-bold text-lg text-blue-800">
-                        {product.totalValue ? formatCurrency(parseFloat(product.totalValue), 'USD') : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Resumo Total dos Produtos */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-emerald-600" />
-                  <span className="font-semibold text-emerald-800">Valor Total da Importação:</span>
-                </div>
-                <span className="text-2xl font-bold text-emerald-700">
-                  {formatCurrency(parseFloat(importData.totalValue || "0"), importData.currency)}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content - Detalhes do Pedido */}

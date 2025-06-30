@@ -425,13 +425,19 @@ export class DatabaseStorage {
     const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
 
     // Get all active imports linked to this credit application
+    // Include both English and Portuguese status values for compatibility
     const activeImports = await db
       .select()
       .from(imports)
       .where(
         and(
           eq(imports.creditApplicationId, creditApplicationId),
-          inArray(imports.status, ["planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional"])
+          inArray(imports.status, [
+            // Portuguese status values
+            "planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional",
+            // English status values
+            "planning", "production", "delivered_agent", "maritime_transport", "air_transport", "customs_clearance", "national_transport"
+          ])
         )
       );
 
