@@ -3522,9 +3522,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to find in required documents first
       let documentData = requiredDocs[documentKey];
       
+      // If document is an array, get the first document
+      if (Array.isArray(documentData)) {
+        documentData = documentData[0];
+      }
+      
       // If not found, try optional documents
       if (!documentData) {
         documentData = optionalDocs[documentKey];
+        // If optional document is an array, get the first document
+        if (Array.isArray(documentData)) {
+          documentData = documentData[0];
+        }
       }
 
       // Handle indexed documents (like cnpj_certificate_0, cnpj_certificate_2)
