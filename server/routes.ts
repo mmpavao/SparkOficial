@@ -554,25 +554,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       console.log('🔄 Creating temporary application for user:', userId);
 
-      // Create minimal temporary application with required fields
+      // Create minimal temporary application with all required fields
       const tempData = {
         userId,
+        currentStep: 4,
         legalCompanyName: 'Aplicação Temporária',
-        tradingName: 'Em Preenchimento',
         cnpj: '00000000000000',
         address: 'Endereço Temporário',
         city: 'Cidade',
         state: 'SP',
         zipCode: '00000000',
-        email: 'temp@sparkcomex.com',
         phone: '0000000000',
+        email: 'temp@sparkcomex.com',
+        shareholders: [{ name: 'Temporário', cpf: '00000000000', percentage: 100 }],
+        businessSector: 'outros',
+        annualRevenue: 'ate_500k',
+        mainImportedProducts: 'Produtos Temporários',
+        mainOriginMarkets: 'China',
         requestedAmount: '0',
-        paymentTerms: '30',
-        businessSectors: JSON.stringify([]),
-        shareholders: JSON.stringify([]),
-        status: 'temp',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        currency: 'USD',
+        productsToImport: ['Produtos Temporários'],
+        monthlyImportVolume: '1000',
+        justification: 'Aplicação temporária para upload de documentos',
+        requiredDocuments: {},
+        optionalDocuments: {},
+        documentsStatus: 'pending',
+        status: 'temp'
       };
 
       const tempApplication = await storage.createCreditApplication(tempData);
@@ -585,6 +592,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating temporary application:", error);
       res.status(500).json({ message: "Erro ao criar aplicação temporária" });
+    }
+  });
+
+  // POST endpoint to save documents immediately to temporary application
+  app.post('/api/credit/applications/:id/documents-batch', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const { requiredDocuments, optionalDocuments } = req.body;
+
+      console.log('🔄 DOCUMENTS DEBUG - Processing application with documents:');
+      console.log('Required docs received:', requiredDocuments ? Object.keys(requiredDocuments).length : 'NONE');
+      console.log('Optional docs received:', optionalDocuments ? Object.keys(optionalDocuments).length : 'NONE');
+
+      // Get current application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application || application.userId !== userId) {
+        return res.status(404).json({ message: "Aplicação não encontrada" });
+      }
+
+      // Merge documents with existing ones
+      const currentRequired = application.requiredDocuments || {};
+      const currentOptional = application.optionalDocuments || {};
+
+      const updatedRequired = { ...currentRequired, ...requiredDocuments };
+      const updatedOptional = { ...currentOptional, ...optionalDocuments };
+
+      if (!requiredDocuments || Object.keys(requiredDocuments).length === 0) {
+        console.log('⚠️ No required documents to save');
+      }
+
+      if (!optionalDocuments || Object.keys(optionalDocuments).length === 0) {
+        console.log('⚠️ No optional documents to save');
+      }
+
+      // Update application with new documents
+      await storage.updateCreditApplication(applicationId, {
+        requiredDocuments: updatedRequired,
+        optionalDocuments: updatedOptional,
+        updatedAt: new Date()
+      });
+
+      console.log('✅ Documents saved to application:', applicationId);
+
+      res.json({ 
+        message: "Documentos salvos com sucesso",
+        applicationId: applicationId
+      });
+    } catch (error) {
+      console.error("Error saving documents:", error);
+      res.status(500).json({ message: "Erro ao salvar documentos" });
     }
   });
 
