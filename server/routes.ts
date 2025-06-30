@@ -3567,6 +3567,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======================
+  // CNPJ ANALYSIS ROUTES
+  // ======================
+
+  // Get or create API configuration for CNPJ analysis
+  app.get('/api/admin/api-settings/:serviceName', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { serviceName } = req.params;
+      const config = await storage.getApiConfiguration(serviceName);
+      
+      if (!config) {
+        return res.json({
+          serviceName,
+          apiKey: '',
+          apiUrl: '',
+          isActive: false
+        });
+      }
+
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching API configuration:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Create or update API configuration
+  app.post('/api/admin/api-settings', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { serviceName, apiKey, apiUrl, isActive } = req.body;
+
+      if (!serviceName || !apiKey || !apiUrl) {
+        return res.status(400).json({ message: "Campos obrigatórios: serviceName, apiKey, apiUrl" });
+      }
+
+      const existingConfig = await storage.getApiConfiguration(serviceName);
+      
+      let config;
+      if (existingConfig) {
+        config = await storage.updateApiConfiguration(serviceName, {
+          apiKey,
+          apiUrl,
+          isActive: isActive !== undefined ? isActive : true
+        });
+      } else {
+        config = await storage.createApiConfiguration({
+          serviceName,
+          apiKey,
+          apiUrl,
+          isActive: isActive !== undefined ? isActive : true
+        });
+      }
+
+      res.json(config);
+    } catch (error) {
+      console.error("Error saving API configuration:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Perform CNPJ analysis
+  app.post('/api/admin/cnpj-analysis', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { cnpj, creditApplicationId } = req.body;
+
+      if (!cnpj) {
+        return res.status(400).json({ message: "CNPJ é obrigatório" });
+      }
+
+      // Clean CNPJ (remove dots, slashes, dashes)
+      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
+      
+      if (cleanCnpj.length !== 14) {
+        return res.status(400).json({ message: "CNPJ deve conter exatamente 14 dígitos" });
+      }
+
+      // Check if analysis already exists
+      const existingAnalysis = await storage.getCnpjAnalysis(cleanCnpj);
+      if (existingAnalysis) {
+        return res.json(existingAnalysis);
+      }
+
+      // Get API configuration
+      const apiConfig = await storage.getApiConfiguration('consultamais');
+      
+      if (!apiConfig || !apiConfig.isActive) {
+        return res.status(400).json({ 
+          message: "Configuração da API Consulta Mais não encontrada ou inativa. Configure nas configurações administrativas." 
+        });
+      }
+
+      // Make API call to Consulta Mais
+      try {
+        const response = await fetch(`${apiConfig.apiUrl}/cnpj/${cleanCnpj}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiConfig.apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`);
+        }
+
+        const apiData = await response.json();
+
+        // Save analysis result
+        const analysis = await storage.createCnpjAnalysis({
+          cnpj: cleanCnpj,
+          creditApplicationId: creditApplicationId || null,
+          companyData: apiData,
+          apiResponse: apiData,
+          consultedBy: currentUser.id
+        });
+
+        res.json(analysis);
+      } catch (apiError) {
+        console.error("API Error:", apiError);
+        res.status(500).json({ 
+          message: "Erro ao consultar API externa. Verifique a configuração da API." 
+        });
+      }
+
+    } catch (error) {
+      console.error("Error performing CNPJ analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get CNPJ analysis by CNPJ
+  app.get('/api/admin/cnpj-analysis/:cnpj', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { cnpj } = req.params;
+      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
+      
+      const analysis = await storage.getCnpjAnalysis(cleanCnpj);
+      
+      if (!analysis) {
+        return res.status(404).json({ message: "Análise não encontrada" });
+      }
+
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error fetching CNPJ analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get CNPJ analyses by credit application
+  app.get('/api/admin/cnpj-analysis/application/:creditApplicationId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { creditApplicationId } = req.params;
+      const analyses = await storage.getCnpjAnalysesByApplication(Number(creditApplicationId));
+      
+      res.json(analyses);
+    } catch (error) {
+      console.error("Error fetching CNPJ analyses by application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all CNPJ analyses
+  app.get('/api/admin/cnpj-analysis', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const analyses = await storage.getAllCnpjAnalyses();
+      res.json(analyses);
+    } catch (error) {
+      console.error("Error fetching all CNPJ analyses:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import document upload endpoint
   app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
     try {

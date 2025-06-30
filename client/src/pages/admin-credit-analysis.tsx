@@ -182,10 +182,11 @@ export default function AdminCreditAnalysisPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="cnpj">Análise CNPJ</TabsTrigger>
           <TabsTrigger value="analysis">Pré-Análise</TabsTrigger>
         </TabsList>
 
@@ -341,6 +342,14 @@ export default function AdminCreditAnalysisPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* CNPJ Analysis Tab */}
+        <TabsContent value="cnpj" className="space-y-6">
+          <CnpjAnalysisPanel 
+            creditApplicationId={Number(id)} 
+            cnpj={application.cnpj}
+          />
         </TabsContent>
 
         {/* Pre-Analysis Tab */}
