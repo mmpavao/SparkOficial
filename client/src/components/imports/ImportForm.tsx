@@ -500,7 +500,7 @@ export default function ImportForm() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-600">Crédito Disponível:</span>
                   <span className="text-lg font-bold text-emerald-600">
-                    US$ {(creditData as any)?.available?.toLocaleString() || '0'}
+                    US$ {(creditData as any)?.available?.toLocaleString() || '30,000'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -558,7 +558,7 @@ export default function ImportForm() {
                 </div>
               )}
               
-              {currentTotalValue > ((creditData as any)?.available || 0) && (
+              {currentTotalValue > ((creditData as any)?.available || 30000) && (
                 <Alert className="border-red-200 bg-red-50">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-700">
@@ -567,22 +567,24 @@ export default function ImportForm() {
                 </Alert>
               )}
               
-              <div className="flex justify-between text-sm pt-2 border-t">
-                <span className="text-gray-600">Tipo:</span>
-                <Badge variant="outline">{cargoType}</Badge>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Envio:</span>
-                <span className="font-medium">
-                  {form.watch("shippingMethod") === "sea" ? "Marítimo" : "Aéreo"}
-                </span>
-              </div>
-              {cargoType === "LCL" && (
+              <div className="border-t pt-3 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Produtos:</span>
-                  <span className="font-medium">{products.length}</span>
+                  <span className="text-gray-600">Total de Produtos:</span>
+                  <span className="font-medium">
+                    {cargoType === "LCL" ? products.reduce((sum, p) => sum + p.quantity, 0) : (form.watch("totalValue") ? 1 : 0)}
+                  </span>
                 </div>
-              )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Tipo:</span>
+                  <Badge variant="outline">{cargoType}</Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Envio:</span>
+                  <span className="font-medium">
+                    {form.watch("shippingMethod") === "sea" ? "Marítimo" : "Aéreo"}
+                  </span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
