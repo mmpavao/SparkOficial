@@ -294,7 +294,7 @@ export default function ImportForm() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-600">Crédito Disponível:</span>
                       <span className="text-lg font-bold text-emerald-600">
-                        US$ {(creditData as any)?.available?.toLocaleString() || '0'}
+                        US$ {availableCredit.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -353,7 +353,7 @@ export default function ImportForm() {
                   </div>
                 )}
                 
-                {currentTotalValue > ((creditData as any)?.available || 0) && (
+                {currentTotalValue > availableCredit && (
                   <Alert className="border-red-200 bg-red-50">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
                     <AlertDescription className="text-red-700">
@@ -509,7 +509,7 @@ export default function ImportForm() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-600">Crédito Disponível:</span>
                   <span className="text-lg font-bold text-emerald-600">
-                    US$ {(creditData as any)?.available?.toLocaleString() || '30,000'}
+                    US$ {availableCredit.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -567,7 +567,7 @@ export default function ImportForm() {
                 </div>
               )}
               
-              {currentTotalValue > ((creditData as any)?.available || 30000) && (
+              {currentTotalValue > availableCredit && (
                 <Alert className="border-red-200 bg-red-50">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-700">
