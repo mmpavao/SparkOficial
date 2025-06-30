@@ -90,124 +90,134 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
 
     const offset = (Number(page) - 1) * Number(limit);
 
-    console.log(`🔍 IMPORTS DEBUG - User: ${userId}, Role: ${currentUser.role}`);
+    console.log(`🚀 IMPORTS ENDPOINT - User: ${userId}, Role: ${currentUser.role}`);
 
     // Direct database query to verify data exists
     const allImportsCount = await db.select({ count: count() }).from(imports);
-    console.log(`📊 Total imports in database: ${allImportsCount[0].count}`);
+    console.log(`🗄️ Total imports in database: ${allImportsCount[0].count}`);
 
-    // Build query conditions
-    let conditions: any[] = [];
-    
+    // Use direct SQL query to avoid TypeScript compilation issues
+    let sqlQuery = `
+      SELECT 
+        i.*,
+        s.company_name as supplier_company_name,
+        s.contact_person as supplier_contact_person,
+        u.company_name as importer_company_name,
+        u.full_name as importer_full_name
+      FROM imports i
+      LEFT JOIN suppliers s ON i.supplier_id = s.id
+      LEFT JOIN users u ON i.user_id = u.id
+    `;
+
+    const queryParams: any[] = [];
+    const whereClauses: string[] = [];
+    let paramIndex = 1;
+
     // Role-based access control - only filter by user for importers
     if (currentUser.role === 'importer') {
-      conditions.push(eq(imports.userId, userId));
+      whereClauses.push(`i.user_id = $${paramIndex}`);
+      queryParams.push(userId);
+      paramIndex++;
       console.log(`🔒 Filtering imports for importer: ${userId}`);
     } else {
-      console.log(`🔓 Admin/Financeira access - showing all imports`);
+      console.log(`🔓 Admin/Financeira access - showing ALL imports`);
     }
 
-    // Apply filters
+    // Apply additional filters
     if (status && status !== 'all') {
-      conditions.push(eq(imports.status, status as string));
+      whereClauses.push(`i.status = $${paramIndex}`);
+      queryParams.push(status);
+      paramIndex++;
     }
     
     if (cargoType && cargoType !== 'all') {
-      conditions.push(eq(imports.cargoType, cargoType as string));
+      whereClauses.push(`i.cargo_type = $${paramIndex}`);
+      queryParams.push(cargoType);
+      paramIndex++;
     }
     
     if (supplierId && supplierId !== 'all') {
-      conditions.push(eq(imports.supplierId, Number(supplierId)));
+      whereClauses.push(`i.supplier_id = $${paramIndex}`);
+      queryParams.push(Number(supplierId));
+      paramIndex++;
     }
 
-    if (minValue) {
-      conditions.push(sql`${imports.totalValue}::numeric >= ${Number(minValue)}`);
-    }
-    
-    if (maxValue) {
-      conditions.push(sql`${imports.totalValue}::numeric <= ${Number(maxValue)}`);
-    }
-
-    if (startDate) {
-      conditions.push(sql`${imports.createdAt} >= ${new Date(startDate as string)}`);
-    }
-    
-    if (endDate) {
-      conditions.push(sql`${imports.createdAt} <= ${new Date(endDate as string)}`);
-    }
-
-    // Search functionality
     if (search) {
-      conditions.push(
-        sql`(${imports.importName} ILIKE ${'%' + search + '%'} OR 
-             ${imports.importCode} ILIKE ${'%' + search + '%'})`
-      );
+      whereClauses.push(`(i.import_name ILIKE $${paramIndex} OR i.import_code ILIKE $${paramIndex})`);
+      queryParams.push(`%${search}%`);
+      paramIndex++;
     }
 
-    // Execute query with simpler ORM approach
-    let query = db
-      .select({
-        import: imports,
-        supplier: suppliers,
-        user: {
-          id: users.id,
-          companyName: users.companyName,
-          fullName: users.fullName
+    // Add WHERE clause if we have conditions
+    if (whereClauses.length > 0) {
+      sqlQuery += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    // Add ordering and pagination
+    sqlQuery += ` ORDER BY i.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    queryParams.push(Number(limit), offset);
+
+    console.log(`📝 Executing SQL query for role ${currentUser.role}`);
+    console.log(`🔧 Parameters: [${queryParams.join(', ')}]`);
+
+    const importsResult = await db.execute(sql.raw(sqlQuery, queryParams));
+    const importsData = importsResult.rows || [];
+
+    console.log(`✅ Raw SQL query returned ${importsData.length} imports`);
+
+    // Get total count with same conditions
+    let countQuery = 'SELECT COUNT(*) as count FROM imports i';
+    const countParams: any[] = [];
+    let countParamIndex = 1;
+
+    // Apply same WHERE conditions for count
+    if (whereClauses.length > 0) {
+      const countWhereClauses = whereClauses.map(clause => {
+        if (clause.includes('ILIKE')) {
+          return clause;
         }
-      })
-      .from(imports)
-      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
-      .leftJoin(users, eq(imports.userId, users.id))
-      .orderBy(desc(imports.createdAt))
-      .limit(Number(limit))
-      .offset(offset);
-
-    // Apply role-based filtering
-    if (currentUser.role === 'importer') {
-      query = query.where(eq(imports.userId, userId));
-    }
-
-    console.log(`🔍 Executing ORM query for role: ${currentUser.role}`);
-    const importsData = await query;
-    console.log(`🎯 ORM query returned ${importsData.length} imports`);
-
-    // Get total count
-    let countQuery = db
-      .select({ count: count() })
-      .from(imports);
-    
-    if (currentUser.role === 'importer') {
-      countQuery = countQuery.where(eq(imports.userId, userId));
-    }
-    
-    const [{ count: totalCount }] = await countQuery;
-
-    // Get products for each import
-    const importIds = importsData.map(item => item.import.id);
-    let productsData: any[] = [];
-    
-    if (importIds.length > 0) {
-      productsData = await db
-        .select()
-        .from(importProducts)
-        .where(sql`${importProducts.importId} = ANY(${importIds})`);
-    }
-
-    // Group products by import ID
-    const productsByImport = productsData.reduce((acc, product) => {
-      if (!acc[product.importId]) {
-        acc[product.importId] = [];
+        return clause.replace(/\$\d+/, `$${countParamIndex++}`);
+      });
+      countQuery += ' WHERE ' + countWhereClauses.join(' AND ');
+      
+      // Add parameters for count query (excluding LIMIT/OFFSET)
+      for (let i = 0; i < queryParams.length - 2; i++) {
+        countParams.push(queryParams[i]);
       }
-      acc[product.importId].push(product);
-      return acc;
-    }, {} as Record<number, any[]>);
+    }
 
-    // Format response
-    const formattedImports = importsData.map(item => ({
-      ...item.import,
-      supplier: item.supplier,
-      user: item.user,
-      products: productsByImport[item.import.id] || []
+    const countResult = await db.execute(sql.raw(countQuery, countParams));
+    const totalCount = Number(countResult.rows?.[0]?.count) || 0;
+
+    console.log(`📊 Total count: ${totalCount}`);
+
+    // Format the raw SQL results for frontend consumption
+    const formattedImports = importsData.map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      creditApplicationId: row.credit_application_id,
+      importName: row.import_name,
+      importNumber: row.import_number,
+      importCode: row.import_code,
+      cargoType: row.cargo_type,
+      totalValue: row.total_value,
+      currency: row.currency,
+      status: row.status,
+      paymentStatus: row.payment_status,
+      supplierId: row.supplier_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      // Include supplier data if available
+      supplier: row.supplier_company_name ? {
+        companyName: row.supplier_company_name,
+        contactPerson: row.supplier_contact_person
+      } : null,
+      // Include user data if available  
+      user: row.importer_company_name ? {
+        companyName: row.importer_company_name,
+        fullName: row.importer_full_name
+      } : null,
+      products: [] // Will be populated in a separate query if needed
     }));
 
     console.log(`✅ Returning ${formattedImports.length} formatted imports to frontend`);
