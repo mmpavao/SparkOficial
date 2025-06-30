@@ -194,10 +194,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Hash password with consistent salt rounds
+      // Hash password with consistent salt rounds and validation
       const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-      console.log("Password hashed successfully for user:", userData.email);
+      const passwordToHash = userData.password.trim();
+      
+      // Validate password before hashing
+      if (!passwordToHash || passwordToHash.length < 6) {
+        return res.status(400).json({ 
+          message: "Senha deve ter pelo menos 6 caracteres",
+          type: "password_invalid"
+        });
+      }
+      
+      const hashedPassword = await bcrypt.hash(passwordToHash, saltRounds);
+      
+      // Validate the hash was created correctly
+      const hashValidation = await bcrypt.compare(passwordToHash, hashedPassword);
+      if (!hashValidation) {
+        console.error("Hash validation failed for user:", userData.email);
+        return res.status(500).json({ 
+          message: "Erro na criação do hash da senha",
+          type: "hash_error"
+        });
+      }
+      
+      console.log("Password hashed and validated successfully for user:", userData.email);
       console.log("Hash length:", hashedPassword.length);
       console.log("Hash starts with:", hashedPassword.substring(0, 10));
 

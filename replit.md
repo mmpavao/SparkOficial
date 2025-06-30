@@ -655,6 +655,10 @@ Changelog:
   * Credit module now loads properly without runtime errors
   * Fixed "Internal Server Error" (500) during document uploads by providing default values for all required fields in temporary application creation
   * Document upload system now works without errors while maintaining complete upload functionality and persistence
+  * Fixed persistent authentication problem where newly registered users couldn't login after logout
+  * Implemented password hash validation during registration to prevent corruption
+  * Added comprehensive password validation and hash verification to ensure login compatibility
+  * Corrected hash mismatch issue that was causing "Credenciais inválidas" error for valid users
 ```
 
 ## User Preferences
