@@ -12,7 +12,7 @@ interface ImportFinancialSummaryProps {
   creditApplication?: {
     adminFee: number;
     finalCreditLimit: number;
-    finalApprovedTerms: string[];
+    finalApprovedTerms: string;
     finalDownPayment: number;
   };
 }
@@ -47,7 +47,12 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
   const adminFeeAmount = financedAmount * adminFeeRate;
   const totalImportValue = totalValue + adminFeeAmount;
   
-  const installmentTerms = creditApplication.finalApprovedTerms.length;
+  // Parse finalApprovedTerms from comma-separated string
+  const approvedTerms = creditApplication.finalApprovedTerms 
+    ? creditApplication.finalApprovedTerms.split(',').map(term => term.trim())
+    : [];
+  
+  const installmentTerms = approvedTerms.length;
   const installmentValue = installmentTerms > 0 ? financedAmount / installmentTerms : 0;
 
   return (
@@ -137,11 +142,11 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
           </div>
           
           {/* Termos de pagamento */}
-          {creditApplication.finalApprovedTerms.length > 0 && (
+          {approvedTerms.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-muted-foreground mb-2">Prazos aprovados:</p>
               <div className="flex flex-wrap gap-2">
-                {creditApplication.finalApprovedTerms.map((term) => (
+                {approvedTerms.map((term) => (
                   <Badge key={term} variant="outline" className="text-xs bg-blue-50">
                     {term} dias
                   </Badge>
