@@ -342,8 +342,9 @@ export default function CreditApplicationPage() {
 
 
 
-  // Submit application state
+  // Submit application state with debounce protection
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitInProgress, setSubmitInProgress] = useState(false);
 
   // Custom documents functions
   const addCustomDocument = () => {
@@ -626,7 +627,13 @@ export default function CreditApplicationPage() {
   };
 
   const submitApplication = async () => {
+    // Prevent multiple submissions
+    if (isSubmitting || submitInProgress) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setSubmitInProgress(true);
     try {
       // Calculate documents status based on uploaded documents
       const currentShareholders = companyForm.getValues().shareholders || [];
@@ -720,6 +727,7 @@ export default function CreditApplicationPage() {
       });
     } finally {
       setIsSubmitting(false);
+      setSubmitInProgress(false);
     }
   };
 
@@ -1662,7 +1670,7 @@ export default function CreditApplicationPage() {
         ) : (
           <Button
             onClick={submitApplication}
-            disabled={isSubmitting || !getStepStatus(4)}
+            disabled={isSubmitting || submitInProgress || !getStepStatus(4)}
             className="bg-green-600 hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
