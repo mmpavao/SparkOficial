@@ -727,6 +727,11 @@ Changelog:
   * Established consistent color-coded status system and standardized dropdown action patterns
   * Enhanced visual hierarchy with application number badges and company identification for admin users
   * Achieved 100% visual consistency between credit, imports, and suppliers modules with identical mini-card layouts
+- June 30, 2025. Sidebar UI improvements with brand integration:
+  * Added Spark Comex icon to collapsed sidebar for better brand visibility
+  * Increased all sidebar icons by 30% (w-5 h-5 to w-6 h-6) when sidebar is collapsed for improved accessibility
+  * Enhanced sidebar visual hierarchy with dynamic icon sizing based on collapsed state
+  * Improved user experience with better visual feedback and brand recognition
 ```
 
 ## User Preferences

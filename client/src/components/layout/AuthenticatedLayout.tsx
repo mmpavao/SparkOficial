@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import sparkLogo from "@assets/SPARK-COMEX-SITE_1749848527200.png";
+import sparkIcon from "@assets/APP-ICON_1751299739129.png";
 import { 
   Menu, 
   X, 
@@ -180,6 +181,14 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               className="h-8 w-auto ml-[12px] mr-[12px]"
             />
           </div>
+          {/* Ícone do Spark Comex quando sidebar está fechada */}
+          <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-100 lg:absolute lg:left-6 lg:top-6" : "lg:opacity-0 lg:pointer-events-none"}`}>
+            <img 
+              src={sparkIcon} 
+              alt="Spark Comex" 
+              className="h-8 w-8"
+            />
+          </div>
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
@@ -230,7 +239,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       }`}
                       onClick={() => setLocation(item.path)}
                     >
-                      <Icon className="w-5 h-5 lg:mr-0 mr-3" />
+                      <Icon className={`lg:mr-0 mr-3 ${sidebarCollapsed ? "w-6 h-6" : "w-5 h-5"}`} />
                       <span className={`transition-opacity duration-300 ${
                         sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
                       }`}>
@@ -292,7 +301,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       }`}
                       onClick={() => setLocation(item.path)}
                     >
-                      <Icon className="w-5 h-5 lg:mr-0 mr-3" />
+                      <Icon className={`lg:mr-0 mr-3 ${sidebarCollapsed ? "w-6 h-6" : "w-5 h-5"}`} />
                       <span className={`transition-opacity duration-300 ${
                         sidebarCollapsed ? "lg:opacity-0 lg:absolute lg:pointer-events-none" : "opacity-100"
                       }`}>
