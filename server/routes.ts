@@ -571,6 +571,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const applicationData = { ...req.body, userId };
 
+      // Debug: Log what we received from frontend
+      console.log('🔍 BACKEND DEBUG - Received request body structure:');
+      console.log('Has requiredDocuments:', !!req.body.requiredDocuments);
+      console.log('Has optionalDocuments:', !!req.body.optionalDocuments);
+      console.log('RequiredDocuments keys:', req.body.requiredDocuments ? Object.keys(req.body.requiredDocuments) : 'NONE');
+      console.log('OptionalDocuments keys:', req.body.optionalDocuments ? Object.keys(req.body.optionalDocuments) : 'NONE');
+      console.log('First required doc sample:', req.body.requiredDocuments ? JSON.stringify(Object.values(req.body.requiredDocuments)[0], null, 2).substring(0, 200) + '...' : 'NONE');
+
       // Update uploadedBy field in documents to actual user ID and handle arrays
       if (applicationData.requiredDocuments) {
         Object.keys(applicationData.requiredDocuments).forEach(key => {
