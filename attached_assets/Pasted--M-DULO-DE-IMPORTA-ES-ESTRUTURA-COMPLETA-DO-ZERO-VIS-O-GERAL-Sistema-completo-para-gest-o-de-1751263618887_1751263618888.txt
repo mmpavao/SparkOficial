@@ -1,0 +1,201 @@
+# MÓDULO DE IMPORTAÇÕES - ESTRUTURA COMPLETA DO ZERO
+
+## VISÃO GERAL
+Sistema completo para gestão de importações brasileiras integrado ao sistema de crédito existente, criado como módulo independente sem modificar funcionalidades existentes.
+
+## ESTRUTURA DE ARQUIVOS (A SEREM CRIADOS)
+
+### 1. SCHEMAS E TIPOS (shared/imports-schema.ts)
+```typescript
+// Esquemas Drizzle para importações
+- imports (tabela principal)
+- import_products (produtos da importação)
+- import_documents (documentos específicos)
+- import_timeline (histórico de status)
+- import_payments (pagamentos programados)
+```
+
+### 2. COMPONENTES FRONTEND (client/src/components/imports/)
+```
+imports/
+├── ImportCard.tsx           # Card individual de importação
+├── ImportFilters.tsx        # Filtros de busca e organização
+├── ImportMetrics.tsx        # Métricas e dashboard
+├── ImportForm.tsx           # Formulário de criação
+├── ImportDetails.tsx        # Página de detalhes
+├── ImportTimeline.tsx       # Timeline de status
+├── ImportDocuments.tsx      # Gestão de documentos
+├── ImportPayments.tsx       # Cronograma de pagamentos
+└── ImportFinancialPreview.tsx # Preview financeiro
+```
+
+### 3. PÁGINAS (client/src/pages/imports/)
+```
+imports/
+├── imports.tsx              # Lista principal
+├── import-details.tsx       # Detalhes da importação
+├── import-new.tsx           # Criação nova
+├── import-edit.tsx          # Edição
+└── import-dashboard.tsx     # Dashboard específico
+```
+
+### 4. BACKEND (server/imports-routes.ts)
+```typescript
+// Endpoints RESTful completos
+GET    /api/imports              # Lista paginada
+POST   /api/imports              # Criar nova
+GET    /api/imports/:id          # Detalhes
+PUT    /api/imports/:id          # Atualizar
+DELETE /api/imports/:id          # Cancelar
+GET    /api/imports/metrics      # Métricas
+POST   /api/imports/:id/documents # Upload documentos
+```
+
+## FUNCIONALIDADES PRINCIPAIS
+
+### 1. GESTÃO DE IMPORTAÇÕES
+- **Criação de importação**: Formulário completo com dados de origem/destino
+- **Tipos de carga**: FCL (container completo) e LCL (carga consolidada)
+- **Produtos múltiplos**: Sistema para LCL com vários produtos
+- **Fornecedores**: Integração com sistema de fornecedores existente
+
+### 2. PIPELINE DE STATUS
+```
+Planejamento → Produção → Entregue Agente → 
+Transporte Marítimo/Aéreo → Desembaraço → 
+Transporte Nacional → Concluído
+```
+
+### 3. GESTÃO FINANCEIRA
+- **Integração com crédito**: Uso automático do crédito aprovado
+- **Cálculo de custos**: FOB, admin fees, entrada, parcelas
+- **Cronograma**: Pagamentos automáticos baseados nos termos
+- **Preview financeiro**: Visualização em tempo real
+
+### 4. DOCUMENTAÇÃO
+- **Documentos obrigatórios**: Invoice, packing list, BL/AWB
+- **Documentos opcionais**: Certificados, licenças adicionais
+- **Upload múltiplo**: Sistema de arrastar e soltar
+- **Validação**: Tipos de arquivo e tamanhos
+
+### 5. CONTROLE DE ACESSO
+- **Importador**: CRUD completo das próprias importações
+- **Admin**: Visualização e gestão de todas as importações
+- **Financeira**: Análise financeira e aprovações
+
+## INTEGRAÇÃO COM SISTEMA EXISTENTE
+
+### 1. DADOS COMPARTILHADOS
+- **Usuários**: Mesmo sistema de autenticação
+- **Fornecedores**: Reutilização da tabela existente
+- **Crédito**: Integração com aplicações aprovadas
+- **Sessões**: Mesmo sistema de sessão
+
+### 2. COMPONENTES REUTILIZADOS
+- **Layout**: AuthenticatedLayout existente
+- **UI Components**: Todos os componentes shadcn/ui
+- **Hooks**: useAuth, usePermissions, formatters
+- **Utilities**: apiRequest, queryClient, toast
+
+### 3. NAVEGAÇÃO
+- **Sidebar**: Adição de seção "Importações" sem modificar existente
+- **Rotas**: Novas rotas em /imports/* sem conflito
+
+## FLUXO DE DESENVOLVIMENTO
+
+### FASE 1: ESTRUTURA BASE (2-3 dias)
+1. Criar schemas de banco de dados
+2. Implementar rotas backend básicas
+3. Criar componentes base (ImportCard, ImportFilters)
+4. Página principal de listagem
+
+### FASE 2: FORMULÁRIO DE CRIAÇÃO (2-3 dias)
+1. ImportForm com validação completa
+2. Sistema de produtos múltiplos
+3. Integração com fornecedores
+4. Preview financeiro em tempo real
+
+### FASE 3: GESTÃO DE STATUS (1-2 dias)
+1. ImportTimeline com pipeline visual
+2. Sistema de mudança de status
+3. Histórico de alterações
+4. Notificações automáticas
+
+### FASE 4: DOCUMENTAÇÃO (2 dias)
+1. Sistema de upload de documentos
+2. Validação e categorização
+3. Visualização e download
+4. Integração com detalhes
+
+### FASE 5: SISTEMA FINANCEIRO (2-3 dias)
+1. Integração com crédito aprovado
+2. Cálculo automático de custos
+3. Cronograma de pagamentos
+4. Relatórios financeiros
+
+### FASE 6: REFINAMENTOS (1-2 dias)
+1. Filtros avançados
+2. Métricas e dashboard
+3. Exportação de dados
+4. Otimizações de performance
+
+## PROTEÇÕES E ISOLAMENTO
+
+### 1. ISOLAMENTO COMPLETO
+- **Arquivos separados**: Nenhuma modificação em arquivos existentes
+- **Namespaces**: Prefixo "imports-" em todos os novos arquivos
+- **Rotas isoladas**: /imports/* sem conflito com /credit/*
+- **Componentes independentes**: Sem dependências de componentes de crédito
+
+### 2. COMPATIBILIDADE
+- **Mesma estrutura**: Seguir padrões já estabelecidos no projeto
+- **Tipos consistentes**: Usar mesmos padrões de TypeScript
+- **Estilo uniforme**: Mesma identidade visual do sistema
+- **Internacionalização**: Suporte às 4 línguas existentes (PT/EN/ZH/ES)
+
+### 3. TESTING SEGURO
+- **Dados de teste**: Próprios dados de importação
+- **Usuários existentes**: Usar contas já criadas
+- **Não interferência**: Testes que não afetam módulo de crédito
+- **Rollback fácil**: Possibilidade de remover completamente
+
+## MODELO DE DADOS
+
+### Tabela: imports
+```sql
+- id, userId, supplierId, creditApplicationId
+- importName, importCode, cargoType (FCL/LCL)
+- origin, destination, transportMethod
+- totalValue, currency, status, priority
+- estimatedArrival, actualArrival
+- containerNumber, sealNumber (FCL)
+- createdAt, updatedAt
+```
+
+### Tabela: import_products (LCL)
+```sql
+- id, importId, productName, quantity
+- unitPrice, totalValue, hsCode
+- description, weight, dimensions
+```
+
+### Tabela: import_documents
+```sql
+- id, importId, documentType, fileName
+- fileData, uploadedAt, uploadedBy
+- isMandatory, status, notes
+```
+
+### Tabela: import_timeline
+```sql
+- id, importId, status, changedBy
+- changedAt, notes, automaticChange
+```
+
+## CONCLUSÃO
+
+Este módulo será desenvolvido como sistema independente e completo, mantendo total compatibilidade com o sistema existente sem causar interferências. Seguirá os mesmos padrões de qualidade, segurança e usabilidade já estabelecidos no projeto Spark Comex.
+
+**Tempo estimado total: 12-15 dias de desenvolvimento**
+**Arquivos novos: ~25 arquivos**
+**Modificações em arquivos existentes: ZERO**
