@@ -47,6 +47,7 @@ export default function ImportDetailsPage() {
       
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
         
         // Fetch import data
         const importResponse = await fetch(`/api/imports/${params.id}`, {
@@ -58,17 +59,28 @@ export default function ImportDetailsPage() {
         }
         
         const importResult = await importResponse.json();
+        
+        // Validate that we have actual data
+        if (!importResult || !importResult.id) {
+          throw new Error('Invalid import data received');
+        }
+        
         setImportData(importResult);
 
         // Fetch credit application if needed
         if (importResult.creditApplicationId) {
-          const creditResponse = await fetch(`/api/credit-applications/${importResult.creditApplicationId}`, {
-            credentials: 'include'
-          });
-          
-          if (creditResponse.ok) {
-            const creditResult = await creditResponse.json();
-            setCreditApplication(creditResult);
+          try {
+            const creditResponse = await fetch(`/api/credit-applications/${importResult.creditApplicationId}`, {
+              credentials: 'include'
+            });
+            
+            if (creditResponse.ok) {
+              const creditResult = await creditResponse.json();
+              setCreditApplication(creditResult);
+            }
+          } catch (creditErr) {
+            console.error('Error fetching credit data:', creditErr);
+            // Don't fail the whole page if credit data fails
           }
         }
 
