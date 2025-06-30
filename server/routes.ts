@@ -3568,12 +3568,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user's credit applications
       const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
       
-      // Get ALL approved applications - not just one
+      // CRITICAL: Only show as approved to importers AFTER admin finalization
       const approvedApplications = creditApplications.filter(app => 
         app.adminStatus === 'admin_finalized' || 
-        app.adminStatus === 'finalized' || 
-        app.status === 'approved' || 
-        app.status === 'finalized'
+        app.adminStatus === 'finalized'
       );
 
       // Get user's imports
