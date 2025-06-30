@@ -3622,6 +3622,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin imports endpoint - get all imports for admin users
+  app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
+    try {
+      console.log(`[Session Debug] GET /api/admin/imports - Session ID: ${req.sessionID}, User ID: ${req.session.userId}`);
+      
+      // Authentication check
+      console.log(`Auth check - Session ID: ${req.sessionID} User ID: ${req.session.userId}`);
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        console.log("Authentication failed - no user found");
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      console.log(`Authentication successful for user: ${currentUser.id} Role: ${currentUser.role}`);
+      
+      // Check admin permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && currentUser.role !== "financeira") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      console.log("Admin imports request - User:", currentUser.id);
+      console.log("Current user role:", currentUser.role);
+      
+      // Get all imports with company names for admin view
+      const imports = await storage.getAllImports();
+      console.log(`Fetched ${imports.length} imports for admin view`);
+      
+      res.json(imports);
+    } catch (error) {
+      console.error("Error fetching admin imports:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Import document upload endpoint
   app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
     try {

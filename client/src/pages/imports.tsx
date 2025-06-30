@@ -290,7 +290,7 @@ export default function ImportsPage() {
           filteredImports.map((importItem) => {
             const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status);
             return (
-              <Card key={importItem.id} className={`hover:shadow-md transition-shadow ${statusInfo.bgColor} border-l-4 ${statusInfo.borderColor || 'border-l-gray-300'}`}>
+              <Card key={importItem.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-6 gap-4 items-center">
                     <div className="col-span-2 flex items-center space-x-3">
@@ -322,6 +322,14 @@ export default function ImportsPage() {
                       </div>
                     </div>
                     <div className="col-span-4 flex items-center justify-end space-x-3">
+                      <div className="text-center">
+                        <Badge variant="outline" className={`${statusInfo.color} mb-1`}>
+                          {statusInfo.label}
+                        </Badge>
+                        <div className="text-xs text-gray-500">
+                          {importItem.estimatedDelivery ? new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 'N/A'}
+                        </div>
+                      </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -365,61 +373,6 @@ export default function ImportsPage() {
                                     className="bg-red-600 hover:bg-red-700"
                                   >
                                     Confirmar Cancelamento
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </Card>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/imports/${importItem.id}`} className="flex items-center">
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver Detalhes
-                            </Link>
-                          </DropdownMenuItem>
-                          {(!permissions.isFinanceira && importItem.status === 'planejamento') && (
-                            <DropdownMenuItem asChild>
-                              <Link href={`/imports/${importItem.id}/edit`} className="flex items-center">
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar
-                              </Link>
-                            </DropdownMenuItem>
-                          )}
-                          {(!permissions.isFinanceira && !['completed', 'cancelled'].includes(importItem.status)) && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem 
-                                  onSelect={(e) => e.preventDefault()}
-                                  className="text-red-600 focus:text-red-600"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Cancelar
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja cancelar a importação "{importItem.importName}"? 
-                                    Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Voltar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleCancelImport(importItem.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Cancelar Importação
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
