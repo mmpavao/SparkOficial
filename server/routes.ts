@@ -549,19 +549,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const applicationData = { ...req.body, userId };
 
-      // Update uploadedBy field in documents to actual user ID
+      // Update uploadedBy field in documents to actual user ID and handle arrays
       if (applicationData.requiredDocuments) {
         Object.keys(applicationData.requiredDocuments).forEach(key => {
-          if (applicationData.requiredDocuments[key]) {
-            applicationData.requiredDocuments[key].uploadedBy = userId;
+          const docs = applicationData.requiredDocuments[key];
+          if (docs) {
+            if (Array.isArray(docs)) {
+              docs.forEach(doc => {
+                if (doc) doc.uploadedBy = userId;
+              });
+            } else {
+              docs.uploadedBy = userId;
+            }
           }
         });
       }
 
       if (applicationData.optionalDocuments) {
         Object.keys(applicationData.optionalDocuments).forEach(key => {
-          if (applicationData.optionalDocuments[key]) {
-            applicationData.optionalDocuments[key].uploadedBy = userId;
+          const docs = applicationData.optionalDocuments[key];
+          if (docs) {
+            if (Array.isArray(docs)) {
+              docs.forEach(doc => {
+                if (doc) doc.uploadedBy = userId;
+              });
+            } else {
+              docs.uploadedBy = userId;
+            }
           }
         });
       }

@@ -82,19 +82,53 @@ export class DatabaseStorage {
   // ===== CREDIT APPLICATION OPERATIONS =====
 
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
+    // Convert documents to JSON strings for database storage
+    const processedApplication = { ...application };
+    
+    if (processedApplication.requiredDocuments) {
+      processedApplication.requiredDocuments = JSON.stringify(processedApplication.requiredDocuments);
+    }
+    
+    if (processedApplication.optionalDocuments) {
+      processedApplication.optionalDocuments = JSON.stringify(processedApplication.optionalDocuments);
+    }
+
     const [creditApp] = await db
       .insert(creditApplications)
-      .values(application)
+      .values(processedApplication)
       .returning();
     return creditApp;
   }
 
   async getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]> {
-    return await db
+    const applications = await db
       .select()
       .from(creditApplications)
       .where(eq(creditApplications.userId, userId))
       .orderBy(desc(creditApplications.createdAt));
+    
+    // Parse JSON documents back to objects for each application
+    return applications.map(application => {
+      const app = { ...application };
+      
+      if (app.requiredDocuments && typeof app.requiredDocuments === 'string') {
+        try {
+          app.requiredDocuments = JSON.parse(app.requiredDocuments);
+        } catch (e) {
+          console.log('Error parsing requiredDocuments for app', app.id, ':', e);
+        }
+      }
+      
+      if (app.optionalDocuments && typeof app.optionalDocuments === 'string') {
+        try {
+          app.optionalDocuments = JSON.parse(app.optionalDocuments);
+        } catch (e) {
+          console.log('Error parsing optionalDocuments for app', app.id, ':', e);
+        }
+      }
+      
+      return app;
+    });
   }
 
   async getCreditApplication(id: number): Promise<CreditApplication | undefined> {
@@ -103,6 +137,30 @@ export class DatabaseStorage {
       .from(creditApplications)
       .where(eq(creditApplications.id, id))
       .limit(1);
+    
+    if (result[0]) {
+      const application = { ...result[0] };
+      
+      // Parse JSON documents back to objects
+      if (application.requiredDocuments && typeof application.requiredDocuments === 'string') {
+        try {
+          application.requiredDocuments = JSON.parse(application.requiredDocuments);
+        } catch (e) {
+          console.log('Error parsing requiredDocuments:', e);
+        }
+      }
+      
+      if (application.optionalDocuments && typeof application.optionalDocuments === 'string') {
+        try {
+          application.optionalDocuments = JSON.parse(application.optionalDocuments);
+        } catch (e) {
+          console.log('Error parsing optionalDocuments:', e);
+        }
+      }
+      
+      return application;
+    }
+    
     return result[0];
   }
 
