@@ -115,10 +115,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       return await apiRequest(endpoint, "PUT", data);
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+      // Invalidate only specific queries to prevent DOM conflicts
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications"] });
+      
+      // Small delay to prevent race conditions
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
+      }, 100);
 
       // Play appropriate sound based on action type
       const { status } = variables;
