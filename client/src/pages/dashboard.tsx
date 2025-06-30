@@ -64,7 +64,7 @@ export default function Dashboard() {
 
   const handleImportClick = (importId: number) => {
     console.log('Navegando para importação:', importId);
-    setLocation(`/imports/details/${importId}`);
+    setLocation(`/imports/${importId}`);
   };
 
   const handleSupplierClick = (supplierId: number) => {
