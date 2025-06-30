@@ -276,6 +276,9 @@ export default function CreditApplicationPage() {
   const [newDocumentName, setNewDocumentName] = useState("");
   const [, setLocation] = useLocation();
   const [temporaryApplicationId, setTemporaryApplicationId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitInProgress, setSubmitInProgress] = useState(false);
+  const [submissionCompleted, setSubmissionCompleted] = useState(false);
 
   const { toast } = useToast();
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -342,10 +345,7 @@ export default function CreditApplicationPage() {
 
 
 
-  // Submit application state with debounce protection
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitInProgress, setSubmitInProgress] = useState(false);
-  const [submissionCompleted, setSubmissionCompleted] = useState(false);
+  // Submit application state with debounce protection (already declared above)
 
   // Custom documents functions
   const addCustomDocument = () => {

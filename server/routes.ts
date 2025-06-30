@@ -758,6 +758,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para criar aplicação temporária (permite upload de documentos)
+  app.post('/api/credit/applications/temporary', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tempData = {
+        userId: userId,
+        legalCompanyName: "Aplicação Temporária",
+        email: "temp@temp.com",
+        cnpj: "00000000000000",
+        phone: "0000000000",
+        address: "Temporário",
+        city: "Temporário", 
+        state: "SP",
+        zipCode: "00000000",
+        requestedAmount: "100000",
+        status: 'temporary',
+        shareholders: JSON.stringify([]),
+        requiredDocuments: JSON.stringify({}),
+        optionalDocuments: JSON.stringify({})
+      };
+
+      const tempApplication = await storage.createCreditApplication(tempData);
+      console.log('✅ Temporary application created with ID:', tempApplication.id);
+      
+      res.json({ 
+        id: tempApplication.id,
+        message: "Aplicação temporária criada para upload de documentos"
+      });
+    } catch (error) {
+      console.error("Error creating temporary application:", error);
+      res.status(500).json({ message: "Erro ao criar aplicação temporária" });
+    }
+  });
+
   // Endpoint para salvar documentos separadamente
   app.post('/api/credit/applications/:id/documents-batch', requireAuth, moduleProtection(['IMPORTER']), async (req: any, res) => {
     try {
