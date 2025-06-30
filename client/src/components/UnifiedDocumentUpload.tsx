@@ -61,7 +61,7 @@ export default function UnifiedDocumentUpload({
   onDownload,
   allowMultiple = false,
   maxFileSize = 10,
-  acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']
+  acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: UnifiedDocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

@@ -132,7 +132,7 @@ export function SmartDocumentUpload({
     }
 
     // File type validation
-    const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+    const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!validExtensions.includes(fileExtension)) {
       errors.push(`Formato não suportado. Use: ${validExtensions.join(', ')}`);
@@ -343,7 +343,7 @@ export function SmartDocumentUpload({
           ref={fileInputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) handleFileSelect(file);

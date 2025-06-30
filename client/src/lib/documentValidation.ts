@@ -84,7 +84,7 @@ export const DOCUMENT_REQUIREMENTS: Record<string, DocumentRequirements> = {
     requiredText: ['certidão', 'tributos', 'negativa'],
   },
   commercial_references: {
-    allowedTypes: ['pdf', 'doc', 'docx'],
+    allowedTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
     maxSize: 2,
     requiredText: ['referência', 'comercial'],
   },
@@ -109,12 +109,12 @@ export const DOCUMENT_REQUIREMENTS: Record<string, DocumentRequirements> = {
     requiredText: ['seguro', 'apólice'],
   },
   bank_references: {
-    allowedTypes: ['pdf', 'doc', 'docx'],
+    allowedTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
     maxSize: 2,
     requiredText: ['banco', 'referência'],
   },
   additional_documents: {
-    allowedTypes: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+    allowedTypes: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'],
     maxSize: 10,
   },
 };

@@ -50,7 +50,7 @@ export function SmartDocumentValidator({
   isRequired,
   onValidationComplete,
   maxSizeInMB = 10,
-  acceptedFormats = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']
+  acceptedFormats = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: SmartDocumentValidatorProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);

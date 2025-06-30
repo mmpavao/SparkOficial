@@ -291,7 +291,7 @@ export function RobustDocumentUpload({
           ref={fileInputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
           onChange={handleFileSelect}
         />
 
