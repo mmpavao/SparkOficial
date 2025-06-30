@@ -54,10 +54,17 @@ export default function ImportForm() {
   const form = useForm<ImportFormData>({
     resolver: zodResolver(importFormSchema),
     defaultValues: {
+      importName: "",
       currency: "USD",
       incoterms: "FOB",
       shippingMethod: "sea",
       cargoType: "FCL",
+      totalValue: 0,
+      containerType: "",
+      containerNumber: "",
+      sealNumber: "",
+      estimatedDelivery: "",
+      notes: "",
     },
   });
 
@@ -127,7 +134,7 @@ export default function ImportForm() {
     
     // Store form data for terms confirmation
     (window as any).pendingImportData = importData;
-  };
+  });
 
   const handleTermsConfirm = () => {
     const importData = (window as any).pendingImportData;
@@ -480,13 +487,87 @@ export default function ImportForm() {
             showCreditCheck={true}
           />
 
-          {/* Quick Summary */}
-          <Card>
+          {/* Enhanced Financial Summary */}
+          <Card className="border-emerald-200 bg-emerald-50">
             <CardHeader>
-              <CardTitle className="text-lg">Resumo</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-emerald-800">
+                <CheckCircle className="w-5 h-5" />
+                Resumo Financeiro
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Crédito Disponível:</span>
+                  <span className="text-lg font-bold text-emerald-600">
+                    US$ {(creditData as any)?.available?.toLocaleString() || '0'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Valor da Importação:</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    US$ {currentTotalValue.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Taxa Admin ({adminFeeRate}%):</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    US$ {adminFeeAmount.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Total com Taxas:</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    US$ {totalWithFees.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="border-t pt-3 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Entrada (30%):</span>
+                  <span className="text-lg font-semibold text-blue-600">
+                    US$ {downPaymentAmount.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Saldo Financiado:</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    US$ {financedAmount.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              
+              {termDays.length > 0 && (
+                <div className="border-t pt-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      Parcelas ({termDays.length}x):
+                    </span>
+                    <span className="text-lg font-semibold text-purple-600">
+                      US$ {installmentAmount.toLocaleString()} cada
+                    </span>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {termDays.map((days: number, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {days} dias
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {currentTotalValue > ((creditData as any)?.available || 0) && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-700">
+                    Valor excede o crédito disponível. Crédito insuficiente para esta importação.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              <div className="flex justify-between text-sm pt-2 border-t">
                 <span className="text-gray-600">Tipo:</span>
                 <Badge variant="outline">{cargoType}</Badge>
               </div>
