@@ -383,55 +383,251 @@ export default function ImportDetailsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="resumo" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="resumo" className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Resumo Financeiro
-                </TabsTrigger>
-                <TabsTrigger value="calculadora" className="flex items-center gap-2">
+            <Tabs defaultValue="custos" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="custos" className="flex items-center gap-2">
                   <Calculator className="w-4 h-4" />
-                  Calculadora de Custos
+                  Cálculo de Custos
+                </TabsTrigger>
+                <TabsTrigger value="documentos" className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Documentos
+                </TabsTrigger>
+                <TabsTrigger value="pagamentos" className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Pagamentos
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="resumo" className="mt-6">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="text-center p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <p className="text-sm text-emerald-600 font-medium">Valor da Importação</p>
-                    <p className="text-xl font-bold text-emerald-700">
-                      {formatCurrency(parseFloat(importData.totalValue || "0"), importData.currency)}
-                    </p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-600 font-medium">Taxa Administrativa</p>
-                    <p className="text-xl font-bold text-blue-700">
-                      {creditApplication.adminFee}%
-                    </p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <p className="text-sm text-orange-600 font-medium">Entrada Requerida</p>
-                    <p className="text-xl font-bold text-orange-700">
-                      {creditApplication.finalDownPayment}%
-                    </p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <p className="text-sm text-purple-600 font-medium">Limite de Crédito</p>
-                    <p className="text-xl font-bold text-purple-700">
-                      {formatCurrency(creditApplication.finalCreditLimit, 'USD')}
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="calculadora" className="mt-6">
+              <TabsContent value="custos" className="mt-6">
                 <ImportFinancialSummary 
                   importData={importData} 
                   creditApplication={creditApplication}
                 />
+              </TabsContent>
+              
+              <TabsContent value="documentos" className="mt-6">
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Documentos Necessários para Importação</h3>
+                  
+                  {/* Documentos Pré-Embarque */}
+                  <div>
+                    <h4 className="text-md font-medium text-gray-800 mb-3">📋 Documentos Pré-Embarque</h4>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-blue-900">Invoice Comercial</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-blue-700 mt-1">Documento com valores e descrição dos produtos</p>
+                      </div>
+                      
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-blue-900">Packing List</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-blue-700 mt-1">Lista detalhada de embalagem e pesos</p>
+                      </div>
+                      
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-blue-900">Contrato de Compra</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-blue-700 mt-1">Acordo comercial entre importador e fornecedor</p>
+                      </div>
+                      
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-blue-900">Certificados de Origem</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-blue-700 mt-1">Comprovação da origem dos produtos</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Documentos de Transporte */}
+                  <div>
+                    <h4 className="text-md font-medium text-gray-800 mb-3">🚢 Documentos de Transporte</h4>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-green-900">Bill of Lading (BL)</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">Conhecimento de embarque marítimo</p>
+                      </div>
+                      
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-green-900">Container Packing Certificate</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">Certificado de container stuffing</p>
+                      </div>
+                      
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-green-900">Booking Confirmation</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">Confirmação de reserva no navio</p>
+                      </div>
+                      
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-green-900">Surrender BL</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">Documento de entrega da carga</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Documentos do Agente de Cargas */}
+                  <div>
+                    <h4 className="text-md font-medium text-gray-800 mb-3">📦 Documentos do Agente de Cargas</h4>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-purple-900">Chegada da Embarcação</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-purple-700 mt-1">Notificação de chegada no porto</p>
+                      </div>
+                      
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-purple-900">Liberação da Carga</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-purple-700 mt-1">Autorização para retirada do container</p>
+                      </div>
+                      
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-purple-900">DI (Declaração de Importação)</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-purple-700 mt-1">Declaração para Receita Federal</p>
+                      </div>
+                      
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-purple-900">DARF de Impostos</span>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>
+                        </div>
+                        <p className="text-sm text-purple-700 mt-1">Documento para pagamento de impostos</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="pagamentos" className="mt-6">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">Cronograma de Pagamentos</h3>
+                    <Button variant="outline" size="sm">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Adicionar Pagamento
+                    </Button>
+                  </div>
+                  
+                  {/* Pagamentos Planejados */}
+                  <div>
+                    <h4 className="text-md font-medium text-gray-800 mb-3">💰 Pagamentos Programados</h4>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-orange-900">Entrada (30%)</span>
+                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Vencido</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Valor:</span>
+                            <span className="ml-2 font-medium">{formatCurrency(36000, 'USD')}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Vencimento:</span>
+                            <span className="ml-2 font-medium">15/06/2025</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Status:</span>
+                            <span className="ml-2 font-medium text-red-600">Pendente</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-blue-900">1ª Parcela (60 dias)</span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Programado</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Valor:</span>
+                            <span className="ml-2 font-medium">{formatCurrency(42000, 'USD')}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Vencimento:</span>
+                            <span className="ml-2 font-medium">15/08/2025</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Status:</span>
+                            <span className="ml-2 font-medium text-blue-600">Aguardando</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-blue-900">2ª Parcela (120 dias)</span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Programado</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Valor:</span>
+                            <span className="ml-2 font-medium">{formatCurrency(42000, 'USD')}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Vencimento:</span>
+                            <span className="ml-2 font-medium">15/10/2025</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Status:</span>
+                            <span className="ml-2 font-medium text-blue-600">Aguardando</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Resumo dos Pagamentos */}
+                  <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-lg">
+                    <h4 className="text-md font-medium text-gray-800 mb-3">📊 Resumo Financeiro</h4>
+                    <div className="grid grid-cols-4 gap-4 text-sm">
+                      <div className="text-center">
+                        <p className="text-gray-600">Total do Financiamento</p>
+                        <p className="font-bold text-lg">{formatCurrency(120000, 'USD')}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-600">Pago</p>
+                        <p className="font-bold text-lg text-green-600">{formatCurrency(0, 'USD')}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-600">Pendente</p>
+                        <p className="font-bold text-lg text-red-600">{formatCurrency(120000, 'USD')}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-600">Taxa Admin Total</p>
+                        <p className="font-bold text-lg text-blue-600">{formatCurrency(8400, 'USD')}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
