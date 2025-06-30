@@ -581,6 +581,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const application = await storage.createCreditApplication(applicationData);
+      
+      // Invalidate cache for this user to ensure fresh data
+      delete userCreditCache[userId];
+      
       res.status(201).json(application);
     } catch (error) {
       console.error("Error creating credit application:", error);
@@ -591,19 +595,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credit/applications', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      const now = Date.now();
-
-      // Check cache first
-      if (userCreditCache[userId] && (now - userCreditCache[userId].time) < CACHE_DURATION) {
-        console.log(`Serving credit applications from cache for user ${userId}`);
-        return res.json(userCreditCache[userId].data);
-      }
-
+      
+      // Always fetch fresh data to prevent showing stale cached duplicates
       console.log(`Fetching fresh credit applications for user ${userId}`);
       const applications = await storage.getCreditApplicationsByUser(userId);
 
-      // Update cache
-      userCreditCache[userId] = { data: applications, time: now };
+      // Clear old cache to prevent inconsistencies
+      delete userCreditCache[userId];
 
       res.json(applications);
     } catch (error) {

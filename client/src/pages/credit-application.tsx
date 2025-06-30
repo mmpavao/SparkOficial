@@ -627,11 +627,20 @@ export default function CreditApplicationPage() {
   };
 
   const submitApplication = async () => {
-    // Prevent multiple submissions
+    // Enhanced protection against multiple submissions
     if (isSubmitting || submitInProgress) {
+      console.log('Submission blocked - already in progress');
       return;
     }
     
+    // Set both flags immediately and add a timestamp check
+    const now = Date.now();
+    if ((window as any).lastSubmissionTime && (now - (window as any).lastSubmissionTime) < 3000) {
+      console.log('Submission blocked - too recent');
+      return;
+    }
+    
+    (window as any).lastSubmissionTime = now;
     setIsSubmitting(true);
     setSubmitInProgress(true);
     try {
