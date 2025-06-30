@@ -40,6 +40,20 @@ export default function ImportDetailsPage() {
     },
   });
 
+  // Fetch credit application data for cost calculation
+  const { data: creditApplication } = useQuery({
+    queryKey: ['/api/credit/applications', importData?.creditApplicationId],
+    queryFn: async () => {
+      if (!importData?.creditApplicationId) return null;
+      const response = await fetch(`/api/credit/applications/${importData.creditApplicationId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!importData?.creditApplicationId,
+  });
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -115,6 +129,12 @@ export default function ImportDetailsPage() {
           )}
         </div>
       </div>
+
+      {/* Financial Summary */}
+      <ImportFinancialSummary 
+        importData={importData} 
+        creditApplication={creditApplication}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
