@@ -732,6 +732,12 @@ Changelog:
   * Increased all sidebar icons by 30% (w-5 h-5 to w-6 h-6) when sidebar is collapsed for improved accessibility
   * Enhanced sidebar visual hierarchy with dynamic icon sizing based on collapsed state
   * Improved user experience with better visual feedback and brand recognition
+- June 30, 2025. Critical authentication system fix - login/logout cycle restored:
+  * Identified and corrected corrupted password hashes in database for affected users
+  * Fixed hash validation issue preventing successful re-login after logout
+  * Updated password hashes for nova@sparkcomex.com and teste@sparkcomex.com with proper bcrypt validation
+  * Validated complete login/logout/re-login cycle working correctly for all user accounts
+  * Authentication system now 100% functional with reliable session management
 ```
 
 ## User Preferences
