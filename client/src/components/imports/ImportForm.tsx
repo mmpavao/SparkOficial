@@ -71,6 +71,16 @@ export default function ImportForm() {
     queryKey: ["/api/suppliers"],
   });
 
+  // Fetch user credit information
+  const { data: creditData } = useQuery({
+    queryKey: ["/api/user/available-credit"],
+  });
+
+  // Fetch admin fee for calculations
+  const { data: adminFeeData } = useQuery({
+    queryKey: ["/api/user/admin-fee"],
+  });
+
   // Create import mutation
   const createImportMutation = useMutation({
     mutationFn: async (data: ImportFormData & { products?: Product[] }) => {
@@ -89,6 +99,19 @@ export default function ImportForm() {
     }
     return totalValue;
   };
+
+  // Financial calculations
+  const currentTotalValue = calculateTotalValue();
+  const adminFeeRate = (adminFeeData as any)?.feePercentage ? parseFloat((adminFeeData as any).feePercentage) : 2.5;
+  const adminFeeAmount = (currentTotalValue * adminFeeRate) / 100;
+  const totalWithFees = currentTotalValue + adminFeeAmount;
+  const downPaymentAmount = (totalWithFees * 30) / 100; // 30% down payment
+  const financedAmount = totalWithFees - downPaymentAmount;
+  
+  // Payment terms (from credit data)
+  const paymentTerms = (creditData as any)?.paymentTerms || "30,60,90,120";
+  const termDays = paymentTerms.split(",").map((t: string) => parseInt(t.trim()));
+  const installmentAmount = termDays.length > 0 ? financedAmount / termDays.length : 0;
 
   const onSubmit = (data: ImportFormData) => {
     const finalValue = cargoType === "LCL" ? calculateTotalValue() : data.totalValue;
@@ -111,8 +134,6 @@ export default function ImportForm() {
     createImportMutation.mutate(importData);
     setShowTermsModal(false);
   };
-
-  const finalTotalValue = calculateTotalValue();
 
   return (
     <div className="space-y-6">
@@ -240,6 +261,90 @@ export default function ImportForm() {
                     </SelectContent>
                   </Select>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Financial Summary Card */}
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-emerald-800">
+                  <CheckCircle className="w-5 h-5" />
+                  Resumo Financeiro
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Crédito Disponível:</span>
+                      <span className="text-lg font-bold text-emerald-600">
+                        US$ {creditData?.available?.toLocaleString() || '0'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Valor da Importação:</span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        US$ {finalTotalValue.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Taxa Admin ({adminFeeRate}%):</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        US$ {adminFeeAmount.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Entrada (30%):</span>
+                      <span className="text-lg font-semibold text-blue-600">
+                        US$ {downPaymentAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Saldo Financiado:</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        US$ {financedAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Total da Importação:</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        US$ {totalWithFees.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {termDays.length > 0 && (
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">
+                        Parcelas ({termDays.length}x):
+                      </span>
+                      <span className="text-lg font-semibold text-purple-600">
+                        US$ {installmentAmount.toLocaleString()} cada
+                      </span>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      {termDays.map((days, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {days} dias
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {finalTotalValue > (creditData?.available || 0) && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-700">
+                      Valor excede o crédito disponível. Crédito insuficiente para esta importação.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
 
