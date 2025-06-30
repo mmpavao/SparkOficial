@@ -84,15 +84,28 @@ export default function ImportsPage() {
 
   // Fetch imports data - adaptive endpoint based on user role
   const getEndpoint = () => {
+    console.log("🔍 Permission check:", {
+      canViewAllApplications: permissions.canViewAllApplications,
+      isAdmin: permissions.isAdmin,
+      isFinanceira: permissions.isFinanceira
+    });
+    
     if (permissions.canViewAllApplications) {
+      console.log("📍 Using admin endpoint: /api/admin/imports");
       return "/api/admin/imports";
     } else {
+      console.log("📍 Using user endpoint: /api/imports");
       return "/api/imports";
     }
   };
 
+  const endpoint = getEndpoint();
+  console.log("🎯 Final endpoint being used:", endpoint);
+  
   const { data: imports = [], isLoading } = useQuery({
-    queryKey: [getEndpoint()],
+    queryKey: [endpoint],
+    staleTime: 0, // Force fresh data
+    refetchOnWindowFocus: true,
   });
 
   const typedImports = imports as Import[];

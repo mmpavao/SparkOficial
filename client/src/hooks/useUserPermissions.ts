@@ -3,6 +3,8 @@ import { useAuth } from "./useAuth";
 export function useUserPermissions() {
   const { user } = useAuth();
   
+  console.log("🔍 useUserPermissions - User data:", user);
+  
   // Verificar se é administrador (baseado apenas no role da database)
   const isAdmin = user?.role === "admin";
   
@@ -12,7 +14,7 @@ export function useUserPermissions() {
   // Verificar se é super admin (baseado apenas no role da database)
   const isSuperAdmin = user?.role === "super_admin";
   
-  return {
+  const permissions = {
     isAdmin,
     isFinanceira,
     isSuperAdmin,
@@ -24,4 +26,8 @@ export function useUserPermissions() {
     canManageUsers: isSuperAdmin,
     canViewOwnDataOnly: !isAdmin && !isFinanceira,
   };
+  
+  console.log("🔍 useUserPermissions - Calculated permissions:", permissions);
+  
+  return permissions;
 }
