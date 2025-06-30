@@ -235,14 +235,14 @@ export default function CreditPage() {
               ? "Análise Financeira - Aprovação de Crédito" 
               : permissions.canViewAllApplications 
                 ? "Gestão de Crédito - Área Administrativa" 
-                : t.credit.title}
+                : "Solicitações de Crédito"}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
               ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
               : permissions.canViewAllApplications 
                 ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
-                : t.credit.requestCredit}
+                : "Solicite crédito para suas importações"}
           </p>
         </div>
         {!permissions.isFinanceira && (
@@ -270,14 +270,14 @@ export default function CreditPage() {
           <CardTitle>
             {permissions.canViewAllApplications 
               ? "Todas as Solicitações de Crédito" 
-              : t.credit.myApplications}
+              : "Minhas Solicitações"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">{t.common.loading}...</p>
+              <p className="text-gray-600">Carregando...</p>
             </div>
           ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
