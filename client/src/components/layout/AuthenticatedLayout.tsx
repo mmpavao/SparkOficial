@@ -429,31 +429,33 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           onClick={toggleSidebar}
         />
       )}
-      {/* Main Content */}
+      {/* Fixed Top Header */}
+      <header className={`fixed top-0 right-0 bg-white shadow-sm border-b z-30 transition-all duration-300 ease-in-out ${
+        sidebarCollapsed ? "lg:left-20" : "lg:left-64"
+      } left-0`}>
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebar}
+              className="mr-4 lg:hidden"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+
+          </div>
+          <div className="flex items-center space-x-4">
+            <NotificationCenter />
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content with top padding for fixed header */}
       <div className={`transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
       }`}>
-        {/* Top Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleSidebar}
-                className="mr-4 lg:hidden"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-
-            </div>
-            <div className="flex items-center space-x-4">
-              <NotificationCenter />
-            </div>
-          </div>
-        </header>
-
-        <main className="p-6">
+        <main className="p-6 pt-20">
           {children}
         </main>
       </div>

@@ -85,18 +85,40 @@ export class DatabaseStorage {
     // Convert documents to JSON strings for database storage
     const processedApplication = { ...application };
     
-    if (processedApplication.requiredDocuments) {
-      processedApplication.requiredDocuments = JSON.stringify(processedApplication.requiredDocuments);
+    console.log('🔄 DOCUMENTS DEBUG - Processing application with documents:');
+    console.log('Required docs received:', application.requiredDocuments ? Object.keys(application.requiredDocuments) : 'NONE');
+    console.log('Optional docs received:', application.optionalDocuments ? Object.keys(application.optionalDocuments) : 'NONE');
+    
+    // CRITICAL FIX: Ensure documents are properly stringified with fallback
+    if (processedApplication.requiredDocuments && typeof processedApplication.requiredDocuments === 'object') {
+      const docString = JSON.stringify(processedApplication.requiredDocuments);
+      console.log('✅ Required documents stringified:', docString.substring(0, 100) + '...');
+      processedApplication.requiredDocuments = docString;
+    } else {
+      console.log('⚠️ No required documents to save');
+      processedApplication.requiredDocuments = null;
     }
     
-    if (processedApplication.optionalDocuments) {
-      processedApplication.optionalDocuments = JSON.stringify(processedApplication.optionalDocuments);
+    if (processedApplication.optionalDocuments && typeof processedApplication.optionalDocuments === 'object') {
+      const docString = JSON.stringify(processedApplication.optionalDocuments);
+      console.log('✅ Optional documents stringified:', docString.substring(0, 100) + '...');
+      processedApplication.optionalDocuments = docString;
+    } else {
+      console.log('⚠️ No optional documents to save');
+      processedApplication.optionalDocuments = null;
     }
 
     const [creditApp] = await db
       .insert(creditApplications)
       .values(processedApplication)
       .returning();
+      
+    console.log('💾 Credit application saved with ID:', creditApp.id);
+    console.log('📄 Documents saved successfully:', {
+      requiredSaved: !!creditApp.requiredDocuments,
+      optionalSaved: !!creditApp.optionalDocuments
+    });
+    
     return creditApp;
   }
 
