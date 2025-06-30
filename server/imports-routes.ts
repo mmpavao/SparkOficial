@@ -52,7 +52,7 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       endDate
     } = req.query;
 
-    const currentUser = req.session.user;
+    const currentUser = req.session.user || { id: req.session.userId, role: 'importer' };
     const offset = (Number(page) - 1) * Number(limit);
 
     // Build query conditions

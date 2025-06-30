@@ -1,187 +1,102 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Package, 
-  TrendingUp, 
-  CheckCircle, 
-  DollarSign,
-  Clock,
-  AlertCircle,
-  Ship,
-  Factory
-} from "lucide-react";
-import { formatCompactNumber } from "@/lib/formatters";
-import type { Import } from "@shared/schema";
+import { Package, TrendingUp, Clock, CheckCircle, AlertCircle, Ship, Truck, Target } from "lucide-react";
+import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 
 interface ImportMetricsProps {
-  imports: Import[];
-  isLoading?: boolean;
-}
-
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
-  change?: string;
-  changeType?: "positive" | "negative" | "neutral";
-  color?: string;
-  subtitle?: string;
-}
-
-function MetricCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  change, 
-  changeType = "neutral", 
-  color = "text-blue-600", 
-  subtitle 
-}: MetricCardProps) {
-  const changeColors = {
-    positive: "text-green-600 bg-green-50",
-    negative: "text-red-600 bg-red-50",
-    neutral: "text-gray-600 bg-gray-50"
+  metrics: {
+    totalImports: number;
+    activeImports: number;
+    completedImports: number;
+    totalValue: number;
+    planningStage: number;
+    productionStage: number;
+    transportStage: number;
+    successRate: number;
   };
+}
+
+export function ImportMetrics({ metrics }: ImportMetricsProps) {
+  const metricsData = [
+    {
+      title: "Total de Importações",
+      value: formatCompactNumber(metrics.totalImports),
+      icon: Package,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      title: "Importações Ativas",
+      value: formatCompactNumber(metrics.activeImports),
+      icon: Clock,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      title: "Concluídas",
+      value: formatCompactNumber(metrics.completedImports),
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      title: "Valor Total",
+      value: formatCurrency(metrics.totalValue, 'USD'),
+      icon: TrendingUp,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    },
+    {
+      title: "Em Planejamento",
+      value: formatCompactNumber(metrics.planningStage),
+      icon: AlertCircle,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50"
+    },
+    {
+      title: "Em Produção",
+      value: formatCompactNumber(metrics.productionStage),
+      icon: Ship,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-50"
+    },
+    {
+      title: "Em Transporte",
+      value: formatCompactNumber(metrics.transportStage),
+      icon: Truck,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50"
+    },
+    {
+      title: "Taxa de Sucesso",
+      value: `${metrics.successRate.toFixed(1)}%`,
+      icon: Target,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50"
+    }
+  ];
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">
-          {title}
-        </CardTitle>
-        <Icon className={`h-4 w-4 ${color}`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {subtitle && (
-          <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-        )}
-        {change && (
-          <Badge 
-            variant="secondary" 
-            className={`text-xs mt-2 ${changeColors[changeType]}`}
-          >
-            {change}
-          </Badge>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function ImportMetrics({ imports, isLoading }: ImportMetricsProps) {
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {metricsData.map((metric, index) => {
+        const IconComponent = metric.icon;
+        return (
+          <Card key={index} className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                {metric.title}
+              </CardTitle>
+              <div className={`p-2 rounded-lg ${metric.bgColor}`}>
+                <IconComponent className={`h-5 w-5 ${metric.color}`} />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+              <div className="text-2xl font-bold text-gray-900">
+                {metric.value}
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-    );
-  }
-
-  // Calculate metrics
-  const totalImports = imports.length;
-  
-  const statusCounts = imports.reduce((acc, imp) => {
-    acc[imp.status] = (acc[imp.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const activeImports = imports.filter(imp => 
-    !['completed', 'cancelled'].includes(imp.status)
-  ).length;
-
-  const completedImports = statusCounts.completed || 0;
-  
-  const totalValue = imports.reduce((sum, imp) => {
-    return sum + parseFloat(imp.totalValue || "0");
-  }, 0);
-
-  const activeValue = imports
-    .filter(imp => !['completed', 'cancelled'].includes(imp.status))
-    .reduce((sum, imp) => {
-      return sum + parseFloat(imp.totalValue || "0");
-    }, 0);
-
-  const pendingImports = statusCounts.planning || 0;
-  const inProductionImports = statusCounts.production || 0;
-  const inTransitImports = (statusCounts.shipped || 0) + (statusCounts.in_transit || 0);
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <MetricCard
-        title="Total de Importações"
-        value={totalImports}
-        icon={Package}
-        color="text-blue-600"
-        subtitle={`${activeImports} ativas`}
-      />
-
-      <MetricCard
-        title="Em Andamento"
-        value={activeImports}
-        icon={Clock}
-        color="text-orange-600"
-        subtitle={`${Math.round((activeImports / totalImports) * 100) || 0}% do total`}
-      />
-
-      <MetricCard
-        title="Concluídas"
-        value={completedImports}
-        icon={CheckCircle}
-        color="text-green-600"
-        subtitle={`${Math.round((completedImports / totalImports) * 100) || 0}% do total`}
-      />
-
-      <MetricCard
-        title="Valor Total"
-        value={`$${formatCompactNumber(totalValue)}`}
-        icon={DollarSign}
-        color="text-emerald-600"
-        subtitle={`$${formatCompactNumber(activeValue)} ativos`}
-      />
-
-      {/* Secondary metrics row for detailed view */}
-      <MetricCard
-        title="Planejamento"
-        value={pendingImports}
-        icon={AlertCircle}
-        color="text-blue-500"
-        subtitle="Aguardando execução"
-      />
-
-      <MetricCard
-        title="Produção"
-        value={inProductionImports}
-        icon={Factory}
-        color="text-yellow-600"
-        subtitle="Em fabricação"
-      />
-
-      <MetricCard
-        title="Transporte"
-        value={inTransitImports}
-        icon={Ship}
-        color="text-purple-600"
-        subtitle="Enviados e em trânsito"
-      />
-
-      <MetricCard
-        title="Taxa de Sucesso"
-        value={`${Math.round((completedImports / Math.max(totalImports, 1)) * 100)}%`}
-        icon={TrendingUp}
-        color="text-indigo-600"
-        subtitle="Importações concluídas"
-      />
+        );
+      })}
     </div>
   );
 }

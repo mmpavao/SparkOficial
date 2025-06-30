@@ -3710,6 +3710,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register imports routes
+  app.use('/api', importRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }
