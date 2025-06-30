@@ -1827,28 +1827,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin import routes
   app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
     try {
-      console.log(`[Session Debug] GET /api/admin/imports - Session ID: ${req.sessionID}, User ID: ${req.session.userId}`);
-      
       const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser) {
-        console.log("Authentication failed - no user found");
-        return res.status(401).json({ message: "Não autorizado" });
+
+      // Verificar se é admin ou super admin
+      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Acesso negado" });
       }
-
-      console.log(`Authentication successful for user: ${currentUser.id} Role: ${currentUser.role}`);
-
-      // Verificar se é admin, super admin ou financeira
-      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin" && currentUser?.role !== "financeira") {
-        console.log("Access denied - insufficient permissions");
-        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
-      }
-
-      console.log("Admin imports request - User:", currentUser.id);
-      console.log("Current user role:", currentUser.role);
 
       const imports = await storage.getAllImports();
-      console.log(`Fetched ${imports.length} imports for admin view`);
-      
       res.json(imports);
     } catch (error) {
       console.error("Error fetching all imports:", error);
@@ -2020,7 +2006,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
+  // Get all imports (admin only)
+  app.get('/api/admin/imports', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const imports = await storage.getAllImports();
+      res.json(imports);
+    } catch (error) {
+      console.error("Get all imports error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
 
   // ===== ADMIN FEES MANAGEMENT =====
 
@@ -3626,8 +3621,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
-
-
 
   // Import document upload endpoint
   app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {

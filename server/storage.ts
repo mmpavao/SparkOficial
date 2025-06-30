@@ -530,18 +530,13 @@ export class DatabaseStorage {
   }
 
   async getAllImports(): Promise<Import[]> {
-    const allImports = await db.select().from(imports).orderBy(desc(imports.createdAt));
-    const allUsers = await db.select({ id: users.id, companyName: users.companyName }).from(users);
+    const importsTable = imports;
+    const importsResult = await db
+      .select()
+      .from(importsTable)
+      .orderBy(desc(importsTable.createdAt));
 
-    const result = allImports.map(importItem => {
-      const user = allUsers.find(u => u.id === importItem.userId);
-      return {
-        ...importItem,
-        companyName: user?.companyName || 'Empresa não encontrada'
-      };
-    });
-
-    return result as any[];
+    return importsResult;
   }
 
   async getAllImportsOptimized(): Promise<Import[]> {
