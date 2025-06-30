@@ -345,6 +345,7 @@ export default function CreditApplicationPage() {
   // Submit application state with debounce protection
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitInProgress, setSubmitInProgress] = useState(false);
+  const [submissionCompleted, setSubmissionCompleted] = useState(false);
 
   // Custom documents functions
   const addCustomDocument = () => {
@@ -628,21 +629,25 @@ export default function CreditApplicationPage() {
 
   const submitApplication = async () => {
     // Enhanced protection against multiple submissions
-    if (isSubmitting || submitInProgress) {
-      console.log('Submission blocked - already in progress');
+    if (isSubmitting || submitInProgress || submissionCompleted) {
+      console.log('Submission blocked - already in progress or completed');
       return;
     }
     
-    // Set both flags immediately and add a timestamp check
+    // Set all protection flags immediately
+    setIsSubmitting(true);
+    setSubmitInProgress(true);
+    
+    // Add a longer timestamp check to prevent rapid resubmissions
     const now = Date.now();
-    if ((window as any).lastSubmissionTime && (now - (window as any).lastSubmissionTime) < 3000) {
-      console.log('Submission blocked - too recent');
+    if ((window as any).lastSubmissionTime && (now - (window as any).lastSubmissionTime) < 30000) {
+      console.log('Submission blocked - too recent (30s cooldown)');
+      setIsSubmitting(false);
+      setSubmitInProgress(false);
       return;
     }
     
     (window as any).lastSubmissionTime = now;
-    setIsSubmitting(true);
-    setSubmitInProgress(true);
     try {
       // Calculate documents status based on uploaded documents
       const currentShareholders = companyForm.getValues().shareholders || [];
@@ -721,12 +726,19 @@ export default function CreditApplicationPage() {
 
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
 
+      // Mark as completed to prevent further submissions
+      setSubmissionCompleted(true);
+
       toast({
         title: "Sucesso!",
         description: "Solicitação de crédito enviada com sucesso com todos os documentos.",
       });
 
-      setLocation('/credit');
+      // Wait before navigation to ensure user sees success message
+      setTimeout(() => {
+        setLocation('/credit');
+      }, 2000);
+
     } catch (error: any) {
       console.error("Application submission error:", error);
       toast({
@@ -734,9 +746,11 @@ export default function CreditApplicationPage() {
         description: error.message || "Erro ao enviar solicitação",
         variant: "destructive",
       });
-    } finally {
+      
+      // Reset states on error to allow retry
       setIsSubmitting(false);
       setSubmitInProgress(false);
+      // submissionCompleted stays true to prevent immediate resubmission
     }
   };
 
@@ -1679,13 +1693,18 @@ export default function CreditApplicationPage() {
         ) : (
           <Button
             onClick={submitApplication}
-            disabled={isSubmitting || submitInProgress || !getStepStatus(4)}
+            disabled={isSubmitting || submitInProgress || submissionCompleted || !getStepStatus(4)}
             className="bg-green-600 hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
+            {isSubmitting || submitInProgress ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Enviando...
+              </>
+            ) : submissionCompleted ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Enviado com Sucesso
               </>
             ) : (
               <>
