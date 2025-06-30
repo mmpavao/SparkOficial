@@ -465,10 +465,20 @@ export default function AdminCreditAnalysisPage() {
 
             {/* Right Column - CNPJ Analysis Panel */}
             <div>
-              <CnpjAnalysisPanel 
-                creditApplicationId={Number(id)} 
-                cnpj={application.cnpj}
-              />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Análise de CNPJ
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CnpjAnalysisPanel 
+                    creditApplicationId={Number(id)} 
+                    cnpj={application.cnpj}
+                  />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
