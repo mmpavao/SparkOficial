@@ -36,7 +36,7 @@ interface AdminAnalysisPanelProps {
 export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelProps) {
   // 🔒 PROTEÇÃO MODULAR - CRÍTICA
   const { isAuthorized } = useModuleGuard({
-    allowedRoles: ['admin', 'super_admin'],
+    allowedRoles: ['admin', 'super_admin', 'financeira'],
     componentName: 'AdminAnalysisPanel',
     onUnauthorized: () => {
       console.error('❌ ACESSO NEGADO: AdminAnalysisPanel protegido');

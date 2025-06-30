@@ -664,6 +664,12 @@ Changelog:
   * All users created with password '100senha' and proper bcrypt hash validation
   * Established 4-tier user system: importer → admin → financeira → superadmin with appropriate module access
   * Each user role provides access to different system modules based on business workflow requirements
+- June 30, 2025. Critical admin module fixes and role-based access improvements:
+  * Fixed tela branca error after clicking "Pré-aprovar" button by implementing sequential query invalidation
+  * Resolved DOM conflict issues with React query cache invalidation using setTimeout delay
+  * Corrected AdminAnalysisPanel role permissions to include 'financeira' user access
+  * Both admin and financeira users can now access credit application details without crashes
+  * Maintained existing workflow functionality while fixing critical UI crashes
 ```
 
 ## User Preferences
