@@ -1824,79 +1824,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin import routes
-  app.get('/api/admin/imports', requireAuth, async (req: any, res) => {
-    try {
-      const currentUser = await storage.getUser(req.session.userId);
+  // Admin import routes - REMOVED to avoid conflict with imports-routes.ts
 
-      // Verificar se é admin ou super admin
-      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const imports = await storage.getAllImports();
-      res.json(imports);
-    } catch (error) {
-      console.error("Error fetching all imports:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Endpoint para buscar detalhes de uma importação específica (Admin)
-  app.get('/api/admin/imports/:id', requireAuth, async (req: any, res) => {
-    try {
-      console.log(`Admin import details request - ID: ${req.params.id}, User: ${req.session.userId}`);
-      
-      const currentUser = await storage.getUser(req.session.userId);
-      console.log(`Current user role: ${currentUser?.role}`);
-
-      // Verificar se é admin, financeira ou super admin
-      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin" && currentUser?.role !== "financeira") {
-        console.log("Access denied - insufficient role");
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const id = parseInt(req.params.id);
-      console.log(`Fetching import with ID: ${id}`);
-      
-      const importData = await storage.getImport(id);
-      console.log(`Import data found:`, importData ? "YES" : "NO");
-
-      if (!importData) {
-        console.log("Import not found in database");
-        return res.status(404).json({ message: "Importação não encontrada" });
-      }
-
-      console.log("Returning import data successfully");
-      res.json(importData);
-    } catch (error) {
-      console.error("Error fetching import details:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  app.patch('/api/admin/imports/:id/status', requireAuth, async (req: any, res) => {
-    try {
-      const currentUser = await storage.getUser(req.session.userId);      // Verificar se é admin ou super admin
-      if (currentUser?.role !== "super_admin" && currentUser?.role !== "admin") {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const id = parseInt(req.params.id);
-      const { status, ...updateData } = req.body;
-
-      const updatedImport = await storage.updateImportStatus(id, status, {
-        ...updateData,
-        updatedBy: req.session.userId,
-        updatedAt: new Date()
-      });
-
-      res.json(updatedImport);
-    } catch (error) {
-      console.error("Error updating import status:", error);
-      res.status(500).json({ message: "Erro ao atualizar status da importação" });
-    }
-  });
+  // Admin imports status update - moved to imports-routes.ts
 
   // Admin middleware
   const requireAdmin = async (req: any, res: any, next: any) => {
@@ -2006,16 +1936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all imports (admin only)
-  app.get('/api/admin/imports', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const imports = await storage.getAllImports();
-      res.json(imports);
-    } catch (error) {
-      console.error("Get all imports error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+  // Admin imports endpoint moved to imports-routes.ts to avoid conflicts
 
   // ===== ADMIN FEES MANAGEMENT =====
 
@@ -3958,7 +3879,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Register imports routes
+  console.log('Registering imports routes...');
   app.use('/api', importRoutes);
+  console.log('Imports routes registered successfully');
 
   const httpServer = createServer(app);
   return httpServer;

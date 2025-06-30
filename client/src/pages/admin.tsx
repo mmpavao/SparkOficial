@@ -22,10 +22,17 @@ export default function AdminPage() {
     enabled: isAdmin,
   }) as { data: CreditApplication[] };
 
-  const { data: allImports = [] } = useQuery({
+  const { data: allImports = [], isLoading: importsLoading } = useQuery({
     queryKey: ["/api/admin/imports"],
     enabled: isAdmin,
-  }) as { data: Import[] };
+    retry: 3,
+    staleTime: 30000,
+  }) as { data: Import[], isLoading: boolean };
+
+  // Debug logging
+  console.log('Admin page - isAdmin:', isAdmin);
+  console.log('Admin page - allImports:', allImports);
+  console.log('Admin page - importsLoading:', importsLoading);
 
   if (!isAdmin) {
     return (

@@ -14,24 +14,49 @@ import {
 } from '../shared/imports-schema';
 import { suppliers, users, creditApplications } from '../shared/schema';
 
-// Middleware functions
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.session.user && !req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  next();
-};
+// Import storage for database operations
+import { storage } from './storage';
 
-const requireAdminOrFinanceira = (req: any, res: any, next: any) => {
-  if (!req.session.user && !req.session.userId) {
+// Middleware functions - Updated to work with current auth system
+const requireAuth = async (req: any, res: any, next: any) => {
+  if (!req.session?.userId) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   
-  const userRole = req.session.user?.role;
-  if (!['admin', 'financeira', 'super_admin'].includes(userRole)) {
-    return res.status(403).json({ error: 'Admin or Financeira access required' });
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(500).json({ error: 'Authentication error' });
   }
-  next();
+};
+
+const requireAdminOrFinanceira = async (req: any, res: any, next: any) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    
+    if (!['admin', 'financeira', 'super_admin'].includes(user.role || '')) {
+      return res.status(403).json({ error: 'Admin or Financeira access required' });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(500).json({ error: 'Authentication error' });
+  }
 };
 
 export const importRoutes = Router();
@@ -642,98 +667,59 @@ importRoutes.put('/imports/:id/status', requireAuth, async (req, res) => {
 // Admin routes
 importRoutes.get('/admin/imports', requireAdminOrFinanceira, async (req, res) => {
   try {
-    // Get all imports for admin view
-    const importsData = await db
-      .select({
-        import: imports,
-        supplier: suppliers,
-        user: {
-          id: users.id,
-          companyName: users.companyName,
-          fullName: users.fullName
-        }
-      })
-      .from(imports)
-      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
-      .leftJoin(users, eq(imports.userId, users.id))
-      .orderBy(desc(imports.createdAt));
+    console.log(`Admin fetching all imports - User: ${req.session.userId}, Role: ${req.user?.role}`);
+    
+    // Use the existing storage method to get all imports with user data
+    const importsData = await storage.getAllImports();
+    
+    console.log(`Found ${importsData.length} imports for admin view`);
+    
+    // Get user data for each import to add company names
+    const allUsers = await storage.getAllUsers();
+    const enrichedImports = importsData.map(importItem => {
+      const user = allUsers.find(u => u.id === importItem.userId);
+      return {
+        ...importItem,
+        companyName: user?.companyName || 'Empresa não encontrada',
+        userFullName: user?.fullName || 'Nome não encontrado'
+      };
+    });
 
-    res.json(importsData);
+    console.log(`Returning ${enrichedImports.length} enriched imports`);
+    res.json(enrichedImports);
 
   } catch (error) {
     console.error('Error fetching admin imports:', error);
-    res.status(500).json({ error: 'Failed to fetch imports' });
+    res.status(500).json({ error: 'Failed to fetch imports', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
 importRoutes.get('/admin/imports/:id', requireAdminOrFinanceira, async (req, res) => {
   try {
     const importId = Number(req.params.id);
+    console.log(`Admin fetching import ${importId} - User: ${req.session.userId}, Role: ${req.user?.role}`);
 
-    // Get import with all related data
-    const importQuery = db
-      .select({
-        import: imports,
-        supplier: suppliers,
-        user: {
-          id: users.id,
-          companyName: users.companyName,
-          fullName: users.fullName
-        }
-      })
-      .from(imports)
-      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
-      .leftJoin(users, eq(imports.userId, users.id))
-      .where(eq(imports.id, importId));
-
-    const [importData] = await importQuery;
+    // Use existing storage method to get import details
+    const importData = await storage.getImport(importId);
 
     if (!importData) {
+      console.log(`Import ${importId} not found`);
       return res.status(404).json({ error: 'Import not found' });
     }
 
-    // Get all related data
-    const products = await db
-      .select()
-      .from(importProducts)
-      .where(eq(importProducts.importId, importId));
+    // Get user data for the import
+    const user = await storage.getUser(importData.userId);
+    const enrichedImportData = {
+      ...importData,
+      companyName: user?.companyName || 'Empresa não encontrada',
+      userFullName: user?.fullName || 'Nome não encontrado'
+    };
 
-    const documents = await db
-      .select()
-      .from(importDocuments)
-      .where(eq(importDocuments.importId, importId));
-
-    const timeline = await db
-      .select({
-        timeline: importTimeline,
-        user: {
-          id: users.id,
-          fullName: users.fullName
-        }
-      })
-      .from(importTimeline)
-      .leftJoin(users, eq(importTimeline.changedBy, users.id))
-      .where(eq(importTimeline.importId, importId))
-      .orderBy(desc(importTimeline.changedAt));
-
-    const payments = await db
-      .select()
-      .from(importPayments)
-      .where(eq(importPayments.importId, importId))
-      .orderBy(importPayments.dueDate);
-
-    res.json({
-      ...importData.import,
-      supplier: importData.supplier,
-      user: importData.user,
-      products,
-      documents,
-      timeline,
-      payments
-    });
+    console.log(`Returning import ${importId} details`);
+    res.json(enrichedImportData);
 
   } catch (error) {
     console.error('Error fetching admin import details:', error);
-    res.status(500).json({ error: 'Failed to fetch import details' });
+    res.status(500).json({ error: 'Failed to fetch import details', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
