@@ -582,3 +582,6 @@ export const notifications = pgTable("notifications", {
 
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
+
+// Import all imports-related tables and schemas
+export * from './imports-schema';

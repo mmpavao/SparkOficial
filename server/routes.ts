@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
+import { importRoutes } from "./imports-routes";
 
 // Extend the session interface
 declare module "express-session" {
