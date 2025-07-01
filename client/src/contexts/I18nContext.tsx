@@ -448,17 +448,7 @@ const defaultTranslations: Record<Language, Translations> = {
       creditRequestsWillAppearHere: '您的信贷申请将在此显示。',
       application: '申请',
       confirmCancelApplication: '您确定要取消此信贷申请吗？',
-      company: '公司',
-      companyPlaceholder: '公司名称...',
-      minAmount: '最低金额 (美元)',
-      minAmountPlaceholder: '$ 0',
-      maxAmount: '最高金额 (美元)',
-      maxAmountPlaceholder: '$ 1,000,000',
-      riskLevel: '风险等级',
-      allLevels: '所有等级',
-      low: '低',
-      medium: '中',
-      high: '高',
+
 
     },
     common: {
@@ -604,17 +594,7 @@ const defaultTranslations: Record<Language, Translations> = {
       creditRequestsWillAppearHere: 'Sus solicitudes de crédito aparecerán aquí.',
       application: 'solicitud',
       confirmCancelApplication: '¿Está seguro de que desea cancelar esta solicitud de crédito?',
-      company: 'Empresa',
-      companyPlaceholder: 'Nombre de la empresa...',
-      minAmount: 'Monto Mínimo (USD)',
-      minAmountPlaceholder: '$ 0',
-      maxAmount: 'Monto Máximo (USD)',
-      maxAmountPlaceholder: '$ 1,000,000',
-      riskLevel: 'Nivel de Riesgo',
-      allLevels: 'Todos los niveles',
-      low: 'Bajo',
-      medium: 'Medio',
-      high: 'Alto',
+
 
     },
     common: {
