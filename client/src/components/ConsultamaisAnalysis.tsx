@@ -428,6 +428,106 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                   </div>
                 </div>
 
+                {/* CNAEs - Atividades Econômicas */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Atividades Econômicas (CNAEs)</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-gray-500">CNAE Principal:</span>
+                        <p className="font-medium">4644-3/01 - Comércio atacadista de medicamentos e drogas de uso humano</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">CNAE Secundário:</span>
+                        <p className="font-medium">4618-4/01 - Representação comercial e agentes do comércio de medicamentos</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Demais CNAEs:</span>
+                        <div className="text-xs text-gray-600 mt-1 space-y-1">
+                          <p>• 4637-1/99 - Comércio atacadista especializado em outros produtos alimentícios</p>
+                          <p>• 4639-7/01 - Comércio atacadista de produtos alimentícios em geral</p>
+                          <p>• 4644-3/02 - Comércio atacadista de medicamentos e drogas de uso veterinário</p>
+                          <p>• 4645-1/01 - Comércio atacadista de instrumentos e materiais para uso médico</p>
+                          <p>• 4645-1/03 - Comércio atacadista de produtos odontológicos</p>
+                          <p>• 4646-0/01 - Comércio atacadista de cosméticos e produtos de perfumaria</p>
+                          <p>• 4646-0/02 - Comércio atacadista de produtos de higiene pessoal</p>
+                          <p>• 4649-4/08 - Comércio atacadista de produtos de higiene, limpeza e conservação</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sócios e Participações */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-indigo-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Sócios e Participações</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-gray-500 font-medium">Composição Societária:</span>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex justify-between items-center bg-white p-2 rounded border">
+                            <div>
+                              <p className="font-medium">KELLY CRISTINA FABIANO RIBEIRO</p>
+                              <p className="text-gray-500">CPF: 349.775.588-55</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-blue-600">33,34%</p>
+                              <p className="text-gray-500">Entrada: 08/02/2024</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center bg-white p-2 rounded border">
+                            <div>
+                              <p className="font-medium">FERMINO DO ESPIRITO SANTO NETO</p>
+                              <p className="text-gray-500">CPF: 223.590.688-57</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-blue-600">33,33%</p>
+                              <p className="text-gray-500">Entrada: 26/07/2013</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center bg-white p-2 rounded border">
+                            <div>
+                              <p className="font-medium">ROSANA APARECIDA FABIANO</p>
+                              <p className="text-gray-500">CPF: 225.036.868-69</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-blue-600">33,33%</p>
+                              <p className="text-gray-500">Entrada: 26/07/2013</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border-t pt-3">
+                        <span className="text-gray-500 font-medium">Participações dos Sócios em Outras Empresas:</span>
+                        <div className="mt-2 space-y-2">
+                          <div className="bg-white p-2 rounded border">
+                            <p className="font-medium">INFINITMED IMPORTADORA E DISTRIBUIDORA</p>
+                            <p className="text-gray-500">CNPJ: 29.209.513/0001-99 - Ativo</p>
+                            <div className="text-xs text-gray-600 mt-1">
+                              <p>• Kelly C. F. Ribeiro: 40% | Fermino E. S. Neto: 0% | Rosana A. Fabiano: 0%</p>
+                            </div>
+                          </div>
+                          <div className="bg-white p-2 rounded border">
+                            <p className="font-medium">FRACTUS INDUSTRIA COMERCIO PRODUTOS MEDICOS</p>
+                            <p className="text-gray-500">CNPJ: 34.270.370/0001-60 - Ativo</p>
+                            <div className="text-xs text-gray-600 mt-1">
+                              <p>• Kelly C. F. Ribeiro: 20% | Rosana A. Fabiano: 0%</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Consultas Anteriores */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
