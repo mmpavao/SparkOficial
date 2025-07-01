@@ -113,7 +113,10 @@ const defaultTranslations: Record<Language, Translations> = {
       daysToApprove: 'Dias para aprovar',
       utilizationRate: 'Taxa de Utilização',
       ofApprovedCredit: 'Do crédito aprovado',
-      applicationStatusTitle: 'Status das Aplicações de Crédito'
+      applicationStatusTitle: 'Status das Aplicações de Crédito',
+      creditAnalysis: 'Análise de Crédito',
+      importAnalysis: 'Análise de Importações',
+      allSuppliers: 'Todos os Fornecedores'
     },
     // Common terms
     common: {
