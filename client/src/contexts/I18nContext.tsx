@@ -338,7 +338,14 @@ const defaultTranslations: Record<Language, Translations> = {
       creditAnalysis: '信贷分析',
       importAnalysis: '进口分析',
       allSuppliers: '所有供应商',
-      reports: '报告'
+      reports: '报告',
+      requestId: '申请ID',
+      preAnalysis: '预分析',
+      createdAt: '创建时间',
+      updatedAt: '更新时间',
+      viewDetails: '查看详情',
+      edit: '编辑',
+      cancel: '取消'
     },
     common: {
       save: '保存',
@@ -441,7 +448,14 @@ const defaultTranslations: Record<Language, Translations> = {
       creditAnalysis: 'Análisis de Crédito',
       importAnalysis: 'Análisis de Importaciones',
       allSuppliers: 'Todos los Proveedores',
-      reports: 'Informes'
+      reports: 'Informes',
+      requestId: 'ID de Solicitud',
+      preAnalysis: 'Pre-Análisis',
+      createdAt: 'Creado en',
+      updatedAt: 'Actualizado en',
+      viewDetails: 'Ver Detalles',
+      edit: 'Editar',
+      cancel: 'Cancelar'
     },
     common: {
       save: 'Guardar',
@@ -544,7 +558,14 @@ const defaultTranslations: Record<Language, Translations> = {
       creditAnalysis: 'Анализ кредитов',
       importAnalysis: 'Анализ импорта',
       allSuppliers: 'Все поставщики',
-      reports: 'Отчеты'
+      reports: 'Отчеты',
+      requestId: 'ID заявки',
+      preAnalysis: 'Предварительный анализ',
+      createdAt: 'Создано',
+      updatedAt: 'Обновлено',
+      viewDetails: 'Просмотр деталей',
+      edit: 'Редактировать',
+      cancel: 'Отменить'
     },
     common: {
       save: 'Сохранить',
