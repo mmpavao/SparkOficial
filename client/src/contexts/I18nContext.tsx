@@ -124,7 +124,18 @@ const defaultTranslations: Record<Language, Translations> = {
       updatedAt: 'Atualizado em',
       viewDetails: 'Ver Detalhes',
       edit: 'Editar',
-      cancel: 'Cancelar'
+      cancel: 'Cancelar',
+      adminCreditManagement: 'Gestão de Crédito - Área Administrativa',
+      adminDescription: 'Visualize e gerencie todas as solicitações de crédito da plataforma',
+      financialDescription: 'Avalie e aprove solicitações de crédito pré-analisadas pela administração',
+      userDescription: 'Solicite crédito para suas importações',
+      allCreditApplications: 'Todas as Solicitações de Crédito',
+      success: 'Sucesso',
+      error: 'Erro',
+      applicationCancelledSuccess: 'Solicitação de crédito cancelada com sucesso.',
+      applicationCancelError: 'Erro ao cancelar solicitação de crédito.',
+      expandFilters: 'Expandir',
+      collapseFilters: 'Recolher'
     },
     // Common terms
     common: {
@@ -235,7 +246,18 @@ const defaultTranslations: Record<Language, Translations> = {
       updatedAt: 'Updated at',
       viewDetails: 'View Details',
       edit: 'Edit',
-      cancel: 'Cancel'
+      cancel: 'Cancel',
+      adminCreditManagement: 'Credit Management - Administrative Area',
+      adminDescription: 'View and manage all credit applications on the platform',
+      financialDescription: 'Evaluate and approve credit applications pre-analyzed by administration',
+      userDescription: 'Request credit for your imports',
+      allCreditApplications: 'All Credit Applications',
+      success: 'Success',
+      error: 'Error',
+      applicationCancelledSuccess: 'Credit application cancelled successfully.',
+      applicationCancelError: 'Error cancelling credit application.',
+      expandFilters: 'Expand',
+      collapseFilters: 'Collapse'
     },
     common: {
       save: 'Save',
@@ -345,7 +367,18 @@ const defaultTranslations: Record<Language, Translations> = {
       updatedAt: '更新时间',
       viewDetails: '查看详情',
       edit: '编辑',
-      cancel: '取消'
+      cancel: '取消',
+      adminCreditManagement: '信贷管理 - 管理区域',
+      adminDescription: '查看和管理平台上的所有信贷申请',
+      financialDescription: '评估和批准由管理部门预先分析的信贷申请',
+      userDescription: '为您的进口申请信贷',
+      allCreditApplications: '所有信贷申请',
+      success: '成功',
+      error: '错误',
+      applicationCancelledSuccess: '信贷申请已成功取消。',
+      applicationCancelError: '取消信贷申请时出错。',
+      expandFilters: '展开',
+      collapseFilters: '收起'
     },
     common: {
       save: '保存',
@@ -455,7 +488,18 @@ const defaultTranslations: Record<Language, Translations> = {
       updatedAt: 'Actualizado en',
       viewDetails: 'Ver Detalles',
       edit: 'Editar',
-      cancel: 'Cancelar'
+      cancel: 'Cancelar',
+      adminCreditManagement: 'Gestión de Crédito - Área Administrativa',
+      adminDescription: 'Ver y gestionar todas las solicitudes de crédito en la plataforma',
+      financialDescription: 'Evaluar y aprobar solicitudes de crédito preaprobadas por la administración',
+      userDescription: 'Solicitar crédito para sus importaciones',
+      allCreditApplications: 'Todas las Solicitudes de Crédito',
+      success: 'Éxito',
+      error: 'Error',
+      applicationCancelledSuccess: 'Solicitud de crédito cancelada exitosamente.',
+      applicationCancelError: 'Error al cancelar solicitud de crédito.',
+      expandFilters: 'Expandir',
+      collapseFilters: 'Contraer'
     },
     common: {
       save: 'Guardar',
@@ -565,7 +609,18 @@ const defaultTranslations: Record<Language, Translations> = {
       updatedAt: 'Обновлено',
       viewDetails: 'Просмотр деталей',
       edit: 'Редактировать',
-      cancel: 'Отменить'
+      cancel: 'Отменить',
+      adminCreditManagement: 'Управление кредитами - Административная область',
+      adminDescription: 'Просмотр и управление всеми кредитными заявками на платформе',
+      financialDescription: 'Оценка и одобрение кредитных заявок, предварительно проанализированных администрацией',
+      userDescription: 'Запросить кредит для ваших импортных операций',
+      allCreditApplications: 'Все кредитные заявки',
+      success: 'Успех',
+      error: 'Ошибка',
+      applicationCancelledSuccess: 'Кредитная заявка успешно отменена.',
+      applicationCancelError: 'Ошибка отмены кредитной заявки.',
+      expandFilters: 'Развернуть',
+      collapseFilters: 'Свернуть'
     },
     common: {
       save: 'Сохранить',

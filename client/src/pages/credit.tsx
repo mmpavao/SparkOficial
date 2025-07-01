@@ -201,13 +201,13 @@ export default function CreditPage() {
         await apiRequest(`/api/credit/applications/${applicationId}`, 'DELETE');
         queryClient.invalidateQueries({ queryKey: [getEndpoint()] });
         toast({
-          title: "Sucesso",
-          description: "Solicitação de crédito cancelada com sucesso.",
+          title: t('financial.success'),
+          description: t('financial.applicationCancelledSuccess'),
         });
       } catch (error) {
         toast({
-          title: "Erro",
-          description: "Erro ao cancelar solicitação de crédito.",
+          title: t('financial.error'),
+          description: t('financial.applicationCancelError'),
           variant: "destructive",
         });
       }
@@ -257,15 +257,15 @@ export default function CreditPage() {
             {permissions.isFinanceira 
               ? t('financial.title')
               : permissions.canViewAllApplications 
-                ? "Gestão de Crédito - Área Administrativa" 
+                ? t('financial.adminCreditManagement')
                 : t('credit.title')}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
-              ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
+              ? t('financial.financialDescription')
               : permissions.canViewAllApplications 
-                ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
-                : "Solicite crédito para suas importações"}
+                ? t('financial.adminDescription')
+                : t('financial.userDescription')}
           </p>
         </div>
         {!permissions.isFinanceira && !permissions.isAdmin && (
