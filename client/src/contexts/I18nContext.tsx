@@ -139,6 +139,7 @@ const defaultTranslations: Record<Language, Translations> = {
       adminFilters: 'Filtros Administrativos',
       active: 'Ativos',
       clear: 'Limpar',
+      expandFilters: 'Expandir',
       company: 'Empresa',
       companyPlaceholder: 'Nome da empresa...',
       minAmount: 'Valor Mínimo (USD)',
@@ -284,6 +285,7 @@ const defaultTranslations: Record<Language, Translations> = {
       adminFilters: 'Administrative Filters',
       active: 'Active',
       clear: 'Clear',
+      expandFilters: 'Expand',
       company: 'Company',
       companyPlaceholder: 'Company name...',
       minAmount: 'Minimum Amount (USD)',
@@ -604,7 +606,20 @@ const defaultTranslations: Record<Language, Translations> = {
       zeroApplications: '0 solicitudes',
       creditRequestsWillAppearHere: 'Sus solicitudes de crédito aparecerán aquí.',
       application: 'solicitud',
-      confirmCancelApplication: '¿Está seguro de que desea cancelar esta solicitud de crédito?'
+      confirmCancelApplication: '¿Está seguro de que desea cancelar esta solicitud de crédito?',
+      company: 'Empresa',
+      companyPlaceholder: 'Nombre de la empresa...',
+      minAmount: 'Monto Mínimo (USD)',
+      minAmountPlaceholder: '$ 0',
+      maxAmount: 'Monto Máximo (USD)',
+      maxAmountPlaceholder: '$ 1,000,000',
+      riskLevel: 'Nivel de Riesgo',
+      allLevels: 'Todos los niveles',
+      low: 'Bajo',
+      medium: 'Medio',
+      high: 'Alto',
+      adminFilters: 'Filtros Administrativos',
+      collapseFilters: 'Ocultar Filtros'
     },
     common: {
       save: 'Guardar',
@@ -748,7 +763,9 @@ const defaultTranslations: Record<Language, Translations> = {
       zeroApplications: '0 заявок',
       creditRequestsWillAppearHere: 'Ваши кредитные заявки будут отображаться здесь.',
       application: 'заявка',
-      confirmCancelApplication: 'Вы уверены, что хотите отменить эту кредитную заявку?'
+      confirmCancelApplication: 'Вы уверены, что хотите отменить эту кредитную заявку?',
+      adminFilters: 'Административные фильтры',
+      collapseFilters: 'Скрыть фильтры'
     },
     common: {
       save: 'Сохранить',
