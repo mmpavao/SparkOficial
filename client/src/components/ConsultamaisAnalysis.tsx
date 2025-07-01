@@ -357,14 +357,32 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                         <p className="font-medium text-green-600">Ativa</p>
                       </div>
                     </div>
+                    <div>
+                      <span className="text-gray-500">Razão Social:</span>
+                      <p className="font-medium">PROW IMPORTADORA E DISTRIBUIDORA DE PRODUTOS PARA SAUDE LTDA</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Nome Fantasia:</span>
+                      <p className="font-medium">PROW MEDICAMENTOS</p>
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <span className="text-gray-500">Natureza Jurídica:</span>
-                        <p className="font-medium">Sociedade Empresária Limitada</p>
+                        <p className="font-medium">SOCIEDADE EMPRESARIA LIMITADA</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Porte:</span>
-                        <p className="font-medium">Média Empresa</p>
+                        <span className="text-gray-500">Segmento:</span>
+                        <p className="font-medium">COMERCIO VAREJISTA</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-gray-500">Capital Atual:</span>
+                        <p className="font-medium">R$ 10.000,00</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Capital Inicial:</span>
+                        <p className="font-medium">R$ 400.000,00</p>
                       </div>
                     </div>
                   </div>
@@ -380,16 +398,30 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                     <div className="space-y-1">
                       <div>
                         <span className="text-gray-500">Endereço:</span>
-                        <p className="font-medium">Av. Paulista, 1374 - Bela Vista</p>
+                        <p className="font-medium">RUA ALFERES BONILHA, 344 -ANEXO 348</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Bairro:</span>
+                        <p className="font-medium">CENTRO</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <span className="text-gray-500">Cidade/UF:</span>
-                          <p className="font-medium">São Paulo - SP</p>
+                          <p className="font-medium">SAO BERNARDO DO CAMPO - SP</p>
                         </div>
                         <div>
                           <span className="text-gray-500">CEP:</span>
-                          <p className="font-medium">01310-100</p>
+                          <p className="font-medium">09721-230</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-gray-500">Telefone 1:</span>
+                          <p className="font-medium">(11) 4338-0916</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Telefone 2:</span>
+                          <p className="font-medium">(11) 4338-7518</p>
                         </div>
                       </div>
                     </div>
@@ -406,16 +438,20 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <span className="text-gray-500">Total de Consultas:</span>
-                        <p className="font-medium">12 consultas</p>
+                        <p className="font-medium">11 consultas</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Última Consulta:</span>
-                        <p className="font-medium">5 dias atrás</p>
+                        <span className="text-gray-500">Período:</span>
+                        <p className="font-medium">01/06/2024 até 01/06/2025</p>
                       </div>
                     </div>
                     <div className="mt-2">
-                      <span className="text-gray-500">Frequência:</span>
-                      <p className="font-medium">2-3 consultas/mês</p>
+                      <span className="text-gray-500">Última Consulta:</span>
+                      <p className="font-medium">30/05/2025 (SP-RCO/ORTHO SYSTEM)</p>
+                    </div>
+                    <div className="mt-2">
+                      <span className="text-gray-500">Consultas Recentes:</span>
+                      <p className="font-medium text-xs">12/05/2025 (DIMENSA S.A), 07/05/2025 (BRADESCO)</p>
                     </div>
                   </div>
                 </div>
@@ -432,16 +468,30 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <span className="text-gray-500">Total de Pendências:</span>
-                            <p className="font-medium text-red-600">3 registros</p>
+                            <p className="font-medium text-red-600">2 registros</p>
                           </div>
                           <div>
                             <span className="text-gray-500">Valor Total:</span>
-                            <p className="font-medium text-red-600">R$ 15.430,00</p>
+                            <p className="font-medium text-red-600">R$ 3.417,00</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-gray-500">Maior Débito:</span>
+                            <p className="font-medium">R$ 1.708,50 (27/04/2023)</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Primeiro Débito:</span>
+                            <p className="font-medium">R$ 1.708,50 (28/03/2023)</p>
                           </div>
                         </div>
                         <div>
-                          <span className="text-gray-500">Maior Registro:</span>
-                          <p className="font-medium">R$ 8.900,00 (12/2024)</p>
+                          <span className="text-gray-500">Informante:</span>
+                          <p className="font-medium">BOA VISTA SERVICOS S/A</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Período:</span>
+                          <p className="font-medium">28/03/2023 a 27/04/2023</p>
                         </div>
                       </div>
                     ) : (
