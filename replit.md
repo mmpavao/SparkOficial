@@ -780,6 +780,14 @@ Changelog:
   * Updated debt indicators: 2 pendências totalizando R$ 3.417,00 (BOA VISTA SERVICOS S/A)
   * Added PDF download button for authentic consultation report document
   * System now displays 100% real consultation data from actual Consultamais report
+- July 1, 2025. Complete role-based access control implementation for creation buttons:
+  * Fixed credit applications: "Nova Solicitação de Crédito" button removed from Admin and Financeira modules
+  * Fixed imports: "Nova Importação" button removed from Admin and Financeira modules (both imports.tsx and imports-new-integrated.tsx)
+  * Fixed suppliers: "Novo Fornecedor" button removed from Admin and Financeira modules
+  * Dashboard quick actions already properly restricted to Importador role only
+  * All creation buttons now appear exclusively in Importador module with proper conditional rendering (!permissions.isFinanceira && !permissions.isAdmin)
+  * Admin and Financeira users maintain full access for viewing, analysis, and management without creation rights
+  * System now enforces proper workflow separation: only importers can create new records, admins/financeira analyze and approve
 ```
 
 ## User Preferences
