@@ -66,6 +66,8 @@ type CreditApplicationForm = {
 
 // Componente para calcular e exibir dados reais de crédito
 function CreditSummaryCards({ applications, permissions }: { applications: any[], permissions: any }) {
+  const { t } = useTranslation();
+  
   if (!Array.isArray(applications)) {
     return null;
   }
@@ -108,13 +110,13 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado"}
+                {permissions.canViewAllApplications ? t('financial.approved') : t('financial.creditApproved')}
               </p>
               <p className="text-2xl font-bold text-green-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalApproved)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {approvedApplications.length} {approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}
+                {approvedApplications.length} {approvedApplications.length === 1 ? t('financial.application') : t('financial.applications')}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -150,13 +152,13 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes"}
+                {permissions.canViewAllApplications ? t('financial.pending') : t('financial.pendingApplications')}
               </p>
               <p className="text-2xl font-bold text-orange-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {pendingApplications.length} {pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}
+                {pendingApplications.length} {pendingApplications.length === 1 ? t('financial.application') : t('financial.applications')}
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -272,7 +274,7 @@ export default function CreditPage() {
             className="bg-spark-600 hover:bg-spark-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nova Solicitação de Crédito
+            {t('financial.newCreditApplication')}
           </Button>
         )}
       </div>
