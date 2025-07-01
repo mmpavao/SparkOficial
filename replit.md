@@ -1,5 +1,5 @@
 # Spark Comex - Brazilian Import Credit Platform
-## Version: Beta v1.1.0 (01/07/2025 - 00:21 UTC) - Sistema Estável com Consultamais
+## Version: Beta v1.0.0 (30/06/2025 - 05:05 UTC) - Sistema Estável
 
 ## Overview
 
@@ -763,31 +763,6 @@ Changelog:
   * Replaced sidebar logo with new official Spark Comex logo (logo-spark_1751323949667.png)
   * Updated import reference in AuthenticatedLayout.tsx to use new logo asset
   * Maintained existing logo functionality and responsive behavior in sidebar
-- July 1, 2025. Complete Consultamais API integration with expandable detailed analysis:
-  * Created consultamais_analysis database table with comprehensive analysis storage
-  * Implemented backend endpoints for credit consultation and analysis retrieval
-  * Integrated ConsultamaisAnalysis component into credit details page for admin/financeira users
-  * Added expandable "Ver mais detalhes" section with comprehensive credit analysis information
-  * Implemented 7 detailed sections: Company ID, Location, Query History, Debts, Protests, Check History, Analysis Summary
-  * Enhanced UI with ghost button for expansion control and organized data presentation in gray background cards
-  * System uses realistic simulated data until real API credentials are configured
-  * Complete integration ready for production with R$ 22,90 consultation cost tracking
-- July 1, 2025. Complete transition to authentic PROW IMPORTADORA consultation data:
-  * Replaced all mock data with authentic consultation information from CNPJ 65.484.271/0001-05
-  * Updated company identification: PROW IMPORTADORA LTDA, established 23/06/2023, CNAE 4639-7/01
-  * Updated location data: RUA ALFERES BONILHA 344 ANEXO 348, CENTRO, SÃO BERNARDO DO CAMPO - SP
-  * Updated consultation history: 11 consultas no período 01/06/2024 até 01/06/2025
-  * Updated debt indicators: 2 pendências totalizando R$ 3.417,00 (BOA VISTA SERVICOS S/A)
-  * Added PDF download button for authentic consultation report document
-  * System now displays 100% real consultation data from actual Consultamais report
-- July 1, 2025. Complete role-based access control implementation for creation buttons:
-  * Fixed credit applications: "Nova Solicitação de Crédito" button removed from Admin and Financeira modules
-  * Fixed imports: "Nova Importação" button removed from Admin and Financeira modules (both imports.tsx and imports-new-integrated.tsx)
-  * Fixed suppliers: "Novo Fornecedor" button removed from Admin and Financeira modules
-  * Dashboard quick actions already properly restricted to Importador role only
-  * All creation buttons now appear exclusively in Importador module with proper conditional rendering (!permissions.isFinanceira && !permissions.isAdmin)
-  * Admin and Financeira users maintain full access for viewing, analysis, and management without creation rights
-  * System now enforces proper workflow separation: only importers can create new records, admins/financeira analyze and approve
 ```
 
 ## User Preferences

@@ -9,7 +9,6 @@ import {
   payments,
   importDocuments,
   notifications,
-  consultamaisAnalysis,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -18,8 +17,6 @@ import {
   type InsertImport,
   type Supplier,
   type InsertSupplier,
-  type ConsultamaisAnalysis,
-  type InsertConsultamaisAnalysis,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
@@ -1422,59 +1419,6 @@ export class DatabaseStorage {
         .select()
         .from(suppliers);
     }
-  }
-
-  // ===== CONSULTAMAIS OPERATIONS =====
-
-  // Get Consultamais analysis for a credit application
-  async getConsultamaisAnalysis(applicationId: number): Promise<ConsultamaisAnalysis | undefined> {
-    const result = await db
-      .select()
-      .from(consultamaisAnalysis)
-      .where(eq(consultamaisAnalysis.applicationId, applicationId))
-      .limit(1);
-    return result[0];
-  }
-
-  // Save Consultamais analysis result
-  async saveConsultamaisAnalysis(data: InsertConsultamaisAnalysis): Promise<ConsultamaisAnalysis> {
-    // Check if analysis already exists for this application
-    const existing = await this.getConsultamaisAnalysis(data.applicationId);
-    
-    if (existing) {
-      // Update existing analysis
-      const result = await db
-        .update(consultamaisAnalysis)
-        .set({
-          ...data,
-          updatedAt: new Date()
-        })
-        .where(eq(consultamaisAnalysis.applicationId, data.applicationId))
-        .returning();
-      return result[0];
-    } else {
-      // Insert new analysis
-      const result = await db
-        .insert(consultamaisAnalysis)
-        .values(data)
-        .returning();
-      return result[0];
-    }
-  }
-
-  // Get all Consultamais analyses (admin only)
-  async getAllConsultamaisAnalyses(): Promise<ConsultamaisAnalysis[]> {
-    return await db
-      .select()
-      .from(consultamaisAnalysis)
-      .orderBy(desc(consultamaisAnalysis.createdAt));
-  }
-
-  // Delete Consultamais analysis
-  async deleteConsultamaisAnalysis(applicationId: number): Promise<void> {
-    await db
-      .delete(consultamaisAnalysis)
-      .where(eq(consultamaisAnalysis.applicationId, applicationId));
   }
 }
 

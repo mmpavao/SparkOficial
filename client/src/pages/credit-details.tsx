@@ -16,7 +16,6 @@ import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import CreditCommunication from "@/components/CreditCommunication";
-import ConsultamaisAnalysis from "@/components/ConsultamaisAnalysis";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
@@ -1028,13 +1027,6 @@ export default function CreditDetailsPage() {
           {(permissions.isAdmin || permissions.isFinanceira) && (
             <>
               <AdminAnalysisPanel application={application} />
-              
-              {/* Consultamais Credit Analysis Integration */}
-              <ConsultamaisAnalysis 
-                cnpj={application.cnpj} 
-                applicationId={application.id} 
-              />
-              
               {permissions.isAdmin && application.financialStatus === 'approved' && (
                 <AdminFinalizationPanel 
                   application={application} 

@@ -149,7 +149,7 @@ export default function ImportsPage() {
               : "Gerencie suas importações e acompanhe o status de cada operação"}
           </p>
         </div>
-        {!permissions.isFinanceira && !permissions.isAdmin && (
+        {!permissions.isFinanceira && (
           <Link href="/imports/new">
             <Button className="bg-emerald-600 hover:bg-emerald-700">
               <Plus className="w-4 h-4 mr-2" />

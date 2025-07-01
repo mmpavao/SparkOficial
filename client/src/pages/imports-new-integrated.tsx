@@ -203,8 +203,8 @@ export default function ImportsPageIntegrated() {
           </p>
         </div>
         
-        {!permissions.isFinanceira && !permissions.isAdmin && (
-          <Button onClick={handleNewImport} className="bg-[#42a96f] hover:bg-blue-700">
+        {!permissions.isFinanceira && (
+          <Button onClick={handleNewImport} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             Nova Importação
           </Button>
@@ -245,7 +245,7 @@ export default function ImportsPageIntegrated() {
                   : "Comece criando sua primeira importação"
                 }
               </p>
-              {!permissions.isFinanceira && !permissions.isAdmin && (
+              {!permissions.isFinanceira && (
                 <Button onClick={handleNewImport} variant="outline">
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Importação
