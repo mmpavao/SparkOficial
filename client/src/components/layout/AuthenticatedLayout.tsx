@@ -14,7 +14,7 @@ const navTranslations = {
   logout: 'Sair'
 };
 
-import { NotificationCenter } from '@/components/NotificationCenter';
+import NotificationCenter from '@/components/NotificationCenter';
 import { useTranslation } from '@/contexts/I18nContext';
 import LanguageSelector from '@/components/ui/language-selector';
 import {

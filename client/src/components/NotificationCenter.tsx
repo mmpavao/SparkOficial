@@ -1,4 +1,3 @@
-
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,7 @@ function NotificationItem({
   onMarkAsRead: (id: number) => void;
 }) {
   const isUnread = notification.status === "unread";
-  
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent": return "bg-red-500";
