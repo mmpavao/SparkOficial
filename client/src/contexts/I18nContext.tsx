@@ -463,6 +463,7 @@ const defaultTranslations: Record<Language, Translations> = {
       recentActivity: 'Недавняя активность',
       requested: 'Запрошено',
       underReview: 'На рассмотрении',
+      cancelled: 'Отменены',
       other: 'Другое',
       thisMonth: 'В этом месяце'
     },
