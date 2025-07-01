@@ -4,6 +4,7 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 // Navigation labels - using Portuguese for Brazilian users
 const navTranslations = {
@@ -130,13 +131,13 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     { 
       path: "/credit", 
       icon: CreditCard, 
-      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
+      label: (isAdmin || isFinanceira) ? t('financial.creditAnalysis') : navTranslations.credit 
     },
     { 
       path: "/imports", 
       icon: Package, 
       label: isFinanceira 
-        ? "Análise de Importações" 
+        ? t('financial.importAnalysis') 
         : isAdmin 
           ? "Todas as Importações" 
           : "Minhas Importações"
@@ -145,9 +146,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       path: "/suppliers", 
       icon: Building, 
       label: isFinanceira 
-        ? "Todos Fornecedores" 
+        ? t('financial.allSuppliers') 
         : isAdmin 
-          ? "Todos Fornecedores" 
+          ? t('financial.allSuppliers') 
           : "Fornecedores"
     },
     { path: "/reports", icon: BarChart3, label: navTranslations.reports },

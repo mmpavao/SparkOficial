@@ -213,7 +213,10 @@ const defaultTranslations: Record<Language, Translations> = {
       daysToApprove: 'Days to approve',
       utilizationRate: 'Utilization Rate',
       ofApprovedCredit: 'Of approved credit',
-      applicationStatusTitle: 'Credit Application Status'
+      applicationStatusTitle: 'Credit Application Status',
+      creditAnalysis: 'Credit Analysis',
+      importAnalysis: 'Import Analysis',
+      allSuppliers: 'All Suppliers'
     },
     common: {
       save: 'Save',
@@ -312,7 +315,10 @@ const defaultTranslations: Record<Language, Translations> = {
       daysToApprove: '审批天数',
       utilizationRate: '使用率',
       ofApprovedCredit: '已批准信贷的',
-      applicationStatusTitle: '信贷申请状态'
+      applicationStatusTitle: '信贷申请状态',
+      creditAnalysis: '信贷分析',
+      importAnalysis: '进口分析',
+      allSuppliers: '所有供应商'
     },
     common: {
       save: '保存',
@@ -411,7 +417,10 @@ const defaultTranslations: Record<Language, Translations> = {
       daysToApprove: 'Días para aprobar',
       utilizationRate: 'Tasa de Utilización',
       ofApprovedCredit: 'Del crédito aprobado',
-      applicationStatusTitle: 'Estado de Solicitudes de Crédito'
+      applicationStatusTitle: 'Estado de Solicitudes de Crédito',
+      creditAnalysis: 'Análisis de Crédito',
+      importAnalysis: 'Análisis de Importaciones',
+      allSuppliers: 'Todos los Proveedores'
     },
     common: {
       save: 'Guardar',
@@ -510,7 +519,10 @@ const defaultTranslations: Record<Language, Translations> = {
       daysToApprove: 'Дней для одобрения',
       utilizationRate: 'Коэффициент использования',
       ofApprovedCredit: 'Одобренного кредита',
-      applicationStatusTitle: 'Статус кредитных заявок'
+      applicationStatusTitle: 'Статус кредитных заявок',
+      creditAnalysis: 'Анализ кредитов',
+      importAnalysis: 'Анализ импорта',
+      allSuppliers: 'Все поставщики'
     },
     common: {
       save: 'Сохранить',
