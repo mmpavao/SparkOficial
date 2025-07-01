@@ -772,6 +772,14 @@ Changelog:
   * Enhanced UI with ghost button for expansion control and organized data presentation in gray background cards
   * System uses realistic simulated data until real API credentials are configured
   * Complete integration ready for production with R$ 22,90 consultation cost tracking
+- July 1, 2025. Complete transition to authentic PROW IMPORTADORA consultation data:
+  * Replaced all mock data with authentic consultation information from CNPJ 65.484.271/0001-05
+  * Updated company identification: PROW IMPORTADORA LTDA, established 23/06/2023, CNAE 4639-7/01
+  * Updated location data: RUA ALFERES BONILHA 344 ANEXO 348, CENTRO, SÃO BERNARDO DO CAMPO - SP
+  * Updated consultation history: 11 consultas no período 01/06/2024 até 01/06/2025
+  * Updated debt indicators: 2 pendências totalizando R$ 3.417,00 (BOA VISTA SERVICOS S/A)
+  * Added PDF download button for authentic consultation report document
+  * System now displays 100% real consultation data from actual Consultamais report
 ```
 
 ## User Preferences

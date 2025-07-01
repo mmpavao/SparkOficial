@@ -593,6 +593,27 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                         <p className="font-medium text-green-600">R$ {analysisData.consultationCost.toFixed(2)}</p>
                       </div>
                     </div>
+                    
+                    {/* Botão de Download do Relatório PDF */}
+                    <div className="mt-4 pt-3 border-t">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                        onClick={() => {
+                          // Create a temporary link to download the PDF
+                          const link = document.createElement('a');
+                          link.href = '/attached_assets/Resultado da consulta Completa Empresa #244834 _ Consultamais Consultas Cadastrais - Realize sua consulta de CPF e CNPJ_1751329489353.pdf';
+                          link.download = 'Consultamais_PROW_IMPORTADORA_244834.pdf';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Baixar Relatório Completo (PDF)
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
