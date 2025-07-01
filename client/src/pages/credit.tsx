@@ -196,7 +196,7 @@ export default function CreditPage() {
 
   // Cancel application handler
   const handleCancelApplication = async (applicationId: number) => {
-    if (confirm('Tem certeza que deseja cancelar esta solicitação de crédito?')) {
+    if (confirm(t('financial.confirmCancelApplication'))) {
       try {
         await apiRequest(`/api/credit/applications/${applicationId}`, 'DELETE');
         queryClient.invalidateQueries({ queryKey: [getEndpoint()] });

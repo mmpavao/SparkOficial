@@ -734,7 +734,8 @@ const defaultTranslations: Record<Language, Translations> = {
       inAnalysis: 'В анализе',
       zeroApplications: '0 заявок',
       creditRequestsWillAppearHere: 'Ваши кредитные заявки будут отображаться здесь.',
-      application: 'заявка'
+      application: 'заявка',
+      confirmCancelApplication: 'Вы уверены, что хотите отменить эту кредитную заявку?'
     },
     common: {
       save: 'Сохранить',
