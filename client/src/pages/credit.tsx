@@ -377,13 +377,13 @@ export default function CreditPage() {
                       },
                       {
                         icon: <Calendar className="w-4 h-4 text-purple-600" />,
-                        label: "Criado em",
+                        label: t('financial.createdAt'),
                         value: application.createdAt ? new Date(application.createdAt).toLocaleDateString('pt-BR') : 'N/A',
                         color: "bg-purple-50 border-purple-200"
                       },
                       {
                         icon: <Clock className="w-4 h-4 text-orange-600" />,
-                        label: "Atualizado",
+                        label: t('financial.updatedAt'),
                         value: application.updatedAt ? new Date(application.updatedAt).toLocaleDateString('pt-BR') : 'N/A',
                         color: "bg-orange-50 border-orange-200"
                       }
@@ -391,18 +391,18 @@ export default function CreditPage() {
                     actions={[
                       {
                         icon: <Eye className="w-4 h-4" />,
-                        label: "Ver Detalhes",
+                        label: t('financial.viewDetails'),
                         onClick: () => setLocation(`/credit/details/${application.id}`)
                       },
                       {
                         icon: <Edit className="w-4 h-4" />,
-                        label: "Editar", 
+                        label: t('financial.edit'), 
                         onClick: () => setLocation(`/credit/edit/${application.id}`),
                         show: (application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira
                       },
                       {
                         icon: <X className="w-4 h-4" />,
-                        label: "Cancelar",
+                        label: t('financial.cancel'),
                         onClick: () => handleCancelApplication(application.id),
                         variant: 'destructive',
                         show: (application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira

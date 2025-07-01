@@ -117,7 +117,14 @@ const defaultTranslations: Record<Language, Translations> = {
       creditAnalysis: 'Análise de Crédito',
       importAnalysis: 'Análise de Importações',
       allSuppliers: 'Todos os Fornecedores',
-      reports: 'Relatórios'
+      reports: 'Relatórios',
+      requestId: 'ID da Solicitação',
+      preAnalysis: 'Pré-Análise',
+      createdAt: 'Criado em',
+      updatedAt: 'Atualizado em',
+      viewDetails: 'Ver Detalhes',
+      edit: 'Editar',
+      cancel: 'Cancelar'
     },
     // Common terms
     common: {
@@ -221,7 +228,14 @@ const defaultTranslations: Record<Language, Translations> = {
       creditAnalysis: 'Credit Analysis',
       importAnalysis: 'Import Analysis',
       allSuppliers: 'All Suppliers',
-      reports: 'Reports'
+      reports: 'Reports',
+      requestId: 'Request ID',
+      preAnalysis: 'Pre-Analysis',
+      createdAt: 'Created at',
+      updatedAt: 'Updated at',
+      viewDetails: 'View Details',
+      edit: 'Edit',
+      cancel: 'Cancel'
     },
     common: {
       save: 'Save',
