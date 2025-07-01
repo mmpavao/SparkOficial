@@ -66,8 +66,6 @@ type CreditApplicationForm = {
 
 // Componente para calcular e exibir dados reais de crédito
 function CreditSummaryCards({ applications, permissions }: { applications: any[], permissions: any }) {
-  const { t } = useTranslation();
-  
   if (!Array.isArray(applications)) {
     return null;
   }
@@ -110,13 +108,13 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? t('financial.approved') : t('financial.creditApproved')}
+                {permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado"}
               </p>
               <p className="text-2xl font-bold text-green-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalApproved)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {approvedApplications.length} {approvedApplications.length === 1 ? t('financial.application') : t('financial.applications')}
+                {approvedApplications.length} {approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -131,13 +129,13 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? t('financial.inAnalysis') : t('financial.inAnalysis')}
+                {permissions.canViewAllApplications ? "Em Análise" : "Em Análise"}
               </p>
               <p className="text-2xl font-bold text-blue-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {underReviewApplications.length} {underReviewApplications.length === 1 ? t('financial.application') : t('financial.applications')}
+                {underReviewApplications.length} {underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -152,13 +150,13 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? t('financial.pending') : t('financial.pendingApplications')}
+                {permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes"}
               </p>
               <p className="text-2xl font-bold text-orange-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {pendingApplications.length} {pendingApplications.length === 1 ? t('financial.application') : t('financial.applications')}
+                {pendingApplications.length} {pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -196,18 +194,18 @@ export default function CreditPage() {
 
   // Cancel application handler
   const handleCancelApplication = async (applicationId: number) => {
-    if (confirm(t('financial.confirmCancelApplication'))) {
+    if (confirm('Tem certeza que deseja cancelar esta solicitação de crédito?')) {
       try {
         await apiRequest(`/api/credit/applications/${applicationId}`, 'DELETE');
         queryClient.invalidateQueries({ queryKey: [getEndpoint()] });
         toast({
-          title: t('financial.success'),
-          description: t('financial.applicationCancelledSuccess'),
+          title: "Sucesso",
+          description: "Solicitação de crédito cancelada com sucesso.",
         });
       } catch (error) {
         toast({
-          title: t('financial.error'),
-          description: t('financial.applicationCancelError'),
+          title: "Erro",
+          description: "Erro ao cancelar solicitação de crédito.",
           variant: "destructive",
         });
       }
@@ -255,17 +253,17 @@ export default function CreditPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
-              ? t('financial.title')
+              ? "Análise Financeira - Aprovação de Crédito" 
               : permissions.canViewAllApplications 
-                ? t('financial.adminCreditManagement')
-                : t('credit.title')}
+                ? "Gestão de Crédito - Área Administrativa" 
+                : "Solicitações de Crédito"}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
-              ? t('financial.financialDescription')
+              ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
               : permissions.canViewAllApplications 
-                ? t('financial.adminDescription')
-                : t('financial.userDescription')}
+                ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
+                : "Solicite crédito para suas importações"}
           </p>
         </div>
         {!permissions.isFinanceira && !permissions.isAdmin && (
@@ -274,7 +272,7 @@ export default function CreditPage() {
             className="bg-spark-600 hover:bg-spark-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {t('financial.newCreditApplication')}
+            Nova Solicitação de Crédito
           </Button>
         )}
       </div>
@@ -292,7 +290,7 @@ export default function CreditPage() {
         <CardHeader>
           <CardTitle>
             {permissions.canViewAllApplications 
-              ? t('financial.allCreditApplications')
+              ? "Todas as Solicitações de Crédito" 
               : "Minhas Solicitações"}
           </CardTitle>
         </CardHeader>
@@ -305,9 +303,9 @@ export default function CreditPage() {
           ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">{t('credit.zeroApplications')}</p>
+              <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
               <p className="text-sm text-gray-400">
-                {t('financial.creditRequestsWillAppearHere')}
+                Suas solicitações de crédito aparecerão aqui.
               </p>
             </div>
           ) : (
@@ -316,7 +314,7 @@ export default function CreditPage() {
                 const getStatusInfo = () => {
                   if (application.financialStatus === 'approved') {
                     return { 
-                      label: t('financial.approved'), 
+                      label: 'Aprovado', 
                       color: 'bg-green-100 text-green-800 border-green-200',
                       bgColor: 'bg-green-50',
                       borderColor: 'border-l-green-500'
@@ -324,7 +322,7 @@ export default function CreditPage() {
                   } 
                   else if (application.financialStatus === 'rejected') {
                     return { 
-                      label: t('financial.rejected'), 
+                      label: 'Rejeitado', 
                       color: 'bg-red-100 text-red-800 border-red-200',
                       bgColor: 'bg-red-50',
                       borderColor: 'border-l-red-500'
@@ -332,7 +330,7 @@ export default function CreditPage() {
                   } 
                   else if (application.status === 'approved' || application.status === 'submitted_to_financial') {
                     return { 
-                      label: t('financial.finalAnalysis'), 
+                      label: 'Análise Final', 
                       color: 'bg-blue-100 text-blue-800 border-blue-200',
                       bgColor: 'bg-blue-50',
                       borderColor: 'border-l-blue-500'
@@ -340,7 +338,7 @@ export default function CreditPage() {
                   } 
                   else {
                     return { 
-                      label: t('financial.preAnalysis'), 
+                      label: 'Pré-Análise', 
                       color: 'bg-gray-100 text-gray-800 border-gray-200',
                       bgColor: 'bg-gray-50',
                       borderColor: 'border-l-gray-500'
@@ -355,35 +353,35 @@ export default function CreditPage() {
                     key={application.id}
                     icon={<FileText className="w-6 h-6 text-spark-600" />}
                     title={application.legalCompanyName || `Empresa #${application.id}`}
-                    subtitle={`${t('financial.requestId')}: #${application.id}`}
+                    subtitle={`ID da solicitação: #${application.id}`}
                     companyBadge={permissions.canViewAllApplications ? application.legalCompanyName : undefined}
                     status={statusInfo}
                     miniCards={[
                       {
                         icon: <DollarSign className="w-4 h-4 text-blue-600" />,
-                        label: t('financial.requested'),
+                        label: "Solicitado",
                         value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.requestedAmount || '0')),
                         color: "bg-blue-50 border-blue-200"
                       },
                       {
                         icon: <CheckCircle className="w-4 h-4 text-green-600" />,
-                        label: t('financial.approval'), 
+                        label: "Aprovação", 
                         value: application.finalCreditLimit 
                           ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
                           : application.financialApprovedAt 
                             ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
-                            : t('financial.pending'),
+                            : "Pendente",
                         color: application.finalCreditLimit ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
                       },
                       {
                         icon: <Calendar className="w-4 h-4 text-purple-600" />,
-                        label: t('financial.createdAt'),
+                        label: "Criado em",
                         value: application.createdAt ? new Date(application.createdAt).toLocaleDateString('pt-BR') : 'N/A',
                         color: "bg-purple-50 border-purple-200"
                       },
                       {
                         icon: <Clock className="w-4 h-4 text-orange-600" />,
-                        label: t('financial.updatedAt'),
+                        label: "Atualizado",
                         value: application.updatedAt ? new Date(application.updatedAt).toLocaleDateString('pt-BR') : 'N/A',
                         color: "bg-orange-50 border-orange-200"
                       }
@@ -391,18 +389,18 @@ export default function CreditPage() {
                     actions={[
                       {
                         icon: <Eye className="w-4 h-4" />,
-                        label: t('financial.viewDetails'),
+                        label: "Ver Detalhes",
                         onClick: () => setLocation(`/credit/details/${application.id}`)
                       },
                       {
                         icon: <Edit className="w-4 h-4" />,
-                        label: t('financial.edit'), 
+                        label: "Editar", 
                         onClick: () => setLocation(`/credit/edit/${application.id}`),
                         show: (application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira
                       },
                       {
                         icon: <X className="w-4 h-4" />,
-                        label: t('financial.cancel'),
+                        label: "Cancelar",
                         onClick: () => handleCancelApplication(application.id),
                         variant: 'destructive',
                         show: (application.status === 'pending' || application.status === 'draft') && !permissions.isFinanceira
