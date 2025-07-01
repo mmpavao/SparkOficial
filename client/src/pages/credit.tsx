@@ -253,10 +253,10 @@ export default function CreditPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
-              ? "Análise Financeira - Aprovação de Crédito" 
+              ? t('financial.title')
               : permissions.canViewAllApplications 
                 ? "Gestão de Crédito - Área Administrativa" 
-                : "Solicitações de Crédito"}
+                : t('credit.title')}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira

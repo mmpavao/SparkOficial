@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { useImporterDashboard } from '@/hooks/useImporterDashboard';
 import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
+import { useTranslation } from '@/contexts/I18nContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +44,7 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isFinanceira = user?.role === 'financeira';
