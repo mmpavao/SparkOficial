@@ -147,7 +147,15 @@ const defaultTranslations: Record<Language, Translations> = {
       allLevels: 'Todos os níveis',
       low: 'Baixo',
       medium: 'Médio',
-      high: 'Alto'
+      high: 'Alto',
+      maxAmount: 'Valor Máximo (USD)',
+      maxAmountPlaceholder: '$ 1.000.000',
+      allStatus: 'Todos os status',
+      preApproved: 'Pré-aprovado',
+      needsDocuments: 'Precisa documentos',
+      needsClarification: 'Precisa esclarecimentos',
+      inAnalysis: 'Em análise',
+      zeroApplications: '0 aplicações'
     },
     // Common terms
     common: {
@@ -281,7 +289,15 @@ const defaultTranslations: Record<Language, Translations> = {
       allLevels: 'All levels',
       low: 'Low',
       medium: 'Medium',
-      high: 'High'
+      high: 'High',
+      maxAmount: 'Maximum Amount (USD)',
+      maxAmountPlaceholder: '$ 1,000,000',
+      allStatus: 'All statuses',
+      preApproved: 'Pre-approved',
+      needsDocuments: 'Needs documents',
+      needsClarification: 'Needs clarification',
+      inAnalysis: 'In analysis',
+      zeroApplications: '0 applications'
     },
     common: {
       save: 'Save',
@@ -414,7 +430,15 @@ const defaultTranslations: Record<Language, Translations> = {
       allLevels: '所有等级',
       low: '低',
       medium: '中',
-      high: '高'
+      high: '高',
+      maxAmount: '最大金额 (USD)',
+      maxAmountPlaceholder: '$ 1,000,000',
+      allStatus: '所有状态',
+      preApproved: '预批准',
+      needsDocuments: '需要文件',
+      needsClarification: '需要澄清',
+      inAnalysis: '分析中',
+      zeroApplications: '0个申请'
     },
     common: {
       save: '保存',
@@ -547,7 +571,15 @@ const defaultTranslations: Record<Language, Translations> = {
       allLevels: 'Todos los niveles',
       low: 'Bajo',
       medium: 'Medio',
-      high: 'Alto'
+      high: 'Alto',
+      maxAmount: 'Monto Máximo (USD)',
+      maxAmountPlaceholder: '$ 1.000.000',
+      allStatus: 'Todos los estados',
+      preApproved: 'Pre-aprobado',
+      needsDocuments: 'Necesita documentos',
+      needsClarification: 'Necesita aclaración',
+      inAnalysis: 'En análisis',
+      zeroApplications: '0 solicitudes'
     },
     common: {
       save: 'Guardar',
@@ -680,7 +712,15 @@ const defaultTranslations: Record<Language, Translations> = {
       allLevels: 'Все уровни',
       low: 'Низкий',
       medium: 'Средний',
-      high: 'Высокий'
+      high: 'Высокий',
+      maxAmount: 'Максимальная Сумма (USD)',
+      maxAmountPlaceholder: '$ 1.000.000',
+      allStatus: 'Все статусы',
+      preApproved: 'Предварительно одобрено',
+      needsDocuments: 'Нужны документы',
+      needsClarification: 'Требуются разъяснения',
+      inAnalysis: 'В анализе',
+      zeroApplications: '0 заявок'
     },
     common: {
       save: 'Сохранить',
