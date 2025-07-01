@@ -447,7 +447,20 @@ const defaultTranslations: Record<Language, Translations> = {
       zeroApplications: '0个申请',
       creditRequestsWillAppearHere: '您的信贷申请将在此显示。',
       application: '申请',
-      confirmCancelApplication: '您确定要取消此信贷申请吗？'
+      confirmCancelApplication: '您确定要取消此信贷申请吗？',
+      company: '公司',
+      companyPlaceholder: '公司名称...',
+      minAmount: '最低金额 (美元)',
+      minAmountPlaceholder: '$ 0',
+      maxAmount: '最高金额 (美元)',
+      maxAmountPlaceholder: '$ 1,000,000',
+      riskLevel: '风险等级',
+      allLevels: '所有等级',
+      low: '低',
+      medium: '中',
+      high: '高',
+      adminFilters: '管理筛选器',
+      collapseFilters: '收起筛选器'
     },
     common: {
       save: '保存',
