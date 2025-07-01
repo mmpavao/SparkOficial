@@ -113,10 +113,10 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
 
             {/* Company Filter */}
             <div className="space-y-2">
-              <Label htmlFor="company">{t('credit.company')}</Label>
+              <Label htmlFor="company">Empresa</Label>
               <Input
                 id="company"
-                placeholder={t('credit.companyPlaceholder')}
+                placeholder="Buscar por empresa"
                 value={filters.company}
                 onChange={(e) => handleFilterChange("company", e.target.value)}
               />
@@ -124,9 +124,9 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
 
             {/* Amount Range */}
             <div className="space-y-2">
-              <Label>{t('credit.minAmount')}</Label>
+              <Label>Valor Mínimo</Label>
               <Input
-                placeholder={t('credit.minAmountPlaceholder')}
+                placeholder="Ex: 50000"
                 value={filters.minAmount}
                 onChange={(e) => handleFilterChange("minAmount", e.target.value)}
               />
@@ -134,48 +134,48 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
 
             {/* Risk Level Filter */}
             <div className="space-y-2">
-              <Label htmlFor="riskLevel">{t('credit.riskLevel')}</Label>
+              <Label htmlFor="riskLevel">Nível de Risco</Label>
               <Select
                 value={filters.riskLevel}
                 onValueChange={(value) => handleFilterChange("riskLevel", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('credit.allLevels')} />
+                  <SelectValue placeholder="Todos os Níveis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('credit.allLevels')}</SelectItem>
-                  <SelectItem value="low">{t('credit.low')}</SelectItem>
-                  <SelectItem value="medium">{t('credit.medium')}</SelectItem>
-                  <SelectItem value="high">{t('credit.high')}</SelectItem>
+                  <SelectItem value="all">Todos os Níveis</SelectItem>
+                  <SelectItem value="low">Baixo</SelectItem>
+                  <SelectItem value="medium">Médio</SelectItem>
+                  <SelectItem value="high">Alto</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Pre-Analysis Status Filter */}
             <div className="space-y-2">
-              <Label htmlFor="preAnalysisStatus">{t('credit.preAnalysis')}</Label>
+              <Label htmlFor="preAnalysisStatus">Pré-Análise</Label>
               <Select
                 value={filters.preAnalysisStatus}
                 onValueChange={(value) => handleFilterChange("preAnalysisStatus", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('credit.allStatus')} />
+                  <SelectValue placeholder="Todos os Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('credit.allStatus')}</SelectItem>
-                  <SelectItem value="pending">{t('credit.pending')}</SelectItem>
-                  <SelectItem value="pre_approved">{t('credit.preApproved')}</SelectItem>
-                  <SelectItem value="needs_documents">{t('credit.needsDocuments')}</SelectItem>
-                  <SelectItem value="needs_clarification">{t('credit.needsClarification')}</SelectItem>
-                  <SelectItem value="rejected">{t('credit.rejected')}</SelectItem>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="pre_approved">Pré-Aprovado</SelectItem>
+                  <SelectItem value="needs_documents">Precisa Documentos</SelectItem>
+                  <SelectItem value="needs_clarification">Precisa Esclarecimentos</SelectItem>
+                  <SelectItem value="rejected">Rejeitado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>{t('credit.maxAmount')}</Label>
+              <Label>Valor Máximo</Label>
               <Input
-                placeholder={t('credit.maxAmountPlaceholder')}
+                placeholder="Ex: 500000"
                 value={filters.maxAmount}
                 onChange={(e) => handleFilterChange("maxAmount", e.target.value)}
               />
