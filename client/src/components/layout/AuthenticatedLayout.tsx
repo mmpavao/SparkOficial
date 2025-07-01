@@ -151,7 +151,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           ? t('financial.allSuppliers') 
           : "Fornecedores"
     },
-    { path: "/reports", icon: BarChart3, label: navTranslations.reports },
+    { path: "/reports", icon: BarChart3, label: t('financial.reports') },
   ];
 
   // Navegação adicional apenas para admins
