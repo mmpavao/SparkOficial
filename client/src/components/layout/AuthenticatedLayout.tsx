@@ -14,7 +14,9 @@ const navTranslations = {
   logout: 'Sair'
 };
 
-import NotificationCenter from "@/components/NotificationCenter";
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { useTranslation } from '@/contexts/I18nContext';
+import LanguageSelector from '@/components/ui/language-selector';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -400,7 +402,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                
+
                 {/* Versão Beta */}
                 <div className="px-3 py-2 text-xs text-gray-500 border-b bg-gray-50">
                   <div className="flex items-center justify-between">
@@ -417,7 +419,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     Sistema Estável
                   </div>
                 </div>
-                
+
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   disabled={logoutMutation.isPending}
@@ -456,6 +458,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           </div>
           <div className="flex items-center space-x-4">
             <NotificationCenter />
+            <div className="w-36">
+              <LanguageSelector />
+            </div>
           </div>
         </div>
       </header>
