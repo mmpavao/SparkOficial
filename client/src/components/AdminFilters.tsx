@@ -57,10 +57,10 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            {t('credit.adminFilters')}
+            Filtros Administrativos
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2">
-                {t('credit.active')}
+                Ativo
               </Badge>
             )}
           </CardTitle>
@@ -73,7 +73,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
                 className="text-gray-500"
               >
                 <X className="h-4 w-4 mr-1" />
-                {t('credit.clear')}
+                Limpar
               </Button>
             )}
             <Button
@@ -81,7 +81,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? t('credit.collapseFilters') : t('credit.expandFilters')}
+              {isExpanded ? 'Recolher' : 'Expandir'}
             </Button>
           </div>
         </div>
@@ -92,21 +92,21 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Status Filter */}
             <div className="space-y-2">
-              <Label htmlFor="status">{t('credit.status')}</Label>
+              <Label htmlFor="status">Status</Label>
               <Select
                 value={filters.status}
                 onValueChange={(value) => handleFilterChange("status", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('credit.allStatus')} />
+                  <SelectValue placeholder="Todos os Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('credit.allStatus')}</SelectItem>
-                  <SelectItem value="pending">{t('credit.pending')}</SelectItem>
-                  <SelectItem value="under_review">{t('credit.underReview')}</SelectItem>
-                  <SelectItem value="approved">{t('credit.approved')}</SelectItem>
-                  <SelectItem value="rejected">{t('credit.rejected')}</SelectItem>
-                  <SelectItem value="cancelled">{t('credit.cancelled')}</SelectItem>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="under_review">Em Análise</SelectItem>
+                  <SelectItem value="approved">Aprovado</SelectItem>
+                  <SelectItem value="rejected">Rejeitado</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -726,7 +726,6 @@ const defaultTranslations: Record<Language, Translations> = {
       phone: 'Телефон',
       address: 'Адрес',
       creditInformation: 'Кредитная информация',
-      requestedAmount: 'Запрашиваемая сумма',
       monthlyImportVolume: 'Месячный объем импорта',
       businessSector: 'Сфера деятельности',
       annualRevenue: 'Годовой доход',
