@@ -156,7 +156,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsClarification: 'Precisa esclarecimentos',
       inAnalysis: 'Em análise',
       zeroApplications: '0 aplicações',
-      creditRequestsWillAppearHere: 'Suas solicitações de crédito aparecerão aqui.'
+      creditRequestsWillAppearHere: 'Suas solicitações de crédito aparecerão aqui.',
+      application: 'aplicação'
     },
     // Common terms
     common: {
@@ -299,7 +300,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsClarification: 'Needs clarification',
       inAnalysis: 'In analysis',
       zeroApplications: '0 applications',
-      creditRequestsWillAppearHere: 'Your credit requests will appear here.'
+      creditRequestsWillAppearHere: 'Your credit requests will appear here.',
+      application: 'application'
     },
     common: {
       save: 'Save',
@@ -441,7 +443,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsClarification: '需要澄清',
       inAnalysis: '分析中',
       zeroApplications: '0个申请',
-      creditRequestsWillAppearHere: '您的信贷申请将在此显示。'
+      creditRequestsWillAppearHere: '您的信贷申请将在此显示。',
+      application: '申请'
     },
     common: {
       save: '保存',
@@ -583,7 +586,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsClarification: 'Necesita aclaración',
       inAnalysis: 'En análisis',
       zeroApplications: '0 solicitudes',
-      creditRequestsWillAppearHere: 'Sus solicitudes de crédito aparecerán aquí.'
+      creditRequestsWillAppearHere: 'Sus solicitudes de crédito aparecerán aquí.',
+      application: 'solicitud'
     },
     common: {
       save: 'Guardar',
