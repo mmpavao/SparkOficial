@@ -453,7 +453,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{t('financial.creditLimit')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditRequested || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Volume total pedido</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.totalRequested')}</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-purple-600" />
                 </div>
@@ -466,7 +466,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{t('financial.totalApproved')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditApproved || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Volume concedido</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.approvedVolume')}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
@@ -495,7 +495,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{t('financial.creditUsed')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditInUse || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Sendo utilizado</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.beingUsed')}</p>
                   </div>
                   <PiggyBank className="w-8 h-8 text-emerald-600" />
                 </div>
@@ -506,9 +506,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.availableCredit')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditAvailable || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Livre para uso</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.freeToUse')}</p>
                   </div>
                   <CreditCard className="w-8 h-8 text-cyan-600" />
                 </div>
@@ -519,9 +519,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Tempo Médio Aprovação</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.avgApprovalTime')}</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.averageApprovalTime || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Dias para aprovar</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.daysToApprove')}</p>
                   </div>
                   <Clock className="w-8 h-8 text-yellow-600" />
                 </div>
@@ -532,13 +532,13 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Utilização</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.utilizationRate')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {financeiraMetrics?.totalCreditApproved > 0 
                         ? Math.round(((financeiraMetrics?.totalCreditInUse || 0) / financeiraMetrics.totalCreditApproved) * 100)
                         : 0}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Do crédito aprovado</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.ofApprovedCredit')}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-red-600" />
                 </div>
