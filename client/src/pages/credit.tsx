@@ -266,7 +266,7 @@ export default function CreditPage() {
                 : "Solicite crédito para suas importações"}
           </p>
         </div>
-        {!permissions.isFinanceira && (
+        {!permissions.isFinanceira && !permissions.isAdmin && (
           <Button 
             onClick={() => setLocation('/credit/new')}
             className="bg-spark-600 hover:bg-spark-700"
