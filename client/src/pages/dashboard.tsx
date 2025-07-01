@@ -619,7 +619,7 @@ export default function Dashboard() {
                     <div className="text-2xl font-bold text-blue-600">
                       {financeiraMetrics?.monthlyStats?.applications || 0}
                     </div>
-                    <p className="text-xs text-blue-600 mt-1">Este mês</p>
+                    <p className="text-xs text-blue-600 mt-1">{t('financial.thisMonth')}</p>
                   </div>
 
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
@@ -630,18 +630,18 @@ export default function Dashboard() {
                     <div className="text-2xl font-bold text-green-600">
                       {financeiraMetrics?.monthlyStats?.approvals || 0}
                     </div>
-                    <p className="text-xs text-green-600 mt-1">Este mês</p>
+                    <p className="text-xs text-green-600 mt-1">{t('financial.thisMonth')}</p>
                   </div>
 
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-800">Volume Aprovado</span>
+                      <span className="font-medium text-purple-800">{t('financial.approvedVolume')}</span>
                       <DollarSign className="w-4 h-4 text-purple-600" />
                     </div>
                     <div className="text-2xl font-bold text-purple-600">
                       {formatCompactCurrency(financeiraMetrics?.monthlyStats?.volume || 0)}
                     </div>
-                    <p className="text-xs text-purple-600 mt-1">Este mês</p>
+                    <p className="text-xs text-purple-600 mt-1">{t('financial.thisMonth')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -653,7 +653,7 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Atividade Recente
+                {t('financial.recentActivity')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -673,11 +673,11 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-4">
                           <p className="text-sm text-gray-600">
-                            Solicitado: <span className="font-semibold">{formatCompactCurrency(parseFloat(activity.requestedAmount))}</span>
+                            {t('financial.requested')}: <span className="font-semibold">{formatCompactCurrency(parseFloat(activity.requestedAmount))}</span>
                           </p>
                           {activity.approvedAmount && (
                             <p className="text-sm text-gray-600">
-                              Aprovado: <span className="font-semibold text-green-600">{formatCompactCurrency(parseFloat(activity.approvedAmount))}</span>
+                              {t('financial.approved')}: <span className="font-semibold text-green-600">{formatCompactCurrency(parseFloat(activity.approvedAmount))}</span>
                             </p>
                           )}
                         </div>
@@ -689,11 +689,11 @@ export default function Dashboard() {
                           activity.status === 'under_review' ? 'secondary' : 
                           'outline'
                         }>
-                          {activity.status === 'approved' ? 'Aprovado' :
-                           activity.status === 'rejected' ? 'Rejeitado' :
-                           activity.status === 'under_review' ? 'Em Análise' :
-                           activity.status === 'pending' ? 'Pendente' :
-                           'Outro'}
+                          {activity.status === 'approved' ? t('financial.approved') :
+                           activity.status === 'rejected' ? t('financial.rejected') :
+                           activity.status === 'under_review' ? t('financial.underReview') :
+                           activity.status === 'pending' ? t('financial.pending') :
+                           t('financial.other')}
                         </Badge>
                         <p className="text-xs text-gray-500 mt-1">
                           {formatDate(activity.submittedAt)}
