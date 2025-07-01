@@ -21,7 +21,8 @@ import {
   MapPin,
   Calendar,
   Users,
-  TrendingUp
+  TrendingUp,
+  AlertTriangle
 } from "lucide-react";
 
 interface ConsultamaisAnalysisProps {

@@ -1,5 +1,5 @@
 # Spark Comex - Brazilian Import Credit Platform
-## Version: Beta v1.0.0 (30/06/2025 - 05:05 UTC) - Sistema Estável
+## Version: Beta v1.1.0 (01/07/2025 - 00:21 UTC) - Sistema Estável com Consultamais
 
 ## Overview
 
