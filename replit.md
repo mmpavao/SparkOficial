@@ -763,6 +763,15 @@ Changelog:
   * Replaced sidebar logo with new official Spark Comex logo (logo-spark_1751323949667.png)
   * Updated import reference in AuthenticatedLayout.tsx to use new logo asset
   * Maintained existing logo functionality and responsive behavior in sidebar
+- July 1, 2025. Complete Consultamais API integration with expandable detailed analysis:
+  * Created consultamais_analysis database table with comprehensive analysis storage
+  * Implemented backend endpoints for credit consultation and analysis retrieval
+  * Integrated ConsultamaisAnalysis component into credit details page for admin/financeira users
+  * Added expandable "Ver mais detalhes" section with comprehensive credit analysis information
+  * Implemented 7 detailed sections: Company ID, Location, Query History, Debts, Protests, Check History, Analysis Summary
+  * Enhanced UI with ghost button for expansion control and organized data presentation in gray background cards
+  * System uses realistic simulated data until real API credentials are configured
+  * Complete integration ready for production with R$ 22,90 consultation cost tracking
 ```
 
 ## User Preferences

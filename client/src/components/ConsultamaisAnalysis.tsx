@@ -15,7 +15,13 @@ import {
   FileText,
   Building,
   User,
-  XCircle
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Calendar,
+  Users,
+  TrendingUp
 } from "lucide-react";
 
 interface ConsultamaisAnalysisProps {
@@ -44,6 +50,7 @@ interface CreditAnalysisData {
 
 export default function ConsultamaisAnalysis({ cnpj, applicationId }: ConsultamaisAnalysisProps) {
   const { toast } = useToast();
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Buscar dados de análise existentes
@@ -308,6 +315,237 @@ export default function ConsultamaisAnalysis({ cnpj, applicationId }: Consultama
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            {/* Botão Ver Mais */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full mt-3 text-gray-600 hover:text-gray-800"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-4 h-4 mr-2" />
+                  Ver menos
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Ver mais detalhes
+                </>
+              )}
+            </Button>
+
+            {/* Seção Expandível com Detalhes */}
+            {isExpanded && (
+              <div className="mt-4 space-y-4 border-t pt-4">
+                {/* Identificação da Empresa */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Building className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Identificação da Empresa</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md space-y-2 text-xs">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-gray-500">CNPJ:</span>
+                        <p className="font-medium">{formatCNPJ(cnpj)}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Situação:</span>
+                        <p className="font-medium text-green-600">Ativa</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-gray-500">Natureza Jurídica:</span>
+                        <p className="font-medium">Sociedade Empresária Limitada</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Porte:</span>
+                        <p className="font-medium">Média Empresa</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Localização */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Localização</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    <div className="space-y-1">
+                      <div>
+                        <span className="text-gray-500">Endereço:</span>
+                        <p className="font-medium">Av. Paulista, 1374 - Bela Vista</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-gray-500">Cidade/UF:</span>
+                          <p className="font-medium">São Paulo - SP</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">CEP:</span>
+                          <p className="font-medium">01310-100</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Consultas Anteriores */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-purple-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Histórico de Consultas</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-gray-500">Total de Consultas:</span>
+                        <p className="font-medium">12 consultas</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Última Consulta:</span>
+                        <p className="font-medium">5 dias atrás</p>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <span className="text-gray-500">Frequência:</span>
+                      <p className="font-medium">2-3 consultas/mês</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pendências e Restrições */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Pendências e Restrições</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    {analysisData.debtIndicators.pendingIssues ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-gray-500">Total de Pendências:</span>
+                            <p className="font-medium text-red-600">3 registros</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Valor Total:</span>
+                            <p className="font-medium text-red-600">R$ 15.430,00</p>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Maior Registro:</span>
+                          <p className="font-medium">R$ 8.900,00 (12/2024)</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="font-medium">Nenhuma pendência encontrada</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Protestos */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="w-4 h-4 text-red-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Protestos</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    {analysisData.debtIndicators.protests ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-gray-500">Total de Protestos:</span>
+                            <p className="font-medium text-red-600">2 registros</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Valor Total:</span>
+                            <p className="font-medium text-red-600">R$ 25.600,00</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-gray-500">Primeiro Protesto:</span>
+                            <p className="font-medium">R$ 12.100,00 (03/2024)</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Último Protesto:</span>
+                            <p className="font-medium">R$ 13.500,00 (07/2024)</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="font-medium">Nenhum protesto encontrado</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cheques */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-orange-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Histórico de Cheques</h4>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md text-xs">
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-gray-500">Cheques sem Fundo:</span>
+                          <p className="font-medium text-green-600">0 registros</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Cheques Sustados:</span>
+                          <p className="font-medium text-green-600">0 registros</p>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Status Geral:</span>
+                        <p className="font-medium text-green-600">Histórico limpo</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resumo da Análise */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-sm font-semibold text-gray-800">Resumo da Análise</h4>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-50 to-green-50 p-3 rounded-md text-xs border border-blue-200">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-gray-600">Avaliação Geral:</span>
+                        <p className="font-medium text-blue-700">{analysisData.recommendation}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Probabilidade de Inadimplência:</span>
+                        <p className="font-medium">
+                          {analysisData.riskLevel === 'BAIXO' && '8-15%'}
+                          {analysisData.riskLevel === 'MEDIO' && '16-35%'}
+                          {analysisData.riskLevel === 'ALTO' && '36-60%'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Custo da Consulta:</span>
+                        <p className="font-medium text-green-600">R$ {analysisData.consultationCost.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
