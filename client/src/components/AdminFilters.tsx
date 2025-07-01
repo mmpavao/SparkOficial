@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Filter, X } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
 
 interface AdminFiltersProps {
   onFiltersChange: (filters: any) => void;
 }
 
 export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState({
     status: "all",
     company: "",
@@ -55,10 +57,10 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filtros Administrativos
+            {t('credit.adminFilters')}
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2">
-                Ativos
+                {t('credit.active')}
               </Badge>
             )}
           </CardTitle>
@@ -71,7 +73,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
                 className="text-gray-500"
               >
                 <X className="h-4 w-4 mr-1" />
-                Limpar
+                {t('credit.clear')}
               </Button>
             )}
             <Button
@@ -79,7 +81,7 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? "Recolher" : "Expandir"}
+              {isExpanded ? t('credit.collapseFilters') : t('credit.expandFilters')}
             </Button>
           </div>
         </div>
@@ -111,10 +113,10 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
 
             {/* Company Filter */}
             <div className="space-y-2">
-              <Label htmlFor="company">Empresa</Label>
+              <Label htmlFor="company">{t('credit.company')}</Label>
               <Input
                 id="company"
-                placeholder="Nome da empresa..."
+                placeholder={t('credit.companyPlaceholder')}
                 value={filters.company}
                 onChange={(e) => handleFilterChange("company", e.target.value)}
               />
@@ -122,9 +124,9 @@ export default function AdminFilters({ onFiltersChange }: AdminFiltersProps) {
 
             {/* Amount Range */}
             <div className="space-y-2">
-              <Label>Valor Mínimo (USD)</Label>
+              <Label>{t('credit.minAmount')}</Label>
               <Input
-                placeholder="$ 0"
+                placeholder={t('credit.minAmountPlaceholder')}
                 value={filters.minAmount}
                 onChange={(e) => handleFilterChange("minAmount", e.target.value)}
               />

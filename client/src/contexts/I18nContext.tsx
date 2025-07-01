@@ -402,7 +402,19 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationCancelledSuccess: '信贷申请已成功取消。',
       applicationCancelError: '取消信贷申请时出错。',
       expandFilters: '展开',
-      collapseFilters: '收起'
+      collapseFilters: '收起',
+      adminFilters: '管理筛选器',
+      active: '活跃',
+      clear: '清除',
+      company: '公司',
+      companyPlaceholder: '公司名称...',
+      minAmount: '最小金额 (USD)',
+      minAmountPlaceholder: '$ 0',
+      riskLevel: '风险等级',
+      allLevels: '所有等级',
+      low: '低',
+      medium: '中',
+      high: '高'
     },
     common: {
       save: '保存',
@@ -523,7 +535,19 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationCancelledSuccess: 'Solicitud de crédito cancelada exitosamente.',
       applicationCancelError: 'Error al cancelar solicitud de crédito.',
       expandFilters: 'Expandir',
-      collapseFilters: 'Contraer'
+      collapseFilters: 'Contraer',
+      adminFilters: 'Filtros Administrativos',
+      active: 'Activos',
+      clear: 'Limpiar',
+      company: 'Empresa',
+      companyPlaceholder: 'Nombre de la empresa...',
+      minAmount: 'Monto Mínimo (USD)',
+      minAmountPlaceholder: '$ 0',
+      riskLevel: 'Nivel de Riesgo',
+      allLevels: 'Todos los niveles',
+      low: 'Bajo',
+      medium: 'Medio',
+      high: 'Alto'
     },
     common: {
       save: 'Guardar',
@@ -644,7 +668,19 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationCancelledSuccess: 'Кредитная заявка успешно отменена.',
       applicationCancelError: 'Ошибка отмены кредитной заявки.',
       expandFilters: 'Развернуть',
-      collapseFilters: 'Свернуть'
+      collapseFilters: 'Свернуть',
+      adminFilters: 'Административные Фильтры',
+      active: 'Активные',
+      clear: 'Очистить',
+      company: 'Компания',
+      companyPlaceholder: 'Название компании...',
+      minAmount: 'Минимальная Сумма (USD)',
+      minAmountPlaceholder: '$ 0',
+      riskLevel: 'Уровень Риска',
+      allLevels: 'Все уровни',
+      low: 'Низкий',
+      medium: 'Средний',
+      high: 'Высокий'
     },
     common: {
       save: 'Сохранить',
