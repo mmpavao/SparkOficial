@@ -561,7 +561,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="font-medium">Pendentes</span>
+                      <span className="font-medium">{t('credit.pending')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.pending || 0}</span>
                   </div>

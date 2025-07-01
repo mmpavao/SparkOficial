@@ -104,7 +104,16 @@ const defaultTranslations: Record<Language, Translations> = {
       requested: 'Solicitado',
       underReview: 'Em Análise',
       other: 'Outro',
-      thisMonth: 'Este mês'
+      thisMonth: 'Este mês',
+      totalRequested: 'Volume total pedido',
+      beingUsed: 'Sendo utilizado',
+      availableCredit: 'Crédito Disponível',
+      freeToUse: 'Livre para uso',
+      avgApprovalTime: 'Tempo Médio Aprovação',
+      daysToApprove: 'Dias para aprovar',
+      utilizationRate: 'Taxa de Utilização',
+      ofApprovedCredit: 'Do crédito aprovado',
+      applicationStatusTitle: 'Status das Aplicações de Crédito'
     },
     // Common terms
     common: {
