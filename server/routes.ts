@@ -3901,6 +3901,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // CONSULTAMAIS API ENDPOINTS
+  // ============================================================================
+  
+  // Get existing analysis for a credit application
+  app.get('/api/consultamais/analysis/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.applicationId);
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Check if user has permission to view this application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Get analysis data from database
+      const analysis = await storage.getConsultamaisAnalysis(applicationId);
+      
+      if (!analysis) {
+        return res.status(404).json({ message: "Análise não encontrada" });
+      }
+
+      res.json({
+        score: analysis.score,
+        riskLevel: analysis.riskLevel,
+        recommendation: analysis.recommendation,
+        companyStatus: analysis.companyStatus,
+        debtIndicators: analysis.debtIndicators,
+        financialData: analysis.financialData,
+        lastUpdated: analysis.updatedAt,
+        consultationCost: parseFloat(analysis.consultationCost || '22.90')
+      });
+
+    } catch (error) {
+      console.error("Error fetching Consultamais analysis:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Perform new Consultamais consultation
+  app.post('/api/consultamais/consult', requireAuth, async (req: any, res) => {
+    try {
+      const { cnpj, applicationId } = req.body;
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Validate inputs
+      if (!cnpj || !applicationId) {
+        return res.status(400).json({ message: "CNPJ e ID da aplicação são obrigatórios" });
+      }
+
+      // Check if user has permission to perform consultation
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Clean CNPJ for API call
+      const cleanCnpj = cnpj.replace(/\D/g, '');
+      
+      // IMPORTANT: In a real implementation, you would:
+      // 1. Get CONSULTAMAIS_API_KEY from environment variables
+      // 2. Call the real Consultamais API endpoint
+      // 3. Handle proper authentication and rate limiting
+      // 4. Process real API responses
+      
+      // For now, we'll create a realistic simulation based on CNPJ patterns
+      const mockConsultamaisResponse = generateMockConsultamaisResponse(cleanCnpj);
+
+      // Save analysis to database
+      const analysisData = {
+        applicationId,
+        cnpj: cleanCnpj,
+        score: mockConsultamaisResponse.score,
+        riskLevel: mockConsultamaisResponse.riskLevel,
+        recommendation: mockConsultamaisResponse.recommendation,
+        companyStatus: mockConsultamaisResponse.companyStatus,
+        debtIndicators: mockConsultamaisResponse.debtIndicators,
+        financialData: mockConsultamaisResponse.financialData,
+        rawResponse: mockConsultamaisResponse,
+        consultationCost: '22.90'
+      };
+
+      await storage.saveConsultamaisAnalysis(analysisData);
+
+      // Return formatted response
+      res.json({
+        score: mockConsultamaisResponse.score,
+        riskLevel: mockConsultamaisResponse.riskLevel,
+        recommendation: mockConsultamaisResponse.recommendation,
+        companyStatus: mockConsultamaisResponse.companyStatus,
+        debtIndicators: mockConsultamaisResponse.debtIndicators,
+        financialData: mockConsultamaisResponse.financialData,
+        lastUpdated: new Date().toISOString(),
+        consultationCost: 22.90
+      });
+
+    } catch (error) {
+      console.error("Error performing Consultamais consultation:", error);
+      res.status(500).json({ message: "Erro ao realizar consulta no Consultamais" });
+    }
+  });
+
+  // Helper function to generate realistic mock data based on CNPJ
+  function generateMockConsultamaisResponse(cnpj: string) {
+    // Create deterministic but realistic data based on CNPJ
+    const cnpjSum = cnpj.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+    const seed = cnpjSum % 100;
+
+    // Score calculation (300-1000 range)
+    const score = Math.floor(300 + (seed * 7));
+    
+    // Risk level based on score
+    let riskLevel, recommendation;
+    if (score >= 700) {
+      riskLevel = 'BAIXO';
+      recommendation = 'APROVAR';
+    } else if (score >= 500) {
+      riskLevel = 'MEDIO';
+      recommendation = 'ANALISAR';
+    } else {
+      riskLevel = 'ALTO';
+      recommendation = 'REJEITAR';
+    }
+
+    // Debt indicators (lower score = more problems)
+    const hasProtest = score < 400;
+    const hasNegativation = score < 500;
+    const hasPendingIssues = score < 600;
+
+    return {
+      score,
+      riskLevel,
+      recommendation,
+      companyStatus: score > 500 ? 'ATIVA' : 'ATIVA_COM_RESTRICOES',
+      debtIndicators: {
+        protest: hasProtest,
+        negativation: hasNegativation,
+        pendingIssues: hasPendingIssues
+      },
+      financialData: {
+        revenue: score > 600 ? Math.floor(seed * 50000 + 100000) : null,
+        employees: score > 500 ? Math.floor(seed / 5) + 5 : null,
+        foundingDate: score > 400 ? new Date(2000 + (seed % 20), seed % 12, 1).toISOString() : null
+      }
+    };
+  }
+
   // Register imports routes
   console.log('Registering imports routes...');
   app.use('/api', importRoutes);

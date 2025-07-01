@@ -583,5 +583,26 @@ export const notifications = pgTable("notifications", {
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
 
+// Consultamais Credit Analysis table
+export const consultamaisAnalysis = pgTable("consultamais_analysis", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").notNull(),
+  cnpj: text("cnpj").notNull(),
+  score: integer("score"),
+  riskLevel: text("risk_level"),
+  recommendation: text("recommendation"),
+  companyStatus: text("company_status"),
+  debtIndicators: jsonb("debt_indicators"),
+  financialData: jsonb("financial_data"),
+  rawResponse: jsonb("raw_response"),
+  consultationCost: text("consultation_cost"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertConsultamaisAnalysisSchema = createInsertSchema(consultamaisAnalysis);
+export type ConsultamaisAnalysis = typeof consultamaisAnalysis.$inferSelect;
+export type InsertConsultamaisAnalysis = z.infer<typeof insertConsultamaisAnalysisSchema>;
+
 // Import all imports-related tables and schemas
 export * from './imports-schema';
