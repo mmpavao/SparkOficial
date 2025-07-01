@@ -4024,13 +4024,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/consultamais/download-pdf/:applicationId', requireAuth, async (req: any, res) => {
     try {
       const applicationId = req.params.applicationId;
-      const path = require('path');
-      const fs = require('fs');
       
-      const pdfPath = path.join(process.cwd(), 'public/downloads/consultamais_prow_importadora.pdf');
+      // Use a relative path from public folder which is served by Express static
+      const pdfFilename = 'consultamais_prow_importadora.pdf';
+      const publicPath = './public/downloads/' + pdfFilename;
       
-      // Verificar se o arquivo existe
-      if (!fs.existsSync(pdfPath)) {
+      // Check if file exists using fs.readFile as a test
+      try {
+        const fs = await import('fs/promises');
+        await fs.access(publicPath);
+      } catch {
         return res.status(404).json({ error: 'PDF não encontrado' });
       }
 
@@ -4038,8 +4041,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="Consultamais_PROW_IMPORTADORA_${applicationId}.pdf"`);
       
-      // Enviar o arquivo
-      res.sendFile(pdfPath);
+      // Enviar o arquivo usando sendFile com path absoluto
+      const path = await import('path');
+      const absolutePath = path.resolve(publicPath);
+      res.sendFile(absolutePath);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       res.status(500).json({ error: 'Erro ao baixar PDF' });
