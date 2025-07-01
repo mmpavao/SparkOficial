@@ -157,7 +157,8 @@ const defaultTranslations: Record<Language, Translations> = {
       inAnalysis: 'Em análise',
       zeroApplications: '0 aplicações',
       creditRequestsWillAppearHere: 'Suas solicitações de crédito aparecerão aqui.',
-      application: 'aplicação'
+      application: 'aplicação',
+      confirmCancelApplication: 'Tem certeza que deseja cancelar esta solicitação de crédito?'
     },
     // Common terms
     common: {
@@ -301,7 +302,8 @@ const defaultTranslations: Record<Language, Translations> = {
       inAnalysis: 'In analysis',
       zeroApplications: '0 applications',
       creditRequestsWillAppearHere: 'Your credit requests will appear here.',
-      application: 'application'
+      application: 'application',
+      confirmCancelApplication: 'Are you sure you want to cancel this credit application?'
     },
     common: {
       save: 'Save',
@@ -444,7 +446,8 @@ const defaultTranslations: Record<Language, Translations> = {
       inAnalysis: '分析中',
       zeroApplications: '0个申请',
       creditRequestsWillAppearHere: '您的信贷申请将在此显示。',
-      application: '申请'
+      application: '申请',
+      confirmCancelApplication: '您确定要取消此信贷申请吗？'
     },
     common: {
       save: '保存',
@@ -587,7 +590,8 @@ const defaultTranslations: Record<Language, Translations> = {
       inAnalysis: 'En análisis',
       zeroApplications: '0 solicitudes',
       creditRequestsWillAppearHere: 'Sus solicitudes de crédito aparecerán aquí.',
-      application: 'solicitud'
+      application: 'solicitud',
+      confirmCancelApplication: '¿Está seguro de que desea cancelar esta solicitud de crédito?'
     },
     common: {
       save: 'Guardar',
@@ -729,7 +733,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsClarification: 'Требуются разъяснения',
       inAnalysis: 'В анализе',
       zeroApplications: '0 заявок',
-      creditRequestsWillAppearHere: 'Ваши кредитные заявки будут отображаться здесь.'
+      creditRequestsWillAppearHere: 'Ваши кредитные заявки будут отображаться здесь.',
+      application: 'заявка'
     },
     common: {
       save: 'Сохранить',

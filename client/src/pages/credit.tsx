@@ -131,7 +131,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? "Em Análise" : "Em Análise"}
+                {permissions.canViewAllApplications ? t('financial.inAnalysis') : t('financial.inAnalysis')}
               </p>
               <p className="text-2xl font-bold text-blue-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
