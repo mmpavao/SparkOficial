@@ -440,7 +440,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsDocuments: '需要文件',
       needsClarification: '需要澄清',
       inAnalysis: '分析中',
-      zeroApplications: '0个申请'
+      zeroApplications: '0个申请',
+      creditRequestsWillAppearHere: '您的信贷申请将在此显示。'
     },
     common: {
       save: '保存',
@@ -581,7 +582,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsDocuments: 'Necesita documentos',
       needsClarification: 'Necesita aclaración',
       inAnalysis: 'En análisis',
-      zeroApplications: '0 solicitudes'
+      zeroApplications: '0 solicitudes',
+      creditRequestsWillAppearHere: 'Sus solicitudes de crédito aparecerán aquí.'
     },
     common: {
       save: 'Guardar',
@@ -722,7 +724,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsDocuments: 'Нужны документы',
       needsClarification: 'Требуются разъяснения',
       inAnalysis: 'В анализе',
-      zeroApplications: '0 заявок'
+      zeroApplications: '0 заявок',
+      creditRequestsWillAppearHere: 'Ваши кредитные заявки будут отображаться здесь.'
     },
     common: {
       save: 'Сохранить',
