@@ -715,7 +715,35 @@ const defaultTranslations: Record<Language, Translations> = {
       pending: 'В ожидании',
       approved: 'Одобрено',
       rejected: 'Отклонено',
-      underReview: 'На рассмотрении'
+      underReview: 'На рассмотрении',
+      
+      // Credit details page translations
+      creditRequestDetails: 'Детали кредитной заявки',
+      companyInformation: 'Информация о компании',
+      socialReason: 'Наименование компании',
+      fantasyName: 'Торговое название',
+      email: 'Email',
+      phone: 'Телефон',
+      address: 'Адрес',
+      creditInformation: 'Кредитная информация',
+      requestedAmount: 'Запрашиваемая сумма',
+      monthlyImportVolume: 'Месячный объем импорта',
+      businessSector: 'Сфера деятельности',
+      annualRevenue: 'Годовой доход',
+      productsToImport: 'Товары для импорта',
+      justification: 'Обоснование',
+      creditApplicationStatus: 'Статус кредитной заявки',
+      applicationSent: 'Заявка отправлена',
+      applicationSuccessful: 'Ваша заявка успешно подана',
+      preAnalysisCompleted: 'Предварительный анализ завершен',
+      documentsApproved: 'Документы одобрены нашей командой',
+      financialAnalysisApproved: 'Финансовый анализ одобрен',
+      creditApprovedByFinancial: 'Кредит одобрен финансовым учреждением',
+      creditApproved: 'Кредит одобрен',
+      processFinalized: 'Процесс завершен - кредит доступен',
+      applicationProgress: 'Прогресс заявки',
+      financialAnalysis: 'Финансовый анализ',
+      currentStatus: 'Текущий статус'
     },
     // Financial module (Financeira)
     financial: {
