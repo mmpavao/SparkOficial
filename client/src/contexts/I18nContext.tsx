@@ -204,7 +204,16 @@ const defaultTranslations: Record<Language, Translations> = {
       underReview: 'Under Review',
       cancelled: 'Cancelled',
       other: 'Other',
-      thisMonth: 'This month'
+      thisMonth: 'This month',
+      totalRequested: 'Total requested amount',
+      beingUsed: 'Being used',
+      availableCredit: 'Available Credit',
+      freeToUse: 'Free to use',
+      avgApprovalTime: 'Average Approval Time',
+      daysToApprove: 'Days to approve',
+      utilizationRate: 'Utilization Rate',
+      ofApprovedCredit: 'Of approved credit',
+      applicationStatusTitle: 'Credit Application Status'
     },
     common: {
       save: 'Save',
@@ -294,7 +303,16 @@ const defaultTranslations: Record<Language, Translations> = {
       underReview: '审核中',
       cancelled: '已取消',
       other: '其他',
-      thisMonth: '本月'
+      thisMonth: '本月',
+      totalRequested: '申请总金额',
+      beingUsed: '使用中',
+      availableCredit: '可用信贷',
+      freeToUse: '可自由使用',
+      avgApprovalTime: '平均审批时间',
+      daysToApprove: '审批天数',
+      utilizationRate: '使用率',
+      ofApprovedCredit: '已批准信贷的',
+      applicationStatusTitle: '信贷申请状态'
     },
     common: {
       save: '保存',
@@ -384,7 +402,16 @@ const defaultTranslations: Record<Language, Translations> = {
       underReview: 'En Revisión',
       cancelled: 'Canceladas',
       other: 'Otro',
-      thisMonth: 'Este mes'
+      thisMonth: 'Este mes',
+      totalRequested: 'Monto total solicitado',
+      beingUsed: 'En uso',
+      availableCredit: 'Crédito Disponible',
+      freeToUse: 'Libre para usar',
+      avgApprovalTime: 'Tiempo Promedio de Aprobación',
+      daysToApprove: 'Días para aprobar',
+      utilizationRate: 'Tasa de Utilización',
+      ofApprovedCredit: 'Del crédito aprobado',
+      applicationStatusTitle: 'Estado de Solicitudes de Crédito'
     },
     common: {
       save: 'Guardar',
@@ -474,7 +501,16 @@ const defaultTranslations: Record<Language, Translations> = {
       underReview: 'На рассмотрении',
       cancelled: 'Отменены',
       other: 'Другое',
-      thisMonth: 'В этом месяце'
+      thisMonth: 'В этом месяце',
+      totalRequested: 'Общая запрошенная сумма',
+      beingUsed: 'Используется',
+      availableCredit: 'Доступный кредит',
+      freeToUse: 'Свободно для использования',
+      avgApprovalTime: 'Среднее время одобрения',
+      daysToApprove: 'Дней для одобрения',
+      utilizationRate: 'Коэффициент использования',
+      ofApprovedCredit: 'Одобренного кредита',
+      applicationStatusTitle: 'Статус кредитных заявок'
     },
     common: {
       save: 'Сохранить',

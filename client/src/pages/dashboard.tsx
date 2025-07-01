@@ -553,7 +553,7 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  Status das Aplicações de Crédito
+                  {t('financial.applicationStatusTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
