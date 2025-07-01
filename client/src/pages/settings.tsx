@@ -347,7 +347,8 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div>
                 <Label className="text-base font-medium">Idioma</Label>
-                <p className="text-sm text-gray-500 mb-3">O idioma pode ser alterado através do seletor na barra superior</p>
+                <p className="text-sm text-gray-500 mb-3">Selecione seu idioma preferido</p>
+                <LanguageSelector />
               </div>
 
               <Separator />

@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { useImporterDashboard } from '@/hooks/useImporterDashboard';
 import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
+import { useTranslation } from '@/contexts/I18nContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +44,7 @@ import {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isFinanceira = user?.role === 'financeira';
@@ -436,9 +438,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Créditos Submetidos</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.submittedApplications')}</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.totalApplicationsSubmitted || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total de aplicações</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.applications')}</p>
                   </div>
                   <FileText className="w-8 h-8 text-blue-600" />
                 </div>
@@ -449,9 +451,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.creditLimit')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditRequested || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Volume total pedido</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.totalRequested')}</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-purple-600" />
                 </div>
@@ -462,9 +464,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.totalApproved')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditApproved || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Volume concedido</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.approvedVolume')}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
@@ -475,9 +477,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.approvalRate')}</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.approvalRate || 0}%</p>
-                    <p className="text-xs text-gray-500 mt-1">Eficiência de aprovação</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.efficiency')}</p>
                   </div>
                   <Target className="w-8 h-8 text-orange-600" />
                 </div>
@@ -491,9 +493,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Em Uso</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.creditUsed')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditInUse || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Sendo utilizado</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.beingUsed')}</p>
                   </div>
                   <PiggyBank className="w-8 h-8 text-emerald-600" />
                 </div>
@@ -504,9 +506,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.availableCredit')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditAvailable || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Livre para uso</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.freeToUse')}</p>
                   </div>
                   <CreditCard className="w-8 h-8 text-cyan-600" />
                 </div>
@@ -517,9 +519,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Tempo Médio Aprovação</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.avgApprovalTime')}</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.averageApprovalTime || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Dias para aprovar</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.daysToApprove')}</p>
                   </div>
                   <Clock className="w-8 h-8 text-yellow-600" />
                 </div>
@@ -530,13 +532,13 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Utilização</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.utilizationRate')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {financeiraMetrics?.totalCreditApproved > 0 
                         ? Math.round(((financeiraMetrics?.totalCreditInUse || 0) / financeiraMetrics.totalCreditApproved) * 100)
                         : 0}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Do crédito aprovado</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.ofApprovedCredit')}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-red-600" />
                 </div>
@@ -551,7 +553,7 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  Status das Aplicações de Crédito
+                  {t('financial.applicationStatusTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -559,7 +561,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="font-medium">Pendentes</span>
+                      <span className="font-medium">{t('credit.pending')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.pending || 0}</span>
                   </div>
@@ -567,7 +569,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span className="font-medium">Em Análise</span>
+                      <span className="font-medium">{t('financial.underReview')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.under_review || 0}</span>
                   </div>
@@ -575,7 +577,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="font-medium">Aprovadas</span>
+                      <span className="font-medium">{t('financial.approved')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.approved || 0}</span>
                   </div>
@@ -583,7 +585,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="font-medium">Rejeitadas</span>
+                      <span className="font-medium">{t('financial.rejected')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.rejected || 0}</span>
                   </div>
@@ -591,7 +593,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                      <span className="font-medium">Canceladas</span>
+                      <span className="font-medium">{t('financial.cancelled')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.cancelled || 0}</span>
                   </div>
@@ -604,42 +606,42 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
-                  Estatísticas do Mês
+                  {t('financial.monthlyStatistics')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-blue-800">Aplicações Recebidas</span>
+                      <span className="font-medium text-blue-800">{t('financial.receivedApplications')}</span>
                       <FileText className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
                       {financeiraMetrics?.monthlyStats?.applications || 0}
                     </div>
-                    <p className="text-xs text-blue-600 mt-1">Este mês</p>
+                    <p className="text-xs text-blue-600 mt-1">{t('financial.thisMonth')}</p>
                   </div>
 
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-green-800">Aprovações</span>
+                      <span className="font-medium text-green-800">{t('financial.approvals')}</span>
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     </div>
                     <div className="text-2xl font-bold text-green-600">
                       {financeiraMetrics?.monthlyStats?.approvals || 0}
                     </div>
-                    <p className="text-xs text-green-600 mt-1">Este mês</p>
+                    <p className="text-xs text-green-600 mt-1">{t('financial.thisMonth')}</p>
                   </div>
 
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-800">Volume Aprovado</span>
+                      <span className="font-medium text-purple-800">{t('financial.approvedVolume')}</span>
                       <DollarSign className="w-4 h-4 text-purple-600" />
                     </div>
                     <div className="text-2xl font-bold text-purple-600">
                       {formatCompactCurrency(financeiraMetrics?.monthlyStats?.volume || 0)}
                     </div>
-                    <p className="text-xs text-purple-600 mt-1">Este mês</p>
+                    <p className="text-xs text-purple-600 mt-1">{t('financial.thisMonth')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -651,7 +653,7 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Atividade Recente
+                {t('financial.recentActivity')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -671,11 +673,11 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-4">
                           <p className="text-sm text-gray-600">
-                            Solicitado: <span className="font-semibold">{formatCompactCurrency(parseFloat(activity.requestedAmount))}</span>
+                            {t('financial.requested')}: <span className="font-semibold">{formatCompactCurrency(parseFloat(activity.requestedAmount))}</span>
                           </p>
                           {activity.approvedAmount && (
                             <p className="text-sm text-gray-600">
-                              Aprovado: <span className="font-semibold text-green-600">{formatCompactCurrency(parseFloat(activity.approvedAmount))}</span>
+                              {t('financial.approved')}: <span className="font-semibold text-green-600">{formatCompactCurrency(parseFloat(activity.approvedAmount))}</span>
                             </p>
                           )}
                         </div>
@@ -687,11 +689,11 @@ export default function Dashboard() {
                           activity.status === 'under_review' ? 'secondary' : 
                           'outline'
                         }>
-                          {activity.status === 'approved' ? 'Aprovado' :
-                           activity.status === 'rejected' ? 'Rejeitado' :
-                           activity.status === 'under_review' ? 'Em Análise' :
-                           activity.status === 'pending' ? 'Pendente' :
-                           'Outro'}
+                          {activity.status === 'approved' ? t('financial.approved') :
+                           activity.status === 'rejected' ? t('financial.rejected') :
+                           activity.status === 'under_review' ? t('financial.underReview') :
+                           activity.status === 'pending' ? t('financial.pending') :
+                           t('financial.other')}
                         </Badge>
                         <p className="text-xs text-gray-500 mt-1">
                           {formatDate(activity.submittedAt)}
