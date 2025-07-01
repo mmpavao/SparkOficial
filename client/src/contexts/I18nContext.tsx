@@ -889,14 +889,22 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   // Translation function
   const t = (key: string, params?: Record<string, string>): string => {
     const keys = key.split('.');
-    let value: any = translations;
+    let value: any = defaultTranslations[language];
     
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
       } else {
-        // Fallback to key if translation not found
-        return key;
+        // Fallback to Portuguese if not found in current language
+        let fallbackValue: any = defaultTranslations.pt;
+        for (const fallbackKey of keys) {
+          if (fallbackValue && typeof fallbackValue === 'object' && fallbackKey in fallbackValue) {
+            fallbackValue = fallbackValue[fallbackKey];
+          } else {
+            return key; // Return key if not found in any language
+          }
+        }
+        return typeof fallbackValue === 'string' ? fallbackValue : key;
       }
     }
     
