@@ -438,9 +438,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Créditos Submetidos</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.submittedApplications')}</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.totalApplicationsSubmitted || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total de aplicações</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.applications')}</p>
                   </div>
                   <FileText className="w-8 h-8 text-blue-600" />
                 </div>
@@ -451,7 +451,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.creditLimit')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditRequested || 0)}</p>
                     <p className="text-xs text-gray-500 mt-1">Volume total pedido</p>
                   </div>
@@ -464,7 +464,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.totalApproved')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditApproved || 0)}</p>
                     <p className="text-xs text-gray-500 mt-1">Volume concedido</p>
                   </div>
@@ -477,9 +477,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.approvalRate')}</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.approvalRate || 0}%</p>
-                    <p className="text-xs text-gray-500 mt-1">Eficiência de aprovação</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('financial.efficiency')}</p>
                   </div>
                   <Target className="w-8 h-8 text-orange-600" />
                 </div>
@@ -493,7 +493,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Crédito Em Uso</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financial.creditUsed')}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditInUse || 0)}</p>
                     <p className="text-xs text-gray-500 mt-1">Sendo utilizado</p>
                   </div>
@@ -606,14 +606,14 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
-                  Estatísticas do Mês
+                  {t('financial.monthlyStatistics')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-blue-800">Aplicações Recebidas</span>
+                      <span className="font-medium text-blue-800">{t('financial.receivedApplications')}</span>
                       <FileText className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
@@ -624,7 +624,7 @@ export default function Dashboard() {
 
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-green-800">Aprovações</span>
+                      <span className="font-medium text-green-800">{t('financial.approvals')}</span>
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     </div>
                     <div className="text-2xl font-bold text-green-600">
