@@ -569,7 +569,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span className="font-medium">Em Análise</span>
+                      <span className="font-medium">{t('financial.underReview')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.under_review || 0}</span>
                   </div>
@@ -577,7 +577,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="font-medium">Aprovadas</span>
+                      <span className="font-medium">{t('financial.approved')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.approved || 0}</span>
                   </div>
@@ -585,7 +585,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="font-medium">Rejeitadas</span>
+                      <span className="font-medium">{t('financial.rejected')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.rejected || 0}</span>
                   </div>
@@ -593,7 +593,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                      <span className="font-medium">Canceladas</span>
+                      <span className="font-medium">{t('financial.cancelled')}</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.cancelled || 0}</span>
                   </div>

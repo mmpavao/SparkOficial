@@ -193,6 +193,7 @@ const defaultTranslations: Record<Language, Translations> = {
       recentActivity: 'Recent Activity',
       requested: 'Requested',
       underReview: 'Under Review',
+      cancelled: 'Cancelled',
       other: 'Other',
       thisMonth: 'This month'
     },
@@ -282,6 +283,7 @@ const defaultTranslations: Record<Language, Translations> = {
       recentActivity: '最近活动',
       requested: '已申请',
       underReview: '审核中',
+      cancelled: '已取消',
       other: '其他',
       thisMonth: '本月'
     },
@@ -371,6 +373,7 @@ const defaultTranslations: Record<Language, Translations> = {
       recentActivity: 'Actividad Reciente',
       requested: 'Solicitado',
       underReview: 'En Revisión',
+      cancelled: 'Canceladas',
       other: 'Otro',
       thisMonth: 'Este mes'
     },
