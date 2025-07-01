@@ -4,18 +4,17 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 // Navigation labels - using Portuguese for Brazilian users
 const navTranslations = {
   dashboard: 'Dashboard',
   credit: 'Crédito',
+  reports: 'Relatórios',
   settings: 'Configurações',
   logout: 'Sair'
 };
 
 import NotificationCenter from "@/components/NotificationCenter";
-import LanguageSelector from "@/components/ui/language-selector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +55,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
-  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -131,13 +129,13 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     { 
       path: "/credit", 
       icon: CreditCard, 
-      label: (isAdmin || isFinanceira) ? t('financial.creditAnalysis') : navTranslations.credit 
+      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
     },
     { 
       path: "/imports", 
       icon: Package, 
       label: isFinanceira 
-        ? t('financial.importAnalysis') 
+        ? "Análise de Importações" 
         : isAdmin 
           ? "Todas as Importações" 
           : "Minhas Importações"
@@ -146,12 +144,12 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       path: "/suppliers", 
       icon: Building, 
       label: isFinanceira 
-        ? t('financial.allSuppliers') 
+        ? "Todos Fornecedores" 
         : isAdmin 
-          ? t('financial.allSuppliers') 
+          ? "Todos Fornecedores" 
           : "Fornecedores"
     },
-    { path: "/reports", icon: BarChart3, label: t('financial.reports') },
+    { path: "/reports", icon: BarChart3, label: navTranslations.reports },
   ];
 
   // Navegação adicional apenas para admins
@@ -457,9 +455,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
-            <div className="w-48">
-              <LanguageSelector />
-            </div>
             <NotificationCenter />
           </div>
         </div>
