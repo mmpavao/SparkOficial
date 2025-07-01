@@ -225,6 +225,7 @@ const defaultTranslations: Record<Language, Translations> = {
       pending: 'Pending',
       approved: 'Approved',
       rejected: 'Rejected',
+      cancelled: 'Cancelled',
       underReview: 'Under Review'
     },
     // Financial module (Financeira)
