@@ -316,7 +316,7 @@ export default function CreditPage() {
                 const getStatusInfo = () => {
                   if (application.financialStatus === 'approved') {
                     return { 
-                      label: 'Aprovado', 
+                      label: t('financial.approved'), 
                       color: 'bg-green-100 text-green-800 border-green-200',
                       bgColor: 'bg-green-50',
                       borderColor: 'border-l-green-500'
@@ -324,7 +324,7 @@ export default function CreditPage() {
                   } 
                   else if (application.financialStatus === 'rejected') {
                     return { 
-                      label: 'Rejeitado', 
+                      label: t('financial.rejected'), 
                       color: 'bg-red-100 text-red-800 border-red-200',
                       bgColor: 'bg-red-50',
                       borderColor: 'border-l-red-500'
@@ -332,7 +332,7 @@ export default function CreditPage() {
                   } 
                   else if (application.status === 'approved' || application.status === 'submitted_to_financial') {
                     return { 
-                      label: 'Análise Final', 
+                      label: t('financial.finalAnalysis'), 
                       color: 'bg-blue-100 text-blue-800 border-blue-200',
                       bgColor: 'bg-blue-50',
                       borderColor: 'border-l-blue-500'
@@ -340,7 +340,7 @@ export default function CreditPage() {
                   } 
                   else {
                     return { 
-                      label: 'Pré-Análise', 
+                      label: t('financial.preAnalysis'), 
                       color: 'bg-gray-100 text-gray-800 border-gray-200',
                       bgColor: 'bg-gray-50',
                       borderColor: 'border-l-gray-500'
@@ -355,24 +355,24 @@ export default function CreditPage() {
                     key={application.id}
                     icon={<FileText className="w-6 h-6 text-spark-600" />}
                     title={application.legalCompanyName || `Empresa #${application.id}`}
-                    subtitle={`ID da solicitação: #${application.id}`}
+                    subtitle={`${t('financial.requestId')}: #${application.id}`}
                     companyBadge={permissions.canViewAllApplications ? application.legalCompanyName : undefined}
                     status={statusInfo}
                     miniCards={[
                       {
                         icon: <DollarSign className="w-4 h-4 text-blue-600" />,
-                        label: "Solicitado",
+                        label: t('financial.requested'),
                         value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.requestedAmount || '0')),
                         color: "bg-blue-50 border-blue-200"
                       },
                       {
                         icon: <CheckCircle className="w-4 h-4 text-green-600" />,
-                        label: "Aprovação", 
+                        label: t('financial.approval'), 
                         value: application.finalCreditLimit 
                           ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
                           : application.financialApprovedAt 
                             ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
-                            : "Pendente",
+                            : t('financial.pending'),
                         color: application.finalCreditLimit ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
                       },
                       {
