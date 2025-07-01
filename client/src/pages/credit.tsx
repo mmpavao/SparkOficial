@@ -137,7 +137,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {underReviewApplications.length} {underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}
+                {underReviewApplications.length} {underReviewApplications.length === 1 ? t('financial.application') : t('financial.applications')}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -305,9 +305,9 @@ export default function CreditPage() {
           ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
+              <p className="text-gray-500 mb-2">{t('credit.zeroApplications')}</p>
               <p className="text-sm text-gray-400">
-                Suas solicitações de crédito aparecerão aqui.
+                {t('financial.creditRequestsWillAppearHere')}
               </p>
             </div>
           ) : (

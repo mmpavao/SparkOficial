@@ -155,7 +155,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsDocuments: 'Precisa documentos',
       needsClarification: 'Precisa esclarecimentos',
       inAnalysis: 'Em análise',
-      zeroApplications: '0 aplicações'
+      zeroApplications: '0 aplicações',
+      creditRequestsWillAppearHere: 'Suas solicitações de crédito aparecerão aqui.'
     },
     // Common terms
     common: {
@@ -297,7 +298,8 @@ const defaultTranslations: Record<Language, Translations> = {
       needsDocuments: 'Needs documents',
       needsClarification: 'Needs clarification',
       inAnalysis: 'In analysis',
-      zeroApplications: '0 applications'
+      zeroApplications: '0 applications',
+      creditRequestsWillAppearHere: 'Your credit requests will appear here.'
     },
     common: {
       save: 'Save',
