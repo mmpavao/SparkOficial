@@ -15,6 +15,7 @@ const navTranslations = {
 };
 
 import NotificationCenter from "@/components/NotificationCenter";
+import LanguageSelector from "@/components/ui/language-selector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -455,6 +456,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
+            <div className="w-48">
+              <LanguageSelector />
+            </div>
             <NotificationCenter />
           </div>
         </div>
