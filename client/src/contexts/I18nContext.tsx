@@ -139,7 +139,6 @@ const defaultTranslations: Record<Language, Translations> = {
       adminFilters: 'Filtros Administrativos',
       active: 'Ativos',
       clear: 'Limpar',
-      expandFilters: 'Expandir',
       company: 'Empresa',
       companyPlaceholder: 'Nome da empresa...',
       minAmount: 'Valor Mínimo (USD)',
@@ -285,7 +284,6 @@ const defaultTranslations: Record<Language, Translations> = {
       adminFilters: 'Administrative Filters',
       active: 'Active',
       clear: 'Clear',
-      expandFilters: 'Expand',
       company: 'Company',
       companyPlaceholder: 'Company name...',
       minAmount: 'Minimum Amount (USD)',
@@ -461,8 +459,7 @@ const defaultTranslations: Record<Language, Translations> = {
       low: '低',
       medium: '中',
       high: '高',
-      adminFilters: '管理筛选器',
-      collapseFilters: '收起筛选器'
+
     },
     common: {
       save: '保存',
@@ -618,8 +615,7 @@ const defaultTranslations: Record<Language, Translations> = {
       low: 'Bajo',
       medium: 'Medio',
       high: 'Alto',
-      adminFilters: 'Filtros Administrativos',
-      collapseFilters: 'Ocultar Filtros'
+
     },
     common: {
       save: 'Guardar',
@@ -764,8 +760,7 @@ const defaultTranslations: Record<Language, Translations> = {
       creditRequestsWillAppearHere: 'Ваши кредитные заявки будут отображаться здесь.',
       application: 'заявка',
       confirmCancelApplication: 'Вы уверены, что хотите отменить эту кредитную заявку?',
-      adminFilters: 'Административные фильтры',
-      collapseFilters: 'Скрыть фильтры'
+
     },
     common: {
       save: 'Сохранить',
