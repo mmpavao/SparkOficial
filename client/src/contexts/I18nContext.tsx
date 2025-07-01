@@ -116,7 +116,8 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationStatusTitle: 'Status das Aplicações de Crédito',
       creditAnalysis: 'Análise de Crédito',
       importAnalysis: 'Análise de Importações',
-      allSuppliers: 'Todos os Fornecedores'
+      allSuppliers: 'Todos os Fornecedores',
+      reports: 'Relatórios'
     },
     // Common terms
     common: {
@@ -219,7 +220,8 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationStatusTitle: 'Credit Application Status',
       creditAnalysis: 'Credit Analysis',
       importAnalysis: 'Import Analysis',
-      allSuppliers: 'All Suppliers'
+      allSuppliers: 'All Suppliers',
+      reports: 'Reports'
     },
     common: {
       save: 'Save',
@@ -321,7 +323,8 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationStatusTitle: '信贷申请状态',
       creditAnalysis: '信贷分析',
       importAnalysis: '进口分析',
-      allSuppliers: '所有供应商'
+      allSuppliers: '所有供应商',
+      reports: '报告'
     },
     common: {
       save: '保存',
@@ -423,7 +426,8 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationStatusTitle: 'Estado de Solicitudes de Crédito',
       creditAnalysis: 'Análisis de Crédito',
       importAnalysis: 'Análisis de Importaciones',
-      allSuppliers: 'Todos los Proveedores'
+      allSuppliers: 'Todos los Proveedores',
+      reports: 'Informes'
     },
     common: {
       save: 'Guardar',
@@ -525,7 +529,8 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationStatusTitle: 'Статус кредитных заявок',
       creditAnalysis: 'Анализ кредитов',
       importAnalysis: 'Анализ импорта',
-      allSuppliers: 'Все поставщики'
+      allSuppliers: 'Все поставщики',
+      reports: 'Отчеты'
     },
     common: {
       save: 'Сохранить',

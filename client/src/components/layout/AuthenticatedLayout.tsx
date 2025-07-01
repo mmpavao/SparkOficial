@@ -10,7 +10,6 @@ import { apiRequest } from "@/lib/queryClient";
 const navTranslations = {
   dashboard: 'Dashboard',
   credit: 'Crédito',
-  reports: 'Relatórios',
   settings: 'Configurações',
   logout: 'Sair'
 };
