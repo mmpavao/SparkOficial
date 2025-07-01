@@ -95,7 +95,16 @@ const defaultTranslations: Record<Language, Translations> = {
       days90: '90 dias',
       days120: '120 dias',
       days150: '150 dias',
-      days180: '180 dias'
+      days180: '180 dias',
+      monthlyStatistics: 'Estatísticas do Mês',
+      receivedApplications: 'Aplicações Recebidas',
+      approvals: 'Aprovações',
+      approvedVolume: 'Volume Aprovado',
+      recentActivity: 'Atividade Recente',
+      requested: 'Solicitado',
+      underReview: 'Em Análise',
+      other: 'Outro',
+      thisMonth: 'Este mês'
     },
     // Common terms
     common: {
@@ -176,7 +185,16 @@ const defaultTranslations: Record<Language, Translations> = {
       days90: '90 days',
       days120: '120 days',
       days150: '150 days',
-      days180: '180 days'
+      days180: '180 days',
+      monthlyStatistics: 'Monthly Statistics',
+      receivedApplications: 'Received Applications',
+      approvals: 'Approvals',
+      approvedVolume: 'Approved Volume',
+      recentActivity: 'Recent Activity',
+      requested: 'Requested',
+      underReview: 'Under Review',
+      other: 'Other',
+      thisMonth: 'This month'
     },
     common: {
       save: 'Save',
@@ -256,7 +274,16 @@ const defaultTranslations: Record<Language, Translations> = {
       days90: '90天',
       days120: '120天',
       days150: '150天',
-      days180: '180天'
+      days180: '180天',
+      monthlyStatistics: '月度统计',
+      receivedApplications: '收到的申请',
+      approvals: '批准',
+      approvedVolume: '批准金额',
+      recentActivity: '最近活动',
+      requested: '已申请',
+      underReview: '审核中',
+      other: '其他',
+      thisMonth: '本月'
     },
     common: {
       save: '保存',
@@ -336,7 +363,16 @@ const defaultTranslations: Record<Language, Translations> = {
       days90: '90 días',
       days120: '120 días',
       days150: '150 días',
-      days180: '180 días'
+      days180: '180 días',
+      monthlyStatistics: 'Estadísticas Mensuales',
+      receivedApplications: 'Solicitudes Recibidas',
+      approvals: 'Aprobaciones',
+      approvedVolume: 'Volumen Aprobado',
+      recentActivity: 'Actividad Reciente',
+      requested: 'Solicitado',
+      underReview: 'En Revisión',
+      other: 'Otro',
+      thisMonth: 'Este mes'
     },
     common: {
       save: 'Guardar',
@@ -416,7 +452,16 @@ const defaultTranslations: Record<Language, Translations> = {
       days90: '90 дней',
       days120: '120 дней',
       days150: '150 дней',
-      days180: '180 дней'
+      days180: '180 дней',
+      monthlyStatistics: 'Месячная статистика',
+      receivedApplications: 'Полученные заявки',
+      approvals: 'Одобрения',
+      approvedVolume: 'Одобренный объем',
+      recentActivity: 'Недавняя активность',
+      requested: 'Запрошено',
+      underReview: 'На рассмотрении',
+      other: 'Другое',
+      thisMonth: 'В этом месяце'
     },
     common: {
       save: 'Сохранить',
