@@ -4020,6 +4020,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para download do PDF da Consultamais
+  app.get('/api/consultamais/download-pdf/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const path = require('path');
+      const fs = require('fs');
+      
+      const pdfPath = path.join(process.cwd(), 'public/downloads/consultamais_prow_importadora.pdf');
+      
+      // Verificar se o arquivo existe
+      if (!fs.existsSync(pdfPath)) {
+        return res.status(404).json({ error: 'PDF não encontrado' });
+      }
+
+      // Configurar headers para download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Consultamais_PROW_IMPORTADORA_${applicationId}.pdf"`);
+      
+      // Enviar o arquivo
+      res.sendFile(pdfPath);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      res.status(500).json({ error: 'Erro ao baixar PDF' });
+    }
+  });
+
   // Helper function to generate realistic data based on real Consultamais response
   function generateMockConsultamaisResponse(cnpj: string) {
     // Check if this is the PROW IMPORTADORA CNPJ (65.484.271/0001-05)
