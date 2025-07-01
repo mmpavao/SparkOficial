@@ -135,7 +135,19 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationCancelledSuccess: 'Solicitação de crédito cancelada com sucesso.',
       applicationCancelError: 'Erro ao cancelar solicitação de crédito.',
       expandFilters: 'Expandir',
-      collapseFilters: 'Recolher'
+      collapseFilters: 'Recolher',
+      adminFilters: 'Filtros Administrativos',
+      active: 'Ativos',
+      clear: 'Limpar',
+      company: 'Empresa',
+      companyPlaceholder: 'Nome da empresa...',
+      minAmount: 'Valor Mínimo (USD)',
+      minAmountPlaceholder: '$ 0',
+      riskLevel: 'Nível de Risco',
+      allLevels: 'Todos os níveis',
+      low: 'Baixo',
+      medium: 'Médio',
+      high: 'Alto'
     },
     // Common terms
     common: {
@@ -257,7 +269,19 @@ const defaultTranslations: Record<Language, Translations> = {
       applicationCancelledSuccess: 'Credit application cancelled successfully.',
       applicationCancelError: 'Error cancelling credit application.',
       expandFilters: 'Expand',
-      collapseFilters: 'Collapse'
+      collapseFilters: 'Collapse',
+      adminFilters: 'Administrative Filters',
+      active: 'Active',
+      clear: 'Clear',
+      company: 'Company',
+      companyPlaceholder: 'Company name...',
+      minAmount: 'Minimum Amount (USD)',
+      minAmountPlaceholder: '$ 0',
+      riskLevel: 'Risk Level',
+      allLevels: 'All levels',
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High'
     },
     common: {
       save: 'Save',

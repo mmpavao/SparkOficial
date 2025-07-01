@@ -292,7 +292,7 @@ export default function CreditPage() {
         <CardHeader>
           <CardTitle>
             {permissions.canViewAllApplications 
-              ? "Todas as Solicitações de Crédito" 
+              ? t('financial.allCreditApplications')
               : "Minhas Solicitações"}
           </CardTitle>
         </CardHeader>
