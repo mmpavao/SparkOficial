@@ -1420,6 +1420,118 @@ export class DatabaseStorage {
         .from(suppliers);
     }
   }
+
+  // ===== ADMIN IMPORTERS MANAGEMENT =====
+
+  // Get all importers (admin only)
+  async getAllImporters() {
+    const result = await db
+      .select({
+        id: users.id,
+        fullName: users.fullName,
+        email: users.email,
+        phone: users.phone,
+        companyName: users.companyName,
+        cnpj: users.cnpj,
+        status: users.status,
+        createdAt: users.createdAt,
+        lastLogin: users.lastLogin,
+      })
+      .from(users)
+      .where(eq(users.role, 'importer'))
+      .orderBy(desc(users.createdAt));
+    
+    return result;
+  }
+
+  // Get importer details with additional information
+  async getImporterDetails(importerId: number) {
+    const result = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.id, importerId), eq(users.role, 'importer')))
+      .limit(1);
+    
+    if (!result[0]) return null;
+
+    // Get additional statistics
+    const [creditAppsCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(creditApplications)
+      .where(eq(creditApplications.userId, importerId));
+
+    const [importsCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(imports)
+      .where(eq(imports.userId, importerId));
+
+    return {
+      ...result[0],
+      statistics: {
+        creditApplications: creditAppsCount?.count || 0,
+        imports: importsCount?.count || 0,
+      }
+    };
+  }
+
+  // Update user password
+  async updateUserPassword(userId: number, hashedPassword: string) {
+    await db
+      .update(users)
+      .set({ 
+        password: hashedPassword,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+
+  // Update user status
+  async updateUserStatus(userId: number, status: string) {
+    const result = await db
+      .update(users)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return result[0];
+  }
+
+  // Get importer activity logs (simplified for now)
+  async getImporterActivityLogs(importerId: number) {
+    // For now, return basic activity from credit applications and imports
+    const creditApps = await db
+      .select({
+        id: creditApplications.id,
+        type: sql<string>`'credit_application'`,
+        action: creditApplications.status,
+        createdAt: creditApplications.createdAt,
+        description: sql<string>`CONCAT('Credit application #', ${creditApplications.id}, ' - ', ${creditApplications.status})`
+      })
+      .from(creditApplications)
+      .where(eq(creditApplications.userId, importerId))
+      .orderBy(desc(creditApplications.createdAt))
+      .limit(10);
+
+    const importsData = await db
+      .select({
+        id: imports.id,
+        type: sql<string>`'import'`,
+        action: imports.status,
+        createdAt: imports.createdAt,
+        description: sql<string>`CONCAT('Import #', ${imports.id}, ' - ', ${imports.status})`
+      })
+      .from(imports)
+      .where(eq(imports.userId, importerId))
+      .orderBy(desc(imports.createdAt))
+      .limit(10);
+
+    return [...creditApps, ...importsData]
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+      .slice(0, 20);
+  }
 }
 
 export const storage = new DatabaseStorage();
