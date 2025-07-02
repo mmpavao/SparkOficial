@@ -178,7 +178,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
             <img 
               src={sparkLogo} 
               alt="Spark Comex" 
-              className="h-10 w-auto ml-[12px] mr-[12px]"
+              className="h-12 w-auto ml-[12px] mr-[12px]"
             />
           </div>
           {/* Ícone do Spark Comex quando sidebar está fechada */}

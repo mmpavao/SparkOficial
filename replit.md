@@ -762,7 +762,7 @@ Changelog:
 - June 30, 2025. Sidebar logo updated with new Spark Comex branding:
   * Replaced sidebar logo with new official Spark Comex logo (logo-spark_1751323949667.png)
   * Updated import reference in AuthenticatedLayout.tsx to use new logo asset
-  * Increased logo size by 30% (from h-8 to h-10) for better visibility and brand presence
+  * Increased logo size by 50% (from h-8 to h-12) for better visibility and brand presence
   * Maintained existing logo functionality and responsive behavior in sidebar
 ```
 
