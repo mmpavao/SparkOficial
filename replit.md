@@ -781,6 +781,12 @@ Changelog:
   * Restored proper workflow: Importador → Admin pré-aprovação → Financeira aprovação (interna) → Admin finalização → Importador vê aprovação
   * System now correctly prevents importers from accessing credit until admin finalizes all terms and conditions
   * Dashboard now shows US$ 0 for credit metrics until admin completes final approval process
+- July 02, 2025. Financial interface down payment correction and standardization:
+  * Fixed Financeira interface regression - removed editable down payment field that had returned
+  * Replaced editable "Down Payment (%)" field with informational display: "Cobertura da Apólice: 90% (Down payment 10%)"
+  * Updated down payment from 30% to 10% as requested by user for insurance policy compliance
+  * System now uses fixed 10% down payment value for all financial approvals
+  * Maintained existing workflow functionality while ensuring Financeira cannot modify insurance terms
 ```
 
 ## User Preferences

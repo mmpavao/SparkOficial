@@ -199,7 +199,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
             data: {
               creditLimit: financialData.creditLimit,
               approvedTerms: financialData.approvedTerms.join(','),
-              downPayment: "30",
+              downPayment: "10",
               financialNotes: financialData.financialNotes,
               financialStatus: 'approved'
             }
@@ -213,7 +213,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   financialStatus: 'approved',
                   creditLimit: financialData.creditLimit,
                   approvedTerms: financialData.approvedTerms.join(','),
-                  downPayment: "30",
+                  downPayment: "10",
                   financialNotes: financialData.financialNotes
                 })
               );
@@ -540,10 +540,10 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 <Label>Cobertura da Apólice</Label>
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                   <p className="text-sm font-medium text-blue-800">
-                    90% (Down payment 30%)
+                    90% (Down payment 10%)
                   </p>
                   <p className="text-xs text-blue-600 mt-1">
-                    A apólice de seguro cobrirá 90% do valor financiado, com entrada obrigatória de 30%
+                    A apólice de seguro cobrirá 90% do valor financiado, com entrada obrigatória de 10%
                   </p>
                 </div>
               </div>
