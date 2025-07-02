@@ -366,12 +366,16 @@ export default function CreditPage() {
                       {
                         icon: <CheckCircle className="w-4 h-4 text-green-600" />,
                         label: "Aprovação", 
-                        value: application.financialStatus === 'approved' 
-                          ? "Aprovado" 
-                          : application.preAnalysisStatus === 'pre_approved'
-                            ? "Pré-aprovado"
-                            : "Pendente",
-                        color: application.financialStatus === 'approved' ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
+                        value: application.finalCreditLimit 
+                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
+                          : application.creditLimit 
+                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.creditLimit))
+                            : application.financialApprovedAt 
+                              ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
+                              : application.financialStatus === 'approved'
+                                ? "Aprovado"
+                                : "Pendente",
+                        color: application.finalCreditLimit ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
                       },
                       {
                         icon: <Calendar className="w-4 h-4 text-purple-600" />,
