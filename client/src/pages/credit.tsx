@@ -81,6 +81,14 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
       const approvedAmount = app.adminStatus === 'admin_finalized' 
         ? parseFloat(app.finalCreditLimit || app.credit_limit || '0')
         : parseFloat(app.credit_limit || '0');
+      console.log('🔍 Credit calculation debug:', {
+        appId: app.id,
+        financialStatus: app.financialStatus,
+        adminStatus: app.adminStatus,
+        finalCreditLimit: app.finalCreditLimit,
+        credit_limit: app.credit_limit,
+        approvedAmount: approvedAmount
+      });
       acc.totalApproved += approvedAmount;
     } else if (app.status === 'pending') {
       acc.totalPending += requestedAmount;
