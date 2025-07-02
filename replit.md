@@ -795,6 +795,15 @@ Changelog:
   * Fixed status display logic: Financeira sees "Aprovado" when they approve, others see workflow states
   * Corrected credit amount display: Financeira sees approved values, others wait for admin finalization
   * System now has complete workflow independence between roles
+- July 02, 2025. CRITICAL import component duplication resolution:
+  * Identified and resolved major component duplication issue causing incorrect version display
+  * Problem: /imports/new route was using ImportsNewFormPage (basic version) instead of ImportNewEnhancedPage (advanced version)
+  * Fixed App.tsx routing to use ImportNewEnhancedPage for /imports/new route ensuring enhanced version with financial calculations
+  * Removed conflicting import-new.tsx file (renamed to import-new-OLD-BACKUP.tsx) to prevent future conflicts
+  * Enhanced version includes: ImportFinancialPreview sidebar, TermsConfirmation modal, real-time credit calculations, complete port data
+  * Fixed TermsConfirmation.tsx layout issues and JSX structure problems preventing proper display
+  * Eliminated component duplicates: maintained enhanced version only, moved simple version to backup route
+  * System now correctly displays advanced import creation form with comprehensive financial calculations and sidebar
 ```
 
 ## User Preferences
