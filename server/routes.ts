@@ -1449,7 +1449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user's approved credit application
       const userCreditApps = await storage.getCreditApplicationsByUser(userId);
-      const approvedCredits = userCreditApps.filter(app => app.status === 'approved');
+      const approvedCredits = userCreditApps.filter(app => 
+        app.adminStatus === 'admin_finalized' && app.financialStatus === 'approved'
+      );
 
       if (!approvedCredits.length) {
         return res.status(400).json({ 
