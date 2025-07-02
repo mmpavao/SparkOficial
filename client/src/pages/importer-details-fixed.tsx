@@ -51,12 +51,11 @@ interface ImporterDetails {
   address: string;
   city: string;
   state: string;
-  zipCode: string;
-  role: string;
 }
 
 interface CreditApplication {
   id: number;
+  userId: number;
   legalCompanyName: string;
   requestedAmount: string;
   status: string;
@@ -73,13 +72,6 @@ interface Import {
   status: string;
   createdAt: string;
   cargoType: string;
-}
-
-interface CreditUsage {
-  totalLimit: number;
-  totalUsed: number;
-  available: number;
-  utilizationPercentage: number;
 }
 
 export default function ImporterDetailsPage() {
@@ -119,22 +111,24 @@ export default function ImporterDetailsPage() {
   const imports = allImports.filter((imp: any) => imp.userId === importerId);
 
   // Calculate credit usage from the data we have
+  const approvedApplications = creditApplications.filter((app: any) => 
+    app.adminStatus === 'finalized' && app.finalCreditLimit
+  );
+  
+  const totalLimit = approvedApplications.reduce((sum: number, app: any) => 
+    sum + parseFloat(app.finalCreditLimit || '0'), 0
+  );
+  
+  const totalUsed = imports
+    .filter((imp: any) => imp.status !== 'cancelled')
+    .reduce((sum: number, imp: any) => sum + parseFloat(imp.totalValue || '0'), 0);
+  
   const creditUsage = {
-    totalLimit: creditApplications
-      .filter((app: any) => app.adminStatus === 'finalized' && app.finalCreditLimit)
-      .reduce((sum: number, app: any) => sum + parseFloat(app.finalCreditLimit || '0'), 0),
-    totalUsed: imports
-      .filter((imp: any) => imp.status !== 'cancelled')
-      .reduce((sum: number, imp: any) => sum + parseFloat(imp.totalValue || '0'), 0),
-    available: 0,
-    utilizationPercentage: 0
+    totalLimit,
+    totalUsed,
+    available: totalLimit - totalUsed,
+    utilizationPercentage: totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0
   };
-
-  // Calculate available and utilization percentage
-  creditUsage.available = creditUsage.totalLimit - creditUsage.totalUsed;
-  creditUsage.utilizationPercentage = creditUsage.totalLimit > 0 
-    ? (creditUsage.totalUsed / creditUsage.totalLimit) * 100 
-    : 0;
 
   // Update importer mutation
   const updateMutation = useMutation({
@@ -159,11 +153,12 @@ export default function ImporterDetailsPage() {
 
   // Reset password mutation
   const resetPasswordMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/admin/importers/${importerId}/reset-password`, "POST"),
-    onSuccess: (response) => {
+    mutationFn: (newPassword: string) => 
+      apiRequest(`/api/admin/importers/${importerId}/reset-password`, "POST", { password: newPassword }),
+    onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: `Senha redefinida: ${response.temporaryPassword}`,
+        description: "Senha redefinida com sucesso",
       });
       setShowResetPassword(false);
     },
@@ -185,82 +180,18 @@ export default function ImporterDetailsPage() {
     setEditData({});
   };
 
-  const handleResetPassword = () => {
-    resetPasswordMutation.mutate();
-  };
-
-  const formatCurrency = (value: string | number) => {
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(numValue);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
-      case 'inactive':
-        return <Badge className="bg-gray-100 text-gray-800">Inativo</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-100 text-red-800">Rejeitado</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
-    }
-  };
-
-  const getCreditStatusBadge = (status: string, financialStatus?: string, adminStatus?: string) => {
-    if (adminStatus === 'finalized') return <Badge className="bg-blue-100 text-blue-800">Finalizado</Badge>;
-    if (financialStatus === 'approved') return <Badge className="bg-green-100 text-green-800">Aprovado Financeiramente</Badge>;
-    if (status === 'pre_approved') return <Badge className="bg-yellow-100 text-yellow-800">Pré-aprovado</Badge>;
-    if (status === 'pending') return <Badge className="bg-orange-100 text-orange-800">Em Análise</Badge>;
-    if (status === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejeitado</Badge>;
-    return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
-  };
-
   if (importerLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setLocation('/importers')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-        </div>
-        <div className="flex justify-center py-8">
-          <div className="text-gray-500">Carregando detalhes do importador...</div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Carregando...</div>
       </div>
     );
   }
 
   if (!importer) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setLocation('/importers')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-        </div>
-        <div className="text-center py-8">
-          <div className="text-gray-500">Importador não encontrado</div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Importador não encontrado</div>
       </div>
     );
   }
@@ -270,24 +201,26 @@ export default function ImporterDetailsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setLocation('/importers')}>
+          <Button
+            variant="ghost"
+            onClick={() => setLocation('/importers')}
+            className="hover:bg-gray-100"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{importer.fullName}</h1>
+            <h1 className="text-2xl font-bold">{importer.fullName}</h1>
             <p className="text-gray-600">{importer.companyName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {getStatusBadge(importer.status)}
+        <div className="flex gap-2">
           <Button
-            variant="outline"
             onClick={() => setShowResetPassword(true)}
-            className="text-orange-600 border-orange-200 hover:bg-orange-50"
+            variant="outline"
           >
             <KeyRound className="h-4 w-4 mr-2" />
-            Renovar Senha
+            Redefinir Senha
           </Button>
           {!isEditing ? (
             <Button
@@ -295,7 +228,6 @@ export default function ImporterDetailsPage() {
                 setIsEditing(true);
                 setEditData(importer);
               }}
-              className="bg-blue-600 hover:bg-blue-700"
             >
               <Edit className="h-4 w-4 mr-2" />
               Editar
@@ -402,7 +334,7 @@ export default function ImporterDetailsPage() {
                     <label className="text-sm font-medium text-gray-500">Data de Cadastro</label>
                     <p className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      {formatDate(importer.createdAt)}
+                      {new Date(importer.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 </div>
@@ -410,7 +342,7 @@ export default function ImporterDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Address Information */}
+          {/* Address */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -419,7 +351,7 @@ export default function ImporterDetailsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Endereço</label>
                   {isEditing ? (
@@ -431,29 +363,27 @@ export default function ImporterDetailsPage() {
                     <p>{importer.address}</p>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Cidade</label>
-                    {isEditing ? (
-                      <Input
-                        value={editData.city || ''}
-                        onChange={(e) => setEditData({...editData, city: e.target.value})}
-                      />
-                    ) : (
-                      <p>{importer.city}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Estado</label>
-                    {isEditing ? (
-                      <Input
-                        value={editData.state || ''}
-                        onChange={(e) => setEditData({...editData, state: e.target.value})}
-                      />
-                    ) : (
-                      <p>{importer.state}</p>
-                    )}
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Cidade</label>
+                  {isEditing ? (
+                    <Input
+                      value={editData.city || ''}
+                      onChange={(e) => setEditData({...editData, city: e.target.value})}
+                    />
+                  ) : (
+                    <p>{importer.city}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Estado</label>
+                  {isEditing ? (
+                    <Input
+                      value={editData.state || ''}
+                      onChange={(e) => setEditData({...editData, state: e.target.value})}
+                    />
+                  ) : (
+                    <p>{importer.state}</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -490,7 +420,7 @@ export default function ImporterDetailsPage() {
                   <div>
                     <p className="text-sm text-gray-600">Limite de Crédito</p>
                     <p className="text-2xl font-bold">
-                      {creditUsage ? formatCurrency(creditUsage.totalLimit) : '-'}
+                      {totalLimit > 0 ? formatCurrency(totalLimit) : 'US$ NaN'}
                     </p>
                   </div>
                 </div>
@@ -503,7 +433,7 @@ export default function ImporterDetailsPage() {
                   <div>
                     <p className="text-sm text-gray-600">Utilização</p>
                     <p className="text-2xl font-bold">
-                      {creditUsage ? `${creditUsage.utilizationPercentage}%` : '-'}
+                      {totalLimit > 0 ? `${creditUsage.utilizationPercentage.toFixed(1)}%` : 'undefined%'}
                     </p>
                   </div>
                 </div>
@@ -514,85 +444,90 @@ export default function ImporterDetailsPage() {
 
         <TabsContent value="credit" className="space-y-6">
           {/* Credit Usage Summary */}
-          {creditUsage && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumo de Uso de Crédito</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Limite Total</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(creditUsage.totalLimit)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Em Uso</p>
-                    <p className="text-2xl font-bold text-orange-600">
-                      {formatCurrency(creditUsage.totalUsed)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Disponível</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {formatCurrency(creditUsage.available)}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-blue-600 h-3 rounded-full"
-                      style={{ width: `${creditUsage.utilizationPercentage}%` }}
-                    />
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2 text-center">
-                    {creditUsage.utilizationPercentage}% utilizado
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Credit Applications */}
           <Card>
             <CardHeader>
-              <CardTitle>Solicitações de Crédito</CardTitle>
+              <CardTitle>Resumo de Uso de Crédito</CardTitle>
             </CardHeader>
             <CardContent>
-              {creditsLoading ? (
-                <div className="text-center py-4">Carregando...</div>
-              ) : creditApplications.length > 0 ? (
+              <div className="grid grid-cols-3 gap-6">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Limite Total</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(totalLimit)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Em Uso</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {formatCurrency(totalUsed)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Disponível</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {formatCurrency(creditUsage.available)}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-blue-600 h-3 rounded-full"
+                    style={{ width: `${Math.min(creditUsage.utilizationPercentage, 100)}%` }}
+                  />
+                </div>
+                <p className="text-sm text-gray-600 mt-2 text-center">
+                  {creditUsage.utilizationPercentage.toFixed(1)}% utilizado
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Credit Applications List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Aplicações de Crédito</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {creditApplications.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">Nenhuma aplicação de crédito encontrada</p>
+              ) : (
                 <div className="space-y-4">
-                  {creditApplications.map((credit: CreditApplication) => (
-                    <div key={credit.id} className="border rounded-lg p-4">
+                  {creditApplications.map((app: any) => (
+                    <div key={app.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-semibold">Solicitação #{credit.id}</h4>
-                          <p className="text-sm text-gray-600">{credit.legalCompanyName}</p>
-                          <p className="text-sm text-gray-600">
-                            Solicitado: {formatCurrency(credit.requestedAmount)}
-                          </p>
-                          {credit.finalCreditLimit && (
-                            <p className="text-sm font-medium text-green-600">
-                              Aprovado: {formatCurrency(credit.finalCreditLimit)}
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-500">
-                            {formatDate(credit.createdAt)}
-                          </p>
+                          <h3 className="font-semibold">{app.legalCompanyName}</h3>
+                          <p className="text-sm text-gray-600">ID: #{app.id}</p>
                         </div>
-                        <div className="text-right">
-                          {getCreditStatusBadge(credit.status, credit.financialStatus, credit.adminStatus)}
+                        <Badge variant={
+                          app.adminStatus === 'finalized' ? 'default' :
+                          app.financialStatus === 'approved' ? 'secondary' :
+                          app.preAnalysisStatus === 'pre_approved' ? 'outline' : 'destructive'
+                        }>
+                          {app.adminStatus === 'finalized' ? 'Finalizado' :
+                           app.financialStatus === 'approved' ? 'Aprovado' :
+                           app.preAnalysisStatus === 'pre_approved' ? 'Pré-aprovado' : 'Pendente'}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 mt-3">
+                        <div>
+                          <p className="text-sm text-gray-600">Solicitado</p>
+                          <p className="font-semibold">{formatCurrency(parseFloat(app.requestedAmount))}</p>
+                        </div>
+                        {app.finalCreditLimit && (
+                          <div>
+                            <p className="text-sm text-gray-600">Aprovado</p>
+                            <p className="font-semibold">{formatCurrency(parseFloat(app.finalCreditLimit))}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm text-gray-600">Criado em</p>
+                          <p className="font-semibold">{new Date(app.createdAt).toLocaleDateString('pt-BR')}</p>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Nenhuma solicitação de crédito encontrada
                 </div>
               )}
             </CardContent>
@@ -602,38 +537,38 @@ export default function ImporterDetailsPage() {
         <TabsContent value="imports" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de Importações</CardTitle>
+              <CardTitle>Importações</CardTitle>
             </CardHeader>
             <CardContent>
-              {importsLoading ? (
-                <div className="text-center py-4">Carregando...</div>
-              ) : imports.length > 0 ? (
+              {imports.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">Nenhuma importação encontrada</p>
+              ) : (
                 <div className="space-y-4">
-                  {imports.map((importItem: Import) => (
-                    <div key={importItem.id} className="border rounded-lg p-4">
+                  {imports.map((imp: any) => (
+                    <div key={imp.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-semibold">{importItem.importName}</h4>
-                          <p className="text-sm text-gray-600">
-                            Valor: {formatCurrency(importItem.totalValue)}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Tipo: {importItem.cargoType === 'FCL' ? 'Container Completo' : 'Carga Fracionada'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {formatDate(importItem.createdAt)}
-                          </p>
+                          <h3 className="font-semibold">{imp.importName}</h3>
+                          <p className="text-sm text-gray-600">ID: #{imp.id}</p>
+                        </div>
+                        <Badge variant="outline">{imp.status}</Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 mt-3">
+                        <div>
+                          <p className="text-sm text-gray-600">Valor</p>
+                          <p className="font-semibold">{formatCurrency(parseFloat(imp.totalValue))}</p>
                         </div>
                         <div>
-                          {getStatusBadge(importItem.status)}
+                          <p className="text-sm text-gray-600">Tipo</p>
+                          <p className="font-semibold">{imp.cargoType}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Criado em</p>
+                          <p className="font-semibold">{new Date(imp.createdAt).toLocaleDateString('pt-BR')}</p>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Nenhuma importação encontrada
                 </div>
               )}
             </CardContent>
@@ -646,9 +581,9 @@ export default function ImporterDetailsPage() {
               <CardTitle>Atividade Recente</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                Logs de atividade em desenvolvimento
-              </div>
+              <p className="text-gray-500 text-center py-4">
+                Funcionalidade de atividades será implementada em breve
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -658,19 +593,18 @@ export default function ImporterDetailsPage() {
       <AlertDialog open={showResetPassword} onOpenChange={setShowResetPassword}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Renovar Senha</AlertDialogTitle>
+            <AlertDialogTitle>Redefinir Senha</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza de que deseja renovar a senha do importador {importer.fullName}? 
-              Uma nova senha será gerada e exibida para você.
+              Tem certeza que deseja redefinir a senha deste importador?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleResetPassword}
+            <AlertDialogAction
+              onClick={() => resetPasswordMutation.mutate('100senha')}
               disabled={resetPasswordMutation.isPending}
             >
-              {resetPasswordMutation.isPending ? 'Renovando...' : 'Confirmar'}
+              {resetPasswordMutation.isPending ? 'Redefinindo...' : 'Redefinir'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
