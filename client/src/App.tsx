@@ -31,6 +31,7 @@ import SupplierNewPage from "@/pages/supplier-new";
 import PaymentDetailsPage from "@/pages/payment-details";
 import PaymentPayPage from "@/pages/payment-pay";
 import PaymentEditPage from "@/pages/payment-edit";
+import ImporterDetailsPage from "@/pages/importer-details";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -83,6 +84,7 @@ function Router() {
         <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
         <Route path="/importers" component={() => <AdminRoute><ImportersPage /></AdminRoute>} />
+        <Route path="/importers/:id" component={() => <AdminRoute><ImporterDetailsPage /></AdminRoute>} />
         <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
 

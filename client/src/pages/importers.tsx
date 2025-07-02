@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export default function ImportersPage() {
   const [newPassword, setNewPassword] = useState("");
   const [importerLogs, setImporterLogs] = useState<any[]>([]);
   const [importerDetails, setImporterDetails] = useState<any>(null);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -100,19 +102,8 @@ export default function ImportersPage() {
   });
 
   // Handle actions
-  const handleViewDetails = async (importer: Importer) => {
-    try {
-      const details = await apiRequest(`/api/admin/importers/${importer.id}`, "GET");
-      setImporterDetails(details);
-      setSelectedImporter(importer);
-      setShowDetailsDialog(true);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar detalhes do importador",
-        variant: "destructive",
-      });
-    }
+  const handleViewDetails = (importer: Importer) => {
+    setLocation(`/importers/${importer.id}`);
   };
 
   const handleViewLogs = async (importer: Importer) => {
