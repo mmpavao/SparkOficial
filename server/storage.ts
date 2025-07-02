@@ -872,7 +872,6 @@ export class DatabaseStorage {
       .from(creditApplications)
       .where(
         or(
-          eq(creditApplications.preAnalysisStatus, "pre_approved"),
           eq(creditApplications.status, "submitted_to_financial"),
           eq(creditApplications.financialStatus, "approved"),
           eq(creditApplications.financialStatus, "rejected"),
