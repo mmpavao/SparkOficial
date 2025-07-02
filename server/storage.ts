@@ -19,7 +19,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like, ne } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
@@ -590,37 +590,38 @@ export class DatabaseStorage {
         throw new Error('Credit application not found');
       }
 
-      // Get credit limit from final or original amount
+      // Get credit limit from final or original amount - use same logic as dashboard
       const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || application.requestedAmount || '0');
 
       const importsTable = imports;
       // Get all imports using this credit application that are active (not cancelled and not in planning)
+      // Use same status filtering as dashboard
       const activeImports = await db.select()
         .from(importsTable)
         .where(
           and(
             eq(importsTable.creditApplicationId, creditApplicationId),
             ne(importsTable.status, 'cancelled'),
-            ne(importsTable.status, 'canceled'),
+            ne(importsTable.status, 'cancelado'),
             ne(importsTable.status, 'planejamento'),
             ne(importsTable.status, 'planning')
           )
         );
 
-      // Calculate used credit from active imports
+      // Calculate used credit from active imports - same logic as dashboard
       const usedCredit = activeImports.reduce((total, imp) => {
         const importValue = parseFloat(imp.totalValue || '0');
         return total + importValue;
       }, 0);
 
+      // Calculate available credit
+      const availableCredit = Math.max(0, creditLimit - usedCredit);
+
       // Update the application's usedCredit field for consistency
       await this.updateCreditApplication(creditApplicationId, {
         usedCredit: usedCredit.toString(),
-        availableCredit: Math.max(0, creditLimit - usedCredit).toString()
+        availableCredit: availableCredit.toString()
       });
-
-      // Calculate available credit
-      const availableCredit = Math.max(0, creditLimit - usedCredit);
 
       return {
         limit: creditLimit,
