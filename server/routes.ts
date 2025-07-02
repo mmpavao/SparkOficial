@@ -2516,9 +2516,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const creditApps = await storage.getCreditApplicationsByUser(userId);
       console.log(`Found ${creditApps.length} credit applications for user ${userId}`);
       
-      // Show as approved to importers when financially approved (before admin finalization)
+      // Only show as approved to importers when admin has finalized the terms
       const approvedCredits = creditApps.filter(app => {
-        const isApproved = app.financialStatus === 'approved';
+        const isApproved = app.financialStatus === 'approved' && 
+                          (app.adminStatus === 'admin_finalized' || app.adminStatus === 'finalized');
                           
         console.log(`App ${app.id}: status=${app.status}, adminStatus=${app.adminStatus}, financialStatus=${app.financialStatus}, isApproved=${isApproved}`);
         return isApproved;
@@ -3734,9 +3735,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user's credit applications
       const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
       
-      // Show as approved to importers when financially approved (before admin finalization)
+      // Only show as approved to importers when admin has finalized the terms
       const approvedApplications = creditApplications.filter(app => 
-        app.financialStatus === 'approved'
+        app.financialStatus === 'approved' && 
+        (app.adminStatus === 'admin_finalized' || app.adminStatus === 'finalized')
       );
 
       // Get user's imports

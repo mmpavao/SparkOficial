@@ -776,8 +776,11 @@ Changelog:
   * Corrected CreditStatusTracker to show "Enviado à Financeira" when financially approved but not admin-finalized
   * Updated getStatusInfo function in credit.tsx to only show "Aprovado" when adminStatus is finalized
   * Fixed credit details page to show "Aguardando finalização" instead of credit amounts until admin completes final terms
+  * Corrected dashboard calculations in /api/dashboard/importer and /api/user/credit-info to only count credit as approved when admin has finalized
+  * Fixed database status inconsistency - changed application 64 from 'approved' to 'submitted_to_financial' status
   * Restored proper workflow: Importador → Admin pré-aprovação → Financeira aprovação (interna) → Admin finalização → Importador vê aprovação
   * System now correctly prevents importers from accessing credit until admin finalizes all terms and conditions
+  * Dashboard now shows US$ 0 for credit metrics until admin completes final approval process
 ```
 
 ## User Preferences
