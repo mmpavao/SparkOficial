@@ -1,9 +1,11 @@
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, AlertTriangle, DollarSign, Calculator, CreditCard } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckCircle, AlertTriangle, DollarSign, Calculator, CreditCard, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 
 interface TermsConfirmationProps {
@@ -21,6 +23,10 @@ export default function TermsConfirmation({
   importValue,
   currency
 }: TermsConfirmationProps) {
+  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
   const adminFeePercentage = 10;
   const downPaymentPercentage = 30;
   
@@ -29,6 +35,21 @@ export default function TermsConfirmation({
   const adminFee = financedAmount * (adminFeePercentage / 100);
   const totalImportCost = importValue + adminFee;
   const totalCreditUsed = financedAmount + adminFee;
+
+  useEffect(() => {
+    if (open) {
+      setHasScrolledToEnd(false);
+      setTermsAccepted(false);
+    }
+  }, [open]);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const scrolledToEnd = scrollTop + clientHeight >= scrollHeight - 10;
+      setHasScrolledToEnd(scrolledToEnd);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,21 +140,110 @@ export default function TermsConfirmation({
           </Card>
 
           {/* Terms and Conditions */}
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <p className="font-semibold">Termos e Condições:</p>
-                <ul className="space-y-1 text-sm">
-                  <li>• A entrada de {downPaymentPercentage}% deve ser paga na confirmação da importação</li>
-                  <li>• Taxa administrativa de {adminFeePercentage}% aplicada apenas no valor financiado</li>
-                  <li>• Pagamento parcelado conforme termos do crédito aprovado</li>
-                  <li>• Esta importação utilizará {formatCurrency(totalCreditUsed, currency)} do seu limite de crédito</li>
-                  <li>• Todos os valores estão sujeitos a variações cambiais</li>
-                </ul>
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Contrato Digital - Spark Comex
+              </h3>
+              
+              <div 
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="max-h-64 overflow-y-auto border rounded-lg p-4 bg-gray-50 space-y-4 text-sm"
+              >
+                <div>
+                  <h4 className="font-semibold mb-2">1. OBJETO DO CONTRATO</h4>
+                  <p>Este contrato estabelece as condições para a operação de importação através da plataforma Spark Comex, incluindo financiamento de mercadorias, gestão de documentos e acompanhamento logístico.</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">2. CONDIÇÕES FINANCEIRAS</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Entrada obrigatória de {downPaymentPercentage}% do valor FOB na confirmação</li>
+                    <li>• Taxa administrativa de {adminFeePercentage}% aplicada sobre o valor financiado</li>
+                    <li>• Financiamento conforme termos de crédito previamente aprovados</li>
+                    <li>• Valores sujeitos a variações cambiais até o fechamento</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">3. RESPONSABILIDADES DO IMPORTADOR</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Fornecimento de documentos corretos e dentro dos prazos</li>
+                    <li>• Pagamento das taxas e impostos devidos na importação</li>
+                    <li>• Comunicação imediata de alterações nos dados da operação</li>
+                    <li>• Cumprimento das obrigações fiscais e regulamentares</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">4. RESPONSABILIDADES DA SPARK COMEX</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Gestão e acompanhamento da operação de importação</li>
+                    <li>• Financiamento conforme condições aprovadas</li>
+                    <li>• Suporte na documentação e trâmites aduaneiros</li>
+                    <li>• Transparência nas informações e custos envolvidos</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">5. PAGAMENTOS E VENCIMENTOS</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Entrada: {formatCurrency(downPayment, currency)} na confirmação</li>
+                    <li>• Valor financiado: {formatCurrency(totalCreditUsed, currency)}</li>
+                    <li>• Parcelamento conforme cronograma aprovado no crédito</li>
+                    <li>• Juros e encargos conforme tabela vigente</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">6. CANCELAMENTO E ALTERAÇÕES</h4>
+                  <p>Cancelamentos só serão aceitos antes do início da produção. Alterações significativas podem gerar custos adicionais e devem ser previamente aprovadas.</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">7. DISPOSIÇÕES GERAIS</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Este contrato é regido pelas leis brasileiras</li>
+                    <li>• Foro competente: comarca de São Paulo/SP</li>
+                    <li>• Contrato válido por assinatura digital na plataforma</li>
+                    <li>• Eventuais conflitos serão resolvidos por mediação</li>
+                  </ul>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-center font-semibold">
+                    Spark Comex - Soluções em Importação<br/>
+                    CNPJ: 00.000.000/0001-00<br/>
+                    contato@sparkcomex.com | (11) 99999-9999
+                  </p>
+                </div>
               </div>
-            </AlertDescription>
-          </Alert>
+
+              <div className="mt-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="terms-acceptance"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                    disabled={!hasScrolledToEnd}
+                  />
+                  <label 
+                    htmlFor="terms-acceptance" 
+                    className={`text-sm ${!hasScrolledToEnd ? 'text-gray-400' : 'text-gray-900'}`}
+                  >
+                    Li e aceito todos os termos e condições do contrato
+                  </label>
+                </div>
+                {!hasScrolledToEnd && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Você deve rolar até o final dos termos para poder aceitar o contrato.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Credit Usage Warning */}
           <Alert className="border-amber-200 bg-amber-50">
@@ -149,7 +259,11 @@ export default function TermsConfirmation({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Revisar
           </Button>
-          <Button onClick={onConfirm} className="bg-green-600 hover:bg-green-700">
+          <Button 
+            onClick={onConfirm} 
+            className="bg-green-600 hover:bg-green-700"
+            disabled={!termsAccepted}
+          >
             <CheckCircle className="w-4 h-4 mr-2" />
             Confirmar e Criar Importação
           </Button>
