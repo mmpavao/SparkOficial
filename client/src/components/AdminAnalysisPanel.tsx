@@ -444,9 +444,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       )}
                       {application.downPayment && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Entrada Requerida:</span>
+                          <span className="text-gray-600">Cobertura da Apólice:</span>
                           <span className="font-medium text-green-800">
-                            {application.downPayment}%
+                            {100 - Number(application.downPayment)}% (Down payment {application.downPayment}%)
                           </span>
                         </div>
                       )}
@@ -518,7 +518,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
 
               {/* Down Payment Percentage */}
               <div className="space-y-2">
-                <Label htmlFor="downPayment">Entrada Requerida (%)</Label>
+                <Label htmlFor="downPayment">Down Payment (%)</Label>
                 <Input
                   id="downPayment"
                   type="number"
@@ -529,7 +529,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   max="100"
                 />
                 <p className="text-xs text-gray-500">
-                  Entrada de {financialData.downPayment}% do valor total da importação
+                  Apólice cobrirá {100 - Number(financialData.downPayment)}% do valor financiado
                 </p>
               </div>
 
