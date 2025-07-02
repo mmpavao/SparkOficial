@@ -157,97 +157,97 @@ export default function TermsConfirmation({
                   className="max-h-80 overflow-y-auto border rounded-lg p-3 bg-gray-50 space-y-3 text-sm"
                 >
                   <div>
-                    <h4 className="font-semibold mb-2">1. OBJETO DO CONTRATO</h4>
-                    <p>Este contrato estabelece as condições para a operação de importação através da plataforma Spark Comex, incluindo financiamento de mercadorias, gestão de documentos e acompanhamento logístico.</p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">2. CONDIÇÕES FINANCEIRAS</h4>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Entrada obrigatória de {downPaymentPercentage}% do valor FOB na confirmação</li>
-                      <li>• Taxa administrativa de {adminFeePercentage}% aplicada sobre o valor financiado</li>
-                      <li>• Financiamento conforme termos de crédito previamente aprovados</li>
-                      <li>• Valores sujeitos a variações cambiais até o fechamento</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">3. RESPONSABILIDADES DO IMPORTADOR</h4>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Fornecimento de documentos corretos e dentro dos prazos</li>
-                      <li>• Pagamento das taxas e impostos devidos na importação</li>
-                      <li>• Comunicação imediata de alterações nos dados da operação</li>
-                      <li>• Cumprimento das obrigações fiscais e regulamentares</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">4. RESPONSABILIDADES DA SPARK COMEX</h4>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Gestão e acompanhamento da operação de importação</li>
-                      <li>• Financiamento conforme condições aprovadas</li>
-                      <li>• Suporte na documentação e trâmites aduaneiros</li>
-                      <li>• Transparência nas informações e custos envolvidos</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">5. PAGAMENTOS E VENCIMENTOS</h4>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Entrada: {formatCurrency(downPayment, currency)} na confirmação</li>
-                      <li>• Valor financiado: {formatCurrency(totalCreditUsed, currency)}</li>
-                      <li>• Parcelamento conforme cronograma aprovado no crédito</li>
-                      <li>• Juros e encargos conforme tabela vigente</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">6. CANCELAMENTO E ALTERAÇÕES</h4>
-                    <p>Cancelamentos só serão aceitos antes do início da produção. Alterações significativas podem gerar custos adicionais e devem ser previamente aprovadas.</p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">7. DISPOSIÇÕES GERAIS</h4>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Este contrato é regido pelas leis brasileiras</li>
-                      <li>• Foro competente: comarca de São Paulo/SP</li>
-                      <li>• Contrato válido por assinatura digital na plataforma</li>
-                      <li>• Eventuais conflitos serão resolvidos por mediação</li>
-                    </ul>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <p className="text-center font-semibold">
-                      Spark Comex - Soluções em Importação<br/>
-                      CNPJ: 00.000.000/0001-00<br/>
-                      contato@sparkcomex.com | (11) 99999-9999
-                    </p>
-                  </div>
+                  <h4 className="font-semibold mb-2">1. OBJETO DO CONTRATO</h4>
+                  <p>Este contrato estabelece as condições para a operação de importação através da plataforma Spark Comex, incluindo financiamento de mercadorias, gestão de documentos e acompanhamento logístico.</p>
                 </div>
 
-                <div className="mt-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="terms-acceptance"
-                      checked={termsAccepted}
-                      onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
-                      disabled={!hasScrolledToEnd}
-                    />
-                    <label 
-                      htmlFor="terms-acceptance" 
-                      className={`text-sm ${!hasScrolledToEnd ? 'text-gray-400' : 'text-gray-900'}`}
-                    >
-                      Li e aceito todos os termos e condições do contrato
-                    </label>
-                  </div>
-                  {!hasScrolledToEnd && (
-                    <p className="text-xs text-amber-600 mt-2">
-                      Você deve rolar até o final dos termos para poder aceitar o contrato.
-                    </p>
-                  )}
+                <div>
+                  <h4 className="font-semibold mb-2">2. CONDIÇÕES FINANCEIRAS</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Entrada obrigatória de {downPaymentPercentage}% do valor FOB na confirmação</li>
+                    <li>• Taxa administrativa de {adminFeePercentage}% aplicada sobre o valor financiado</li>
+                    <li>• Financiamento conforme termos de crédito previamente aprovados</li>
+                    <li>• Valores sujeitos a variações cambiais até o fechamento</li>
+                  </ul>
                 </div>
-              </CardContent>
-            </Card>
+
+                <div>
+                  <h4 className="font-semibold mb-2">3. RESPONSABILIDADES DO IMPORTADOR</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Fornecimento de documentos corretos e dentro dos prazos</li>
+                    <li>• Pagamento das taxas e impostos devidos na importação</li>
+                    <li>• Comunicação imediata de alterações nos dados da operação</li>
+                    <li>• Cumprimento das obrigações fiscais e regulamentares</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">4. RESPONSABILIDADES DA SPARK COMEX</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Gestão e acompanhamento da operação de importação</li>
+                    <li>• Financiamento conforme condições aprovadas</li>
+                    <li>• Suporte na documentação e trâmites aduaneiros</li>
+                    <li>• Transparência nas informações e custos envolvidos</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">5. PAGAMENTOS E VENCIMENTOS</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Entrada: {formatCurrency(downPayment, currency)} na confirmação</li>
+                    <li>• Valor financiado: {formatCurrency(totalCreditUsed, currency)}</li>
+                    <li>• Parcelamento conforme cronograma aprovado no crédito</li>
+                    <li>• Juros e encargos conforme tabela vigente</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">6. CANCELAMENTO E ALTERAÇÕES</h4>
+                  <p>Cancelamentos só serão aceitos antes do início da produção. Alterações significativas podem gerar custos adicionais e devem ser previamente aprovadas.</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">7. DISPOSIÇÕES GERAIS</h4>
+                  <ul className="space-y-1 ml-4">
+                    <li>• Este contrato é regido pelas leis brasileiras</li>
+                    <li>• Foro competente: comarca de São Paulo/SP</li>
+                    <li>• Contrato válido por assinatura digital na plataforma</li>
+                    <li>• Eventuais conflitos serão resolvidos por mediação</li>
+                  </ul>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-center font-semibold">
+                    Spark Comex - Soluções em Importação<br/>
+                    CNPJ: 00.000.000/0001-00<br/>
+                    contato@sparkcomex.com | (11) 99999-9999
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="terms-acceptance"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                    disabled={!hasScrolledToEnd}
+                  />
+                  <label 
+                    htmlFor="terms-acceptance" 
+                    className={`text-sm ${!hasScrolledToEnd ? 'text-gray-400' : 'text-gray-900'}`}
+                  >
+                    Li e aceito todos os termos e condições do contrato
+                  </label>
+                </div>
+                {!hasScrolledToEnd && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Você deve rolar até o final dos termos para poder aceitar o contrato.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
           </div>
         </div>
 
