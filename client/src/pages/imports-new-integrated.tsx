@@ -204,7 +204,7 @@ export default function ImportsPageIntegrated() {
         </div>
         
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
-          <Button onClick={handleNewImport} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={handleNewImport} className="hover:bg-blue-700 bg-[#56c699]">
             <Plus className="h-4 w-4 mr-2" />
             Nova Importação
           </Button>

@@ -3901,6 +3901,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== ADMIN IMPORTERS MANAGEMENT =====
+
+  // Get all importers (admin only)
+  app.get('/api/admin/importers', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const importers = await storage.getAllImporters();
+      res.json(importers);
+    } catch (error) {
+      console.error("Error fetching importers:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reset importer password (admin only)
+  app.post('/api/admin/importers/:id/reset-password', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const importer = await storage.getUser(parseInt(id));
+      
+      if (!importer) {
+        return res.status(404).json({ message: "Importador não encontrado" });
+      }
+
+      if (importer.role !== 'importer') {
+        return res.status(400).json({ message: "Usuário não é um importador" });
+      }
+
+      // Generate new password
+      const newPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password in database
+      await storage.updateUserPassword(parseInt(id), hashedPassword);
+
+      // In a real application, you would send this via email
+      res.json({ 
+        message: "Senha redefinida com sucesso",
+        temporaryPassword: newPassword 
+      });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get importer details (admin only)
+  app.get('/api/admin/importers/:id', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const importer = await storage.getImporterDetails(parseInt(id));
+      
+      if (!importer) {
+        return res.status(404).json({ message: "Importador não encontrado" });
+      }
+
+      res.json(importer);
+    } catch (error) {
+      console.error("Error fetching importer details:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update importer status (admin only)
+  app.put('/api/admin/importers/:id/status', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!['active', 'inactive', 'pending'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const updatedImporter = await storage.updateUserStatus(parseInt(id), status);
+      res.json(updatedImporter);
+    } catch (error) {
+      console.error("Error updating importer status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get importer activity logs (admin only)
+  app.get('/api/admin/importers/:id/logs', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const logs = await storage.getImporterActivityLogs(parseInt(id));
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching importer logs:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Register imports routes
   console.log('Registering imports routes...');
   app.use('/api', importRoutes);

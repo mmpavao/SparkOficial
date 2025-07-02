@@ -155,6 +155,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
     { path: "/users", icon: Users, label: "Gerenciar Usuários" },
+    { path: "/importers", icon: UserCog, label: "Importadores" },
   ];
 
   const isActiveRoute = (path: string) => {
