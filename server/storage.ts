@@ -91,11 +91,11 @@ export class DatabaseStorage {
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
     // Convert documents to JSON strings for database storage
     const processedApplication = { ...application };
-    
+
     console.log('🔄 DOCUMENTS DEBUG - Processing application with documents:');
     console.log('Required docs received:', application.requiredDocuments ? Object.keys(application.requiredDocuments) : 'NONE');
     console.log('Optional docs received:', application.optionalDocuments ? Object.keys(application.optionalDocuments) : 'NONE');
-    
+
     // CRITICAL FIX: Ensure documents are properly stringified with fallback
     if (processedApplication.requiredDocuments && typeof processedApplication.requiredDocuments === 'object') {
       const docString = JSON.stringify(processedApplication.requiredDocuments);
@@ -105,7 +105,7 @@ export class DatabaseStorage {
       console.log('⚠️ No required documents to save');
       processedApplication.requiredDocuments = null;
     }
-    
+
     if (processedApplication.optionalDocuments && typeof processedApplication.optionalDocuments === 'object') {
       const docString = JSON.stringify(processedApplication.optionalDocuments);
       console.log('✅ Optional documents stringified:', docString.substring(0, 100) + '...');
@@ -119,13 +119,13 @@ export class DatabaseStorage {
       .insert(creditApplications)
       .values(processedApplication)
       .returning();
-      
+
     console.log('💾 Credit application saved with ID:', creditApp.id);
     console.log('📄 Documents saved successfully:', {
       requiredSaved: !!creditApp.requiredDocuments,
       optionalSaved: !!creditApp.optionalDocuments
     });
-    
+
     return creditApp;
   }
 
@@ -135,11 +135,11 @@ export class DatabaseStorage {
       .from(creditApplications)
       .where(eq(creditApplications.userId, userId))
       .orderBy(desc(creditApplications.createdAt));
-    
+
     // Parse JSON documents back to objects for each application
     return applications.map(application => {
       const app = { ...application };
-      
+
       if (app.requiredDocuments && typeof app.requiredDocuments === 'string') {
         try {
           app.requiredDocuments = JSON.parse(app.requiredDocuments);
@@ -147,7 +147,7 @@ export class DatabaseStorage {
           console.log('Error parsing requiredDocuments for app', app.id, ':', e);
         }
       }
-      
+
       if (app.optionalDocuments && typeof app.optionalDocuments === 'string') {
         try {
           app.optionalDocuments = JSON.parse(app.optionalDocuments);
@@ -155,7 +155,7 @@ export class DatabaseStorage {
           console.log('Error parsing optionalDocuments for app', app.id, ':', e);
         }
       }
-      
+
       return app;
     });
   }
@@ -166,10 +166,10 @@ export class DatabaseStorage {
       .from(creditApplications)
       .where(eq(creditApplications.id, id))
       .limit(1);
-    
+
     if (result[0]) {
       const application = { ...result[0] };
-      
+
       // Parse JSON documents back to objects
       if (application.requiredDocuments && typeof application.requiredDocuments === 'string') {
         try {
@@ -178,7 +178,7 @@ export class DatabaseStorage {
           console.log('Error parsing requiredDocuments:', e);
         }
       }
-      
+
       if (application.optionalDocuments && typeof application.optionalDocuments === 'string') {
         try {
           application.optionalDocuments = JSON.parse(application.optionalDocuments);
@@ -186,17 +186,17 @@ export class DatabaseStorage {
           console.log('Error parsing optionalDocuments:', e);
         }
       }
-      
+
       return application;
     }
-    
+
     return result[0];
   }
 
   async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {
     // Obter dados da aplicação antes da atualização para comparar mudanças
     const currentApp = await this.getCreditApplication(id);
-    
+
     const [creditApp] = await db
       .update(creditApplications)
       .set({ 
@@ -206,12 +206,12 @@ export class DatabaseStorage {
       })
       .where(eq(creditApplications.id, id))
       .returning();
-    
+
     // Enviar notificação automática se houve mudança relevante
     if (currentApp && this.shouldNotifyStatusChange(currentApp.status, status)) {
       await this.createStatusChangeNotification(creditApp, currentApp.status, status);
     }
-    
+
     return creditApp;
   }
 
@@ -226,7 +226,7 @@ export class DatabaseStorage {
       { from: 'pre_approved', to: 'rejected' },
       { from: 'submitted_to_financial', to: 'rejected' }
     ];
-    
+
     return notifiableChanges.some(change => 
       change.from === oldStatus && change.to === newStatus
     );
@@ -278,7 +278,7 @@ export class DatabaseStorage {
         relatedEntityType: 'credit_application',
         relatedEntityId: app.id
       });
-      
+
       console.log(`🔔 NOTIFICAÇÃO AUTOMÁTICA: ${notificationData.title} enviada para usuário ${app.userId}`);
     }
   }
@@ -582,50 +582,55 @@ export class DatabaseStorage {
 
   // ===== CREDIT MANAGEMENT =====
 
-  async calculateAvailableCredit(creditApplicationId: number): Promise<{ used: number, available: number, limit: number }> {
-    const application = await this.getCreditApplication(creditApplicationId);
-    if (!application) throw new Error("Credit application not found");
+  async calculateAvailableCredit(creditApplicationId: number) {
+    try {
+      // Get the credit application
+      const application = await this.getCreditApplication(creditApplicationId);
+      if (!application) {
+        throw new Error('Credit application not found');
+      }
 
-    const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
+      // Get credit limit from final or original amount
+      const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || application.requestedAmount || '0');
 
-    // Get all active imports linked to this credit application
-    // Include both English and Portuguese status values for compatibility
-    const activeImports = await db
-      .select()
-      .from(imports)
-      .where(
-        and(
-          eq(imports.creditApplicationId, creditApplicationId),
-          inArray(imports.status, [
-            // Portuguese status values
-            "planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional",
-            // English status values
-            "planning", "production", "delivered_agent", "maritime_transport", "air_transport", "customs_clearance", "national_transport"
-          ])
-        )
-      );
+      const importsTable = imports;
+      // Get all imports using this credit application that are active (not cancelled and not in planning)
+      const imports = await db.select()
+        .from(importsTable)
+        .where(
+          and(
+            eq(importsTable.creditApplicationId, creditApplicationId),
+            ne(importsTable.status, 'cancelled'),
+            ne(importsTable.status, 'canceled'),
+            ne(importsTable.status, 'planejamento'),
+            ne(importsTable.status, 'planning')
+          )
+        );
 
-    // Calculate total used credit from active imports (full FOB value - credit covers entire import)
-    const usedCredit = activeImports.reduce((total, importRecord) => {
-      const importValue = parseFloat(importRecord.totalValue || "0");
-      // Credit usage is the full FOB value, not just financed amount
-      return total + importValue;
-    }, 0);
+      // Calculate used credit from active imports
+      const usedCredit = imports.reduce((total, imp) => {
+        const importValue = parseFloat(imp.totalValue || '0');
+        return total + importValue;
+      }, 0);
 
-    const availableCredit = creditLimit - usedCredit;
+      // Update the application's usedCredit field for consistency
+      await this.updateCreditApplication(creditApplicationId, {
+        usedCredit: usedCredit.toString(),
+        availableCredit: Math.max(0, creditLimit - usedCredit).toString()
+      });
 
-    console.log(`Credit calculation for app ${creditApplicationId}:`, {
-      creditLimit,
-      activeImports: activeImports.length,
-      usedCredit,
-      availableCredit
-    });
+      // Calculate available credit
+      const availableCredit = Math.max(0, creditLimit - usedCredit);
 
-    return {
-      used: usedCredit,
-      available: Math.max(0, availableCredit),
-      limit: creditLimit
-    };
+      return {
+        limit: creditLimit,
+        used: usedCredit,
+        available: availableCredit
+      };
+    } catch (error) {
+      console.error('Error calculating available credit:', error);
+      throw error;
+    }
   }
 
   async reserveCredit(creditApplicationId: number, importId: number, amount: string) {
@@ -939,7 +944,6 @@ export class DatabaseStorage {
             eq(creditApplications.preAnalysisStatus, "pre_approved"),
             eq(creditApplications.status, "submitted_to_financial"),
             eq(creditApplications.financialStatus, "approved"),
-            eq(creditApplications.financialStatus, "rejected"),
             eq(creditApplications.status, "approved"),
             eq(creditApplications.status, "rejected")
           )
@@ -1430,7 +1434,7 @@ export class DatabaseStorage {
       .from(users)
       .where(eq(users.role, 'importer'))
       .orderBy(desc(users.createdAt));
-    
+
     return result;
   }
 
@@ -1441,7 +1445,7 @@ export class DatabaseStorage {
       .from(users)
       .where(and(eq(users.id, importerId), eq(users.role, 'importer')))
       .limit(1);
-    
+
     if (!result[0]) return null;
 
     // Get additional statistics

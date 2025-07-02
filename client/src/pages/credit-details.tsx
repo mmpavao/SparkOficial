@@ -144,7 +144,8 @@ export default function CreditDetailsPage() {
   const { data: creditUsage } = useQuery({
     queryKey: ['/api/credit/usage', applicationId],
     queryFn: () => apiRequest(`/api/credit/usage/${applicationId}`, 'GET'),
-    enabled: !!applicationId && application?.status === 'approved',
+    enabled: !!applicationId && (application?.status === 'approved' || application?.financialStatus === 'approved'),
+    refetchInterval: 30000, // Refresh every 30 seconds to get updated usage
   });
 
   // Upload document mutation
@@ -911,7 +912,14 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0'}
+                        {creditUsage 
+                          ? `US$ ${formatCompactNumber(Number(creditUsage.used))}`
+                          : (() => {
+                              // Calcular usado baseado no valor armazenado na aplicação
+                              const usedAmount = parseFloat(application.usedCredit || '0');
+                              return usedAmount > 0 ? `US$ ${formatCompactNumber(usedAmount)}` : 'US$ 0';
+                            })()
+                        }
                       </span>
                     </div>
                   </div>
