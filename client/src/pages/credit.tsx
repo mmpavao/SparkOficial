@@ -312,7 +312,8 @@ export default function CreditPage() {
             <div className="space-y-6">
               {applications.filter(app => app && app.id).map((application: any) => {
                 const getStatusInfo = () => {
-                  if (application.financialStatus === 'approved') {
+                  // Only show "Aprovado" when admin has finalized the terms
+                  if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                     return { 
                       label: 'Aprovado', 
                       color: 'bg-green-100 text-green-800 border-green-200',
@@ -328,12 +329,14 @@ export default function CreditPage() {
                       borderColor: 'border-l-red-500'
                     };
                   } 
-                  else if (application.status === 'approved' || application.status === 'submitted_to_financial') {
+                  // Show "Enviado à Financeira" when submitted to financial or financially approved but not admin finalized
+                  else if (application.status === 'submitted_to_financial' || 
+                          (application.financialStatus === 'approved' && !application.adminStatus)) {
                     return { 
-                      label: 'Análise Final', 
-                      color: 'bg-blue-100 text-blue-800 border-blue-200',
-                      bgColor: 'bg-blue-50',
-                      borderColor: 'border-l-blue-500'
+                      label: 'Enviado à Financeira', 
+                      color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                      bgColor: 'bg-yellow-50',
+                      borderColor: 'border-l-yellow-500'
                     };
                   } 
                   else {

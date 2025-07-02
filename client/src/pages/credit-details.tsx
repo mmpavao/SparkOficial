@@ -881,45 +881,56 @@ export default function CreditDetailsPage() {
                 <Separator />
 
                 <div className="grid grid-cols-1 gap-4">
-                  {/* Crédito Aprovado */}
+                  {/* Crédito Aprovado - Only show when admin has finalized */}
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
                         {(() => {
-                          const finalLimit = application.adminStatus === 'admin_finalized' 
-                            ? application.finalCreditLimit 
-                            : application.creditLimit;
-                          return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                          // Only show credit amount when admin has finalized terms
+                          if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                            const finalLimit = application.finalCreditLimit || application.creditLimit;
+                            return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                          }
+                          return 'Aguardando finalização';
                         })()}
                       </span>
                     </div>
                   </div>
 
-                  {/* Em Uso */}
+                  {/* Em Uso - Only show when admin has finalized */}
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0'}
+                        {(() => {
+                          // Only show usage when admin has finalized terms
+                          if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                            return creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0';
+                          }
+                          return 'Aguardando finalização';
+                        })()}
                       </span>
                     </div>
                   </div>
 
-                  {/* Disponível */}
+                  {/* Disponível - Only show when admin has finalized */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
-                        {creditUsage 
-                          ? `US$ ${formatCompactNumber(Number(creditUsage.available))}`
-                          : (() => {
-                              const finalLimit = application.adminStatus === 'admin_finalized' 
-                                ? application.finalCreditLimit 
-                                : application.creditLimit;
+                        {(() => {
+                          // Only show available credit when admin has finalized terms
+                          if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                            if (creditUsage) {
+                              return `US$ ${formatCompactNumber(Number(creditUsage.available))}`;
+                            } else {
+                              const finalLimit = application.finalCreditLimit || application.creditLimit;
                               return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
-                            })()
-                        }
+                            }
+                          }
+                          return 'Aguardando finalização';
+                        })()}
                       </span>
                     </div>
                   </div>

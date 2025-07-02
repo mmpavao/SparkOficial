@@ -771,6 +771,13 @@ Changelog:
   * Added security condition: !permissions.isFinanceira && !permissions.canViewAllApplications
   * Admin and financeira users can only analyze existing applications, not create new ones
   * Maintains all existing functionality while improving role-based security
+- July 02, 2025. CRITICAL FIX: Four-tier approval workflow restored - Importers no longer see approval before admin finalization:
+  * Fixed premature approval display - importers were seeing "Aprovado" status immediately after financeira approval
+  * Corrected CreditStatusTracker to show "Enviado à Financeira" when financially approved but not admin-finalized
+  * Updated getStatusInfo function in credit.tsx to only show "Aprovado" when adminStatus is finalized
+  * Fixed credit details page to show "Aguardando finalização" instead of credit amounts until admin completes final terms
+  * Restored proper workflow: Importador → Admin pré-aprovação → Financeira aprovação (interna) → Admin finalização → Importador vê aprovação
+  * System now correctly prevents importers from accessing credit until admin finalizes all terms and conditions
 ```
 
 ## User Preferences

@@ -238,14 +238,13 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
   // Determine the effective status based on all status fields
   const getEffectiveStatus = () => {
     // Final approval - only show when admin finalizes terms
-    if (adminStatus === 'finalized' || adminStatus === 'admin_finalized' || currentStatus === 'approved') return 'approved';
+    if (adminStatus === 'finalized' || adminStatus === 'admin_finalized') return 'approved';
     
-    // Financial approval - only show to importers when admin has finalized
-    // For admins/financeira, show when financially approved but not yet finalized
+    // Financial approval - only show when admin has finalized, otherwise keep as submitted_to_financial
     if (financialStatus === 'approved' && !adminStatus) {
-      // This means financeira approved but admin hasn't finalized yet
-      // Show as "financially_approved" only in admin view, not for importers
-      return 'financially_approved';
+      // Financeira approved but admin hasn't finalized yet
+      // Keep showing "submitted_to_financial" to importers until admin finalizes
+      return 'submitted_to_financial';
     }
     
     // Submitted to financial - waiting for financeira analysis
