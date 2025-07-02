@@ -887,8 +887,12 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
                         {(() => {
-                          // Only show credit amount when admin has finalized terms
-                          if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                          // FINANCEIRA VIEW: Show approved values immediately after approval
+                          if (permissions.isFinanceira && application.financialStatus === 'approved') {
+                            return application.creditLimit ? `US$ ${formatCompactNumber(Number(application.creditLimit))}` : 'US$ 0';
+                          }
+                          // OTHER USERS: Only show credit amount when admin has finalized terms
+                          else if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                             const finalLimit = application.finalCreditLimit || application.creditLimit;
                             return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
                           }
@@ -904,8 +908,12 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
                         {(() => {
-                          // Only show usage when admin has finalized terms
-                          if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                          // FINANCEIRA VIEW: Show usage immediately after approval
+                          if (permissions.isFinanceira && application.financialStatus === 'approved') {
+                            return creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0';
+                          }
+                          // OTHER USERS: Only show usage when admin has finalized terms
+                          else if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                             return creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0';
                           }
                           return 'Aguardando finalização';
@@ -920,8 +928,16 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
                         {(() => {
-                          // Only show available credit when admin has finalized terms
-                          if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                          // FINANCEIRA VIEW: Show available credit immediately after approval
+                          if (permissions.isFinanceira && application.financialStatus === 'approved') {
+                            if (creditUsage) {
+                              return `US$ ${formatCompactNumber(Number(creditUsage.available))}`;
+                            } else {
+                              return application.creditLimit ? `US$ ${formatCompactNumber(Number(application.creditLimit))}` : 'US$ 0';
+                            }
+                          }
+                          // OTHER USERS: Only show available credit when admin has finalized terms
+                          else if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                             if (creditUsage) {
                               return `US$ ${formatCompactNumber(Number(creditUsage.available))}`;
                             } else {
@@ -1007,14 +1023,7 @@ export default function CreditDetailsPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Entrada Requerida</span>
                         <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                          {(() => {
-                            // Para Financeira, mostrar apenas o que ela configurou
-                            if (permissions.isFinanceira) {
-                              return (application.downPayment || 30);
-                            }
-                            // Para outros usuários, mostrar configuração final do Admin
-                            return (application.finalDownPayment || 30);
-                          })()}% do valor do pedido
+                          10% do valor do pedido
                         </Badge>
                       </div>
 

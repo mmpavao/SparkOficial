@@ -787,6 +787,14 @@ Changelog:
   * Updated down payment from 30% to 10% as requested by user for insurance policy compliance
   * System now uses fixed 10% down payment value for all financial approvals
   * Maintained existing workflow functionality while ensuring Financeira cannot modify insurance terms
+- July 02, 2025. Complete Financeira workflow separation and interface finalization:
+  * Fixed all remaining instances of "30% do valor do pedido" to show "10% do valor do pedido"
+  * Eliminated "Aguardando finalização" completely from Financeira user interface
+  * Financeira users now see approved credit values immediately after approval (no admin wait)
+  * Created complete role separation: Financeira approval is FINAL for that role
+  * Fixed status display logic: Financeira sees "Aprovado" when they approve, others see workflow states
+  * Corrected credit amount display: Financeira sees approved values, others wait for admin finalization
+  * System now has complete workflow independence between roles
 ```
 
 ## User Preferences
