@@ -312,6 +312,15 @@ export default function CreditPage() {
             <div className="space-y-6">
               {applications.filter(app => app && app.id).map((application: any) => {
                 const getStatusInfo = () => {
+                  // DEBUG: Log application data for troubleshooting
+                  if (application.id === 65) {
+                    console.log('DEBUG App 65:', {
+                      financialStatus: application.financialStatus,
+                      isFinanceira: permissions.isFinanceira,
+                      condition: permissions.isFinanceira && application.financialStatus === 'approved'
+                    });
+                  }
+                  
                   // FINANCEIRA VIEW: When Financeira approves, it's FINAL for them
                   if (permissions.isFinanceira && application.financialStatus === 'approved') {
                     return { 
