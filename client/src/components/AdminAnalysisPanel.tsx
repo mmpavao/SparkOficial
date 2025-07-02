@@ -701,8 +701,13 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   </div>
                 )}
 
-                {/* Status: PRE_APPROVED - Show submit to financial */}
-                {(application.status === 'pre_approved' || application.preAnalysisStatus === 'pre_approved') && (
+                {/* Status: PRE_APPROVED - Show submit to financial (only if not already processed) */}
+                {(application.status === 'pre_approved' || application.preAnalysisStatus === 'pre_approved') && 
+                 !application.financialStatus && 
+                 !application.adminStatus && 
+                 application.status !== 'submitted_to_financial' && 
+                 application.status !== 'approved' && 
+                 application.status !== 'admin_finalized' && (
                   <div className="space-y-3">
                     <div className="bg-green-50 p-3 rounded-lg">
                       <p className="text-sm text-green-700 mb-2 flex items-center">
