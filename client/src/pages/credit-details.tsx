@@ -887,10 +887,20 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
                         {(() => {
-                          const finalLimit = application.adminStatus === 'admin_finalized' 
-                            ? application.finalCreditLimit 
-                            : application.credit_limit;
-                          return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                          // Buscar valor do crédito aprovado na ordem correta de prioridade
+                          let creditLimit = 0;
+                          
+                          if (application.finalCreditLimit) {
+                            creditLimit = parseFloat(application.finalCreditLimit);
+                          } else if (application.creditLimit) {
+                            creditLimit = parseFloat(application.creditLimit);
+                          } else if (application.credit_limit) {
+                            creditLimit = parseFloat(application.credit_limit);
+                          } else if (application.requestedAmount) {
+                            creditLimit = parseFloat(application.requestedAmount);
+                          }
+                          
+                          return creditLimit > 0 ? `US$ ${formatCompactNumber(creditLimit)}` : 'US$ 0';
                         })()}
                       </span>
                     </div>
@@ -914,10 +924,24 @@ export default function CreditDetailsPage() {
                         {creditUsage 
                           ? `US$ ${formatCompactNumber(Number(creditUsage.available))}`
                           : (() => {
-                              const finalLimit = application.adminStatus === 'admin_finalized' 
-                                ? application.finalCreditLimit 
-                                : application.credit_limit;
-                              return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                              // Calcular disponível baseado no crédito total aprovado
+                              let creditLimit = 0;
+                              
+                              if (application.finalCreditLimit) {
+                                creditLimit = parseFloat(application.finalCreditLimit);
+                              } else if (application.creditLimit) {
+                                creditLimit = parseFloat(application.creditLimit);
+                              } else if (application.credit_limit) {
+                                creditLimit = parseFloat(application.credit_limit);
+                              } else if (application.requestedAmount) {
+                                creditLimit = parseFloat(application.requestedAmount);
+                              }
+                              
+                              // Subtrair crédito usado se houver
+                              const usedAmount = parseFloat(application.usedCredit || '0');
+                              const available = Math.max(0, creditLimit - usedAmount);
+                              
+                              return available > 0 ? `US$ ${formatCompactNumber(available)}` : 'US$ 0';
                             })()
                         }
                       </span>
