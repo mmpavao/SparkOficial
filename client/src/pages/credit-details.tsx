@@ -144,8 +144,7 @@ export default function CreditDetailsPage() {
   const { data: creditUsage } = useQuery({
     queryKey: ['/api/credit/usage', applicationId],
     queryFn: () => apiRequest(`/api/credit/usage/${applicationId}`, 'GET'),
-    enabled: !!applicationId && (application?.status === 'approved' || application?.financialStatus === 'approved'),
-    refetchInterval: 30000, // Refresh every 30 seconds to get updated usage
+    enabled: !!applicationId && application?.status === 'approved',
   });
 
   // Upload document mutation
@@ -828,7 +827,7 @@ export default function CreditDetailsPage() {
           />
 
           {/* Credit Limit Display for Approved Applications */}
-          {application.financialStatus === 'approved' && (
+          {application.financialStatus === 'approved' && application.creditLimit && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -881,18 +880,6 @@ export default function CreditDetailsPage() {
 
                 <Separator />
 
-                {/* Debug Information */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="p-3 bg-yellow-50 rounded border border-yellow-200 text-xs">
-                    <strong>DEBUG:</strong><br/>
-                    finalCreditLimit: {application.finalCreditLimit || 'null'}<br/>
-                    creditLimit: {application.creditLimit || 'null'}<br/>
-                    requestedAmount: {application.requestedAmount || 'null'}<br/>
-                    usedCredit: {application.usedCredit || 'null'}<br/>
-                    creditUsage: {creditUsage ? JSON.stringify(creditUsage) : 'null'}
-                  </div>
-                )}
-
                 <div className="grid grid-cols-1 gap-4">
                   {/* Crédito Aprovado */}
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
@@ -900,24 +887,10 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
                         {(() => {
-                          // Ordem de prioridade para encontrar o limite de crédito
-                          const finalLimit = application.finalCreditLimit;
-                          const creditLimit = application.creditLimit;
-                          const requestedAmount = application.requestedAmount;
-                          
-                          console.log('Credit Limit Debug:', { finalLimit, creditLimit, requestedAmount });
-                          
-                          let creditValue = 0;
-                          
-                          if (finalLimit && finalLimit !== '0') {
-                            creditValue = parseFloat(finalLimit);
-                          } else if (creditLimit && creditLimit !== '0') {
-                            creditValue = parseFloat(creditLimit);
-                          } else if (requestedAmount && requestedAmount !== '0') {
-                            creditValue = parseFloat(requestedAmount);
-                          }
-                          
-                          return creditValue > 0 ? `US$ ${formatCompactNumber(creditValue)}` : 'US$ 0';
+                          const finalLimit = application.adminStatus === 'admin_finalized' 
+                            ? application.finalCreditLimit 
+                            : application.creditLimit;
+                          return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
                         })()}
                       </span>
                     </div>
@@ -928,16 +901,7 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {(() => {
-                          // Primeiro verificar dados do endpoint creditUsage
-                          if (creditUsage && typeof creditUsage.used === 'number') {
-                            return `US$ ${formatCompactNumber(creditUsage.used)}`;
-                          }
-                          
-                          // Fallback para dados da aplicação
-                          const usedAmount = parseFloat(application.usedCredit || '0');
-                          return `US$ ${formatCompactNumber(usedAmount)}`;
-                        })()}
+                        {creditUsage ? `US$ ${formatCompactNumber(Number(creditUsage.used))}` : 'US$ 0'}
                       </span>
                     </div>
                   </div>
@@ -947,31 +911,15 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
-                        {(() => {
-                          // Primeiro verificar dados do endpoint creditUsage
-                          if (creditUsage && typeof creditUsage.available === 'number') {
-                            return `US$ ${formatCompactNumber(creditUsage.available)}`;
-                          }
-                          
-                          // Fallback para cálculo manual
-                          const finalLimit = application.finalCreditLimit;
-                          const creditLimit = application.creditLimit;
-                          const requestedAmount = application.requestedAmount;
-                          
-                          let totalCredit = 0;
-                          if (finalLimit && finalLimit !== '0') {
-                            totalCredit = parseFloat(finalLimit);
-                          } else if (creditLimit && creditLimit !== '0') {
-                            totalCredit = parseFloat(creditLimit);
-                          } else if (requestedAmount && requestedAmount !== '0') {
-                            totalCredit = parseFloat(requestedAmount);
-                          }
-                          
-                          const usedAmount = parseFloat(application.usedCredit || '0');
-                          const available = Math.max(0, totalCredit - usedAmount);
-                          
-                          return `US$ ${formatCompactNumber(available)}`;
-                        })()}
+                        {creditUsage 
+                          ? `US$ ${formatCompactNumber(Number(creditUsage.available))}`
+                          : (() => {
+                              const finalLimit = application.adminStatus === 'admin_finalized' 
+                                ? application.finalCreditLimit 
+                                : application.creditLimit;
+                              return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
+                            })()
+                        }
                       </span>
                     </div>
                   </div>

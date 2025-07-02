@@ -79,16 +79,8 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
     if (app.financialStatus === 'approved') {
       // Para aprovados, usar finalCreditLimit se finalizado pelo admin, senão creditLimit
       const approvedAmount = app.adminStatus === 'admin_finalized' 
-        ? parseFloat(app.finalCreditLimit || app.credit_limit || '0')
-        : parseFloat(app.credit_limit || '0');
-      console.log('🔍 Credit calculation debug:', {
-        appId: app.id,
-        financialStatus: app.financialStatus,
-        adminStatus: app.adminStatus,
-        finalCreditLimit: app.finalCreditLimit,
-        credit_limit: app.credit_limit,
-        approvedAmount: approvedAmount
-      });
+        ? parseFloat(app.finalCreditLimit || app.creditLimit || '0')
+        : parseFloat(app.creditLimit || '0');
       acc.totalApproved += approvedAmount;
     } else if (app.status === 'pending') {
       acc.totalPending += requestedAmount;
@@ -376,13 +368,9 @@ export default function CreditPage() {
                         label: "Aprovação", 
                         value: application.finalCreditLimit 
                           ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
-                          : application.credit_limit 
-                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.credit_limit))
-                            : application.financialApprovedAt 
-                              ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
-                              : application.financialStatus === 'approved'
-                                ? "Aprovado"
-                                : "Pendente",
+                          : application.financialApprovedAt 
+                            ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
+                            : "Pendente",
                         color: application.finalCreditLimit ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
                       },
                       {
