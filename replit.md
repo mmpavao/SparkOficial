@@ -764,6 +764,12 @@ Changelog:
   * Updated import reference in AuthenticatedLayout.tsx to use new logo asset
   * Increased logo size by 50% (from h-8 to h-12) for better visibility and brand presence
   * Maintained existing logo functionality and responsive behavior in sidebar
+- July 2, 2025. Registration buttons hidden in admin and financeira modules:
+  * Hidden "Nova Solicitação de Crédito" button for admin and financeira users in credit.tsx
+  * Hidden "Nova Importação" button for admin and financeira users in imports.tsx
+  * Maintained "Novo Fornecedor" button visibility as requested (kept unchanged)
+  * Admin and financeira modules now focus on analysis and management without creation capabilities
+  * Importer module remains unchanged with all registration buttons available
 ```
 
 ## User Preferences
