@@ -110,14 +110,20 @@ export default function ImporterDetailsPage() {
   // Filter imports for this importer
   const imports = allImports.filter((imp: any) => imp.userId === importerId);
 
-  // Calculate credit usage from the data we have
+  // Calculate credit usage from the data we have - SAME LOGIC AS DASHBOARD
   const approvedApplications = creditApplications.filter((app: any) => 
-    app.adminStatus === 'finalized' && app.finalCreditLimit
+    app.financialStatus === 'approved'
   );
   
-  const totalLimit = approvedApplications.reduce((sum: number, app: any) => 
-    sum + parseFloat(app.finalCreditLimit || '0'), 0
-  );
+  const totalLimit = approvedApplications.reduce((sum: number, app: any) => {
+    let creditLimit = 0;
+    if (app.finalCreditLimit) {
+      creditLimit = parseFloat(app.finalCreditLimit);
+    } else if (app.requestedAmount) {
+      creditLimit = parseFloat(app.requestedAmount);
+    }
+    return sum + creditLimit;
+  }, 0);
   
   const totalUsed = imports
     .filter((imp: any) => imp.status !== 'cancelled')
