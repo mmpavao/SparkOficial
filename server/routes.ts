@@ -1128,9 +1128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         applicationId, 
         'pre_approved',
         {
+          preAnalysisStatus: 'pre_approved',
           approvedBy: userId,
           approvedAt: new Date(),
-          approvalReason: req.body.reason || 'Pré-aprovado pela administração'
+          approvalReason: req.body.reason || 'Pré-aprovado pela administração',
+          riskLevel: req.body.riskLevel,
+          analysisNotes: req.body.analysisNotes
         }
       );
 
