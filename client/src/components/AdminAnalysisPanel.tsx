@@ -29,6 +29,18 @@ import { useSoundEffects } from "@/utils/soundEffects";
 import { useAuth } from '../hooks/useAuth';
 import { useModuleGuard } from '../hooks/useModuleGuard';
 
+// Currency formatting function
+const formatCurrency = (value: string | number): string => {
+  if (!value || value === '') return '';
+  
+  // Convert to number and format
+  const numericValue = typeof value === 'string' ? parseInt(value.replace(/[^0-9]/g, '')) : value;
+  
+  if (isNaN(numericValue) || numericValue === 0) return '';
+  
+  return `$${numericValue.toLocaleString('en-US')}`;
+};
+
 interface AdminAnalysisPanelProps {
   application: any;
 }
@@ -499,10 +511,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 <Label htmlFor="creditLimit">Limite de Crédito Aprovado (USD)</Label>
                 <Input
                   id="creditLimit"
-                  type="number"
-                  placeholder="Ex: 150000"
-                  value={financialData.creditLimit}
-                  onChange={(e) => setFinancialData(prev => ({ ...prev, creditLimit: e.target.value }))}
+                  type="text"
+                  placeholder="Ex: $150,000"
+                  value={formatCurrency(financialData.creditLimit)}
+                  onChange={(e) => {
+                    // Remove formatting and keep only numbers
+                    const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                    setFinancialData(prev => ({ ...prev, creditLimit: numericValue }));
+                  }}
                 />
               </div>
 
