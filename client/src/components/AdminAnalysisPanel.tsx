@@ -73,7 +73,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     creditLimit: application.creditLimit || "",
     approvedTerms: application.approvedTerms ? application.approvedTerms.split(',') : [],
     financialNotes: application.financialNotes || "",
-    downPayment: application.downPayment || "30",
     attachments: [] as File[]
   });
 
@@ -200,7 +199,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
             data: {
               creditLimit: financialData.creditLimit,
               approvedTerms: financialData.approvedTerms.join(','),
-              downPayment: financialData.downPayment,
+              downPayment: "30",
               financialNotes: financialData.financialNotes,
               financialStatus: 'approved'
             }
@@ -214,7 +213,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   financialStatus: 'approved',
                   creditLimit: financialData.creditLimit,
                   approvedTerms: financialData.approvedTerms.join(','),
-                  downPayment: financialData.downPayment,
+                  downPayment: "30",
                   financialNotes: financialData.financialNotes
                 })
               );
@@ -536,21 +535,17 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 )}
               </div>
 
-              {/* Down Payment Percentage */}
+              {/* Insurance Policy Coverage - Information Display */}
               <div className="space-y-2">
-                <Label htmlFor="downPayment">Down Payment (%)</Label>
-                <Input
-                  id="downPayment"
-                  type="number"
-                  placeholder="30"
-                  value={financialData.downPayment}
-                  onChange={(e) => setFinancialData(prev => ({ ...prev, downPayment: e.target.value }))}
-                  min="0"
-                  max="100"
-                />
-                <p className="text-xs text-gray-500">
-                  Apólice cobrirá {100 - Number(financialData.downPayment)}% do valor financiado
-                </p>
+                <Label>Cobertura da Apólice</Label>
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm font-medium text-blue-800">
+                    90% (Down payment 30%)
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    A apólice de seguro cobrirá 90% do valor financiado, com entrada obrigatória de 30%
+                  </p>
+                </div>
               </div>
 
               {/* Financial Notes */}
