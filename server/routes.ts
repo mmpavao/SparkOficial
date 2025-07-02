@@ -1267,10 +1267,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credit/usage/:applicationId', requireAuth, async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.applicationId);
+      const userId = req.session.userId;
+      
+      console.log(`🔍 Credit usage request - App: ${applicationId}, User: ${userId}`);
+      
+      // Verify user has access to this application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        console.log(`❌ Application ${applicationId} not found`);
+        return res.status(404).json({ message: "Aplicação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      if (!isAdmin && !isFinanceira && application.userId !== userId) {
+        console.log(`❌ Access denied for user ${userId} to application ${applicationId}`);
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
       const creditData = await storage.calculateAvailableCredit(applicationId);
+      
+      console.log(`✅ Returning credit data for app ${applicationId}:`, creditData);
+      
       res.json(creditData);
     } catch (error) {
-      console.error("Error calculating credit usage:", error);
+      console.error("❌ Error calculating credit usage:", error);
       res.status(500).json({ message: "Erro ao calcular uso de crédito" });
     }
   });

@@ -584,18 +584,37 @@ export class DatabaseStorage {
 
   async calculateAvailableCredit(creditApplicationId: number) {
     try {
+      console.log(`🔍 Calculating credit for application ${creditApplicationId}`);
+      
       // Get the credit application
       const application = await this.getCreditApplication(creditApplicationId);
       if (!application) {
         throw new Error('Credit application not found');
       }
 
+      console.log('📊 Application data:', {
+        id: application.id,
+        finalCreditLimit: application.finalCreditLimit,
+        creditLimit: application.creditLimit,
+        requestedAmount: application.requestedAmount,
+        usedCredit: application.usedCredit
+      });
+
       // Get credit limit from final or original amount - use same logic as dashboard
-      const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || application.requestedAmount || '0');
+      let creditLimit = 0;
+      if (application.finalCreditLimit && application.finalCreditLimit !== '0') {
+        creditLimit = parseFloat(application.finalCreditLimit);
+        console.log('✅ Using finalCreditLimit:', creditLimit);
+      } else if (application.creditLimit && application.creditLimit !== '0') {
+        creditLimit = parseFloat(application.creditLimit);
+        console.log('✅ Using creditLimit:', creditLimit);
+      } else if (application.requestedAmount && application.requestedAmount !== '0') {
+        creditLimit = parseFloat(application.requestedAmount);
+        console.log('✅ Using requestedAmount:', creditLimit);
+      }
 
       const importsTable = imports;
       // Get all imports using this credit application that are active (not cancelled and not in planning)
-      // Use same status filtering as dashboard
       const activeImports = await db.select()
         .from(importsTable)
         .where(
@@ -608,14 +627,23 @@ export class DatabaseStorage {
           )
         );
 
+      console.log(`📦 Found ${activeImports.length} active imports for credit ${creditApplicationId}`);
+
       // Calculate used credit from active imports - same logic as dashboard
       const usedCredit = activeImports.reduce((total, imp) => {
         const importValue = parseFloat(imp.totalValue || '0');
+        console.log(`  Import ${imp.id}: value=${importValue}, status=${imp.status}`);
         return total + importValue;
       }, 0);
 
       // Calculate available credit
       const availableCredit = Math.max(0, creditLimit - usedCredit);
+
+      console.log('💰 Credit calculation result:', {
+        limit: creditLimit,
+        used: usedCredit,
+        available: availableCredit
+      });
 
       // Update the application's usedCredit field for consistency
       await this.updateCreditApplication(creditApplicationId, {
@@ -629,7 +657,7 @@ export class DatabaseStorage {
         available: availableCredit
       };
     } catch (error) {
-      console.error('Error calculating available credit:', error);
+      console.error('❌ Error calculating available credit:', error);
       throw error;
     }
   }

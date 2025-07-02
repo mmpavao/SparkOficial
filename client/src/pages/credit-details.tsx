@@ -828,7 +828,7 @@ export default function CreditDetailsPage() {
           />
 
           {/* Credit Limit Display for Approved Applications */}
-          {application.financialStatus === 'approved' && application.creditLimit && (
+          {application.financialStatus === 'approved' && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -881,6 +881,18 @@ export default function CreditDetailsPage() {
 
                 <Separator />
 
+                {/* Debug Information */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="p-3 bg-yellow-50 rounded border border-yellow-200 text-xs">
+                    <strong>DEBUG:</strong><br/>
+                    finalCreditLimit: {application.finalCreditLimit || 'null'}<br/>
+                    creditLimit: {application.creditLimit || 'null'}<br/>
+                    requestedAmount: {application.requestedAmount || 'null'}<br/>
+                    usedCredit: {application.usedCredit || 'null'}<br/>
+                    creditUsage: {creditUsage ? JSON.stringify(creditUsage) : 'null'}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 gap-4">
                   {/* Crédito Aprovado */}
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
@@ -888,20 +900,24 @@ export default function CreditDetailsPage() {
                       <span className="text-sm font-medium text-green-800">Crédito Aprovado</span>
                       <span className="text-xl font-bold text-green-600">
                         {(() => {
-                          // Buscar valor do crédito aprovado na ordem correta de prioridade
-                          let creditLimit = 0;
+                          // Ordem de prioridade para encontrar o limite de crédito
+                          const finalLimit = application.finalCreditLimit;
+                          const creditLimit = application.creditLimit;
+                          const requestedAmount = application.requestedAmount;
                           
-                          if (application.finalCreditLimit) {
-                            creditLimit = parseFloat(application.finalCreditLimit);
-                          } else if (application.creditLimit) {
-                            creditLimit = parseFloat(application.creditLimit);
-                          } else if (application.credit_limit) {
-                            creditLimit = parseFloat(application.credit_limit);
-                          } else if (application.requestedAmount) {
-                            creditLimit = parseFloat(application.requestedAmount);
+                          console.log('Credit Limit Debug:', { finalLimit, creditLimit, requestedAmount });
+                          
+                          let creditValue = 0;
+                          
+                          if (finalLimit && finalLimit !== '0') {
+                            creditValue = parseFloat(finalLimit);
+                          } else if (creditLimit && creditLimit !== '0') {
+                            creditValue = parseFloat(creditLimit);
+                          } else if (requestedAmount && requestedAmount !== '0') {
+                            creditValue = parseFloat(requestedAmount);
                           }
                           
-                          return creditLimit > 0 ? `US$ ${formatCompactNumber(creditLimit)}` : 'US$ 0';
+                          return creditValue > 0 ? `US$ ${formatCompactNumber(creditValue)}` : 'US$ 0';
                         })()}
                       </span>
                     </div>
@@ -912,14 +928,16 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-blue-800">Em Uso</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {creditUsage 
-                          ? `US$ ${formatCompactNumber(Number(creditUsage.used))}`
-                          : (() => {
-                              // Calcular usado baseado no valor armazenado na aplicação
-                              const usedAmount = parseFloat(application.usedCredit || '0');
-                              return usedAmount > 0 ? `US$ ${formatCompactNumber(usedAmount)}` : 'US$ 0';
-                            })()
-                        }
+                        {(() => {
+                          // Primeiro verificar dados do endpoint creditUsage
+                          if (creditUsage && typeof creditUsage.used === 'number') {
+                            return `US$ ${formatCompactNumber(creditUsage.used)}`;
+                          }
+                          
+                          // Fallback para dados da aplicação
+                          const usedAmount = parseFloat(application.usedCredit || '0');
+                          return `US$ ${formatCompactNumber(usedAmount)}`;
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -929,29 +947,31 @@ export default function CreditDetailsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-800">Disponível</span>
                       <span className="text-xl font-bold text-gray-600">
-                        {creditUsage 
-                          ? `US$ ${formatCompactNumber(Number(creditUsage.available))}`
-                          : (() => {
-                              // Calcular disponível baseado no crédito total aprovado
-                              let creditLimit = 0;
-                              
-                              if (application.finalCreditLimit) {
-                                creditLimit = parseFloat(application.finalCreditLimit);
-                              } else if (application.creditLimit) {
-                                creditLimit = parseFloat(application.creditLimit);
-                              } else if (application.credit_limit) {
-                                creditLimit = parseFloat(application.credit_limit);
-                              } else if (application.requestedAmount) {
-                                creditLimit = parseFloat(application.requestedAmount);
-                              }
-                              
-                              // Subtrair crédito usado se houver
-                              const usedAmount = parseFloat(application.usedCredit || '0');
-                              const available = Math.max(0, creditLimit - usedAmount);
-                              
-                              return available > 0 ? `US$ ${formatCompactNumber(available)}` : 'US$ 0';
-                            })()
-                        }
+                        {(() => {
+                          // Primeiro verificar dados do endpoint creditUsage
+                          if (creditUsage && typeof creditUsage.available === 'number') {
+                            return `US$ ${formatCompactNumber(creditUsage.available)}`;
+                          }
+                          
+                          // Fallback para cálculo manual
+                          const finalLimit = application.finalCreditLimit;
+                          const creditLimit = application.creditLimit;
+                          const requestedAmount = application.requestedAmount;
+                          
+                          let totalCredit = 0;
+                          if (finalLimit && finalLimit !== '0') {
+                            totalCredit = parseFloat(finalLimit);
+                          } else if (creditLimit && creditLimit !== '0') {
+                            totalCredit = parseFloat(creditLimit);
+                          } else if (requestedAmount && requestedAmount !== '0') {
+                            totalCredit = parseFloat(requestedAmount);
+                          }
+                          
+                          const usedAmount = parseFloat(application.usedCredit || '0');
+                          const available = Math.max(0, totalCredit - usedAmount);
+                          
+                          return `US$ ${formatCompactNumber(available)}`;
+                        })()}
                       </span>
                     </div>
                   </div>
