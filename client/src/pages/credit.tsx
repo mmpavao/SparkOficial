@@ -368,8 +368,8 @@ export default function CreditPage() {
                         label: "Aprovação", 
                         value: application.finalCreditLimit 
                           ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.finalCreditLimit))
-                          : application.creditLimit 
-                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.creditLimit))
+                          : application.credit_limit 
+                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(application.credit_limit))
                             : application.financialApprovedAt 
                               ? new Date(application.financialApprovedAt).toLocaleDateString('pt-BR')
                               : application.financialStatus === 'approved'
