@@ -60,6 +60,45 @@ interface Product extends ProductFormData {
   supplierName?: string;
 }
 
+// Portos da China
+const CHINA_PORTS = [
+  "Shanghai", "Shenzhen", "Ningbo-Zhoushan", "Guangzhou", "Qingdao",
+  "Tianjin", "Dalian", "Xiamen", "Lianyungang", "Zhanjiang",
+  "Yantai", "Rizhao", "Wenzhou", "Jinzhou", "Quanzhou",
+  "Nantong", "Zhuhai", "Jiangyin", "Taicang", "Nanjing"
+];
+
+// Portos do Brasil (marítimos e secos)
+const BRAZIL_PORTS = [
+  // Portos Marítimos
+  "Santos, SP", "Rio de Janeiro, RJ", "Paranaguá, PR", "Rio Grande, RS",
+  "São Francisco do Sul, SC", "Vitória, ES", "Suape, PE", "Salvador, BA",
+  "Fortaleza, CE", "Pecém, CE", "Itaguaí, RJ", "Manaus, AM",
+  "Belém, PA", "São Luís, MA", "Macapá, AP", "Cabedelo, PB",
+  "Maceió, AL", "Aratu, BA", "Ilhéus, BA", "Barra do Riacho, ES",
+  
+  // Portos Secos (EADI)
+  "Porto Seco de Brasília, DF", "Porto Seco de Goiânia, GO",
+  "Porto Seco de Anápolis, GO", "Porto Seco de Uberlândia, MG",
+  "Porto Seco de Juiz de Fora, MG", "Porto Seco de Ribeirão Preto, SP",
+  "Porto Seco de Bauru, SP", "Porto Seco de Campinas, SP",
+  "Porto Seco de São José dos Campos, SP", "Porto Seco de Sorocaba, SP",
+  "Porto Seco de Caxias do Sul, RS", "Porto Seco de Uruguaiana, RS",
+  "Porto Seco de Corumbá, MS", "Porto Seco de Foz do Iguaçu, PR",
+  "Porto Seco de Londrina, PR", "Porto Seco de Maringá, PR"
+];
+
+// Estados brasileiros
+const BRAZIL_STATES = [
+  "Acre (AC)", "Alagoas (AL)", "Amapá (AP)", "Amazonas (AM)", "Bahia (BA)",
+  "Ceará (CE)", "Distrito Federal (DF)", "Espírito Santo (ES)", "Goiás (GO)",
+  "Maranhão (MA)", "Mato Grosso (MT)", "Mato Grosso do Sul (MS)", "Minas Gerais (MG)",
+  "Pará (PA)", "Paraíba (PB)", "Paraná (PR)", "Pernambuco (PE)", "Piauí (PI)",
+  "Rio de Janeiro (RJ)", "Rio Grande do Norte (RN)", "Rio Grande do Sul (RS)",
+  "Rondônia (RO)", "Roraima (RR)", "Santa Catarina (SC)", "São Paulo (SP)",
+  "Sergipe (SE)", "Tocantins (TO)"
+];
+
 export default function ImportNewEnhancedPage() {
   const [, setLocation] = useLocation();
   const [products, setProducts] = useState<Product[]>([]);
@@ -389,9 +428,20 @@ export default function ImportNewEnhancedPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Porto de Embarque</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: Shanghai, China" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o porto de embarque" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {CHINA_PORTS.map((port) => (
+                                <SelectItem key={port} value={port}>
+                                  {port}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -403,9 +453,20 @@ export default function ImportNewEnhancedPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Porto de Desembarque</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: Santos, Brasil" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o porto de desembarque" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {BRAZIL_PORTS.map((port) => (
+                                <SelectItem key={port} value={port}>
+                                  {port}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -419,9 +480,20 @@ export default function ImportNewEnhancedPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Destino Final</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: São Paulo, SP" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o estado de destino" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {BRAZIL_STATES.map((state) => (
+                                <SelectItem key={state} value={state}>
+                                  {state}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -560,7 +632,7 @@ export default function ImportNewEnhancedPage() {
                 <Button 
                   type="submit" 
                   className="bg-emerald-600 hover:bg-emerald-700"
-                  disabled={createImportMutation.isPending || products.length === 0 || !hasEnoughCredit}
+                  disabled={createImportMutation.isPending || products.length === 0}
                 >
                   {createImportMutation.isPending ? "Criando..." : "Revisar e Confirmar"}
                 </Button>
