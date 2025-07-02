@@ -1498,7 +1498,7 @@ export class DatabaseStorage {
         type: sql<string>`'credit_application'`,
         action: creditApplications.status,
         createdAt: creditApplications.createdAt,
-        description: sql<string>`CONCAT('Credit application #', ${creditApplications.id}, ' - ', ${creditApplications.status})`
+        description: sql<string>`CONCAT('Solicitação de Crédito #', ${creditApplications.id}, ' - ', ${creditApplications.status})`
       })
       .from(creditApplications)
       .where(eq(creditApplications.userId, importerId))
@@ -1511,7 +1511,7 @@ export class DatabaseStorage {
         type: sql<string>`'import'`,
         action: imports.status,
         createdAt: imports.createdAt,
-        description: sql<string>`CONCAT('Import #', ${imports.id}, ' - ', ${imports.status})`
+        description: sql<string>`CONCAT('Importação #', ${imports.id}, ' - ', ${imports.status})`
       })
       .from(imports)
       .where(eq(imports.userId, importerId))
@@ -1519,8 +1519,12 @@ export class DatabaseStorage {
       .limit(10);
 
     return [...creditApps, ...importsData]
-      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-      .slice(0, 20);
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .map(item => ({
+        action: item.action,
+        description: item.description,
+        timestamp: item.createdAt
+      }));
   }
 }
 
