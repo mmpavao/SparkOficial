@@ -20,6 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -33,7 +41,8 @@ import {
   Building,
   Mail,
   Phone,
-  RefreshCw
+  RefreshCw,
+  Copy
 } from "lucide-react";
 
 interface Importer {
@@ -52,6 +61,12 @@ export default function ImportersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [resetPasswordId, setResetPasswordId] = useState<number | null>(null);
   const [selectedImporter, setSelectedImporter] = useState<Importer | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showLogsDialog, setShowLogsDialog] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [importerLogs, setImporterLogs] = useState<any[]>([]);
+  const [importerDetails, setImporterDetails] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -66,10 +81,12 @@ export default function ImportersPage() {
     mutationFn: async (importerId: number) => {
       return await apiRequest(`/api/admin/importers/${importerId}/reset-password`, "POST");
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setNewPassword(data.temporaryPassword);
+      setShowPasswordDialog(true);
       toast({
         title: "Senha redefinida",
-        description: "Nova senha foi enviada por email",
+        description: "Nova senha temporária gerada com sucesso",
       });
       setResetPasswordId(null);
     },
@@ -82,6 +99,56 @@ export default function ImportersPage() {
     },
   });
 
+  // Handle actions
+  const handleViewDetails = async (importer: Importer) => {
+    try {
+      const details = await apiRequest(`/api/admin/importers/${importer.id}`, "GET");
+      setImporterDetails(details);
+      setSelectedImporter(importer);
+      setShowDetailsDialog(true);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar detalhes do importador",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewLogs = async (importer: Importer) => {
+    try {
+      const logs = await apiRequest(`/api/admin/importers/${importer.id}/logs`, "GET");
+      setImporterLogs(logs);
+      setSelectedImporter(importer);
+      setShowLogsDialog(true);
+    } catch (error) {
+      toast({
+        title: "Erro", 
+        description: "Falha ao carregar logs do importador",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetPassword = (importer: Importer) => {
+    setSelectedImporter(importer);
+    setResetPasswordId(importer.id);
+  };
+
+  const copyPasswordToClipboard = () => {
+    navigator.clipboard.writeText(newPassword);
+    toast({
+      title: "Copiado",
+      description: "Senha copiada para a área de transferência",
+    });
+  };
+
+  const confirmResetPassword = () => {
+    if (resetPasswordId) {
+      resetPasswordMutation.mutate(resetPasswordId);
+    }
+  };
+
   // Filter importers based on search term
   const filteredImporters = importers.filter((importer: Importer) =>
     importer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,12 +156,6 @@ export default function ImportersPage() {
     importer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     importer.cnpj.includes(searchTerm)
   );
-
-  const handleResetPassword = () => {
-    if (resetPasswordId) {
-      resetPasswordMutation.mutate(resetPasswordId);
-    }
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
