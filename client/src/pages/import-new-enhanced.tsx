@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
@@ -50,7 +51,7 @@ interface Supplier {
   companyName: string;
   city: string;
   country: string;
-  productCategories: string[];
+  productCategories?: string[];
 }
 
 interface Product extends ProductFormData {
@@ -59,7 +60,7 @@ interface Product extends ProductFormData {
   supplierName?: string;
 }
 
-export default function ImportNewPage() {
+export default function ImportNewEnhancedPage() {
   const [, setLocation] = useLocation();
   const [products, setProducts] = useState<Product[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
@@ -109,7 +110,7 @@ export default function ImportNewPage() {
     enabled: true
   });
 
-  // Use real suppliers or fallback to mock data for testing
+  // Use real suppliers or mock for development
   const suppliers = suppliersData.length > 0 ? suppliersData : [
     {
       id: 1,
@@ -124,15 +125,15 @@ export default function ImportNewPage() {
       city: "Guangzhou", 
       country: "China",
       productCategories: ["Home Décor", "Furniture"]
-    },
-    {
-      id: 3,
-      companyName: "Ningbo Auto Parts Industry Co.",
-      city: "Ningbo",
-      country: "China", 
-      productCategories: ["Automotive Parts", "Accessories"]
     }
   ];
+
+  // Get approved credit application
+  const approvedCreditApplication = useMemo(() => {
+    return creditApplications.find((app: any) => 
+      app.financialStatus === 'approved' && app.adminStatus === 'admin_finalized'
+    );
+  }, [creditApplications]);
 
   const cargoType = form.watch("cargoType");
   const totalValue = products.reduce((sum, product) => sum + product.totalValue, 0);
@@ -189,29 +190,61 @@ export default function ImportNewPage() {
       return;
     }
 
-    createImportMutation.mutate({ ...data, products });
+    // Check if user has approved credit and if amount is within limit
+    if (!approvedCreditApplication) {
+      toast({
+        title: "Crédito não aprovado",
+        description: "Você precisa de um crédito aprovado para criar importações.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Show terms confirmation
+    setShowTermsConfirmation(true);
   };
 
+  const handleConfirmTerms = () => {
+    setShowTermsConfirmation(false);
+    const formData = form.getValues();
+    createImportMutation.mutate({ ...formData, products });
+  };
+
+  // Check for credit limit validation
+  const hasEnoughCredit = useMemo(() => {
+    if (!creditUsage || !approvedCreditApplication) return false;
+    const downPaymentPercent = approvedCreditApplication.finalDownPayment || 30;
+    const financedAmount = totalValue * (1 - downPaymentPercent / 100);
+    return financedAmount <= (creditUsage.available || 0);
+  }, [totalValue, creditUsage, approvedCreditApplication]);
+
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => setLocation('/imports')}
-          className="p-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
+        <Button variant="ghost" onClick={() => setLocation('/imports')}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Nova Importação</h1>
-          <p className="text-gray-600">Crie uma nova importação e gerencie seus produtos</p>
-        </div>
+        <h1 className="text-2xl font-bold">Nova Importação</h1>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Credit Status Alert */}
+      {!approvedCreditApplication && (
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <strong>Atenção:</strong> Você precisa de um crédito aprovado para criar importações. 
+            <Button variant="link" className="p-0 h-auto text-amber-800 underline ml-1" onClick={() => setLocation('/credit')}>
+              Solicitar crédito agora
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Form - Left Side */}
+        <div className="lg:col-span-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Basic Information */}
@@ -429,124 +462,123 @@ export default function ImportNewPage() {
                 </CardContent>
               </Card>
 
+              {/* Products Section */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Produtos da Importação
+                    </CardTitle>
+                    <Button 
+                      type="button"
+                      size="sm" 
+                      onClick={() => setShowProductForm(true)}
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Adicionar Produto
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {products.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-4">Nenhum produto adicionado</p>
+                      <Button 
+                        type="button"
+                        size="sm" 
+                        onClick={() => setShowProductForm(true)}
+                        variant="outline"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Adicionar Primeiro Produto
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {products.map((product) => (
+                        <div key={product.id} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900">{product.name}</h4>
+                              {product.description && (
+                                <p className="text-sm text-gray-600">{product.description}</p>
+                              )}
+                              <div className="flex items-center gap-2 mt-2">
+                                <Building2 className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm text-gray-600">{product.supplierName}</span>
+                              </div>
+                            </div>
+                            <Button 
+                              type="button"
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => removeProduct(product.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-600">Qtd:</span>
+                              <span className="ml-1 font-medium">{product.quantity}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Unit:</span>
+                              <span className="ml-1 font-medium">{formatCurrency(product.unitPrice, 'USD')}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Total:</span>
+                              <span className="ml-1 font-medium">{formatCurrency(product.totalValue, 'USD')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Total Summary */}
+                      <div className="bg-gray-50 border rounded-lg p-4">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-900">Total da Importação:</span>
+                          <span className="text-xl font-bold text-emerald-600">
+                            {formatCurrency(totalValue, 'USD')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Submit Button */}
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => setLocation('/imports')}>
+                  Cancelar
+                </Button>
                 <Button 
                   type="submit" 
                   className="bg-emerald-600 hover:bg-emerald-700"
-                  disabled={createImportMutation.isPending || products.length === 0}
+                  disabled={createImportMutation.isPending || products.length === 0 || !hasEnoughCredit}
                 >
-                  {createImportMutation.isPending ? "Criando..." : "Criar Importação"}
+                  {createImportMutation.isPending ? "Criando..." : "Revisar e Confirmar"}
                 </Button>
               </div>
             </form>
           </Form>
         </div>
 
-        {/* Sidebar - Products & Summary */}
-        <div className="space-y-6">
-          {/* Products */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  Produtos
-                </CardTitle>
-                <Button 
-                  size="sm" 
-                  onClick={() => setShowProductForm(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {products.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">Nenhum produto adicionado</p>
-                  <Button 
-                    size="sm" 
-                    onClick={() => setShowProductForm(true)}
-                    variant="outline"
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Adicionar Produto
-                  </Button>
-                </div>
-              ) : (
-                products.map((product) => (
-                  <div key={product.id} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{product.name}</h4>
-                        {product.description && (
-                          <p className="text-sm text-gray-600">{product.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Building2 className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-600">{product.supplierName}</span>
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => removeProduct(product.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div>
-                        <span className="text-gray-600">Qtd:</span>
-                        <span className="ml-1 font-medium">{product.quantity}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Unit:</span>
-                        <span className="ml-1 font-medium">{formatCurrency(product.unitPrice, 'USD')}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Total:</span>
-                        <span className="ml-1 font-medium">{formatCurrency(product.totalValue, 'USD')}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Summary */}
-          {totalValue > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Resumo Financeiro
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total de Produtos:</span>
-                  <span className="font-medium">{products.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Valor Total FOB:</span>
-                  <span className="font-medium">{formatCurrency(totalValue, 'USD')}</span>
-                </div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total da Importação:</span>
-                    <span className="text-emerald-600">{formatCurrency(totalValue, 'USD')}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        {/* Financial Sidebar - Right Side */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <ImportFinancialPreview 
+              importValue={totalValue}
+              creditApplication={approvedCreditApplication}
+              creditUsage={creditUsage}
+              adminFee={adminFee}
+            />
+          </div>
         </div>
       </div>
 
@@ -641,12 +673,13 @@ export default function ImportNewPage() {
                       name="unitPrice"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Preço Unit. (USD)</FormLabel>
+                          <FormLabel>Preço Unitário (USD)</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
-                              step="0.01"
                               min="0.01"
+                              step="0.01"
+                              placeholder="0.00"
                               {...field}
                               onChange={(e) => field.onChange(Number(e.target.value))}
                             />
@@ -657,19 +690,16 @@ export default function ImportNewPage() {
                     />
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end gap-2 pt-4">
                     <Button 
                       type="button" 
-                      variant="outline"
-                      onClick={() => {
-                        setShowProductForm(false);
-                        productForm.reset();
-                      }}
+                      variant="outline" 
+                      onClick={() => setShowProductForm(false)}
                     >
                       Cancelar
                     </Button>
                     <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
-                      Adicionar
+                      Adicionar Produto
                     </Button>
                   </div>
                 </form>
@@ -678,6 +708,15 @@ export default function ImportNewPage() {
           </Card>
         </div>
       )}
+
+      {/* Terms Confirmation Modal */}
+      <TermsConfirmation
+        open={showTermsConfirmation}
+        onOpenChange={setShowTermsConfirmation}
+        onConfirm={handleConfirmTerms}
+        importValue={totalValue}
+        currency="USD"
+      />
     </div>
   );
 }
