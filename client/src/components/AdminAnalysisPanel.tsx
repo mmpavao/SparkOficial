@@ -432,7 +432,13 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Status Atual:</span>
-              {getStatusBadge(application.preAnalysisStatus || application.status)}
+              {permissions.isFinanceira && application.financialStatus === 'approved' ? (
+                <Badge className="bg-green-100 text-green-800 border-green-300">
+                  Aprovado
+                </Badge>
+              ) : (
+                getStatusBadge(application.preAnalysisStatus || application.status)
+              )}
             </div>
             {!permissions.isFinanceira && (
               <div className="flex items-center justify-between">
@@ -475,9 +481,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       )}
                       {application.downPayment && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Cobertura da Apólice:</span>
+                          <span className="text-gray-600">Entrada Requerida:</span>
                           <span className="font-medium text-green-800">
-                            {100 - Number(application.downPayment)}% (Down payment {application.downPayment}%)
+                            10% do valor do pedido
                           </span>
                         </div>
                       )}

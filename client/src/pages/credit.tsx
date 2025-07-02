@@ -312,8 +312,35 @@ export default function CreditPage() {
             <div className="space-y-6">
               {applications.filter(app => app && app.id).map((application: any) => {
                 const getStatusInfo = () => {
-                  // Only show "Aprovado" when admin has finalized the terms
-                  if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                  // FINANCEIRA VIEW: When Financeira approves, it's FINAL for them
+                  if (permissions.isFinanceira && application.financialStatus === 'approved') {
+                    return { 
+                      label: 'Aprovado', 
+                      color: 'bg-green-100 text-green-800 border-green-200',
+                      bgColor: 'bg-green-50',
+                      borderColor: 'border-l-green-500'
+                    };
+                  }
+                  // FINANCEIRA VIEW: Rejected applications
+                  else if (permissions.isFinanceira && application.financialStatus === 'rejected') {
+                    return { 
+                      label: 'Rejeitado', 
+                      color: 'bg-red-100 text-red-800 border-red-200',
+                      bgColor: 'bg-red-50',
+                      borderColor: 'border-l-red-500'
+                    };
+                  }
+                  // FINANCEIRA VIEW: In analysis
+                  else if (permissions.isFinanceira) {
+                    return { 
+                      label: 'Em Análise', 
+                      color: 'bg-blue-100 text-blue-800 border-blue-200',
+                      bgColor: 'bg-blue-50',
+                      borderColor: 'border-l-blue-500'
+                    };
+                  }
+                  // OTHER USERS VIEW: Only show "Aprovado" when admin has finalized the terms
+                  else if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                     return { 
                       label: 'Aprovado', 
                       color: 'bg-green-100 text-green-800 border-green-200',
