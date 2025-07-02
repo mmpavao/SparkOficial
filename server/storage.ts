@@ -595,7 +595,7 @@ export class DatabaseStorage {
 
       const importsTable = imports;
       // Get all imports using this credit application that are active (not cancelled and not in planning)
-      const imports = await db.select()
+      const activeImports = await db.select()
         .from(importsTable)
         .where(
           and(
@@ -608,7 +608,7 @@ export class DatabaseStorage {
         );
 
       // Calculate used credit from active imports
-      const usedCredit = imports.reduce((total, imp) => {
+      const usedCredit = activeImports.reduce((total, imp) => {
         const importValue = parseFloat(imp.totalValue || '0');
         return total + importValue;
       }, 0);
