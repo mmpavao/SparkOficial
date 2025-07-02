@@ -767,6 +767,7 @@ Changelog:
 - July 02, 2025. Security enhancement - Hidden creation buttons in admin and financeira modules:
   * Removed "Nova Solicitação de Crédito" button from credit page for admin and financeira users
   * Removed "Nova Importação" button from imports page for admin and financeira users
+  * Removed "Nova Importação" button from imports-new-integrated page for admin and financeira users
   * Added security condition: !permissions.isFinanceira && !permissions.canViewAllApplications
   * Admin and financeira users can only analyze existing applications, not create new ones
   * Maintains all existing functionality while improving role-based security
