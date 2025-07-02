@@ -889,7 +889,7 @@ export default function CreditDetailsPage() {
                         {(() => {
                           const finalLimit = application.adminStatus === 'admin_finalized' 
                             ? application.finalCreditLimit 
-                            : application.creditLimit;
+                            : application.credit_limit;
                           return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
                         })()}
                       </span>
@@ -916,7 +916,7 @@ export default function CreditDetailsPage() {
                           : (() => {
                               const finalLimit = application.adminStatus === 'admin_finalized' 
                                 ? application.finalCreditLimit 
-                                : application.creditLimit;
+                                : application.credit_limit;
                               return finalLimit ? `US$ ${formatCompactNumber(Number(finalLimit))}` : 'US$ 0';
                             })()
                         }
