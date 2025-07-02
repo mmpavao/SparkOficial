@@ -347,19 +347,15 @@ export default function ImportersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSelectedImporter(importer)}>
+                          <DropdownMenuItem onClick={() => handleViewDetails(importer)}>
                             <Eye className="h-4 w-4 mr-2" />
                             Ver Detalhes
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setResetPasswordId(importer.id)}>
+                          <DropdownMenuItem onClick={() => handleResetPassword(importer)}>
                             <KeyRound className="h-4 w-4 mr-2" />
                             Renovar Senha
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewLogs(importer)}>
                             <FileText className="h-4 w-4 mr-2" />
                             Ver Logs
                           </DropdownMenuItem>
@@ -387,7 +383,7 @@ export default function ImportersPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleResetPassword}
+              onClick={confirmResetPassword}
               disabled={resetPasswordMutation.isPending}
             >
               {resetPasswordMutation.isPending ? 'Renovando...' : 'Confirmar'}
@@ -395,6 +391,123 @@ export default function ImportersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Display Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Senha Gerada</DialogTitle>
+            <DialogDescription>
+              A nova senha foi gerada com sucesso. Compartilhe com o importador de forma segura.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-lg font-semibold">{newPassword}</span>
+                <Button onClick={copyPasswordToClipboard} variant="outline" size="sm">
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar
+                </Button>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600">
+              Esta senha é temporária. O importador deve alterá-la no primeiro acesso.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowPasswordDialog(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Importador</DialogTitle>
+          </DialogHeader>
+          {importerDetails && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Nome Completo</label>
+                  <p className="font-semibold">{importerDetails.fullName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <div className="mt-1">{getStatusBadge(importerDetails.status)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <p>{importerDetails.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Telefone</label>
+                  <p>{importerDetails.phone}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Empresa</label>
+                  <p>{importerDetails.companyName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">CNPJ</label>
+                  <p>{importerDetails.cnpj}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Data de Cadastro</label>
+                  <p>{formatDate(importerDetails.createdAt)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Último Acesso</label>
+                  <p>{importerDetails.lastLogin ? formatDate(importerDetails.lastLogin) : 'Nunca'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setShowDetailsDialog(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Logs Dialog */}
+      <Dialog open={showLogsDialog} onOpenChange={setShowLogsDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Logs de Atividade</DialogTitle>
+            <DialogDescription>
+              Histórico de atividades do importador {selectedImporter?.fullName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-96 overflow-y-auto">
+            {importerLogs.length > 0 ? (
+              <div className="space-y-2">
+                {importerLogs.map((log, index) => (
+                  <div key={index} className="p-3 border rounded-lg bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{log.action}</p>
+                        <p className="text-sm text-gray-600">{log.description}</p>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(log.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Nenhuma atividade registrada para este importador
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowLogsDialog(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
