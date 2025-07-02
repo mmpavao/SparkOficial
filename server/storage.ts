@@ -1426,17 +1426,7 @@ export class DatabaseStorage {
   // Get all importers (admin only)
   async getAllImporters() {
     const result = await db
-      .select({
-        id: users.id,
-        fullName: users.fullName,
-        email: users.email,
-        phone: users.phone,
-        companyName: users.companyName,
-        cnpj: users.cnpj,
-        status: users.status,
-        createdAt: users.createdAt,
-        lastLogin: users.lastLogin,
-      })
+      .select()
       .from(users)
       .where(eq(users.role, 'importer'))
       .orderBy(desc(users.createdAt));
