@@ -764,6 +764,12 @@ Changelog:
   * Updated import reference in AuthenticatedLayout.tsx to use new logo asset
   * Increased logo size by 50% (from h-8 to h-12) for better visibility and brand presence
   * Maintained existing logo functionality and responsive behavior in sidebar
+- July 02, 2025. Security enhancement - Hidden creation buttons in admin and financeira modules:
+  * Removed "Nova Solicitação de Crédito" button from credit page for admin and financeira users
+  * Removed "Nova Importação" button from imports page for admin and financeira users
+  * Added security condition: !permissions.isFinanceira && !permissions.canViewAllApplications
+  * Admin and financeira users can only analyze existing applications, not create new ones
+  * Maintains all existing functionality while improving role-based security
 ```
 
 ## User Preferences
