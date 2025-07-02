@@ -79,8 +79,8 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
     if (app.financialStatus === 'approved') {
       // Para aprovados, usar finalCreditLimit se finalizado pelo admin, senão creditLimit
       const approvedAmount = app.adminStatus === 'admin_finalized' 
-        ? parseFloat(app.finalCreditLimit || app.creditLimit || '0')
-        : parseFloat(app.creditLimit || '0');
+        ? parseFloat(app.finalCreditLimit || app.credit_limit || '0')
+        : parseFloat(app.credit_limit || '0');
       acc.totalApproved += approvedAmount;
     } else if (app.status === 'pending') {
       acc.totalPending += requestedAmount;
