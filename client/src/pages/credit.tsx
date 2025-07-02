@@ -312,15 +312,6 @@ export default function CreditPage() {
             <div className="space-y-6">
               {applications.filter(app => app && app.id).map((application: any) => {
                 const getStatusInfo = () => {
-                  // DEBUG: Log application data for troubleshooting
-                  if (application.id === 65) {
-                    console.log('DEBUG App 65:', {
-                      financialStatus: application.financialStatus,
-                      isFinanceira: permissions.isFinanceira,
-                      condition: permissions.isFinanceira && application.financialStatus === 'approved'
-                    });
-                  }
-                  
                   // FINANCEIRA VIEW: When Financeira approves, it's FINAL for them
                   if (permissions.isFinanceira && application.financialStatus === 'approved') {
                     return { 
@@ -348,8 +339,9 @@ export default function CreditPage() {
                       borderColor: 'border-l-blue-500'
                     };
                   }
-                  // OTHER USERS VIEW: Only show "Aprovado" when admin has finalized the terms
-                  else if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
+                  
+                  // NON-FINANCEIRA USERS: Show "Aprovado" only when admin has finalized
+                  if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                     return { 
                       label: 'Aprovado', 
                       color: 'bg-green-100 text-green-800 border-green-200',
@@ -364,17 +356,23 @@ export default function CreditPage() {
                       bgColor: 'bg-red-50',
                       borderColor: 'border-l-red-500'
                     };
-                  } 
-                  // Show "Enviado à Financeira" when submitted to financial or financially approved but not admin finalized
-                  else if (application.status === 'submitted_to_financial' || 
-                          (application.financialStatus === 'approved' && !application.adminStatus)) {
+                  }
+                  else if (application.status === 'submitted_to_financial' || application.financialStatus === 'approved') {
                     return { 
-                      label: 'Enviado à Financeira', 
+                      label: 'Análise Final', 
                       color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
                       bgColor: 'bg-yellow-50',
                       borderColor: 'border-l-yellow-500'
                     };
                   } 
+                  else if (application.preAnalysisStatus === 'pre_approved') {
+                    return { 
+                      label: 'Pré-Aprovado', 
+                      color: 'bg-green-100 text-green-800 border-green-200',
+                      bgColor: 'bg-green-50',
+                      borderColor: 'border-l-green-500'
+                    };
+                  }
                   else {
                     return { 
                       label: 'Pré-Análise', 
