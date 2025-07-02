@@ -115,10 +115,32 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       return await apiRequest(endpoint, "PUT", data);
     },
     onSuccess: (data, variables) => {
-      // Invalidate only specific queries to prevent DOM conflicts
+      // For submit to financial action, force immediate cache invalidation
+      if (variables.status === 'submitted_to_financial') {
+        // Force refresh of this specific application
+        queryClient.invalidateQueries({ queryKey: [`/api/admin/credit-applications/${application.id}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
+        
+        // Force refresh of all application lists
+        queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications"] });
+        
+        // Update the local application object immediately to reflect changes
+        application.status = 'submitted_to_financial';
+        
+        toast({
+          title: "Aplicação enviada à financeira!",
+          description: "Aplicação enviada à financeira - aguardando análise",
+        });
+        
+        playSubmitSound();
+        return;
+      }
+
+      // Standard invalidation for other actions
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       
-      // Small delay to prevent race conditions
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications"] });
@@ -128,8 +150,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
       const { status } = variables;
       if (status === 'pre_approved' || status === 'approved') {
         playApprovalSound();
-      } else if (status === 'submitted_to_financial') {
-        playSubmitSound();
       } else {
         playStatusChangeSound();
       }

@@ -2321,7 +2321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Only allow submission if pre-approved
-      if (application.status !== 'pre_approved') {
+      if (application.preAnalysisStatus !== 'pre_approved') {
         return res.status(400).json({ 
           message: "Apenas aplicações pré-aprovadas podem ser submetidas à financeira" 
         });
