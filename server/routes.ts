@@ -2195,10 +2195,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // External payment submission
   app.post('/api/payments/external', requireAuth, upload.array('receipts', 5), async (req: any, res) => {
     try {
+      console.log("🔍 External payment body:", req.body);
+      console.log("🔍 External payment files:", req.files?.length || 0);
       const { paymentScheduleId, amount, paymentDate, notes, paymentMethod } = req.body;
       const files = req.files;
 
+      console.log("🔍 Extracted data:", { paymentScheduleId, amount, paymentDate, notes, paymentMethod });
+
       if (!paymentScheduleId || !amount) {
+        console.log("❌ Missing required data:", { paymentScheduleId, amount });
         return res.status(400).json({ message: "Dados obrigatórios ausentes" });
       }
 
