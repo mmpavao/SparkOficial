@@ -1525,6 +1525,45 @@ export class DatabaseStorage {
         timestamp: item.createdAt
       }));
   }
+
+  // ===== PAYMENT SCHEDULES MANAGEMENT =====
+
+  // Get all payment schedules (admin/financeira)
+  async getAllPaymentSchedules() {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .orderBy(desc(paymentSchedules.dueDate));
+  }
+
+  // Get payment schedules by user
+  async getPaymentSchedulesByUser(userId: number) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .innerJoin(imports, eq(paymentSchedules.importId, imports.id))
+      .where(eq(imports.userId, userId))
+      .orderBy(desc(paymentSchedules.dueDate));
+  }
+
+  // Get payment schedule by ID
+  async getPaymentScheduleById(scheduleId: number) {
+    const result = await db
+      .select()
+      .from(paymentSchedules)
+      .where(eq(paymentSchedules.id, scheduleId))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  // Delete payment schedule
+  async deletePaymentSchedule(scheduleId: number) {
+    return await db
+      .delete(paymentSchedules)
+      .where(eq(paymentSchedules.id, scheduleId))
+      .returning();
+  }
 }
 
 export const storage = new DatabaseStorage();

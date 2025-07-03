@@ -29,6 +29,7 @@ import SuppliersPage from "@/pages/suppliers";
 import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
+import PaymentsPage from "@/pages/payments";
 import PaymentDetailsPage from "@/pages/payment-details";
 import PaymentPayPage from "@/pages/payment-pay";
 import PaymentEditPage from "@/pages/payment-edit";
@@ -79,6 +80,8 @@ function Router() {
         <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />
         <Route path="/suppliers/edit/:id" component={SupplierEditPage} />
         <Route path="/suppliers/new" component={SupplierNewPage} />
+        
+        <Route path="/payments" component={PaymentsPage} />
         <Route path="/payments/details/:id" component={PaymentDetailsPage} />
         <Route path="/payments/pay/:id" component={PaymentPayPage} />
         <Route path="/payments/edit/:id" component={PaymentEditPage} />

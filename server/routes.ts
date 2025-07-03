@@ -2255,6 +2255,296 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== PAYMENT SCHEDULES MANAGEMENT =====
+
+  // Get all payment schedules for user
+  app.get('/api/payment-schedules', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      let schedules;
+      if (isAdmin || isFinanceira) {
+        // Admin and financeira see all payment schedules
+        schedules = await storage.getAllPaymentSchedules();
+      } else {
+        // Regular users see only their payment schedules
+        schedules = await storage.getPaymentSchedulesByUser(req.session.userId);
+      }
+
+      res.json(schedules);
+    } catch (error) {
+      console.error("Error fetching payment schedules:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get payment schedule metrics
+  app.get('/api/payment-schedules/metrics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      let schedules;
+      if (isAdmin || isFinanceira) {
+        schedules = await storage.getAllPaymentSchedules();
+      } else {
+        schedules = await storage.getPaymentSchedulesByUser(req.session.userId);
+      }
+
+      // Calculate metrics
+      const totalPayments = schedules.length;
+      const pendingPayments = schedules.filter((s: any) => s.status === 'pending').length;
+      const paidPayments = schedules.filter((s: any) => s.status === 'paid').length;
+      const overduePayments = schedules.filter((s: any) => {
+        return s.status === 'pending' && new Date(s.dueDate) < new Date();
+      }).length;
+
+      // Calculate amounts
+      const totalAmount = schedules.reduce((sum: number, s: any) => sum + parseFloat(s.amount), 0);
+      const pendingAmount = schedules
+        .filter((s: any) => s.status === 'pending')
+        .reduce((sum: number, s: any) => sum + parseFloat(s.amount), 0);
+      const paidAmount = schedules
+        .filter((s: any) => s.status === 'paid')
+        .reduce((sum: number, s: any) => sum + parseFloat(s.amount), 0);
+      const overdueAmount = schedules
+        .filter((s: any) => s.status === 'pending' && new Date(s.dueDate) < new Date())
+        .reduce((sum: number, s: any) => sum + parseFloat(s.amount), 0);
+
+      const metrics = {
+        totalPayments,
+        pendingPayments,
+        paidPayments,
+        overduePayments,
+        totalAmount: totalAmount.toString(),
+        pendingAmount: pendingAmount.toString(),
+        paidAmount: paidAmount.toString(),
+        overdueAmount: overdueAmount.toString()
+      };
+
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error calculating payment metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get specific payment schedule
+  app.get('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const schedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!schedule) {
+        return res.status(404).json({ message: "Cronograma de pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      // Get import data to check ownership
+      const importData = await storage.getImport(schedule.importId);
+      if (!isAdmin && !isFinanceira && importData?.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error fetching payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get supplier data for payment schedule
+  app.get('/api/payment-schedules/:id/supplier', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const schedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!schedule) {
+        return res.status(404).json({ message: "Cronograma de pagamento não encontrado" });
+      }
+
+      // Get import data
+      const importData = await storage.getImport(schedule.importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Get supplier data from products
+      let supplierData = null;
+      if (importData.products && importData.products.length > 0) {
+        const supplierId = importData.products[0].supplierId;
+        if (supplierId) {
+          supplierData = await storage.getSupplier(supplierId);
+        }
+      }
+
+      res.json(supplierData);
+    } catch (error) {
+      console.error("Error fetching supplier data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process external payment
+  app.post('/api/payment-schedules/:id/pay', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const schedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!schedule) {
+        return res.status(404).json({ message: "Cronograma de pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(schedule.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin && importData?.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Handle file upload and form data
+      const paymentType = req.body.paymentType || 'external';
+      const paymentMethod = req.body.paymentMethod;
+      const notes = req.body.notes;
+      
+      // Process payment document if uploaded
+      let proofDocument = null;
+      let proofFilename = null;
+      
+      if (req.files && req.files.receipt) {
+        const file = req.files.receipt;
+        proofDocument = file.data.toString('base64');
+        proofFilename = file.name;
+      }
+
+      // Create payment record
+      const payment = await storage.createPayment({
+        paymentScheduleId: parseInt(id),
+        importId: schedule.importId,
+        amount: schedule.amount,
+        currency: schedule.currency,
+        paymentMethod,
+        proofDocument,
+        proofFilename,
+        notes,
+        status: 'confirmed',
+        paidAt: new Date(),
+        confirmedAt: new Date(),
+        confirmedBy: req.session.userId
+      });
+
+      // Update schedule status
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      res.json({ 
+        success: true, 
+        payment: payment[0],
+        message: "Pagamento processado com sucesso" 
+      });
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process PayComex payment
+  app.post('/api/payment-schedules/:id/paycomex', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { exchangeRate, brazilianAmount, paymentMethod, notes } = req.body;
+      
+      const schedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!schedule) {
+        return res.status(404).json({ message: "Cronograma de pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(schedule.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin && importData?.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Create payment record with PayComex data
+      const payment = await storage.createPayment({
+        paymentScheduleId: parseInt(id),
+        importId: schedule.importId,
+        amount: schedule.amount,
+        currency: schedule.currency,
+        paymentMethod: `paycomex_${paymentMethod}`,
+        paymentReference: `PayComex - Taxa: ${exchangeRate} - BRL: ${brazilianAmount}`,
+        notes: `PayComex: ${notes || ''}`,
+        status: 'confirmed',
+        paidAt: new Date(),
+        confirmedAt: new Date(),
+        confirmedBy: req.session.userId
+      });
+
+      // Update schedule status
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      res.json({ 
+        success: true, 
+        payment: payment[0],
+        message: "PayComex processado com sucesso",
+        exchangeData: {
+          usdAmount: schedule.amount,
+          brlAmount: brazilianAmount,
+          exchangeRate
+        }
+      });
+    } catch (error) {
+      console.error("Error processing PayComex:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Cancel payment schedule
+  app.delete('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const schedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!schedule) {
+        return res.status(404).json({ message: "Cronograma de pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(schedule.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin && importData?.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Only allow cancellation of pending payments
+      if (schedule.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser cancelados" });
+      }
+
+      // Delete payment schedule
+      await storage.deletePaymentSchedule(parseInt(id));
+
+      res.json({ success: true, message: "Pagamento cancelado com sucesso" });
+    } catch (error) {
+      console.error("Error canceling payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Update credit application status (admin only)
   app.put('/api/admin/credit-applications/:id/status', requireAuth, async (req: any, res) => {
     try {
