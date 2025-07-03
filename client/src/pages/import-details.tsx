@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, Package, Ship, Calendar, DollarSign, Building2, Truck, MapPin, FileText, CreditCard, Calculator } from "lucide-react";
+import { ArrowLeft, Package, Ship, Calendar, DollarSign, Building2, Truck, MapPin, FileText, CreditCard, Calculator, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatCurrency } from "@/lib/formatters";
 import { ImportFinancialSummary } from "@/components/imports/ImportFinancialSummary";
 
@@ -555,7 +562,35 @@ export default function ImportDetailsPage() {
                       <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-semibold text-orange-900">Entrada (30%)</span>
-                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Vencido</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Vencido</Badge>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/1'}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Ver detalhes
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/1/pay'}>
+                                  <DollarSign className="mr-2 h-4 w-4" />
+                                  Pagar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/1/edit'}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
@@ -576,7 +611,35 @@ export default function ImportDetailsPage() {
                       <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-semibold text-blue-900">1ª Parcela (60 dias)</span>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Programado</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Programado</Badge>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/2'}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Ver detalhes
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/2/pay'}>
+                                  <DollarSign className="mr-2 h-4 w-4" />
+                                  Pagar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/2/edit'}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
@@ -597,7 +660,35 @@ export default function ImportDetailsPage() {
                       <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-semibold text-blue-900">2ª Parcela (120 dias)</span>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Programado</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Programado</Badge>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/3'}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Ver detalhes
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/3/pay'}>
+                                  <DollarSign className="mr-2 h-4 w-4" />
+                                  Pagar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = '/payments/3/edit'}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
