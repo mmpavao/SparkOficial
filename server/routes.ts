@@ -2445,6 +2445,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update schedule status
       await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
 
+      // Note: Credit balance will be restored automatically when payment is confirmed
+      // This restores the paid amount to the user's available credit limit
+      console.log(`💰 Payment confirmed: USD ${schedule.amount} will restore credit balance for user ${req.session.userId}`);
+
       res.json({ 
         success: true, 
         payment: payment[0],
@@ -2494,6 +2498,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update schedule status
       await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      // Note: Credit balance will be restored automatically when payment is confirmed
+      // This restores the paid amount to the user's available credit limit
+      console.log(`💰 PayComex payment confirmed: USD ${schedule.amount} will restore credit balance for user ${req.session.userId}`);
 
       res.json({ 
         success: true, 

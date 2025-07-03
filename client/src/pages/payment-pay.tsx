@@ -83,7 +83,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Mutação para PayComex
   const paycomexMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/payment-schedules/${paymentId}/paycomex-payment`, data);
+      const response = await apiRequest("POST", `/api/payment-schedules/${paymentId}/paycomex`, data);
       return response;
     },
     onSuccess: () => {
