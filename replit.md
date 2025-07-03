@@ -804,6 +804,12 @@ Changelog:
   * Fixed TermsConfirmation.tsx layout issues and JSX structure problems preventing proper display
   * Eliminated component duplicates: maintained enhanced version only, moved simple version to backup route
   * System now correctly displays advanced import creation form with comprehensive financial calculations and sidebar
+- July 03, 2025. CRITICAL FIX: Import creation validation corrected:
+  * Fixed backend validation logic in POST /api/imports endpoint (line 1452)
+  * Problem: validation was filtering only app.status === 'approved' but user has 'admin_finalized' status
+  * Solution: updated filter to accept both 'approved' OR ('admin_finalized' AND financialStatus === 'approved')
+  * User can now create imports with US$ 750,000 approved credit after admin finalization
+  * Resolved persistent "Você precisa ter um crédito aprovado" error that was blocking import creation
 ```
 
 ## User Preferences
