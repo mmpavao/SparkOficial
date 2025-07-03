@@ -19,7 +19,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like, ne } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
@@ -91,11 +91,11 @@ export class DatabaseStorage {
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
     // Convert documents to JSON strings for database storage
     const processedApplication = { ...application };
-
+    
     console.log('🔄 DOCUMENTS DEBUG - Processing application with documents:');
     console.log('Required docs received:', application.requiredDocuments ? Object.keys(application.requiredDocuments) : 'NONE');
     console.log('Optional docs received:', application.optionalDocuments ? Object.keys(application.optionalDocuments) : 'NONE');
-
+    
     // CRITICAL FIX: Ensure documents are properly stringified with fallback
     if (processedApplication.requiredDocuments && typeof processedApplication.requiredDocuments === 'object') {
       const docString = JSON.stringify(processedApplication.requiredDocuments);
@@ -105,7 +105,7 @@ export class DatabaseStorage {
       console.log('⚠️ No required documents to save');
       processedApplication.requiredDocuments = null;
     }
-
+    
     if (processedApplication.optionalDocuments && typeof processedApplication.optionalDocuments === 'object') {
       const docString = JSON.stringify(processedApplication.optionalDocuments);
       console.log('✅ Optional documents stringified:', docString.substring(0, 100) + '...');
@@ -119,13 +119,13 @@ export class DatabaseStorage {
       .insert(creditApplications)
       .values(processedApplication)
       .returning();
-
+      
     console.log('💾 Credit application saved with ID:', creditApp.id);
     console.log('📄 Documents saved successfully:', {
       requiredSaved: !!creditApp.requiredDocuments,
       optionalSaved: !!creditApp.optionalDocuments
     });
-
+    
     return creditApp;
   }
 
@@ -135,11 +135,11 @@ export class DatabaseStorage {
       .from(creditApplications)
       .where(eq(creditApplications.userId, userId))
       .orderBy(desc(creditApplications.createdAt));
-
+    
     // Parse JSON documents back to objects for each application
     return applications.map(application => {
       const app = { ...application };
-
+      
       if (app.requiredDocuments && typeof app.requiredDocuments === 'string') {
         try {
           app.requiredDocuments = JSON.parse(app.requiredDocuments);
@@ -147,7 +147,7 @@ export class DatabaseStorage {
           console.log('Error parsing requiredDocuments for app', app.id, ':', e);
         }
       }
-
+      
       if (app.optionalDocuments && typeof app.optionalDocuments === 'string') {
         try {
           app.optionalDocuments = JSON.parse(app.optionalDocuments);
@@ -155,7 +155,7 @@ export class DatabaseStorage {
           console.log('Error parsing optionalDocuments for app', app.id, ':', e);
         }
       }
-
+      
       return app;
     });
   }
@@ -166,10 +166,10 @@ export class DatabaseStorage {
       .from(creditApplications)
       .where(eq(creditApplications.id, id))
       .limit(1);
-
+    
     if (result[0]) {
       const application = { ...result[0] };
-
+      
       // Parse JSON documents back to objects
       if (application.requiredDocuments && typeof application.requiredDocuments === 'string') {
         try {
@@ -178,7 +178,7 @@ export class DatabaseStorage {
           console.log('Error parsing requiredDocuments:', e);
         }
       }
-
+      
       if (application.optionalDocuments && typeof application.optionalDocuments === 'string') {
         try {
           application.optionalDocuments = JSON.parse(application.optionalDocuments);
@@ -186,17 +186,17 @@ export class DatabaseStorage {
           console.log('Error parsing optionalDocuments:', e);
         }
       }
-
+      
       return application;
     }
-
+    
     return result[0];
   }
 
   async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {
     // Obter dados da aplicação antes da atualização para comparar mudanças
     const currentApp = await this.getCreditApplication(id);
-
+    
     const [creditApp] = await db
       .update(creditApplications)
       .set({ 
@@ -206,12 +206,12 @@ export class DatabaseStorage {
       })
       .where(eq(creditApplications.id, id))
       .returning();
-
+    
     // Enviar notificação automática se houve mudança relevante
     if (currentApp && this.shouldNotifyStatusChange(currentApp.status, status)) {
       await this.createStatusChangeNotification(creditApp, currentApp.status, status);
     }
-
+    
     return creditApp;
   }
 
@@ -226,7 +226,7 @@ export class DatabaseStorage {
       { from: 'pre_approved', to: 'rejected' },
       { from: 'submitted_to_financial', to: 'rejected' }
     ];
-
+    
     return notifiableChanges.some(change => 
       change.from === oldStatus && change.to === newStatus
     );
@@ -278,7 +278,7 @@ export class DatabaseStorage {
         relatedEntityType: 'credit_application',
         relatedEntityId: app.id
       });
-
+      
       console.log(`🔔 NOTIFICAÇÃO AUTOMÁTICA: ${notificationData.title} enviada para usuário ${app.userId}`);
     }
   }
@@ -1374,9 +1374,12 @@ export class DatabaseStorage {
       .returning();
   }
 
-  // Individual payment by ID
+
+
+  // Get individual payment by ID
   async getPaymentById(paymentId: number) {
-    const result = await db.select()
+    const result = await db
+      .select()
       .from(paymentSchedules)
       .where(eq(paymentSchedules.id, paymentId))
       .limit(1);
@@ -1403,239 +1406,6 @@ export class DatabaseStorage {
       .where(eq(paymentSchedules.id, paymentId));
   }
 
-  // Process external payment
-  async processExternalPayment(paymentId: number, paymentData: {
-    paymentMethod: string;
-    amountPaid: string;
-    paymentDate: string;
-    notes?: string;
-    receipts: any[];
-  }) {
-    // Update payment status
-    const updatedPayment = await db
-      .update(paymentSchedules)
-      .set({
-        status: 'processing',
-        paymentMethod: paymentData.paymentMethod,
-        notes: paymentData.notes,
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
-
-    // Store receipts (simulate storage)
-    for (const receipt of paymentData.receipts) {
-      await this.storePaymentReceipt(paymentId, receipt);
-    }
-
-    // Add to payment history
-    await this.addPaymentHistory(paymentId, 'Pagamento externo processado', paymentData.notes);
-
-    return updatedPayment[0];
-  }
-
-  // Process PayComex payment
-  async processPayComexPayment(paymentId: number, paymentData: {
-    paymentMethod: string;
-    amountUSD: number;
-    exchangeRate: number;
-    totalBRL: number;
-    checkoutUrl: string;
-  }) {
-    // Update payment with PayComex data
-    const updatedPayment = await db
-      .update(paymentSchedules)
-      .set({
-        status: 'processing',
-        paymentMethod: `paycomex_${paymentData.paymentMethod}`,
-        notes: `PayComex - USD ${paymentData.amountUSD} = BRL ${paymentData.totalBRL} (Taxa: ${paymentData.exchangeRate})`,
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
-
-    // Add to payment history
-    await this.addPaymentHistory(paymentId, 'Pagamento PayComex iniciado', `Redirecionado para checkout: ${paymentData.checkoutUrl}`);
-
-    return updatedPayment[0];
-  }
-
-  // Split payment into installments
-  async splitPaymentIntoInstallments(paymentId: number, installments: Array<{
-    amount: string;
-    dueDate: string;
-    description?: string;
-  }>) {
-    const originalPayment = await this.getPaymentById(paymentId);
-    if (!originalPayment) {
-      throw new Error('Payment not found');
-    }
-
-    // Create new installment payments
-    const newPayments = [];
-    for (let i = 0; i < installments.length; i++) {
-      const installment = installments[i];
-      const newPayment = await db
-        .insert(paymentSchedules)
-        .values({
-          importId: originalPayment.importId,
-          paymentType: 'installment',
-          dueDate: new Date(installment.dueDate),
-          amount: installment.amount,
-          currency: originalPayment.currency,
-          status: 'pending',
-          installmentNumber: i + 1,
-          totalInstallments: installments.length,
-          notes: installment.description,
-        })
-        .returning();
-
-      newPayments.push(newPayment[0]);
-    }
-
-    // Cancel original payment
-    await this.cancelPayment(paymentId);
-
-    // Add history entry
-    await this.addPaymentHistory(paymentId, 'Pagamento parcelado', `Dividido em ${installments.length} parcelas`);
-
-    return newPayments;
-  }
-
-  // Cancel payment and restore credit
-  async cancelPayment(paymentId: number) {
-    const payment = await this.getPaymentById(paymentId);
-    if (!payment) {
-      throw new Error('Payment not found');
-    }
-
-    // Update payment status
-    const cancelledPayment = await db
-      .update(paymentSchedules)
-      .set({
-        status: 'cancelled',
-        updatedAt: new Date()
-      })
-      .where(eq(paymentSchedules.id, paymentId))
-      .returning();
-
-    // Get import data to restore credit
-    const importData = await this.getImport(payment.importId);
-    if (importData && importData.creditApplicationId) {
-      // Recalculate available credit
-      const creditData = await this.calculateAvailableCredit(importData.creditApplicationId);
-      await this.updateCreditApplication(importData.creditApplicationId, {
-        usedCredit: creditData.used.toString(),
-        availableCredit: creditData.available.toString()
-      });
-    }
-
-    // Add to payment history
-    await this.addPaymentHistory(paymentId, 'Pagamento cancelado', 'Crédito liberado novamente');
-
-    return cancelledPayment[0];
-  }
-
-  // Store payment receipt
-  async storePaymentReceipt(paymentId: number, receiptData: any) {
-    // Simulate receipt storage (in real implementation, store in file system or cloud)
-    const receipt = {
-      paymentId,
-      fileName: receiptData.fileName,
-      fileData: receiptData.fileData, // base64 encoded
-      fileSize: receiptData.fileSize || 0,
-      mimeType: receiptData.mimeType || 'application/pdf',
-      uploadedAt: new Date(),
-    };
-
-    // In real implementation, use a proper receipts table
-    return receipt;
-  }
-
-  // Get payment receipts
-  async getPaymentReceipts(paymentId: number) {
-    // Simulate receipt retrieval
-    return [
-      {
-        id: 1,
-        paymentId,
-        fileName: 'comprovante-pagamento.pdf',
-        fileSize: 1024000,
-        uploadedAt: new Date(),
-      }
-    ];
-  }
-
-  // Get receipt file data
-  async getReceiptFile(receiptId: number) {
-    // Simulate receipt file retrieval
-    return {
-      id: receiptId,
-      fileName: 'comprovante-pagamento.pdf',
-      fileData: 'base64_encoded_file_data_here', // base64 encoded file
-      mimeType: 'application/pdf',
-    };
-  }
-
-  // Add payment history entry
-  async addPaymentHistory(paymentId: number, description: string, notes?: string) {
-    // In real implementation, use a proper payment_history table
-    const historyEntry = {
-      paymentId,
-      description,
-      notes,
-      timestamp: new Date(),
-    };
-
-    console.log(`Payment History: ${description} - Payment #${paymentId}`);
-    return historyEntry;
-  }
-
-  // Get payment history
-  async getPaymentHistory(paymentId: number) {
-    // Simulate payment history retrieval
-    return [
-      {
-        description: 'Pagamento criado',
-        timestamp: new Date(Date.now() - 86400000), // 1 day ago
-        notes: 'Pagamento gerado automaticamente',
-      },
-      {
-        description: 'Status atualizado',
-        timestamp: new Date(),
-        notes: 'Aguardando processamento',
-      }
-    ];
-  }
-
-  // Get payment schedules by user
-  async getPaymentSchedulesByUser(userId: number) {
-    // Get all imports for user
-    const userImports = await this.getImportsByUser(userId);
-    const importIds = userImports.map(imp => imp.id);
-
-    if (importIds.length === 0) return [];
-
-    // Get payment schedules for user's imports
-    const result = await db
-      .select()
-      .from(paymentSchedules)
-      .where(inArray(paymentSchedules.importId, importIds))
-      .orderBy(paymentSchedules.dueDate);
-
-    return result;
-  }
-
-    // Get all payment schedules
-  async getAllPaymentSchedules() {
-    const result = await db
-      .select()
-      .from(paymentSchedules)
-      .orderBy(paymentSchedules.dueDate);
-
-    return result;
-  }
-
   // Get all suppliers for a user (for admin or user's own suppliers)
   async getSuppliers(userId?: number) {
     if (userId) {
@@ -1659,7 +1429,7 @@ export class DatabaseStorage {
       .from(users)
       .where(eq(users.role, 'importer'))
       .orderBy(desc(users.createdAt));
-
+    
     return result;
   }
 
@@ -1670,7 +1440,7 @@ export class DatabaseStorage {
       .from(users)
       .where(and(eq(users.id, importerId), eq(users.role, 'importer')))
       .limit(1);
-
+    
     if (!result[0]) return null;
 
     // Get additional statistics
