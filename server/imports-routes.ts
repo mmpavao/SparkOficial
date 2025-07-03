@@ -21,21 +21,21 @@ import { storage } from './storage';
 const requireAuth = async (req: any, res: any, next: any) => {
   const sessionId = req.sessionID;
   const userId = req.session?.userId;
-  
+
   console.log(`Auth check - Session ID: ${sessionId} User ID: ${userId}`);
-  
+
   if (!userId) {
     console.log('Authentication failed - no session or user ID');
     return res.status(401).json({ message: 'Não autorizado' });
   }
-  
+
   try {
     const user = await storage.getUser(userId);
     if (!user) {
       console.log('Authentication failed - user not found');
       return res.status(401).json({ message: 'Não autorizado' });
     }
-    
+
     console.log(`Authentication successful for user: ${userId} Role: ${user.role}`);
     req.user = user;
     next();
@@ -47,21 +47,21 @@ const requireAuth = async (req: any, res: any, next: any) => {
 
 const requireAdminOrFinanceira = async (req: any, res: any, next: any) => {
   const userId = req.session?.userId;
-  
+
   if (!userId) {
     return res.status(401).json({ message: 'Não autorizado' });
   }
-  
+
   try {
     const user = await storage.getUser(userId);
     if (!user) {
       return res.status(401).json({ message: 'Não autorizado' });
     }
-    
+
     if (!['admin', 'financeira', 'super_admin'].includes(user.role || '')) {
       return res.status(403).json({ message: 'Acesso negado' });
     }
-    
+
     req.user = user;
     next();
   } catch (error) {
@@ -140,13 +140,13 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       queryParams.push(status);
       paramIndex++;
     }
-    
+
     if (cargoType && cargoType !== 'all') {
       whereClauses.push(`i.cargo_type = $${paramIndex}`);
       queryParams.push(cargoType);
       paramIndex++;
     }
-    
+
     if (supplierId && supplierId !== 'all') {
       whereClauses.push(`i.supplier_id = $${paramIndex}`);
       queryParams.push(Number(supplierId));
@@ -190,7 +190,7 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
         return clause.replace(/\$\d+/, `$${countParamIndex++}`);
       });
       countQuery += ' WHERE ' + countWhereClauses.join(' AND ');
-      
+
       // Add parameters for count query (excluding LIMIT/OFFSET)
       for (let i = 0; i < queryParams.length - 2; i++) {
         countParams.push(queryParams[i]);
@@ -246,7 +246,7 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
 importRoutes.get('/imports/metrics', requireAuth, async (req, res) => {
   try {
     const currentUser = req.session.user;
-    
+
     // Base condition for role-based access
     const baseCondition = currentUser?.role === 'importer' 
       ? eq(imports.userId, currentUser.id) 
@@ -281,7 +281,7 @@ importRoutes.get('/imports/metrics', requireAuth, async (req, res) => {
       .select({ total: sql`COALESCE(SUM(${imports.totalValue}::numeric), 0)` })
       .from(imports)
       .where(baseCondition);
-    
+
     const totalValue = totalValueResult[0]?.total || 0;
 
     // Get status distribution
@@ -345,90 +345,131 @@ importRoutes.get('/imports/metrics', requireAuth, async (req, res) => {
 // POST /api/imports - Create new import
 importRoutes.post('/imports', requireAuth, async (req, res) => {
   try {
-    const currentUser = req.session.user;
-    if (!currentUser) {
+    const userId = req.session?.userId;
+    if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    console.log(`🔍 Import creation for user ${currentUser.id}`);
+    console.log(`🔍 Import creation for user ${userId}`);
 
     // Get user's approved credit applications
-    const userCreditApps = await storage.getCreditApplicationsByUser(currentUser.id);
-    console.log(`📊 User ${currentUser.id} credit applications:`, userCreditApps.map(app => ({
-      id: app.id,
-      status: app.status,
-      financialStatus: app.financialStatus,
-      adminStatus: app.adminStatus
-    })));
+    try {
+      console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+      const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+      console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
 
-    const approvedCredits = userCreditApps.filter(app => 
-      app.status === 'approved' || 
-      (app.status === 'admin_finalized' && app.financialStatus === 'approved')
-    );
+      console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
+        id: app.id,
+        status: app.status,
+        financialStatus: app.financialStatus,
+        adminStatus: app.adminStatus
+      })));
 
-    console.log(`✅ Approved credits found: ${approvedCredits.length}`);
+      // Updated logic to match working dashboard logic
+      const approvedCredits = userCreditApps.filter(app => {
+        const isApproved = app.financialStatus === 'approved' && 
+                          (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
+        console.log(`App ${app.id}: financialStatus=${app.financialStatus}, adminStatus=${app.adminStatus}, status=${app.status}, isApproved=${isApproved}`);
+        return isApproved;
+      });
 
-    if (!approvedCredits.length) {
-      console.log(`❌ No approved credit found for user ${currentUser.id}`);
+      console.log(`✅ Approved credits found: ${approvedCredits.length}`);
+
+      if (!approvedCredits.length) {
+        console.log(`❌ No approved credit found for user ${userId}`);
+        return res.status(400).json({ 
+          message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
+        });
+      }
+    } catch (error) {
+      console.error(`❌ Error getting credit applications:`, error);
+      throw error;
+    }
+
+// Get user's approved credit applications  
+    const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+    const approvedCredits = userCreditApps.filter(app => {
+      return app.financialStatus === 'approved' && 
+             (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
+    });
+
+    const creditApp = approvedCredits[0];
+
+    // Calculate total value from request data
+    let totalValue = 0;
+    if (req.body.products && Array.isArray(req.body.products)) {
+      totalValue = req.body.products.reduce((sum: number, product: any) => {
+        const quantity = parseFloat(product.quantity) || 0;
+        const unitPrice = parseFloat(product.unitPrice) || 0;
+        return sum + (quantity * unitPrice);
+      }, 0);
+    }
+
+    console.log('Calculated total value:', totalValue);
+
+    // Ensure we have a valid total value
+    if (!totalValue || totalValue <= 0) {
       return res.status(400).json({ 
-        message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
+        message: "Valor total da importação deve ser maior que zero" 
       });
     }
 
-    // Validate input data
-    const validatedData = insertImportSchema.parse({
-      ...req.body,
-      userId: currentUser.id
-    });
-
-    // Create import record
-    const [newImport] = await db.insert(imports).values({
-      userId: currentUser.id,
-      supplierId: validatedData.supplierId,
-      creditApplicationId: validatedData.creditApplicationId,
-      importName: validatedData.importName,
-      importCode: validatedData.importCode,
-      cargoType: validatedData.cargoType,
-      origin: validatedData.origin,
-      destination: validatedData.destination,
-      transportMethod: validatedData.transportMethod,
-      totalValue: validatedData.totalValue,
-      currency: validatedData.currency || 'USD',
-      incoterms: validatedData.incoterms,
-      status: 'planejamento',
-      containerNumber: validatedData.containerNumber,
-      sealNumber: validatedData.sealNumber,
-      estimatedArrival: validatedData.estimatedArrival
-    }).returning();
-
-    // Create products for LCL cargo
-    if (validatedData.cargoType === 'LCL' && req.body.products && req.body.products.length > 0) {
-      const productInserts = req.body.products.map((product: any) => ({
-        importId: newImport.id,
-        productName: product.productName,
-        description: product.description,
-        quantity: product.quantity,
-        unitPrice: product.unitPrice,
-        totalValue: product.totalValue,
-        hsCode: product.hsCode,
-        weight: product.weight,
-        dimensions: product.dimensions
-      }));
-
-      await db.insert(importProducts).values(productInserts);
+    // Check available credit
+    const creditData = await storage.calculateAvailableCredit(creditApp.id);
+    if (totalValue > creditData.available) {
+      return res.status(400).json({ 
+        message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+      });
     }
 
-    // Create initial timeline entry
-    await db.insert(importTimeline).values({
-      importId: newImport.id,
-      status: 'planejamento',
-      changedBy: currentUser.id,
-      notes: 'Importação criada',
-      automaticChange: false
-    });
+    // Get admin fee for user
+    const adminFee = await storage.getAdminFeeForUser(userId);
+    const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 10; // Default 10%
+    const feeAmount = (totalValue * feeRate) / 100;
+    const totalWithFees = totalValue + feeAmount;
 
-    res.status(201).json(newImport);
+    // Calculate down payment (10% of total with fees)
+    const downPaymentAmount = (totalWithFees * 10) / 100;
 
+    // Prepare import data using existing imports table schema
+    const importData = {
+      userId,
+      creditApplicationId: creditApp.id,
+      supplierId: req.body.products?.[0]?.supplierId || null,
+      importName: req.body.importName || 'Nova Importação',
+      cargoType: req.body.cargoType || "FCL",
+      containerNumber: req.body.containerNumber || null,
+      sealNumber: req.body.sealNumber || null,
+      products: req.body.products || [],
+      totalValue: totalValue.toString(),
+      currency: req.body.currency || "USD",
+      incoterms: req.body.incoterms || "FOB",
+      shippingMethod: req.body.shippingMethod || "sea",
+      containerType: req.body.containerType || null,
+      estimatedDelivery: req.body.estimatedDelivery ? new Date(req.body.estimatedDelivery) : null,
+      status: "planejamento",
+      currentStage: "estimativa",
+      // Credit management fields
+      creditUsed: totalValue.toString(),
+      adminFeeRate: feeRate.toString(),
+      adminFeeAmount: feeAmount.toString(),
+      totalWithFees: totalWithFees.toString(),
+      downPaymentRequired: downPaymentAmount.toString(),
+      paymentStatus: "pending",
+      paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
+      // Additional fields from form
+      portOfLoading: req.body.portOfLoading,
+      portOfDischarge: req.body.portOfDischarge,
+      finalDestination: req.body.finalDestination,
+      notes: req.body.notes
+    };
+
+    const importRecord = await storage.createImport(importData);
+// Reserve credit for this import
+    await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+
+    console.log(`✅ Import created successfully with ID: ${importRecord.id}`);
+    res.status(201).json(importRecord);
   } catch (error) {
     console.error('Error creating import:', error);
     res.status(400).json({ error: 'Failed to create import' });
@@ -563,7 +604,7 @@ importRoutes.put('/imports/:id', requireAuth, async (req, res) => {
     if (req.body.products) {
       // Delete existing products
       await db.delete(importProducts).where(eq(importProducts.importId, importId));
-      
+
       // Insert new products
       if (req.body.products.length > 0) {
         const productInserts = req.body.products.map((product: any) => ({
@@ -737,12 +778,12 @@ importRoutes.put('/imports/:id/status', requireAuth, async (req, res) => {
 importRoutes.get('/admin/imports', requireAdminOrFinanceira, async (req, res) => {
   try {
     console.log(`Admin fetching all imports - User: ${req.session.userId}, Role: ${req.user?.role}`);
-    
+
     // Use the existing storage method to get all imports with user data
     const importsData = await storage.getAllImports();
-    
+
     console.log(`Found ${importsData.length} imports for admin view`);
-    
+
     // Get user data for each import to add company names
     const allUsers = await storage.getAllUsers();
     const enrichedImports = importsData.map(importItem => {
