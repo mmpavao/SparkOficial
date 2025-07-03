@@ -1,370 +1,427 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency, formatDate } from "@/lib/formatters";
+import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, 
+  DollarSign, 
+  Calendar, 
   Save,
-  DollarSign,
-  Calendar,
-  Clock,
-  AlertCircle,
-  Edit
+  Plus,
+  Minus,
+  AlertCircle
 } from "lucide-react";
+import { useLocation } from "wouter";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
-const editPaymentSchema = z.object({
-  dueDate: z.string().min(1, "Data de vencimento é obrigatória"),
-  amount: z.string().min(1, "Valor é obrigatório").refine((val) => {
-    const num = parseFloat(val.replace(/[^\d.-]/g, ''));
-    return !isNaN(num) && num > 0;
-  }, "Valor deve ser um número válido maior que zero"),
-  notes: z.string().optional(),
-});
+interface PaymentSchedule {
+  id: number;
+  importId: number;
+  paymentType: string;
+  dueDate: string;
+  amount: string;
+  currency: string;
+  status: string;
+  installmentNumber?: number;
+  totalInstallments?: number;
+  paymentNotes?: string;
+  importData?: {
+    importName: string;
+    supplierId: number;
+  };
+}
 
-type EditPaymentFormData = z.infer<typeof editPaymentSchema>;
+interface PaymentEditPageProps {
+  params: { id: string };
+}
 
-export default function PaymentEditPage() {
-  const [, params] = useRoute("/payments/edit/:id");
+export default function PaymentEditPage({ params }: PaymentEditPageProps) {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const paymentId = params?.id ? parseInt(params.id) : null;
+  const paymentId = parseInt(params.id);
 
-  const form = useForm<EditPaymentFormData>({
-    resolver: zodResolver(editPaymentSchema),
-    defaultValues: {
-      dueDate: "",
-      amount: "",
-      notes: "",
-    },
+  const [editData, setEditData] = useState({
+    amount: "",
+    dueDate: "",
+    notes: "",
+    splitInstallments: 1
   });
 
-  const { data: payment, isLoading, error } = useQuery({
-    queryKey: ['/api/payments', paymentId],
-    queryFn: () => apiRequest(`/api/payments/${paymentId}`, 'GET'),
-    enabled: !!paymentId && !!user
+  // Buscar detalhes do pagamento
+  const { data: payment, isLoading, error } = useQuery<PaymentSchedule>({
+    queryKey: ['/api/payment-schedules', paymentId],
+    enabled: !!paymentId,
   });
 
-  // Preencher o formulário quando os dados do pagamento chegarem
+  // Preencher dados quando carregados
   useEffect(() => {
     if (payment) {
-      form.reset({
-        dueDate: payment.dueDate ? new Date(payment.dueDate).toISOString().split('T')[0] : "",
-        amount: payment.amount.toString(),
-        notes: payment.notes || "",
+      setEditData({
+        amount: payment.amount,
+        dueDate: payment.dueDate.split('T')[0], // Formato YYYY-MM-DD
+        notes: payment.paymentNotes || "",
+        splitInstallments: 1
       });
     }
-  }, [payment, form]);
+  }, [payment]);
 
+  // Mutação para atualizar pagamento
   const updatePaymentMutation = useMutation({
-    mutationFn: (data: EditPaymentFormData) => {
-      const payload = {
-        dueDate: data.dueDate,
-        amount: parseFloat(data.amount.replace(/[^\d.-]/g, '')),
-        notes: data.notes,
-      };
-      return apiRequest(`/api/payments/${paymentId}`, 'PUT', payload);
+    mutationFn: async (data: any) => {
+      return apiRequest("PUT", `/api/payment-schedules/${paymentId}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/payments', paymentId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/payments/schedule'] });
       toast({
-        title: "Pagamento atualizado com sucesso",
-        description: "As alterações foram salvas.",
+        title: "Pagamento Atualizado",
+        description: "As informações do pagamento foram atualizadas com sucesso!",
+        variant: "default",
       });
-      setLocation(`/payments/details/${paymentId}`);
+      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
+      setLocation(`/payments/${paymentId}`);
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
-        title: "Erro ao atualizar pagamento",
-        description: error.message || "Não foi possível atualizar o pagamento.",
+        title: "Erro",
+        description: "Erro ao atualizar pagamento. Tente novamente.",
         variant: "destructive",
       });
     }
   });
 
-  const onSubmit = (data: EditPaymentFormData) => {
-    updatePaymentMutation.mutate(data);
+  // Mutação para dividir em parcelas
+  const splitPaymentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", `/api/payment-schedules/${paymentId}/split`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pagamento Dividido",
+        description: "O pagamento foi dividido em parcelas com sucesso!",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
+      setLocation('/payments');
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao dividir pagamento. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSaveChanges = () => {
+    if (!editData.amount || !editData.dueDate) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha valor e data de vencimento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updateData = {
+      amount: editData.amount,
+      dueDate: editData.dueDate,
+      notes: editData.notes
+    };
+
+    updatePaymentMutation.mutate(updateData);
+  };
+
+  const handleSplitPayment = () => {
+    if (editData.splitInstallments < 2 || editData.splitInstallments > 12) {
+      toast({
+        title: "Número inválido",
+        description: "Número de parcelas deve ser entre 2 e 12.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const splitData = {
+      installments: editData.splitInstallments,
+      startDate: editData.dueDate
+    };
+
+    splitPaymentMutation.mutate(splitData);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { label: "Pendente", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+      paid: { label: "Pago", className: "bg-green-100 text-green-800 border-green-300" },
+      overdue: { label: "Vencido", className: "bg-red-100 text-red-800 border-red-300" },
+      processing: { label: "Processando", className: "bg-blue-100 text-blue-800 border-blue-300" }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <DollarSign className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Carregando dados do pagamento...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !payment) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <p className="text-gray-600">Pagamento não encontrado</p>
-        <Button onClick={() => setLocation('/imports')} className="mt-4">
-          Voltar para Importações
-        </Button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-600" />
+          <p className="text-gray-600">Erro ao carregar pagamento</p>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/payments')}
+            className="mt-4"
+          >
+            Voltar aos Pagamentos
+          </Button>
+        </div>
       </div>
     );
   }
 
-  if (payment.status !== 'pending') {
+  // Não permitir edição de pagamentos já processados
+  if (payment.status === 'paid' || payment.status === 'processing') {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-        <p className="text-gray-600">Apenas pagamentos pendentes podem ser editados</p>
-        <Button onClick={() => setLocation(`/payments/details/${paymentId}`)} className="mt-4">
-          Ver Detalhes
-        </Button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 mx-auto mb-4 text-orange-600" />
+          <p className="text-gray-600">Este pagamento não pode ser editado</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Pagamentos com status "{payment.status === 'paid' ? 'Pago' : 'Processando'}" não podem ser modificados
+          </p>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation(`/payments/${paymentId}`)}
+            className="mt-4"
+          >
+            Ver Detalhes
+          </Button>
+        </div>
       </div>
     );
   }
-
-  const getPaymentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'down_payment': return `Down Payment (30%)`;
-      case 'installment': return `Parcela ${payment.installmentNumber}/${payment.totalInstallments}`;
-      default: return type;
-    }
-  };
-
-  const formatAmountInput = (value: string) => {
-    // Remove tudo exceto números e pontos/vírgulas
-    const cleanValue = value.replace(/[^\d.,]/g, '');
-    // Converte vírgula para ponto
-    const normalizedValue = cleanValue.replace(',', '.');
-    // Formata como moeda sem símbolo
-    const numValue = parseFloat(normalizedValue);
-    if (!isNaN(numValue)) {
-      return numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    return cleanValue;
-  };
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={() => setLocation(`/payments/details/${paymentId}`)}
+            onClick={() => setLocation(`/payments/${paymentId}`)}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Editar Pagamento
+              Editar Pagamento #{paymentId}
             </h1>
             <p className="text-gray-600">
-              {getPaymentTypeLabel(payment.paymentType)} • ID: {payment.id}
+              {payment.importData?.importName || `Importação #${payment.importId}`}
             </p>
           </div>
         </div>
-        <Badge className="bg-yellow-100 text-yellow-700 border-0">
-          <Clock className="h-4 w-4 mr-1" />
-          Pendente
-        </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulário de Edição */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Edit className="h-5 w-5 text-blue-600" />
-                Editar Dados do Pagamento
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Data de Vencimento */}
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data de Vencimento</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Valor */}
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor (USD)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-                              US$
-                            </span>
-                            <Input
-                              {...field}
-                              className="pl-12"
-                              placeholder="0,00"
-                              onChange={(e) => {
-                                const formattedValue = formatAmountInput(e.target.value);
-                                field.onChange(formattedValue);
-                              }}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Observações */}
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Adicione observações sobre o pagamento..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Botões */}
-                  <div className="flex gap-4 pt-6">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setLocation(`/payments/details/${paymentId}`)}
-                      className="flex-1"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updatePaymentMutation.isPending}
-                      className="flex-1"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {updatePaymentMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar - Informações Atuais */}
-        <div className="space-y-6">
-          {/* Dados Atuais */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-blue-600" />
-                Dados Atuais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm font-medium text-gray-500 mb-1">Valor Atual</div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {formatCurrency(payment.amount).replace('R$', 'US$')}
-                </div>
+      {/* Status e Valor Atual */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-8 h-8 text-blue-600" />
               </div>
-              
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Tipo:</span>
-                  <span className="font-medium">{getPaymentTypeLabel(payment.paymentType)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Vencimento Atual:</span>
-                  <span className="font-medium">{formatDate(payment.dueDate)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Status:</span>
-                  <Badge className="bg-yellow-100 text-yellow-700 border-0 px-2 py-1">
-                    Pendente
-                  </Badge>
-                </div>
+              <div>
+                <p className="text-sm text-gray-600">Valor Atual</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {formatCurrency(payment.amount).replace('R$', `${payment.currency}$`)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {payment.paymentType === 'installment' && payment.installmentNumber && payment.totalInstallments
+                    ? `Parcela ${payment.installmentNumber} de ${payment.totalInstallments}`
+                    : payment.paymentType === 'down_payment' 
+                      ? 'Pagamento à vista'
+                      : 'Pagamento único'
+                  }
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="text-right">
+              {getStatusBadge(payment.status)}
+              <p className="text-sm text-gray-600 mt-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Vencimento: {formatDate(payment.dueDate)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Informações do Pagamento */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-gray-600" />
-                Informações
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Criado em:</span>
-                  <span className="font-medium">{formatDate(payment.createdAt)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">ID do Pagamento:</span>
-                  <span className="font-medium">#{payment.id}</span>
-                </div>
-                {payment.importId && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Importação:</span>
-                    <span className="font-medium">#{payment.importId}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Edição de Dados Básicos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Save className="w-5 h-5" />
+              Editar Informações
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="edit-amount">Valor (USD)</Label>
+              <Input
+                id="edit-amount"
+                type="number"
+                step="0.01"
+                value={editData.amount}
+                onChange={(e) => setEditData(prev => ({
+                  ...prev,
+                  amount: e.target.value
+                }))}
+              />
+            </div>
 
-          {/* Aviso */}
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium text-amber-800 mb-1">Atenção</p>
-                  <p className="text-amber-700">
-                    Apenas pagamentos pendentes podem ser editados. Após o pagamento ser processado, 
-                    não será mais possível fazer alterações.
-                  </p>
-                </div>
+            <div>
+              <Label htmlFor="edit-date">Data de Vencimento</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editData.dueDate}
+                onChange={(e) => setEditData(prev => ({
+                  ...prev,
+                  dueDate: e.target.value
+                }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-notes">Observações</Label>
+              <Textarea
+                id="edit-notes"
+                placeholder="Observações sobre o pagamento..."
+                value={editData.notes}
+                onChange={(e) => setEditData(prev => ({
+                  ...prev,
+                  notes: e.target.value
+                }))}
+              />
+            </div>
+
+            <Button 
+              onClick={handleSaveChanges}
+              disabled={updatePaymentMutation.isPending}
+              className="w-full"
+            >
+              {updatePaymentMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Dividir em Parcelas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Dividir em Parcelas
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              Transforme este pagamento único em múltiplas parcelas mensais
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="split-installments">Número de Parcelas</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditData(prev => ({
+                    ...prev,
+                    splitInstallments: Math.max(2, prev.splitInstallments - 1)
+                  }))}
+                  disabled={editData.splitInstallments <= 2}
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+                <Input
+                  id="split-installments"
+                  type="number"
+                  min="2"
+                  max="12"
+                  value={editData.splitInstallments}
+                  onChange={(e) => setEditData(prev => ({
+                    ...prev,
+                    splitInstallments: Math.min(12, Math.max(2, parseInt(e.target.value) || 2))
+                  }))}
+                  className="text-center"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditData(prev => ({
+                    ...prev,
+                    splitInstallments: Math.min(12, prev.splitInstallments + 1)
+                  }))}
+                  disabled={editData.splitInstallments >= 12}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-700 mb-2">Prévia das Parcelas:</p>
+              <div className="space-y-1 text-sm text-gray-600">
+                {Array.from({ length: editData.splitInstallments }, (_, index) => {
+                  const installmentAmount = parseFloat(editData.amount) / editData.splitInstallments;
+                  const dueDate = new Date(editData.dueDate);
+                  dueDate.setMonth(dueDate.getMonth() + index);
+                  
+                  return (
+                    <div key={index} className="flex justify-between">
+                      <span>Parcela {index + 1}:</span>
+                      <span>
+                        {formatCurrency(installmentAmount.toFixed(2)).replace('R$', `${payment.currency}$`)} - {formatDate(dueDate.toISOString())}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleSplitPayment}
+              disabled={splitPaymentMutation.isPending}
+              className="w-full"
+              variant="outline"
+            >
+              {splitPaymentMutation.isPending ? "Dividindo..." : `Dividir em ${editData.splitInstallments} Parcelas`}
+            </Button>
+
+            <div className="text-xs text-gray-500">
+              <p>⚠️ Esta ação criará {editData.splitInstallments} novos pagamentos mensais e removerá o pagamento atual.</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

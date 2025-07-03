@@ -1531,7 +1531,19 @@ export class DatabaseStorage {
   // Get all payment schedules (admin/financeira)
   async getAllPaymentSchedules() {
     return await db
-      .select()
+      .select({
+        id: paymentSchedules.id,
+        importId: paymentSchedules.importId,
+        paymentType: paymentSchedules.paymentType,
+        dueDate: paymentSchedules.dueDate,
+        amount: paymentSchedules.amount,
+        currency: paymentSchedules.currency,
+        status: paymentSchedules.status,
+        installmentNumber: paymentSchedules.installmentNumber,
+        totalInstallments: paymentSchedules.totalInstallments,
+        createdAt: paymentSchedules.createdAt,
+        updatedAt: paymentSchedules.updatedAt
+      })
       .from(paymentSchedules)
       .orderBy(desc(paymentSchedules.dueDate));
   }
@@ -1539,7 +1551,19 @@ export class DatabaseStorage {
   // Get payment schedules by user
   async getPaymentSchedulesByUser(userId: number) {
     return await db
-      .select()
+      .select({
+        id: paymentSchedules.id,
+        importId: paymentSchedules.importId,
+        paymentType: paymentSchedules.paymentType,
+        dueDate: paymentSchedules.dueDate,
+        amount: paymentSchedules.amount,
+        currency: paymentSchedules.currency,
+        status: paymentSchedules.status,
+        installmentNumber: paymentSchedules.installmentNumber,
+        totalInstallments: paymentSchedules.totalInstallments,
+        createdAt: paymentSchedules.createdAt,
+        updatedAt: paymentSchedules.updatedAt
+      })
       .from(paymentSchedules)
       .innerJoin(imports, eq(paymentSchedules.importId, imports.id))
       .where(eq(imports.userId, userId))
@@ -1562,6 +1586,30 @@ export class DatabaseStorage {
     return await db
       .delete(paymentSchedules)
       .where(eq(paymentSchedules.id, scheduleId))
+      .returning();
+  }
+
+  // Update payment schedule
+  async updatePaymentSchedule(scheduleId: number, updateData: any) {
+    return await db
+      .update(paymentSchedules)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(paymentSchedules.id, scheduleId))
+      .returning();
+  }
+
+  // Create multiple payment schedules
+  async createMultiplePaymentSchedules(schedules: any[]) {
+    return await db
+      .insert(paymentSchedules)
+      .values(schedules.map(schedule => ({
+        ...schedule,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })))
       .returning();
   }
 }

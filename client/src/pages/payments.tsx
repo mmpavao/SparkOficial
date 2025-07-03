@@ -107,18 +107,21 @@ export default function PaymentsPage() {
     }
   };
 
+  // Processar dados dos pagamentos - dados diretos do backend
+  const payments = paymentsData || [];
+
   // Filtrar pagamentos
-  const filteredPayments = paymentsData?.filter((payment: PaymentSchedule) => {
+  const filteredPayments = payments.filter((payment: PaymentSchedule) => {
     const matchesSearch = 
-      payment.id.toString().includes(searchTerm) ||
-      payment.importId.toString().includes(searchTerm) ||
-      payment.paymentType.toLowerCase().includes(searchTerm.toLowerCase());
+      payment.id?.toString().includes(searchTerm) ||
+      payment.importId?.toString().includes(searchTerm) ||
+      payment.paymentType?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
     const matchesType = typeFilter === "all" || payment.paymentType === typeFilter;
     
     return matchesSearch && matchesStatus && matchesType;
-  }) || [];
+  });
 
   // Métricas padrão
   const defaultMetrics = {
@@ -195,7 +198,7 @@ export default function PaymentsPage() {
                   {metrics.pendingPayments}
                 </p>
                 <p className="text-sm text-yellow-600 font-medium">
-                  {formatCurrency(metrics.pendingAmount).replace('R$', 'US$')}
+                  {formatCurrency(metrics.pendingAmount || "0").replace('R$', 'US$')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -214,7 +217,7 @@ export default function PaymentsPage() {
                   {metrics.paidPayments}
                 </p>
                 <p className="text-sm text-green-600 font-medium">
-                  {formatCurrency(metrics.paidAmount).replace('R$', 'US$')}
+                  {formatCurrency(metrics.paidAmount || "0").replace('R$', 'US$')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -233,7 +236,7 @@ export default function PaymentsPage() {
                   {metrics.overduePayments}
                 </p>
                 <p className="text-sm text-red-600 font-medium">
-                  {formatCurrency(metrics.overdueAmount).replace('R$', 'US$')}
+                  {formatCurrency(metrics.overdueAmount || "0").replace('R$', 'US$')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">

@@ -1,215 +1,201 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency, formatDate } from "@/lib/formatters";
 import { 
   ArrowLeft, 
-  Upload,
-  DollarSign,
-  Calendar,
-  FileText,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Building,
+  DollarSign, 
+  Calendar, 
+  Upload, 
   CreditCard,
-  Smartphone,
+  Building2,
   Globe,
   Shield,
-  Calculator,
-  ExternalLink,
-  TrendingUp
+  TrendingUp,
+  AlertCircle,
+  Check
 } from "lucide-react";
+import { useLocation } from "wouter";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
-const externalPaymentSchema = z.object({
-  paymentMethod: z.string().min(1, "Selecione o método de pagamento"),
-  receiptFile: z.any().optional(),
-  notes: z.string().optional(),
-});
+interface PaymentSchedule {
+  id: number;
+  importId: number;
+  paymentType: string;
+  dueDate: string;
+  amount: string;
+  currency: string;
+  status: string;
+  installmentNumber?: number;
+  totalInstallments?: number;
+  importData?: {
+    importName: string;
+    supplierId: number;
+  };
+}
 
-const paycomexPaymentSchema = z.object({
-  exchangeRate: z.number().min(0.1, "Taxa de câmbio inválida"),
-  brazilianAmount: z.number().min(1, "Valor em BRL inválido"),
-  paymentMethod: z.string().min(1, "Selecione o método de pagamento"),
-  notes: z.string().optional(),
-});
+interface PaymentPayPageProps {
+  params: { id: string };
+}
 
-type ExternalPaymentData = z.infer<typeof externalPaymentSchema>;
-type PaycomexPaymentData = z.infer<typeof paycomexPaymentSchema>;
-
-export default function PaymentPayPage() {
-  const [, params] = useRoute("/payments/pay/:id");
+export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const paymentId = params?.id ? parseInt(params.id) : null;
-  
-  const [activeTab, setActiveTab] = useState("external");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [currentExchangeRate, setCurrentExchangeRate] = useState(5.45); // Taxa padrão USD -> BRL
+  const paymentId = parseInt(params.id);
 
-  const externalForm = useForm<ExternalPaymentData>({
-    resolver: zodResolver(externalPaymentSchema),
-    defaultValues: {
-      paymentMethod: "",
-      notes: "",
-    },
+  // Estados para pagamento externo
+  const [externalPaymentData, setExternalPaymentData] = useState({
+    amount: "",
+    paymentDate: "",
+    notes: "",
+    receipts: [] as File[]
   });
 
-  const paycomexForm = useForm<PaycomexPaymentData>({
-    resolver: zodResolver(paycomexPaymentSchema),
-    defaultValues: {
-      exchangeRate: currentExchangeRate,
-      brazilianAmount: 0,
-      paymentMethod: "",
-      notes: "",
-    },
+  // Estados para PayComex
+  const [paycomexMethod, setPaycomexMethod] = useState<"card" | "pix">("card");
+  const [cardData, setCardData] = useState({
+    number: "",
+    expiry: "",
+    cvv: "",
+    holderName: ""
   });
 
-  // Buscar dados do pagamento
-  const { data: payment, isLoading, error } = useQuery({
+  // Taxa de câmbio simulada (USD para BRL)
+  const [exchangeRate] = useState(5.65);
+  const [paycomexFee] = useState(0.025); // 2.5% fee
+
+  // Buscar detalhes do pagamento
+  const { data: payment, isLoading, error } = useQuery<PaymentSchedule>({
     queryKey: ['/api/payment-schedules', paymentId],
-    queryFn: () => apiRequest(`/api/payment-schedules/${paymentId}`, 'GET'),
-    enabled: !!paymentId && !!user
-  });
-
-  // Buscar dados do fornecedor
-  const { data: supplierData } = useQuery({
-    queryKey: ['/api/payment-schedules', paymentId, 'supplier'],
-    queryFn: () => apiRequest(`/api/payment-schedules/${paymentId}/supplier`, 'GET'),
-    enabled: !!paymentId && !!payment
+    enabled: !!paymentId,
   });
 
   // Mutação para pagamento externo
-  const processExternalPaymentMutation = useMutation({
-    mutationFn: async (data: ExternalPaymentData) => {
-      const formData = new FormData();
-      formData.append('paymentType', 'external');
-      formData.append('paymentMethod', data.paymentMethod);
-      if (data.notes) formData.append('notes', data.notes);
-      if (uploadedFile) formData.append('receipt', uploadedFile);
-
-      const response = await fetch(`/api/payment-schedules/${paymentId}/pay`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao processar pagamento externo');
-      }
-
-      return response.json();
+  const externalPaymentMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      return apiRequest("POST", `/api/payment-schedules/${paymentId}/external-payment`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
       toast({
-        title: "Pagamento externo processado",
-        description: "O pagamento foi registrado com sucesso.",
+        title: "Pagamento Registrado",
+        description: "Pagamento externo registrado com sucesso!",
+        variant: "default",
       });
-      setLocation(`/payments/details/${paymentId}`);
+      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
+      setLocation(`/payments/${paymentId}`);
     },
-    onError: (error) => {
+    onError: () => {
       toast({
-        title: "Erro no pagamento",
-        description: error.message,
+        title: "Erro",
+        description: "Erro ao registrar pagamento. Tente novamente.",
         variant: "destructive",
       });
-    },
+    }
   });
 
-  // Mutação para PayComex
-  const processPaycomexPaymentMutation = useMutation({
-    mutationFn: async (data: PaycomexPaymentData) => {
-      const response = await apiRequest(`/api/payment-schedules/${paymentId}/paycomex`, 'POST', {
-        exchangeRate: data.exchangeRate,
-        brazilianAmount: data.brazilianAmount,
-        paymentMethod: data.paymentMethod,
-        notes: data.notes,
-      });
-
-      return response;
+  // Mutação para pagamento PayComex
+  const paycomexPaymentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", `/api/payment-schedules/${paymentId}/paycomex-payment`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
       toast({
-        title: "PayComex iniciado",
-        description: "O processamento PayComex foi iniciado com sucesso.",
+        title: "Pagamento Processado",
+        description: "Pagamento via PayComex processado com sucesso!",
+        variant: "default",
       });
-      setLocation(`/payments/details/${paymentId}`);
+      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
+      setLocation(`/payments/${paymentId}`);
     },
-    onError: (error) => {
+    onError: () => {
       toast({
-        title: "Erro no PayComex",
-        description: "Erro ao processar pagamento via PayComex",
+        title: "Erro",
+        description: "Erro ao processar pagamento. Tente novamente.",
         variant: "destructive",
       });
-    },
+    }
   });
 
-  // Função para upload de arquivo
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB
+  const handleExternalPayment = () => {
+    if (!externalPaymentData.amount || !externalPaymentData.paymentDate) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha valor e data do pagamento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('amount', externalPaymentData.amount);
+    formData.append('paymentDate', externalPaymentData.paymentDate);
+    formData.append('notes', externalPaymentData.notes);
+    
+    externalPaymentData.receipts.forEach((file, index) => {
+      formData.append(`receipt_${index}`, file);
+    });
+
+    externalPaymentMutation.mutate(formData);
+  };
+
+  const handlePaycomexPayment = () => {
+    if (paycomexMethod === "card") {
+      if (!cardData.number || !cardData.expiry || !cardData.cvv || !cardData.holderName) {
         toast({
-          title: "Arquivo muito grande",
-          description: "O arquivo deve ter no máximo 10MB.",
+          title: "Dados incompletos",
+          description: "Preencha todos os dados do cartão.",
           variant: "destructive",
         });
         return;
       }
+    }
 
-      setUploadedFile(file);
-      
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => setPreviewUrl(e.target?.result as string);
-        reader.readAsDataURL(file);
-      } else {
-        setPreviewUrl(null);
-      }
+    const paymentData = {
+      method: paycomexMethod,
+      cardData: paycomexMethod === "card" ? cardData : undefined,
+      exchangeRate,
+      feePercentage: paycomexFee
+    };
+
+    paycomexPaymentMutation.mutate(paymentData);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setExternalPaymentData(prev => ({
+        ...prev,
+        receipts: [...prev.receipts, ...newFiles]
+      }));
     }
   };
 
-  // Função para calcular valor em BRL
-  const calculateBrazilianAmount = (usdAmount: string, rate: number) => {
-    const usd = parseFloat(usdAmount.replace(/[^\d.]/g, ''));
-    return usd * rate;
+  const removeFile = (index: number) => {
+    setExternalPaymentData(prev => ({
+      ...prev,
+      receipts: prev.receipts.filter((_, i) => i !== index)
+    }));
   };
 
-  // Handlers dos formulários
-  const onExternalSubmit = (data: ExternalPaymentData) => {
-    processExternalPaymentMutation.mutate(data);
-  };
-
-  const onPaycomexSubmit = (data: PaycomexPaymentData) => {
-    processPaycomexPaymentMutation.mutate(data);
-  };
+  // Cálculos PayComex
+  const usdAmount = payment ? parseFloat(payment.amount) : 0;
+  const brlAmount = usdAmount * exchangeRate;
+  const feeAmount = brlAmount * paycomexFee;
+  const totalBrlAmount = brlAmount + feeAmount;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Clock className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <DollarSign className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">Carregando dados do pagamento...</p>
         </div>
       </div>
@@ -221,401 +207,374 @@ export default function PaymentPayPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-600" />
-          <p className="text-gray-600">Pagamento não encontrado</p>
+          <p className="text-gray-600">Erro ao carregar pagamento</p>
           <Button 
+            variant="outline" 
             onClick={() => setLocation('/payments')}
-            variant="outline"
             className="mt-4"
           >
-            Voltar para Pagamentos
+            Voltar aos Pagamentos
           </Button>
         </div>
       </div>
     );
   }
 
-  const getPaymentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'down_payment': return 'Entrada (30%)';
-      case 'installment': return `${payment.installmentNumber}ª Parcela`;
-      default: return type;
-    }
-  };
-
-  const usdAmount = parseFloat(payment.amount);
-  const calculatedBrlAmount = calculateBrazilianAmount(payment.amount, currentExchangeRate);
-
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={() => setLocation(`/payments/details/${paymentId}`)}
+            onClick={() => setLocation(`/payments/${paymentId}`)}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Efetuar Pagamento
+              Processar Pagamento #{paymentId}
             </h1>
             <p className="text-gray-600">
-              {getPaymentTypeLabel(payment.paymentType)} • Importação #{payment.importId}
+              {payment.importData?.importName || `Importação #${payment.importId}`}
             </p>
           </div>
         </div>
-        
-        <Badge className="bg-yellow-100 text-yellow-700 border-0">
-          <Clock className="h-4 w-4 mr-1" />
-          Pendente
-        </Badge>
       </div>
 
-      {/* Informações do Pagamento */}
+      {/* Resumo do Pagamento */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
-            Detalhes do Pagamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-600">Valor USD</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(payment.amount).replace('R$', 'US$')}
-              </p>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-8 h-8 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Valor a Pagar</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {formatCurrency(payment.amount).replace('R$', `${payment.currency}$`)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {payment.paymentType === 'installment' && payment.installmentNumber && payment.totalInstallments
+                    ? `Parcela ${payment.installmentNumber} de ${payment.totalInstallments}`
+                    : payment.paymentType === 'down_payment' 
+                      ? 'Pagamento à vista'
+                      : 'Pagamento único'
+                  }
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Vencimento</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {formatDate(payment.dueDate)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Status</p>
-              <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                Aguardando Pagamento
+            <div className="text-right">
+              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                Pendente
               </Badge>
+              <p className="text-sm text-gray-600 mt-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Vencimento: {formatDate(payment.dueDate)}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Opções de Pagamento */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Opções de Pagamento</CardTitle>
-          <p className="text-sm text-gray-600">
-            Escolha entre pagamento externo com comprovante ou PayComex com câmbio automático
-          </p>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="external" className="flex items-center gap-2">
-                <ExternalLink className="h-4 w-4" />
-                Pagamento Externo
-              </TabsTrigger>
-              <TabsTrigger value="paycomex" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                PayComex
-              </TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="external" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="external" className="flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            Pagamento Externo
+          </TabsTrigger>
+          <TabsTrigger value="paycomex" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            PayComex
+          </TabsTrigger>
+        </TabsList>
 
-            {/* Pagamento Externo */}
-            <TabsContent value="external" className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Globe className="h-4 w-4 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Pagamento Externo</h3>
+        {/* Pagamento Externo */}
+        <TabsContent value="external">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                Registrar Pagamento Externo
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Registre um pagamento já realizado externamente
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="external-amount">Valor Pago (USD)*</Label>
+                  <Input
+                    id="external-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={externalPaymentData.amount}
+                    onChange={(e) => setExternalPaymentData(prev => ({
+                      ...prev,
+                      amount: e.target.value
+                    }))}
+                  />
                 </div>
-                <p className="text-sm text-blue-700">
-                  Realize o pagamento através do seu banco ou plataforma de preferência e 
-                  anexe o comprovante para confirmação.
-                </p>
+                <div>
+                  <Label htmlFor="external-date">Data do Pagamento*</Label>
+                  <Input
+                    id="external-date"
+                    type="date"
+                    value={externalPaymentData.paymentDate}
+                    onChange={(e) => setExternalPaymentData(prev => ({
+                      ...prev,
+                      paymentDate: e.target.value
+                    }))}
+                  />
+                </div>
               </div>
 
-              <Form {...externalForm}>
-                <form onSubmit={externalForm.handleSubmit(onExternalSubmit)} className="space-y-6">
-                  {/* Valor e Dados do Fornecedor */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
+              <div>
+                <Label htmlFor="external-notes">Observações</Label>
+                <Textarea
+                  id="external-notes"
+                  placeholder="Informações adicionais sobre o pagamento..."
+                  value={externalPaymentData.notes}
+                  onChange={(e) => setExternalPaymentData(prev => ({
+                    ...prev,
+                    notes: e.target.value
+                  }))}
+                />
+              </div>
+
+              <div>
+                <Label>Comprovantes de Pagamento</Label>
+                <div className="mt-2">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Arraste arquivos aqui ou clique para selecionar
+                    </p>
+                    <Input
+                      type="file"
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      Selecionar Arquivos
+                    </Button>
+                  </div>
+                  
+                  {externalPaymentData.receipts.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm font-medium">Arquivos selecionados:</p>
+                      {externalPaymentData.receipts.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">{file.name}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => removeFile(index)}
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleExternalPayment}
+                disabled={externalPaymentMutation.isPending}
+                className="w-full"
+              >
+                {externalPaymentMutation.isPending ? "Registrando..." : "Registrar Pagamento"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* PayComex */}
+        <TabsContent value="paycomex">
+          <div className="space-y-6">
+            {/* PayComex Branding */}
+            <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Globe className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">PayComex</h3>
+                    <p className="text-blue-100">Plataforma global de remessas internacionais</p>
+                    <div className="flex items-center gap-4 mt-2 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Shield className="w-4 h-4" />
+                        Seguro e confiável
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="w-4 h-4" />
+                        Melhor taxa do mercado
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Calculadora de Câmbio */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo da Conversão</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Valor USD</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      ${usdAmount.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Taxa de Câmbio</p>
+                    <p className="text-xl font-bold text-blue-600">
+                      R$ {exchangeRate.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Taxa PayComex (2.5%)</p>
+                    <p className="text-xl font-bold text-orange-600">
+                      R$ {feeAmount.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                    <p className="text-sm text-green-600">Total em BRL</p>
+                    <p className="text-xl font-bold text-green-700">
+                      R$ {totalBrlAmount.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <Check className="w-5 h-5" />
+                    <span className="font-medium">
+                      Economia de R$ {(totalBrlAmount * 0.15).toFixed(2)} comparado a bancos tradicionais
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Métodos de Pagamento PayComex */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Método de Pagamento</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <Tabs value={paycomexMethod} onValueChange={(value) => setPaycomexMethod(value as "card" | "pix")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="card">Cartão de Crédito</TabsTrigger>
+                    <TabsTrigger value="pix">PIX</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="card" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <Label htmlFor="card-number">Número do Cartão</Label>
+                        <Input
+                          id="card-number"
+                          placeholder="1234 5678 9012 3456"
+                          value={cardData.number}
+                          onChange={(e) => setCardData(prev => ({
+                            ...prev,
+                            number: e.target.value
+                          }))}
+                        />
+                      </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Valor a Pagar</p>
-                        <p className="text-3xl font-bold text-green-600">
-                          {formatCurrency(payment.amount).replace('R$', 'US$')}
-                        </p>
+                        <Label htmlFor="card-expiry">Validade</Label>
+                        <Input
+                          id="card-expiry"
+                          placeholder="MM/AA"
+                          value={cardData.expiry}
+                          onChange={(e) => setCardData(prev => ({
+                            ...prev,
+                            expiry: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="card-cvv">CVV</Label>
+                        <Input
+                          id="card-cvv"
+                          placeholder="123"
+                          value={cardData.cvv}
+                          onChange={(e) => setCardData(prev => ({
+                            ...prev,
+                            cvv: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="card-holder">Nome do Portador</Label>
+                        <Input
+                          id="card-holder"
+                          placeholder="Nome como impresso no cartão"
+                          value={cardData.holderName}
+                          onChange={(e) => setCardData(prev => ({
+                            ...prev,
+                            holderName: e.target.value
+                          }))}
+                        />
                       </div>
                     </div>
+                  </TabsContent>
 
-                    {supplierData && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-gray-700">Dados do Fornecedor</p>
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <p className="font-medium">{supplierData.companyName}</p>
-                          <p className="text-sm text-gray-600">{supplierData.email}</p>
-                          <p className="text-sm text-gray-600">{supplierData.phone}</p>
-                        </div>
+                  <TabsContent value="pix" className="space-y-4">
+                    <div className="text-center p-8 bg-gray-50 rounded-lg">
+                      <div className="w-32 h-32 mx-auto mb-4 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <p className="text-gray-600">QR Code PIX</p>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Método de Pagamento */}
-                  <FormField
-                    control={externalForm.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Método de Pagamento Utilizado</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione como realizou o pagamento" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="wire_transfer">Transferência Bancária</SelectItem>
-                            <SelectItem value="swift">SWIFT</SelectItem>
-                            <SelectItem value="wise">Wise</SelectItem>
-                            <SelectItem value="remessa_online">Remessa Online</SelectItem>
-                            <SelectItem value="other_platform">Outra Plataforma</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Upload do Comprovante */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Comprovante de Pagamento
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                      <div className="text-center">
-                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                        <div className="mt-4">
-                          <label htmlFor="receipt-upload" className="cursor-pointer">
-                            <span className="mt-2 block text-sm font-medium text-gray-900">
-                              Anexar Comprovante
-                            </span>
-                            <span className="mt-1 block text-sm text-gray-500">
-                              PDF, JPG, PNG até 10MB
-                            </span>
-                          </label>
-                          <input
-                            id="receipt-upload"
-                            name="receipt-upload"
-                            type="file"
-                            className="sr-only"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={handleFileUpload}
-                          />
-                        </div>
-                      </div>
-                      
-                      {uploadedFile && (
-                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-green-800">
-                              {uploadedFile.name}
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                      <p className="text-sm text-gray-600 mb-2">
+                        Escaneie o QR Code ou use a chave PIX:
+                      </p>
+                      <p className="font-mono text-sm bg-white p-2 rounded border">
+                        paycomex.pix.{paymentId}.{Date.now()}
+                      </p>
                     </div>
-                  </div>
+                  </TabsContent>
+                </Tabs>
 
-                  {/* Observações */}
-                  <FormField
-                    control={externalForm.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações (Opcional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Informações adicionais sobre o pagamento..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <Button 
+                  onClick={handlePaycomexPayment}
+                  disabled={paycomexPaymentMutation.isPending}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  {paycomexPaymentMutation.isPending 
+                    ? "Processando..." 
+                    : `Pagar R$ ${totalBrlAmount.toFixed(2)} via PayComex`
+                  }
+                </Button>
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={processExternalPaymentMutation.isPending}
-                  >
-                    {processExternalPaymentMutation.isPending ? (
-                      <>
-                        <Clock className="mr-2 h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Confirmar Pagamento Externo
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-
-            {/* PayComex */}
-            <TabsContent value="paycomex" className="space-y-6">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-emerald-600" />
-                  <h3 className="font-semibold text-emerald-900">PayComex</h3>
+                <div className="text-xs text-gray-500 text-center">
+                  <p>Ao prosseguir, você concorda com os termos do PayComex.</p>
+                  <p>Transação protegida por criptografia SSL de 256 bits.</p>
                 </div>
-                <p className="text-sm text-emerald-700">
-                  Processamento automático com câmbio em tempo real. Pague em BRL e 
-                  convertemos automaticamente para USD com as melhores taxas.
-                </p>
-              </div>
-
-              <Form {...paycomexForm}>
-                <form onSubmit={paycomexForm.handleSubmit(onPaycomexSubmit)} className="space-y-6">
-                  {/* Calculadora de Câmbio */}
-                  <Card className="bg-gray-50">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Calculator className="h-5 w-5 text-blue-600" />
-                        Calculadora de Câmbio
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Valor USD</p>
-                          <p className="text-2xl font-bold text-blue-600">
-                            {formatCurrency(payment.amount).replace('R$', 'US$')}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Taxa de Câmbio</p>
-                          <div className="flex items-center gap-2">
-                            <FormField
-                              control={paycomexForm.control}
-                              name="exchangeRate"
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      placeholder="5.45"
-                                      {...field}
-                                      onChange={(e) => {
-                                        const rate = parseFloat(e.target.value);
-                                        field.onChange(rate);
-                                        setCurrentExchangeRate(rate);
-                                        paycomexForm.setValue('brazilianAmount', usdAmount * rate);
-                                      }}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <span className="text-sm text-gray-500">BRL</span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Total BRL</p>
-                          <p className="text-2xl font-bold text-green-600">
-                            R$ {(usdAmount * currentExchangeRate).toLocaleString('pt-BR', { 
-                              minimumFractionDigits: 2, 
-                              maximumFractionDigits: 2 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-700">
-                          Taxa competitiva • Conversão automática • Processamento seguro
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Método de Pagamento BRL */}
-                  <FormField
-                    control={paycomexForm.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Método de Pagamento (BRL)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Como deseja pagar em BRL?" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="pix">PIX</SelectItem>
-                            <SelectItem value="ted">TED</SelectItem>
-                            <SelectItem value="boleto">Boleto</SelectItem>
-                            <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                            <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Observações */}
-                  <FormField
-                    control={paycomexForm.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações (Opcional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Informações adicionais sobre o pagamento..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    disabled={processPaycomexPaymentMutation.isPending}
-                  >
-                    {processPaycomexPaymentMutation.isPending ? (
-                      <>
-                        <Clock className="mr-2 h-4 w-4 animate-spin" />
-                        Iniciando PayComex...
-                      </>
-                    ) : (
-                      <>
-                        <Shield className="mr-2 h-4 w-4" />
-                        Processar via PayComex
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

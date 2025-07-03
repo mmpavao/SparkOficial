@@ -82,9 +82,9 @@ function Router() {
         <Route path="/suppliers/new" component={SupplierNewPage} />
         
         <Route path="/payments" component={PaymentsPage} />
-        <Route path="/payments/details/:id" component={PaymentDetailsPage} />
-        <Route path="/payments/pay/:id" component={PaymentPayPage} />
-        <Route path="/payments/edit/:id" component={PaymentEditPage} />
+        <Route path="/payments/:id" component={PaymentDetailsPage} />
+        <Route path="/payments/:id/pay" component={PaymentPayPage} />
+        <Route path="/payments/:id/edit" component={PaymentEditPage} />
         <Route path="/reports" component={ReportsPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
