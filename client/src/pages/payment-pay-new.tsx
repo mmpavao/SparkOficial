@@ -14,11 +14,28 @@ import {
   Upload, 
   CreditCard,
   Building2,
-  Globe
+  Globe,
+  Shield,
+  TrendingUp,
+  AlertCircle,
+  Check
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+
+interface PaymentSchedule {
+  id: number;
+  importId: number;
+  paymentType: string;
+  dueDate: string;
+  amount: string;
+  currency: string;
+  status: string;
+  installmentNumber?: number;
+  totalInstallments?: number;
+}
 
 interface PaymentPayPageProps {
   params: { id: string };
@@ -32,7 +49,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
 
   // Estados para pagamento externo
   const [externalPaymentData, setExternalPaymentData] = useState({
-    amount: "36000",
+    amount: "",
     paymentDate: "",
     notes: "",
     receipts: [] as File[]
@@ -47,20 +64,30 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
     holderName: ""
   });
 
-  // Taxa de câmbio
-  const exchangeRate = 5.65;
-  const paycomexFee = 0.025;
+  // Taxa de câmbio simulada (USD para BRL)
+  const [exchangeRate] = useState(5.65);
+  const [paycomexFee] = useState(0.025); // 2.5% fee
 
   // Buscar detalhes do pagamento
-  const { data: payment, isLoading } = useQuery({
-    queryKey: ['/api/payment-schedules', paymentId]
+  const { data: payment, isLoading, error } = useQuery({
+    queryKey: ['/api/payment-schedules', paymentId],
+    enabled: !!paymentId && paymentId > 0,
   });
+
+  // Pré-popular o valor quando o payment for carregado
+  useEffect(() => {
+    if (payment?.amount) {
+      setExternalPaymentData(prev => ({
+        ...prev,
+        amount: payment.amount
+      }));
+    }
+  }, [payment]);
 
   // Mutação para pagamento externo
   const externalPaymentMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("POST", `/api/payment-schedules/${paymentId}/external-payment`, data);
-      return response;
+      return apiRequest("POST", `/api/payment-schedules/${paymentId}/external-payment`, data);
     },
     onSuccess: () => {
       toast({
@@ -69,7 +96,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
-      setLocation(`/import-details/10`);
+      setLocation(`/payments/${paymentId}`);
     },
     onError: () => {
       toast({
@@ -83,8 +110,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Mutação para PayComex
   const paycomexMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/payment-schedules/${paymentId}/paycomex-payment`, data);
-      return response;
+      return apiRequest("POST", `/api/payment-schedules/${paymentId}/paycomex-payment`, data);
     },
     onSuccess: () => {
       toast({
@@ -93,7 +119,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
-      setLocation(`/import-details/10`);
+      setLocation(`/payments/${paymentId}`);
     },
     onError: () => {
       toast({
@@ -120,8 +146,8 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   const handlePayComexPayment = () => {
     const paymentData = {
       method: paycomexMethod,
-      amount: externalPaymentData.amount,
-      currency: "USD",
+      amount: payment?.amount,
+      currency: payment?.currency,
       exchangeRate,
       fee: paycomexFee,
       ...(paycomexMethod === 'card' ? { cardData } : {})
@@ -154,8 +180,25 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
     );
   }
 
-  const usdAmount = parseFloat(externalPaymentData.amount);
-  const brlAmount = usdAmount * exchangeRate;
+  if (error || !payment) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Pagamento não encontrado</h3>
+            <p className="text-gray-600 mb-4">O pagamento solicitado não foi encontrado.</p>
+            <Button onClick={() => setLocation('/payments')}>
+              Voltar aos Pagamentos
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const paymentAmount = parseFloat(payment.amount);
+  const brlAmount = paymentAmount * exchangeRate;
   const totalWithFee = brlAmount + (brlAmount * paycomexFee);
 
   return (
@@ -165,7 +208,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setLocation('/import-details/10')}
+          onClick={() => setLocation(`/payments/${paymentId}`)}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -173,9 +216,9 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
         </Button>
         <div>
           <h1 className="text-2xl font-bold">
-            Processar Pagamento #{paymentId}
+            Processar Pagamento #{payment.installmentNumber || "1"}
           </h1>
-          <p className="text-gray-600">Importação #undefined</p>
+          <p className="text-gray-600">Importação #{payment.importId}</p>
         </div>
       </div>
 
@@ -190,13 +233,20 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-3xl font-bold">USD {parseFloat(externalPaymentData.amount).toLocaleString()}.00</span>
-              <Badge variant="destructive">Pendente</Badge>
+              <span className="text-3xl font-bold">
+                {formatCurrency(paymentAmount, payment.currency)}
+              </span>
+              <Badge variant={payment.status === 'pending' ? 'destructive' : 'default'}>
+                {payment.status === 'pending' ? 'Pendente' : payment.status}
+              </Badge>
             </div>
-            <p className="text-gray-600">Pagamento único</p>
+            <p className="text-gray-600">
+              {payment.paymentType === 'down_payment' ? 'Pagamento único' : 
+               `Parcela ${payment.installmentNumber} de ${payment.totalInstallments}`}
+            </p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Calendar className="w-4 h-4" />
-              Vencimento: 03/07/2025
+              Vencimento: {formatDate(payment.dueDate)}
             </div>
           </div>
         </CardContent>
@@ -343,7 +393,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
               {/* Exchange Rate Info */}
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-4 h-4 text-blue-600" />
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
                   <span className="font-medium text-blue-800">Câmbio Atual</span>
                 </div>
                 <div className="text-sm text-blue-700 space-y-1">
@@ -373,7 +423,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
                     onClick={() => setPaycomexMethod('pix')}
                     className="flex items-center gap-2"
                   >
-                    <DollarSign className="w-4 h-4" />
+                    <Shield className="w-4 h-4" />
                     PIX
                   </Button>
                 </div>
@@ -442,7 +492,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
               {paycomexMethod === 'pix' && (
                 <div className="bg-green-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <Shield className="w-4 h-4 text-green-600" />
                     <span className="font-medium text-green-800">Pagamento PIX</span>
                   </div>
                   <p className="text-sm text-green-700">
