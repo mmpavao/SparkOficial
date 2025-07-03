@@ -75,6 +75,12 @@ const calculateMetrics = (imports: Import[]): ImportMetrics => {
   };
 };
 
+import { ImportCard } from "@/components/imports/ImportCard";
+import { ImportFilters } from "@/components/imports/ImportFilters";
+import { ImportMetrics } from "@/components/imports/ImportMetrics";
+import { ImportForm } from "@/components/imports/ImportForm";
+import PaymentCard from "@/components/payments/PaymentCard";
+
 export default function ImportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
