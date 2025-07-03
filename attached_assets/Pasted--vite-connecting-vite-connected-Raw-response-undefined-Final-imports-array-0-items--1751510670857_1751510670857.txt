@@ -1,0 +1,47 @@
+[vite] connecting...
+[vite] connected.
+📊 Raw response: undefined
+📊 Final imports array: 0 items
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+✅ Import data received: 
+Array []
+📊 Raw response: 
+Array []
+📊 Final imports array: 0 items
+⚠️ No imports found. Response structure: 
+Array []
+Warning: A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://reactjs.org/link/controlled-components
+    at input
+    at _c (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/ui/input.tsx:20:11)
+    at https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=160521d1:79:13
+    at https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=160521d1:56:13
+    at https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/ui/form.tsx:130:9
+    at div
+    at https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4BFJKWC4.js?v=160521d1:298:35)
+    at FormField (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at _c9 (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at form
+    at FormProvider (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4BFJKWC4.js?v=160521d1:102:11)
+    at div
+    at div
+    at div
+    at ImportNewEnhancedPage (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/pages/import-new-enhanced.tsx:151:27)
+    at Route (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=160521d1:323:16)
+    at Switch (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=160521d1:379:17)
+    at main
+    at div
+    at div
+    at AuthenticatedLayout (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/components/layout/AuthenticatedLayout.tsx:60:47)
+    at Router (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/App.tsx?v=YDkndr17bxAQieB-rSUXT:55:48)
+    at ModuleProvider (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/contexts/ModuleContext.tsx:21:34)
+    at Provider (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=160521d1:38:15)
+    at TooltipProvider (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=160521d1:64:5)
+    at I18nProvider (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/contexts/I18nContext.tsx:179:32)
+    at QueryClientProvider (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=160521d1:2805:3)
+    at App

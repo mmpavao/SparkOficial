@@ -1446,8 +1446,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = { ...req.body, userId };
       
       console.log('Import creation data:', JSON.stringify(data, null, 2));
+      console.log(`🔍 Starting credit validation for user ${userId}`);
 
       // Get user's approved credit application
+      try {
+        console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+        const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+        console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
+      } catch (error) {
+        console.error(`❌ Error getting credit applications:`, error);
+        throw error;
+      }
       const userCreditApps = await storage.getCreditApplicationsByUser(userId);
       console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
         id: app.id,
