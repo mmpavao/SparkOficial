@@ -350,6 +350,31 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    console.log(`🔍 Import creation for user ${currentUser.id}`);
+
+    // Get user's approved credit applications
+    const userCreditApps = await storage.getCreditApplicationsByUser(currentUser.id);
+    console.log(`📊 User ${currentUser.id} credit applications:`, userCreditApps.map(app => ({
+      id: app.id,
+      status: app.status,
+      financialStatus: app.financialStatus,
+      adminStatus: app.adminStatus
+    })));
+
+    const approvedCredits = userCreditApps.filter(app => 
+      app.status === 'approved' || 
+      (app.status === 'admin_finalized' && app.financialStatus === 'approved')
+    );
+
+    console.log(`✅ Approved credits found: ${approvedCredits.length}`);
+
+    if (!approvedCredits.length) {
+      console.log(`❌ No approved credit found for user ${currentUser.id}`);
+      return res.status(400).json({ 
+        message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
+      });
+    }
+
     // Validate input data
     const validatedData = insertImportSchema.parse({
       ...req.body,
