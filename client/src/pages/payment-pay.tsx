@@ -54,7 +54,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Buscar detalhes do pagamento
   const { data: payment, isLoading } = useQuery({
     queryKey: ['/api/payment-schedules', paymentId],
-    queryFn: () => apiRequest("GET", `/api/payment-schedules/${paymentId}`),
+    queryFn: () => apiRequest(`/api/payment-schedules/${paymentId}`, "GET"),
     enabled: !!paymentId,
     staleTime: 1000 * 60 * 5, // Cache por 5 minutos
     refetchOnWindowFocus: false
@@ -63,7 +63,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Mutação para pagamento externo
   const externalPaymentMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("POST", `/api/payments/external`, data);
+      const response = await apiRequest(`/api/payments/external`, "POST", data);
       return response;
     },
     onSuccess: () => {
@@ -87,7 +87,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Mutação para PayComex
   const paycomexMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/payments/paycomex`, data);
+      const response = await apiRequest(`/api/payments/paycomex`, "POST", data);
       return response;
     },
     onSuccess: () => {
