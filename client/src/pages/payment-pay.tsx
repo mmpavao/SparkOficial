@@ -125,6 +125,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
 
   const handlePayComexPayment = () => {
     const paymentData = {
+      paymentScheduleId: paymentId,
       method: paycomexMethod,
       amount: externalPaymentData.amount,
       currency: "USD",
