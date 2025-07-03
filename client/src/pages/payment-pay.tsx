@@ -53,13 +53,17 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
 
   // Buscar detalhes do pagamento
   const { data: payment, isLoading } = useQuery({
-    queryKey: ['/api/payment-schedules', paymentId]
+    queryKey: ['/api/payment-schedules', paymentId],
+    queryFn: () => apiRequest("GET", `/api/payment-schedules/${paymentId}`),
+    enabled: !!paymentId,
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
+    refetchOnWindowFocus: false
   });
 
   // Mutação para pagamento externo
   const externalPaymentMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("POST", `/api/payment-schedules/${paymentId}/external-payment`, data);
+      const response = await apiRequest("POST", `/api/payments/external`, data);
       return response;
     },
     onSuccess: () => {
@@ -83,7 +87,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Mutação para PayComex
   const paycomexMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/payment-schedules/${paymentId}/paycomex`, data);
+      const response = await apiRequest("POST", `/api/payments/paycomex`, data);
       return response;
     },
     onSuccess: () => {
@@ -106,12 +110,14 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
 
   const handleExternalPayment = () => {
     const formData = new FormData();
+    formData.append('paymentScheduleId', paymentId.toString());
     formData.append('amount', externalPaymentData.amount);
     formData.append('paymentDate', externalPaymentData.paymentDate);
     formData.append('notes', externalPaymentData.notes);
+    formData.append('paymentMethod', 'external');
     
     externalPaymentData.receipts.forEach((file, index) => {
-      formData.append(`receipt_${index}`, file);
+      formData.append('receipts', file);
     });
 
     externalPaymentMutation.mutate(formData);
@@ -140,16 +146,26 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !payment) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-4">
-            <div className="h-24 bg-gray-200 rounded"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-5 w-5 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
         </div>
+        <Card>
+          <CardHeader>
+            <div className="h-6 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

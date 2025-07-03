@@ -8,6 +8,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,6 +102,15 @@ export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
   };
 
   const handlePay = () => {
+    // Pre-carregar dados antes da navegação para transição instantânea
+    const queryClient = useQueryClient();
+    queryClient.prefetchQuery({
+      queryKey: ['/api/payment-schedules', payment.id],
+      queryFn: () => apiRequest("GET", `/api/payment-schedules/${payment.id}`),
+      staleTime: 1000 * 60 * 5
+    });
+    
+    // Navegação instantânea
     setLocation(`/payments/pay/${payment.id}`);
   };
 

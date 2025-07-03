@@ -2192,7 +2192,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Submit payment
+  // External payment submission
+  app.post('/api/payments/external', requireAuth, upload.array('receipts', 5), async (req: any, res) => {
+    try {
+      const { paymentScheduleId, amount, paymentDate, notes, paymentMethod } = req.body;
+      const files = req.files;
+
+      if (!paymentScheduleId || !amount) {
+        return res.status(400).json({ message: "Dados obrigatórios ausentes" });
+      }
+
+      const paymentData = {
+        paymentScheduleId: parseInt(paymentScheduleId),
+        amount,
+        currency: 'USD',
+        paymentMethod: paymentMethod || 'external',
+        paymentReference: 'EXT-' + Date.now(),
+        proofDocument: files && files.length > 0 ? files[0].buffer.toString('base64') : null,
+        proofFilename: files && files.length > 0 ? files[0].originalname : null,
+        status: 'pending',
+        paidAt: new Date(paymentDate || Date.now()),
+        notes: notes || ''
+      };
+
+      const payment = await storage.createPayment(paymentData);
+      res.json(payment[0]);
+    } catch (error) {
+      console.error("Error submitting external payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // PayComex payment submission
+  app.post('/api/payments/paycomex', requireAuth, async (req: any, res) => {
+    try {
+      const { paymentScheduleId, amount, method, currency, exchangeRate, fee, cardData } = req.body;
+
+      if (!paymentScheduleId || !amount) {
+        return res.status(400).json({ message: "Dados obrigatórios ausentes" });
+      }
+
+      const paymentData = {
+        paymentScheduleId: parseInt(paymentScheduleId),
+        amount,
+        currency: currency || 'USD',
+        paymentMethod: 'paycomex_' + method,
+        paymentReference: 'PCX-' + Date.now(),
+        status: 'completed',
+        paidAt: new Date(),
+        notes: `PayComex ${method} - Taxa: ${exchangeRate} - Fee: ${fee}%`
+      };
+
+      const payment = await storage.createPayment(paymentData);
+      res.json(payment[0]);
+    } catch (error) {
+      console.error("Error submitting PayComex payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Submit payment (legacy endpoint)
   app.post('/api/payments/submit', requireAuth, upload.single('proofDocument'), async (req: any, res) => {
     try {
       const { paymentScheduleId, importId, amount, paymentMethod, paymentReference } = req.body;
