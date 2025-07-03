@@ -19,7 +19,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like, ne } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
@@ -1621,6 +1621,16 @@ export class DatabaseStorage {
       .select()
       .from(paymentSchedules)
       .where(inArray(paymentSchedules.importId, importIds))
+      .orderBy(paymentSchedules.dueDate);
+
+    return result;
+  }
+
+    // Get all payment schedules
+  async getAllPaymentSchedules() {
+    const result = await db
+      .select()
+      .from(paymentSchedules)
       .orderBy(paymentSchedules.dueDate);
 
     return result;

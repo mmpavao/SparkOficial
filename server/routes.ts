@@ -1278,7 +1278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payment schedules routes
+  // Payment schedules routes - get by import ID
   app.get('/api/payments/schedule/:importId', requireAuth, async (req: any, res) => {
     try {
       const importId = parseInt(req.params.importId);
@@ -1298,6 +1298,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(payments);
     } catch (error) {
       console.error("Error fetching payment schedules:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all payment schedules for user
+  app.get('/api/payments/schedule', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      
+      let payments;
+      if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira') {
+        // Admin/Financeira users see all payments
+        payments = await storage.getAllPaymentSchedules();
+      } else {
+        // Regular users see only their payments
+        payments = await storage.getPaymentSchedulesByUser(userId);
+      }
+      
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payment schedules:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get individual payment by ID
+  app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check if user has access to this payment
+      if (currentUser?.role !== 'admin' && currentUser?.role !== 'super_admin' && currentUser?.role !== 'financeira') {
+        // For regular users, check if they own the import
+        const importData = await storage.getImport(payment.importId);
+        if (!importData || importData.userId !== userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error("Error fetching payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Cancel payment
+  app.put('/api/payments/:id/cancel', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check if user has access to this payment
+      if (currentUser?.role !== 'admin' && currentUser?.role !== 'super_admin' && currentUser?.role !== 'financeira') {
+        // For regular users, check if they own the import
+        const importData = await storage.getImport(payment.importId);
+        if (!importData || importData.userId !== userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      // Only allow cancellation of pending payments
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser cancelados" });
+      }
+
+      const cancelledPayment = await storage.cancelPayment(paymentId);
+      res.json(cancelledPayment);
+    } catch (error) {
+      console.error("Error cancelling payment:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
