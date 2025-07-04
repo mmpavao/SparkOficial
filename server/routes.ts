@@ -2198,7 +2198,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { paymentScheduleId, amount, paymentDate, notes, paymentMethod } = req.body;
       const files = req.files;
 
+      console.log('🔍 External payment request body:', req.body);
+      console.log('🔍 PaymentScheduleId:', paymentScheduleId, 'Amount:', amount);
+
       if (!paymentScheduleId || !amount) {
+        console.log('❌ Missing required data - PaymentScheduleId:', paymentScheduleId, 'Amount:', amount);
         return res.status(400).json({ message: "Dados obrigatórios ausentes" });
       }
 
