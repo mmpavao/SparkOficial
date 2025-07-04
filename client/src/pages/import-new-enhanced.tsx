@@ -72,7 +72,7 @@ const CHINA_PORTS = [
 const BRAZIL_PORTS = [
   // Portos Marítimos
   "Santos, SP", "Rio de Janeiro, RJ", "Paranaguá, PR", "Rio Grande, RS",
-  "São Francisco do Sul, SC", "Vitória, ES", "Suape, PE", "Salvador, BA",
+  "São Francisco do Sul, SC", "Itajaí, SC", "Vitória, ES", "Suape, PE", "Salvador, BA",
   "Fortaleza, CE", "Pecém, CE", "Itaguaí, RJ", "Manaus, AM",
   "Belém, PA", "São Luís, MA", "Macapá, AP", "Cabedelo, PB",
   "Maceió, AL", "Aratu, BA", "Ilhéus, BA", "Barra do Riacho, ES",
