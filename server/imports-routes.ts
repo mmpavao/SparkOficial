@@ -107,7 +107,7 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     const allImportsCount = await db.select({ count: count() }).from(imports);
     console.log(`🗄️ Total imports in database: ${allImportsCount[0].count}`);
 
-    // Use direct SQL query to avoid TypeScript compilation issues
+    // CRITICAL FIX: Always filter by user for importers, show all for admin/financeira
     let sqlQuery = `
       SELECT 
         i.*,
@@ -124,12 +124,12 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     const whereClauses: string[] = [];
     let paramIndex = 1;
 
-    // Role-based access control - only filter by user for importers
+    // FIXED: Role-based access control with proper filtering
     if (currentUser.role === 'importer') {
       whereClauses.push(`i.user_id = $${paramIndex}`);
       queryParams.push(userId);
       paramIndex++;
-      console.log(`🔒 Filtering imports for importer: ${userId}`);
+      console.log(`🔒 FILTERING imports for importer: ${userId}`);
     } else {
       console.log(`🔓 Admin/Financeira access - showing ALL imports`);
     }

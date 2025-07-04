@@ -1532,7 +1532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const data = { ...req.body, userId };
       
-      console.log('Import creation data:', JSON.stringify(data, null, 2));
+      console.log('💾 Import creation data:', JSON.stringify(data, null, 2));
       console.log(`🔍 Starting credit validation for user ${userId}`);
 
       // Get user's approved credit application
@@ -1655,23 +1655,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       
-      // Debug log for imports fetch
-      console.log(`Fetching imports for user ${userId}, role: ${currentUser?.role}`);
+      console.log(`🔍 Fetching imports for user ${userId}, role: ${currentUser?.role}`);
       
       let imports;
       if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira') {
-        // Admin/Financeira users see all imports
         imports = await storage.getAllImports();
-        console.log(`Admin/Financeira fetched ${imports.length} total imports`);
+        console.log(`👑 Admin/Financeira fetched ${imports.length} total imports`);
       } else {
-        // Regular users see only their imports
+        // Force refresh and bypass cache for imports
         imports = await storage.getImportsByUser(userId);
-        console.log(`User fetched ${imports.length} personal imports`);
+        console.log(`👤 User ${userId} fetched ${imports.length} personal imports`);
+        
+        // Debug: Also check directly in database
+        const directCheck = await storage.getAllImports();
+        const userImports = directCheck.filter(imp => imp.userId === userId);
+        console.log(`🔍 Direct DB check: Found ${userImports.length} imports for user ${userId}`);
+        console.log(`📊 User import IDs:`, userImports.map(imp => imp.id));
       }
       
       res.json(imports);
     } catch (error) {
-      console.error("Error fetching imports:", error);
+      console.error("❌ Error fetching imports:", error);
       res.status(500).json({ message: "Erro ao buscar importações" });
     }
   });

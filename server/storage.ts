@@ -323,11 +323,19 @@ export class DatabaseStorage {
   }
 
   async getImportsByUser(userId: number): Promise<Import[]> {
-    return await db
+    console.log(`🔍 Storage: Getting imports for user ${userId}`);
+    const result = await db
       .select()
       .from(imports)
       .where(eq(imports.userId, userId))
       .orderBy(desc(imports.createdAt));
+    
+    console.log(`📊 Storage: Found ${result.length} imports for user ${userId}`);
+    if (result.length > 0) {
+      console.log(`📋 Import IDs:`, result.map(imp => imp.id));
+    }
+    
+    return result;
   }
 
   async getImport(id: number): Promise<Import | undefined> {
