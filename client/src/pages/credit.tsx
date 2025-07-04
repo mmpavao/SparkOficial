@@ -65,7 +65,7 @@ type CreditApplicationForm = {
 };
 
 // Componente para calcular e exibir dados reais de crédito
-function CreditSummaryCards({ applications, permissions }: { applications: any[], permissions: any }) {
+function CreditSummaryCards({ applications, permissions, t }: { applications: any[], permissions: any, t: (key: string) => string }) {
   if (!Array.isArray(applications)) {
     return null;
   }
@@ -108,13 +108,16 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado"}
+                {permissions.isFinanceira ? t('financeira.analysis.approved') : (permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado")}
               </p>
               <p className="text-2xl font-bold text-green-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalApproved)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {approvedApplications.length} {approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}
+                {permissions.isFinanceira ? 
+                  `${approvedApplications.length} ${approvedApplications.length === 1 ? t('financeira.analysis.application') : t('financeira.analysis.applications')}` :
+                  `${approvedApplications.length} ${approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}`
+                }
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -129,7 +132,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? "Em Análise" : "Em Análise"}
+                {permissions.isFinanceira ? t('financeira.analysis.inAnalysis') : (permissions.canViewAllApplications ? "Em Análise" : "Em Análise")}
               </p>
               <p className="text-2xl font-bold text-blue-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
@@ -150,7 +153,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes"}
+                {permissions.isFinanceira ? t('financeira.analysis.pending') : (permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes")}
               </p>
               <p className="text-2xl font-bold text-orange-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
@@ -283,7 +286,7 @@ export default function CreditPage() {
       )}
 
       {/* Credit Summary Cards - Dados Reais */}
-      <CreditSummaryCards applications={applications as CreditApplication[]} permissions={permissions} />
+      <CreditSummaryCards applications={applications as CreditApplication[]} permissions={permissions} t={t} />
 
       {/* Applications List */}
       <Card>
