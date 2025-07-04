@@ -162,10 +162,17 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
                           Ver detalhes
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-gray-500" disabled>
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          Pagar (View-only)
-                        </DropdownMenuItem>
+                        {payment.status === 'pending' ? (
+                          <DropdownMenuItem onClick={() => setLocation(`/payments/${payment.id}/checkout`)}>
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Pagar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem className="text-gray-500" disabled>
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Pagar (View-only)
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem className="text-gray-500" disabled>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar (View-only)

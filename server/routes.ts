@@ -2709,6 +2709,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Process external payment (new checkout method)
+  app.post('/api/payment-schedules/:id/pay-external', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { amount, description, paymentDate } = req.body;
+      
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      // Update payment schedule status
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      // Create payment record
+      const paymentData = {
+        paymentScheduleId: parseInt(id),
+        importId: paymentSchedule.importId,
+        amount: amount,
+        currency: paymentSchedule.currency,
+        paymentMethod: 'external',
+        paymentReference: description,
+        status: 'confirmed',
+        paidAt: new Date(paymentDate),
+        confirmedAt: new Date(),
+        confirmedBy: req.session.userId,
+        notes: `Pagamento externo: ${description}`
+      };
+
+      await storage.createPayment(paymentData);
+
+      res.json({ message: "Pagamento registrado com sucesso" });
+    } catch (error) {
+      console.error("Error processing external payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process Pay Comex payment (new checkout method)
+  app.post('/api/payment-schedules/:id/pay-comex', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { method, details } = req.body; // method: 'pix' or 'card'
+      
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      // Simulate payment processing based on method
+      const exchangeRate = 5.65; // USD to BRL
+      const payComexFee = method === 'pix' ? 0.015 : 0.025; // 1.5% PIX, 2.5% card
+      const usdAmount = parseFloat(paymentSchedule.amount);
+      const brlAmount = usdAmount * exchangeRate;
+      const feeAmount = brlAmount * payComexFee;
+      const totalBrlAmount = brlAmount + feeAmount;
+
+      // Generate transaction ID
+      const transactionId = `PAYCOMEX_${method.toUpperCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Update payment schedule status
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      // Create payment record
+      const paymentData = {
+        paymentScheduleId: parseInt(id),
+        importId: paymentSchedule.importId,
+        amount: paymentSchedule.amount,
+        currency: paymentSchedule.currency,
+        paymentMethod: `paycomex_${method}`,
+        paymentReference: transactionId,
+        status: 'confirmed',
+        paidAt: new Date(),
+        confirmedAt: new Date(),
+        confirmedBy: req.session.userId,
+        notes: `Pay Comex ${method.toUpperCase()} payment. Total BRL: R$ ${totalBrlAmount.toFixed(2)} (rate: ${exchangeRate}, fee: ${(payComexFee * 100).toFixed(1)}%)`
+      };
+
+      await storage.createPayment(paymentData);
+
+      res.json({ 
+        message: "Pagamento processado com sucesso",
+        transactionId,
+        exchangeData: {
+          usdAmount: paymentSchedule.amount,
+          brlAmount: brlAmount.toFixed(2),
+          feeAmount: feeAmount.toFixed(2),
+          totalBrlAmount: totalBrlAmount.toFixed(2),
+          exchangeRate,
+          feePercentage: payComexFee
+        }
+      });
+    } catch (error) {
+      console.error("Error processing Pay Comex payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Cancel payment schedule
   app.delete('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
     try {
