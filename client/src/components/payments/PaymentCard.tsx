@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLocation } from "wouter";
 import { 
   DollarSign, 
   Calendar, 
@@ -23,6 +24,12 @@ interface PaymentCardProps {
 }
 
 export default function PaymentCard({ payment }: PaymentCardProps) {
+  const [, setLocation] = useLocation();
+
+  const handleClick = () => {
+    setLocation(`/payments/${payment.id}`);
+  };
+
   const getPaymentTypeLabel = (type: string) => {
     switch (type) {
       case 'down_payment':
@@ -72,7 +79,10 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
   const isOverdue = new Date(payment.dueDate) < new Date() && payment.status === 'pending';
 
   return (
-    <Card className="hover:shadow-md transition-shadow border border-gray-200">
+    <Card 
+      className="hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
+      onClick={handleClick}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
