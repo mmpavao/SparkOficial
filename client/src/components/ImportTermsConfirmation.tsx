@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, DollarSign, Calendar, CreditCard } from "lucide-react";
@@ -46,6 +46,9 @@ export function ImportTermsConfirmation({
             <CreditCard className="w-5 h-5" />
             Confirmação de Termos e Condições
           </DialogTitle>
+          <DialogDescription>
+            Revise e aceite os termos financeiros da sua importação antes de prosseguir
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
