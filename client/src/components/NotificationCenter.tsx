@@ -140,7 +140,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-black/20">
       <div className="fixed right-4 top-16 w-96 max-h-[80vh] bg-white rounded-lg shadow-xl border">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
