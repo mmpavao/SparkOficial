@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
+import PaymentCheckoutModal from "./PaymentCheckoutModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,8 @@ interface PaymentSchedule {
 
 export default function ImportPaymentsList({ importId }: ImportPaymentsListProps) {
   const [, setLocation] = useLocation();
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
 
   // Buscar pagamentos específicos desta importação
   const { data: paymentsData, isLoading } = useQuery({
@@ -163,7 +166,10 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {payment.status === 'pending' ? (
-                          <DropdownMenuItem onClick={() => setLocation(`/payments/${payment.id}/checkout`)}>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedPaymentId(payment.id);
+                            setCheckoutModalOpen(true);
+                          }}>
                             <DollarSign className="mr-2 h-4 w-4" />
                             Pagar
                           </DropdownMenuItem>
@@ -216,6 +222,18 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
           );
         })}
       </div>
+
+      {/* Payment Checkout Modal */}
+      {selectedPaymentId && (
+        <PaymentCheckoutModal
+          isOpen={checkoutModalOpen}
+          onClose={() => {
+            setCheckoutModalOpen(false);
+            setSelectedPaymentId(null);
+          }}
+          paymentId={selectedPaymentId}
+        />
+      )}
     </div>
   );
 }
