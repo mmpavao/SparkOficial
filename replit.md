@@ -839,6 +839,15 @@ Changelog:
   * REGENERATED PAYMENT SCHEDULES: Recreated payment schedules for import ID 11 with correct values (Entry: $11,550, Installments: $8,983.33 each)
   * UNIFIED PAYMENT DISPLAY: Ensured payment schedules in import details match global payment page with identical values and visual consistency
   * ESTABLISHED DEFINITIVE PAYMENT RULES: Payment calculations now follow confirmed terms from TermsConfirmation modal during import creation
+- July 04, 2025. PAY COMEX INTEGRATION PLANNING AND DOCUMENTATION:
+  * ANALYZED Pay Comex API documentation and existing checkout system integration
+  * CREATED comprehensive integration prompt (INTEGRACAO_PAY_COMEX_PROMPT.md) for cross-platform authentication
+  * DESIGNED authentication flow: email/password → token confirmation → automatic data transfer from Spark Comex credit applications
+  * SPECIFIED required endpoints: /auth/spark-comex-login, /auth/verify-token, /integration/spark-comex-profile, /checkout/spark-comex-create
+  * MAPPED Spark Comex data structure to Pay Comex integration format (company data, legal representative, financial info, documents)
+  * ESTABLISHED webhook system for payment confirmation and status updates between platforms
+  * PLANNED seamless user experience: click "Pay Comex" → authenticate → auto-register → immediate payment processing
+  * INTEGRATION READY: All technical specifications documented for Pay Comex team implementation
 ```
 
 ## User Preferences
