@@ -590,13 +590,45 @@ importRoutes.put('/imports/:id', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Only imports in planning status can be edited' });
     }
 
+    // Prepare update data with proper date handling
+    const updateData: any = { ...req.body };
+    
+    // Remove fields that shouldn't be updated
+    delete updateData.id;
+    delete updateData.userId;
+    delete updateData.createdAt;
+    delete updateData.products; // Handle products separately
+    
+    // Convert date strings to Date objects if present
+    if (updateData.estimatedDelivery && typeof updateData.estimatedDelivery === 'string') {
+      updateData.estimatedDelivery = new Date(updateData.estimatedDelivery);
+    }
+    if (updateData.actualDelivery && typeof updateData.actualDelivery === 'string') {
+      updateData.actualDelivery = new Date(updateData.actualDelivery);
+    }
+    if (updateData.invoiceDate && typeof updateData.invoiceDate === 'string') {
+      updateData.invoiceDate = new Date(updateData.invoiceDate);
+    }
+    if (updateData.productionStartDate && typeof updateData.productionStartDate === 'string') {
+      updateData.productionStartDate = new Date(updateData.productionStartDate);
+    }
+    if (updateData.shippingDate && typeof updateData.shippingDate === 'string') {
+      updateData.shippingDate = new Date(updateData.shippingDate);
+    }
+    if (updateData.estimatedArrival && typeof updateData.estimatedArrival === 'string') {
+      updateData.estimatedArrival = new Date(updateData.estimatedArrival);
+    }
+    if (updateData.actualArrival && typeof updateData.actualArrival === 'string') {
+      updateData.actualArrival = new Date(updateData.actualArrival);
+    }
+    
+    // Set updated timestamp
+    updateData.updatedAt = new Date();
+
     // Update import
     const [updatedImport] = await db
       .update(imports)
-      .set({
-        ...req.body,
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(imports.id, importId))
       .returning();
 
