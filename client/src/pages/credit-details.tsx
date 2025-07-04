@@ -147,6 +147,13 @@ export default function CreditDetailsPage() {
     enabled: !!applicationId && application?.status === 'approved',
   });
 
+  // Fetch user financial settings
+  const { data: financialSettings } = useQuery({
+    queryKey: ["/api/user/financial-settings"],
+    queryFn: () => apiRequest("/api/user/financial-settings", "GET"),
+    enabled: !!user?.id,
+  });
+
   // Upload document mutation
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ documentType, file }: { documentType: string; file: File }) => {
@@ -267,8 +274,8 @@ export default function CreditDetailsPage() {
   const initializeEditMode = () => {
     if (application) {
       setEditCreditData({
-        paymentTerms: application.finalApprovedTerms || application.approvedTerms || '30',
-        downPaymentPercentage: application.finalDownPayment || 30,
+        paymentTerms: application.finalApprovedTerms || application.approvedTerms || financialSettings?.paymentTerms || '30',
+        downPaymentPercentage: application.finalDownPayment || financialSettings?.downPaymentPercentage || 30,
         adminFee: parseFloat(application.adminFee || '0')
       });
       setIsEditingCredit(true);
@@ -287,6 +294,17 @@ export default function CreditDetailsPage() {
       adminFee: 0
     });
   };
+
+  // Update editCreditData defaults when financial settings are loaded
+  useEffect(() => {
+    if (financialSettings && !isEditingCredit) {
+      setEditCreditData(prev => ({
+        ...prev,
+        paymentTerms: prev.paymentTerms || financialSettings.paymentTerms,
+        downPaymentPercentage: prev.downPaymentPercentage || financialSettings.downPaymentPercentage
+      }));
+    }
+  }, [financialSettings, isEditingCredit]);
 
   // Cancel application mutation
   const cancelApplicationMutation = useMutation({
