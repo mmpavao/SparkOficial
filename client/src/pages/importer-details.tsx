@@ -52,6 +52,10 @@ interface ImporterDetails {
   state: string;
   zipCode: string;
   role: string;
+  // Financial terms fields
+  defaultAdminFeeRate?: number | null;
+  defaultDownPaymentRate?: number | null;
+  defaultPaymentTerms?: string | null;
 }
 
 interface CreditApplication {
@@ -304,8 +308,9 @@ export default function ImporterDetailsPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="financial">Condições Financeiras</TabsTrigger>
           <TabsTrigger value="credit">Análise de Crédito</TabsTrigger>
           <TabsTrigger value="imports">Importações</TabsTrigger>
           <TabsTrigger value="activity">Atividade</TabsTrigger>
@@ -494,6 +499,107 @@ export default function ImporterDetailsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="financial" className="space-y-6">
+          {/* Financial Terms Configuration */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Condições Financeiras Globais
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Configure os termos padrão que serão aplicados automaticamente às importações deste cliente.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-3 gap-6">
+                {/* Admin Fee Rate */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Taxa Administrativa (%)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    placeholder="Ex: 10"
+                    value={editData.defaultAdminFeeRate || ''}
+                    onChange={(e) => setEditData({...editData, defaultAdminFeeRate: parseFloat(e.target.value) || null})}
+                    disabled={!isEditing}
+                  />
+                  <p className="text-xs text-gray-500">Percentual aplicado sobre o valor financiado</p>
+                </div>
+
+                {/* Down Payment Rate */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Entrada (%)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    placeholder="Ex: 30"
+                    value={editData.defaultDownPaymentRate || ''}
+                    onChange={(e) => setEditData({...editData, defaultDownPaymentRate: parseInt(e.target.value) || null})}
+                    disabled={!isEditing}
+                  />
+                  <p className="text-xs text-gray-500">Percentual de entrada obrigatória</p>
+                </div>
+
+                {/* Payment Terms */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Prazos de Pagamento</label>
+                  <Input
+                    type="text"
+                    placeholder="Ex: 30,60,90,120"
+                    value={editData.defaultPaymentTerms || ''}
+                    onChange={(e) => setEditData({...editData, defaultPaymentTerms: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                  <p className="text-xs text-gray-500">Prazos em dias, separados por vírgula</p>
+                </div>
+              </div>
+
+              {/* Current Settings Display */}
+              {!isEditing && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-3">Configurações Atuais:</h4>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Taxa Admin:</span>
+                      <span className="ml-2 font-medium">
+                        {importer.defaultAdminFeeRate ? `${importer.defaultAdminFeeRate}%` : 'Não configurado'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Entrada:</span>
+                      <span className="ml-2 font-medium">
+                        {importer.defaultDownPaymentRate ? `${importer.defaultDownPaymentRate}%` : 'Não configurado'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Prazos:</span>
+                      <span className="ml-2 font-medium">
+                        {importer.defaultPaymentTerms ? `${importer.defaultPaymentTerms} dias` : 'Não configurado'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Benefits Info */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Benefícios das Condições Globais:</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Importações futuras usarão automaticamente essas configurações</li>
+                  <li>• Não será necessário selecionar aplicação de crédito a cada importação</li>
+                  <li>• Cliente terá experiência mais fluida e rápida</li>
+                  <li>• Mantém consistência nos termos aplicados</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="credit" className="space-y-6">

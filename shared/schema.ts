@@ -25,6 +25,10 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   role: text("role").notNull().default("importer"),
   status: text("status").notNull().default("active"),
+  // Global financial terms for importers
+  defaultAdminFeeRate: integer("default_admin_fee_rate"), // Percentage (e.g., 10 = 10%)
+  defaultDownPaymentRate: integer("default_down_payment_rate"), // Percentage (e.g., 30 = 30%)
+  defaultPaymentTerms: text("default_payment_terms"), // Comma-separated days (e.g., "30,60,90,120")
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

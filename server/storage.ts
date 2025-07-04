@@ -86,6 +86,20 @@ export class DatabaseStorage {
       .where(eq(users.id, id));
   }
 
+  async updateImporterData(id: number, data: Partial<User>): Promise<User> {
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
   // ===== CREDIT APPLICATION OPERATIONS =====
 
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {

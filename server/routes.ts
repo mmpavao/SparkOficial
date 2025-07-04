@@ -4384,6 +4384,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update importer data including financial terms (admin only)
+  app.put('/api/admin/importers/:id', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+
+      // Validate financial terms if provided
+      if (updateData.defaultAdminFeeRate !== undefined && updateData.defaultAdminFeeRate !== null) {
+        if (updateData.defaultAdminFeeRate < 0 || updateData.defaultAdminFeeRate > 100) {
+          return res.status(400).json({ message: "Taxa administrativa deve estar entre 0 e 100%" });
+        }
+      }
+
+      if (updateData.defaultDownPaymentRate !== undefined && updateData.defaultDownPaymentRate !== null) {
+        if (updateData.defaultDownPaymentRate < 0 || updateData.defaultDownPaymentRate > 100) {
+          return res.status(400).json({ message: "Percentual de entrada deve estar entre 0 e 100%" });
+        }
+      }
+
+      if (updateData.defaultPaymentTerms) {
+        // Validate payment terms format (comma-separated numbers)
+        const terms = updateData.defaultPaymentTerms.split(',').map(term => parseInt(term.trim()));
+        if (terms.some(term => isNaN(term) || term <= 0)) {
+          return res.status(400).json({ message: "Prazos devem ser números positivos separados por vírgula" });
+        }
+      }
+
+      const updatedImporter = await storage.updateImporterData(parseInt(id), updateData);
+      res.json(updatedImporter);
+    } catch (error) {
+      console.error("Error updating importer data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // ===== PAYMENT SCHEDULES MANAGEMENT =====
 
   // Get payment schedule metrics
