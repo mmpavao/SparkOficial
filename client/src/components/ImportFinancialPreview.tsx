@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -11,7 +12,8 @@ import {
   Clock,
   Calculator,
   CreditCard,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { apiRequest } from '@/lib/queryClient';
