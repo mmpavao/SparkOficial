@@ -63,7 +63,7 @@ export default function PaymentPayPage({ params }: PaymentPayPageProps) {
   // Mutação para pagamento externo
   const externalPaymentMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest(`/api/payments/external`, "POST", data);
+      const response = await apiRequest(`/api/payment-schedules/${paymentSchedule.id}/external-payment`, "POST", data);
       return response;
     },
     onSuccess: () => {
