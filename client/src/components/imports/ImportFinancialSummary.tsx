@@ -22,14 +22,12 @@ interface ImportFinancialSummaryProps {
 export function ImportFinancialSummary({ importData, creditApplication }: ImportFinancialSummaryProps) {
   const totalValue = parseFloat(importData.totalValue) || 0;
 
-    const { data: userFinancialSettings } = useQuery(
-        ["userFinancialSettings"],
-        () => apiRequest<any>(`/api/user/financial-settings`),
-        {
-            enabled: true,
-            retry: false,
-        }
-    );
+    const { data: userFinancialSettings } = useQuery({
+        queryKey: ["userFinancialSettings"],
+        queryFn: () => apiRequest<any>(`/api/user/financial-settings`),
+        enabled: true,
+        retry: false,
+    });
 
   if (!creditApplication || totalValue <= 0) {
     return (
