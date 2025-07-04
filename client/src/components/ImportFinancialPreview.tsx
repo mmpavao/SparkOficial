@@ -1,8 +1,20 @@
-import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { DollarSign, CreditCard, Calendar, AlertTriangle } from "lucide-react";
+import React, { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  DollarSign, 
+  TrendingUp, 
+  AlertTriangle, 
+  CheckCircle, 
+  Clock,
+  Calculator,
+  CreditCard,
+  FileText
+} from 'lucide-react';
+import { formatCurrency } from '@/lib/formatters';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ImportFinancialPreviewProps {
   importValue: number;
@@ -17,12 +29,12 @@ export function ImportFinancialPreview({
   creditUsage,
   adminFee: adminFeeData 
 }: ImportFinancialPreviewProps) {
-  
+
   const financialCalculation = useMemo(() => {
     if (!creditApplication) {
       return null;
     }
-    
+
     // Show preview even with zero value to guide user
     const calculationValue = importValue || 0;
 
@@ -115,7 +127,7 @@ export function ImportFinancialPreview({
         {/* Valores da Importação */}
         <div className="space-y-3">
           <h4 className="font-medium text-gray-900">Detalhamento da Importação</h4>
-          
+
           {/* Valor FOB */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Valor FOB</span>

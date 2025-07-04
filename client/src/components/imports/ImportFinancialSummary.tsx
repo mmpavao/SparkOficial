@@ -1,8 +1,10 @@
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { DollarSign, CreditCard, Receipt, TrendingUp, AlertCircle } from "lucide-react";
+import { AlertCircle, Calculator, DollarSign, TrendingUp, Calendar, CreditCard } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ImportFinancialSummaryProps {
   importData: {
@@ -19,6 +21,15 @@ interface ImportFinancialSummaryProps {
 
 export function ImportFinancialSummary({ importData, creditApplication }: ImportFinancialSummaryProps) {
   const totalValue = parseFloat(importData.totalValue) || 0;
+
+    const { data: userFinancialSettings } = useQuery(
+        ["userFinancialSettings"],
+        () => apiRequest<any>(`/api/user/financial-settings`),
+        {
+            enabled: true,
+            retry: false,
+        }
+    );
 
   if (!creditApplication || totalValue <= 0) {
     return (
@@ -38,22 +49,18 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
     );
   }
 
-  // Cálculos financeiros
-  const adminFeeRate = creditApplication.adminFee / 100;
-  const downPaymentRate = creditApplication.finalDownPayment / 100;
-  
-  const downPayment = totalValue * downPaymentRate;
+  // Cálculos financeiros baseados nas configurações globais do usuário
+  const adminFeePercent = userFinancialSettings?.adminFeePercentage || 0;
+  const downPaymentPercent = userFinancialSettings?.downPaymentPercentage || 30;
+  const approvedTerms = userFinancialSettings?.paymentTerms || "60,90,120";
+
+  const downPayment = (totalValue * downPaymentPercent) / 100;
   const financedAmount = totalValue - downPayment;
-  const adminFeeAmount = financedAmount * adminFeeRate;
-  const totalImportValue = totalValue + adminFeeAmount;
-  
-  // Parse finalApprovedTerms from comma-separated string
-  const approvedTerms = creditApplication.finalApprovedTerms 
-    ? creditApplication.finalApprovedTerms.split(',').map(term => term.trim())
-    : [];
-  
-  const installmentTerms = approvedTerms.length;
-  const installmentValue = installmentTerms > 0 ? financedAmount / installmentTerms : 0;
+  const adminFee = (financedAmount * adminFeePercent) / 100;
+  const totalWithFees = totalValue + adminFee;
+
+  const installmentTerms = approvedTerms.split(',').map(term => parseInt(term.trim()));
+  const installmentAmount = financedAmount / installmentTerms.length;
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -69,39 +76,40 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
           <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
             Valores Base
           </h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
               <span className="text-sm font-medium">Valor FOB:</span>
               <span className="font-bold text-lg">{formatCurrency(totalValue, 'USD')}</span>
             </div>
-            
+
             <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
               <span className="text-sm font-medium text-red-700">
-                Taxa Admin ({creditApplication.adminFee}%):
+                Taxa Admin ({adminFeePercent}%):
               </span>
               <span className="font-bold text-lg text-red-700">
-                {formatCurrency(adminFeeAmount, 'USD')}
+                {formatCurrency(adminFee, 'USD')}
               </span>
             </div>
           </div>
         </div>
 
-        <Separator />
+        {/* Separator */}
+        <div className="border-b my-4"></div>
 
         {/* Seção: Pagamento Imediato */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
             💰 Para Iniciar a Importação
           </h4>
-          
+
           <div className="p-4 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg border border-yellow-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <CreditCard className="h-6 w-6 text-yellow-600" />
                 <div>
                   <p className="font-semibold text-yellow-800">
-                    Entrada ({creditApplication.finalDownPayment}%)
+                    Entrada ({downPaymentPercent}%)
                   </p>
                   <p className="text-xs text-yellow-700">
                     Pagamento obrigatório para iniciar
@@ -115,38 +123,39 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
           </div>
         </div>
 
-        <Separator />
+        {/* Separator */}
+        <div className="border-b my-4"></div>
 
         {/* Seção: Financiamento */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
             Valor Financiado
           </h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
               <span className="text-sm font-medium">Valor Financiado:</span>
               <span className="font-semibold">{formatCurrency(financedAmount, 'USD')}</span>
             </div>
-            
-            {installmentTerms > 0 && (
+
+            {installmentTerms.length > 0 && (
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
                 <span className="text-sm font-medium text-green-700">
-                  Parcelas ({installmentTerms}x):
+                  Parcelas ({installmentTerms.length}x):
                 </span>
                 <span className="font-semibold text-green-700">
-                  {formatCurrency(installmentValue, 'USD')}
+                  {formatCurrency(installmentAmount, 'USD')}
                 </span>
               </div>
             )}
           </div>
-          
+
           {/* Termos de pagamento */}
-          {approvedTerms.length > 0 && (
+          {installmentTerms.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-muted-foreground mb-2">Prazos aprovados:</p>
               <div className="flex flex-wrap gap-2">
-                {approvedTerms.map((term) => (
+                {installmentTerms.map((term) => (
                   <Badge key={term} variant="outline" className="text-xs bg-blue-50">
                     {term} dias
                   </Badge>
@@ -156,18 +165,19 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
           )}
         </div>
 
-        <Separator />
+        {/* Separator */}
+        <div className="border-b my-4"></div>
 
         {/* Seção: Total Final */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
             Valor Total da Operação
           </h4>
-          
+
           <div className="p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border border-blue-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Receipt className="h-6 w-6 text-blue-600" />
+                <Calculator className="h-6 w-6 text-blue-600" />
                 <div>
                   <p className="font-semibold text-blue-800">
                     Custo Total (FOB + Taxas)
@@ -178,7 +188,7 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
                 </div>
               </div>
               <span className="font-bold text-2xl text-blue-800">
-                {formatCurrency(totalImportValue, 'USD')}
+                {formatCurrency(totalWithFees, 'USD')}
               </span>
             </div>
           </div>
@@ -198,7 +208,7 @@ export function ImportFinancialSummary({ importData, creditApplication }: Import
             </div>
             <div className="flex justify-between border-t pt-2 font-semibold">
               <span>Total da importação:</span>
-              <span>{formatCurrency(totalImportValue, 'USD')}</span>
+              <span>{formatCurrency(totalWithFees, 'USD')}</span>
             </div>
           </div>
         </div>
