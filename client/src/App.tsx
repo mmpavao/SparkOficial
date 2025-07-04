@@ -30,9 +30,6 @@ import SupplierDetailsPage from "@/pages/supplier-details";
 import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
 import PaymentsPage from "@/pages/payments";
-import PaymentDetailsPage from "@/pages/payment-details";
-import PaymentPayPage from "@/pages/payment-pay";
-import PaymentEditPage from "@/pages/payment-edit";
 import ImporterDetailsPage from "@/pages/importer-details";
 
 import NotFound from "@/pages/not-found";
@@ -82,9 +79,6 @@ function Router() {
         <Route path="/suppliers/new" component={SupplierNewPage} />
         
         <Route path="/payments" component={PaymentsPage} />
-        <Route path="/payments/:id" component={PaymentDetailsPage} />
-        <Route path="/payments/:id/pay" component={PaymentPayPage} />
-        <Route path="/payments/:id/edit" component={PaymentEditPage} />
         <Route path="/reports" component={ReportsPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Select, 
@@ -11,21 +11,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
-import { PaymentCard } from "@/components/payments/PaymentCard";
+import PaymentCard from "@/components/payments/PaymentCard";
 import { 
   Search,
   Filter,
@@ -52,13 +41,9 @@ interface PaymentSchedule {
 
 export default function PaymentsPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [cancelPaymentId, setCancelPaymentId] = useState<number | null>(null);
 
   // Buscar cronogramas de pagamento
   const { data: paymentsData, isLoading, error } = useQuery({
@@ -74,38 +59,7 @@ export default function PaymentsPage() {
     enabled: !!user
   });
 
-  // Mutação para cancelar pagamento
-  const cancelPaymentMutation = useMutation({
-    mutationFn: async (paymentId: number) => {
-      return apiRequest(`/api/payment-schedules/${paymentId}`, 'DELETE');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-      toast({
-        title: "Pagamento cancelado",
-        description: "O pagamento foi cancelado com sucesso.",
-      });
-      setCancelPaymentId(null);
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro ao cancelar",
-        description: "Não foi possível cancelar o pagamento.",
-        variant: "destructive",
-      });
-    },
-  });
 
-  const handleCancelPayment = (paymentId: number) => {
-    setCancelPaymentId(paymentId);
-  };
-
-  const handleConfirmCancel = () => {
-    if (cancelPaymentId) {
-      cancelPaymentMutation.mutate(cancelPaymentId);
-    }
-  };
 
   // Processar dados dos pagamentos - dados diretos do backend
   const payments = paymentsData || [];
@@ -360,35 +314,13 @@ export default function PaymentsPage() {
               <PaymentCard
                 key={payment.id}
                 payment={payment}
-                onCancel={handleCancelPayment}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Dialog de Confirmação de Cancelamento */}
-      <AlertDialog open={!!cancelPaymentId} onOpenChange={() => setCancelPaymentId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Pagamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja cancelar este pagamento? Esta ação não pode ser desfeita.
-              O pagamento será removido do cronograma e poderá afetar o limite de crédito disponível.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Manter Pagamento</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmCancel}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={cancelPaymentMutation.isPending}
-            >
-              {cancelPaymentMutation.isPending ? "Cancelando..." : "Sim, Cancelar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 }
