@@ -2207,8 +2207,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Dados obrigatórios ausentes" });
       }
 
+      // First, get the payment schedule to find the importId
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(paymentScheduleId));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Cronograma de pagamento não encontrado" });
+      }
+
       const paymentData = {
         paymentScheduleId: parseInt(paymentScheduleId),
+        importId: paymentSchedule.importId, // Add the missing importId
         amount,
         currency: 'USD',
         paymentMethod: paymentMethod || 'external',
