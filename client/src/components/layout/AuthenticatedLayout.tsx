@@ -150,7 +150,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           ? "Todos Fornecedores" 
           : "Fornecedores"
     },
-    { path: "/payments", icon: DollarSign, label: "Cronograma de Pagamentos" },
+    { path: "/payments", icon: DollarSign, label: "Pagamentos" },
     { path: "/reports", icon: BarChart3, label: navTranslations.reports },
   ];
 
