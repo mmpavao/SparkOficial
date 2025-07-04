@@ -324,18 +324,46 @@ export class DatabaseStorage {
 
   async getImportsByUser(userId: number): Promise<Import[]> {
     console.log(`🔍 Storage: Getting imports for user ${userId}`);
-    const result = await db
-      .select()
-      .from(imports)
-      .where(eq(imports.userId, userId))
-      .orderBy(desc(imports.createdAt));
     
-    console.log(`📊 Storage: Found ${result.length} imports for user ${userId}`);
-    if (result.length > 0) {
-      console.log(`📋 Import IDs:`, result.map(imp => imp.id));
+    try {
+      const result = await db
+        .select()
+        .from(imports)
+        .where(eq(imports.userId, userId))
+        .orderBy(desc(imports.createdAt));
+      
+      console.log(`📊 Storage: Query executed successfully - Found ${result.length} imports for user ${userId}`);
+      
+      if (result.length > 0) {
+        console.log(`📋 Import IDs:`, result.map(imp => imp.id));
+        console.log(`📋 First import sample:`, {
+          id: result[0].id,
+          name: result[0].importName,
+          userId: result[0].userId,
+          status: result[0].status
+        });
+      } else {
+        console.log(`⚠️ No imports found for user ${userId} - checking if user exists in any imports`);
+        
+        // Debug query to check if user has any imports at all
+        const allImports = await db.select().from(imports);
+        const userInAnyImport = allImports.find(imp => imp.userId === userId);
+        console.log(`🔍 User ${userId} found in any imports:`, !!userInAnyImport);
+        
+        if (userInAnyImport) {
+          console.log(`🎯 Sample user import:`, {
+            id: userInAnyImport.id,
+            name: userInAnyImport.importName,
+            userId: userInAnyImport.userId
+          });
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`❌ Database error in getImportsByUser for user ${userId}:`, error);
+      throw error;
     }
-    
-    return result;
   }
 
   async getImport(id: number): Promise<Import | undefined> {

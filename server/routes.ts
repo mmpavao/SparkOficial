@@ -1655,28 +1655,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
       const currentUser = await storage.getUser(userId);
       
-      console.log(`🔍 Fetching imports for user ${userId}, role: ${currentUser?.role}`);
+      console.log(`🔍 IMPORTS REQUEST - User ${userId}, Role: ${currentUser?.role}`);
+      console.log(`🔗 Session ID: ${req.sessionID}`);
+      
+      if (!currentUser) {
+        console.log(`❌ User ${userId} not found in database`);
+        return res.status(401).json({ message: "Usuário não encontrado" });
+      }
       
       let imports;
       if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira') {
         imports = await storage.getAllImports();
         console.log(`👑 Admin/Financeira fetched ${imports.length} total imports`);
       } else {
-        // Force refresh and bypass cache for imports
+        // Get user imports with detailed logging
+        console.log(`👤 Fetching imports for importer user ${userId}`);
         imports = await storage.getImportsByUser(userId);
-        console.log(`👤 User ${userId} fetched ${imports.length} personal imports`);
+        console.log(`📊 Found ${imports.length} imports for user ${userId}`);
         
-        // Debug: Also check directly in database
-        const directCheck = await storage.getAllImports();
-        const userImports = directCheck.filter(imp => imp.userId === userId);
-        console.log(`🔍 Direct DB check: Found ${userImports.length} imports for user ${userId}`);
-        console.log(`📊 User import IDs:`, userImports.map(imp => imp.id));
+        // Enhanced debugging for empty results
+        if (imports.length === 0) {
+          console.log(`🔍 ZERO IMPORTS DEBUG:`);
+          const allImports = await storage.getAllImports();
+          console.log(`🗄️ Total imports in DB: ${allImports.length}`);
+          const userImports = allImports.filter(imp => imp.userId === userId);
+          console.log(`🎯 Imports for user ${userId}: ${userImports.length}`);
+          if (userImports.length > 0) {
+            console.log(`📋 User import details:`, userImports.map(imp => ({
+              id: imp.id, 
+              name: imp.importName, 
+              userId: imp.userId
+            })));
+          }
+        }
       }
       
+      console.log(`✅ Sending ${imports.length} imports to frontend`);
       res.json(imports);
     } catch (error) {
-      console.error("❌ Error fetching imports:", error);
-      res.status(500).json({ message: "Erro ao buscar importações" });
+      console.error("❌ CRITICAL ERROR in imports endpoint:", error);
+      console.error("❌ Stack trace:", error.stack);
+      res.status(500).json({ message: "Erro ao buscar importações", error: error.message });
     }
   });
 

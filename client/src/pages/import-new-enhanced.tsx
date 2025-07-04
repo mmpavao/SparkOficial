@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
-import { ImportFinancialPreview } from "@/components/ImportFinancialPreview";
+import ImportFinancialPreview from "@/components/imports/ImportFinancialPreview";
 import TermsConfirmation from "@/components/imports/TermsConfirmation";
 
 // Import form schema
@@ -645,10 +645,10 @@ export default function ImportNewEnhancedPage() {
         <div className="lg:col-span-1">
           <div className="sticky top-6">
             <ImportFinancialPreview 
-              importValue={totalValue}
-              creditApplication={approvedCreditApplication}
-              creditUsage={creditUsage}
-              adminFee={adminFee}
+              fobValue={totalValue}
+              currency="USD"
+              incoterms="FOB"
+              showCreditCheck={true}
             />
           </div>
         </div>
