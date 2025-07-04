@@ -69,7 +69,7 @@ export default function PaymentCheckoutModal({ isOpen, onClose, paymentId }: Pay
   // Fetch payment data
   const { data: payment, isLoading } = useQuery({
     queryKey: ['/api/payment-schedules', paymentId],
-    queryFn: () => apiRequest('GET', `/api/payment-schedules/${paymentId}`),
+    queryFn: () => apiRequest(`/api/payment-schedules/${paymentId}`, 'GET'),
     enabled: isOpen && !!paymentId
   });
 
@@ -84,7 +84,7 @@ export default function PaymentCheckoutModal({ isOpen, onClose, paymentId }: Pay
         formData.append('receipt', externalReceipt);
       }
 
-      return apiRequest('POST', `/api/payment-schedules/${paymentId}/pay-external`, formData);
+      return apiRequest(`/api/payment-schedules/${paymentId}/pay-external`, 'POST', formData);
     },
     onSuccess: () => {
       toast({
@@ -106,7 +106,7 @@ export default function PaymentCheckoutModal({ isOpen, onClose, paymentId }: Pay
   // Pay Comex mutation
   const payComexMutation = useMutation({
     mutationFn: async (method: 'pix' | 'card') => {
-      return apiRequest('POST', `/api/payment-schedules/${paymentId}/pay-comex`, {
+      return apiRequest(`/api/payment-schedules/${paymentId}/pay-comex`, 'POST', {
         method,
         details: method === 'card' ? cardData : {}
       });
