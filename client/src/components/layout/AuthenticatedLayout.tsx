@@ -4,7 +4,9 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useScreenReader } from "@/hooks/useScreenReader";
 import { apiRequest } from "@/lib/queryClient";
+import SkipToMain from "@/components/accessibility/SkipToMain";
 // Navigation labels - using Portuguese for Brazilian users
 const navTranslations = {
   dashboard: 'Dashboard',
