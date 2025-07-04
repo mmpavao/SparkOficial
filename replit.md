@@ -812,6 +812,16 @@ Changelog:
   * Added detailed logging for debugging: user ID, credit applications, approval status
   * User can now create imports with US$ 750,000 approved credit after admin finalization
   * Resolved persistent "Você precisa ter um crédito aprovado" error that was blocking import creation for weeks
+- July 04, 2025. COMPLETE PAYMENT SYSTEM CORRECTIONS - Final Resolution:
+  * FIXED PAYMENT CALCULATION ERRORS: Replaced incorrect 10% down payment with correct 30% in import creation endpoint (routes.ts line 1516-1517)
+  * CORRECTED PAYMENT VALUES: Fixed ImportCostCalculator component to calculate entry based on total value with fees, not FOB only
+  * IMPLEMENTED PROPER PERCENTAGE CALCULATION: Updated logic to use 30% of total value (FOB + admin fees) for down payment
+  * RESOLVED DATE INVERSION ISSUE: Corrected payment schedule dates in chronological order with proper installment sequencing
+  * FIXED PAYMENT TERMS ORDER: Updated database from "120,90,60" to correct "60,90,120" days sequence in finalApprovedTerms
+  * IMPLEMENTED CHRONOLOGICAL SORTING: Enhanced ImportPaymentsList component with automatic sorting (down payment first, then installments by due date)
+  * REGENERATED PAYMENT SCHEDULES: Recreated payment schedules for import ID 11 with correct values (Entry: $11,550, Installments: $8,983.33 each)
+  * UNIFIED PAYMENT DISPLAY: Ensured payment schedules in import details match global payment page with identical values and visual consistency
+  * ESTABLISHED DEFINITIVE PAYMENT RULES: Payment calculations now follow confirmed terms from TermsConfirmation modal during import creation
 ```
 
 ## User Preferences

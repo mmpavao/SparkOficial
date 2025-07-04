@@ -1513,8 +1513,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const feeAmount = (totalValue * feeRate) / 100;
       const totalWithFees = totalValue + feeAmount;
 
-      // Calculate down payment (10% of total with fees)
-      const downPaymentAmount = (totalWithFees * 10) / 100;
+      // Calculate down payment (30% of total with fees)
+      const downPaymentAmount = (totalWithFees * 30) / 100;
 
       // Clean and convert data to match the new schema
       const cleanedData: any = {
