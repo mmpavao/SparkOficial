@@ -18,7 +18,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
-import PayComexConnectionModal from "@/components/PayComexConnectionModal";
 import {
   ArrowLeft,
   Upload,
@@ -55,7 +54,6 @@ export default function PaymentCheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPixModal, setShowPixModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
-  const [showPayComexModal, setShowPayComexModal] = useState(false);
 
   // Estados para pagamento externo
   const [externalData, setExternalData] = useState({
@@ -442,40 +440,83 @@ export default function PaymentCheckoutPage() {
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Interface simplificada para conexão Pay Comex */}
-                  <div className="text-center py-8">
-                    <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
-                      <CreditCard className="w-10 h-10 text-blue-600" />
-                    </div>
-                    
-                    <h3 className="text-xl font-semibold mb-3">Conectar com Pay Comex</h3>
-                    
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      Faça login na sua conta Pay Comex para processar pagamentos internacionais 
-                      com PIX ou cartão de crédito. Seus dados da empresa serão transferidos automaticamente.
-                    </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* PIX */}
+                    <Card className="border-2 border-dashed border-gray-200 hover:border-green-400 cursor-pointer transition-colors">
+                      <CardContent className="p-6 text-center">
+                        <QrCode className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                        <h3 className="font-semibold mb-2">PIX Instantâneo</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Pagamento instantâneo via PIX
+                        </p>
+                        <Button
+                          onClick={handlePixPayment}
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          disabled={payComexMutation.isPending}
+                        >
+                          <Smartphone className="w-4 h-4 mr-2" />
+                          Pagar com PIX
+                        </Button>
+                      </CardContent>
+                    </Card>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
-                      <div className="flex items-center gap-2 text-sm text-blue-800 mb-2">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="font-medium">Integração completa</span>
-                      </div>
-                      <ul className="text-xs text-blue-600 space-y-1">
-                        <li>• Dados da empresa pré-preenchidos</li>
-                        <li>• Informações de crédito aprovado</li>
-                        <li>• PIX instantâneo disponível</li>
-                        <li>• Cartão de crédito aceito</li>
-                      </ul>
-                    </div>
+                    {/* Cartão */}
+                    <Card className="border-2 border-dashed border-gray-200 hover:border-blue-400 cursor-pointer transition-colors">
+                      <CardContent className="p-6">
+                        <div className="text-center mb-4">
+                          <CreditCard className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                          <h3 className="font-semibold mb-2">Cartão de Crédito</h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Pague com cartão de crédito
+                          </p>
+                        </div>
 
-                    <Button
-                      onClick={() => setShowPayComexModal(true)}
-                      size="lg"
-                      className="bg-blue-600 hover:bg-blue-700 px-8 py-3"
-                    >
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Conectar Pay Comex
-                    </Button>
+                        <div className="space-y-3">
+                          <Input
+                            placeholder="Número do cartão"
+                            value={cardData.number}
+                            onChange={(e) => setCardData(prev => ({ ...prev, number: e.target.value }))}
+                            maxLength={16}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="MM/AA"
+                              value={cardData.expiry}
+                              onChange={(e) => setCardData(prev => ({ ...prev, expiry: e.target.value }))}
+                              maxLength={5}
+                            />
+                            <Input
+                              placeholder="CVV"
+                              value={cardData.cvv}
+                              onChange={(e) => setCardData(prev => ({ ...prev, cvv: e.target.value }))}
+                              maxLength={3}
+                            />
+                          </div>
+                          <Input
+                            placeholder="Nome no cartão"
+                            value={cardData.holderName}
+                            onChange={(e) => setCardData(prev => ({ ...prev, holderName: e.target.value }))}
+                          />
+                          <Button
+                            onClick={handleCardPayment}
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            disabled={isProcessing || payComexMutation.isPending}
+                          >
+                            {isProcessing ? (
+                              <>
+                                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                                Processando...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Pagar com Cartão
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </CardContent>
               </Card>
@@ -513,37 +554,6 @@ export default function PaymentCheckoutPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Modal Pay Comex Connection */}
-      <PayComexConnectionModal
-        open={showPayComexModal}
-        onOpenChange={setShowPayComexModal}
-        paymentData={{
-          amount: payment?.amount || "0",
-          currency: payment?.currency || "USD",
-          description: `Pagamento importação #${payment?.importId || 'N/A'}`
-        }}
-        onConnectionSuccess={(sessionToken) => {
-          // Quando a conexão for bem-sucedida, redirecionar para Pay Comex
-          console.log('Pay Comex conectado com sucesso. Token:', sessionToken);
-          
-          // Simular redirecionamento para Pay Comex checkout
-          // Em produção, usar a URL real da API Pay Comex
-          toast({
-            title: "Conectado com sucesso!",
-            description: "Redirecionando para Pay Comex..."
-          });
-          
-          // Mock do redirecionamento - em produção substituir pela URL real
-          setTimeout(() => {
-            // window.location.href = `https://checkout.paycomex.com/session/${sessionToken}`;
-            toast({
-              title: "Redirecionamento simulado",
-              description: "Em produção, você seria redirecionado para o checkout Pay Comex.",
-            });
-          }, 2000);
-        }}
-      />
     </div>
   );
 }
