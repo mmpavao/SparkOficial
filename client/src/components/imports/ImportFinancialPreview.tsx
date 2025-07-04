@@ -44,8 +44,14 @@ export default function ImportFinancialPreview({
     enabled: showCreditCheck
   });
 
+  // Debug logging
+  console.log("💰 Financial Settings:", financialSettings);
+  console.log("💳 Credit Info:", creditInfo);
+
   const adminFeePercentage = financialSettings?.adminFeePercentage || creditInfo?.adminFeePercentage || 10;
   const downPaymentPercentage = financialSettings?.downPaymentPercentage || 30;
+
+  console.log("📊 Final values - Admin Fee:", adminFeePercentage, "Down Payment:", downPaymentPercentage);
 
   // Calculate all costs
   const downPayment = fobValue * (downPaymentPercentage / 100);

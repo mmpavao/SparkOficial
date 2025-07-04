@@ -462,11 +462,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/financial-settings", requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
+      console.log("🔍 Fetching financial settings for user:", userId);
+      
       const user = await storage.getUser(userId);
       
       if (!user) {
+        console.log("❌ User not found:", userId);
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
+
+      console.log("👤 User data:", {
+        id: user.id,
+        defaultAdminFeeRate: user.defaultAdminFeeRate,
+        defaultDownPaymentRate: user.defaultDownPaymentRate,
+        defaultPaymentTerms: user.defaultPaymentTerms
+      });
 
       const settings = {
         adminFeePercentage: user.defaultAdminFeeRate || 10,
@@ -474,6 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentTerms: user.defaultPaymentTerms || "30,60,90"
       };
 
+      console.log("💰 Final settings being sent:", settings);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching user financial settings:", error);
