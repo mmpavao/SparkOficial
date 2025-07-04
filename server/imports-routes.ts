@@ -590,7 +590,7 @@ importRoutes.put('/imports/:id', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Only imports in planning status can be edited' });
     }
 
-    // Prepare update data with proper date handling
+    // Prepare update data with comprehensive date handling
     const updateData: any = { ...req.body };
     
     // Remove fields that shouldn't be updated
@@ -599,31 +599,51 @@ importRoutes.put('/imports/:id', requireAuth, async (req, res) => {
     delete updateData.createdAt;
     delete updateData.products; // Handle products separately
     
-    // Convert date strings to Date objects if present
-    if (updateData.estimatedDelivery && typeof updateData.estimatedDelivery === 'string') {
-      updateData.estimatedDelivery = new Date(updateData.estimatedDelivery);
-    }
-    if (updateData.actualDelivery && typeof updateData.actualDelivery === 'string') {
-      updateData.actualDelivery = new Date(updateData.actualDelivery);
-    }
-    if (updateData.invoiceDate && typeof updateData.invoiceDate === 'string') {
-      updateData.invoiceDate = new Date(updateData.invoiceDate);
-    }
-    if (updateData.productionStartDate && typeof updateData.productionStartDate === 'string') {
-      updateData.productionStartDate = new Date(updateData.productionStartDate);
-    }
-    if (updateData.shippingDate && typeof updateData.shippingDate === 'string') {
-      updateData.shippingDate = new Date(updateData.shippingDate);
-    }
-    if (updateData.estimatedArrival && typeof updateData.estimatedArrival === 'string') {
-      updateData.estimatedArrival = new Date(updateData.estimatedArrival);
-    }
-    if (updateData.actualArrival && typeof updateData.actualArrival === 'string') {
-      updateData.actualArrival = new Date(updateData.actualArrival);
-    }
+    console.log('Raw update data before date conversion:', JSON.stringify(updateData, null, 2));
+    
+    // List of all possible date fields in the imports table
+    const dateFields = [
+      'estimatedDelivery',
+      'actualDelivery', 
+      'invoiceDate',
+      'productionStartDate',
+      'shippingDate',
+      'estimatedArrival',
+      'actualArrival',
+      'estimatedDeparture',
+      'actualDeparture',
+      'deliveryDate',
+      'paymentDueDate',
+      'contractDate',
+      'updatedAt'
+    ];
+    
+    // Convert any date fields from string to Date object
+    dateFields.forEach(field => {
+      if (updateData[field]) {
+        if (typeof updateData[field] === 'string') {
+          console.log(`Converting ${field} from string: ${updateData[field]}`);
+          const dateValue = new Date(updateData[field]);
+          if (!isNaN(dateValue.getTime())) {
+            updateData[field] = dateValue;
+            console.log(`Successfully converted ${field} to Date: ${dateValue}`);
+          } else {
+            console.log(`Invalid date for ${field}, removing from update`);
+            delete updateData[field];
+          }
+        } else if (updateData[field] instanceof Date) {
+          console.log(`${field} is already a Date object`);
+        } else {
+          console.log(`Removing non-date value for ${field}:`, updateData[field]);
+          delete updateData[field];
+        }
+      }
+    });
     
     // Set updated timestamp
     updateData.updatedAt = new Date();
+    
+    console.log('Final update data after date conversion:', JSON.stringify(updateData, null, 2));
 
     // Update import
     const [updatedImport] = await db
