@@ -459,9 +459,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user financial settings
-  app.get("/api/user/financial-settings", requireAuth, async (req: any, res) => {
+  app.get("/api/user/financial-settings", async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const sessionId = req.sessionID;
+      const userId = req.session?.userId;
+      
+      console.log(`[Session Debug] GET /api/user/financial-settings - Session ID: ${sessionId}, User ID: ${userId}`);
+      
+      if (!req.session || !userId) {
+        console.log("Authentication failed - no session or user ID");
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+
       console.log("🔍 Fetching financial settings for user:", userId);
       
       const user = await storage.getUser(userId);
