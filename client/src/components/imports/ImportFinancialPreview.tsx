@@ -52,8 +52,8 @@ export default function ImportFinancialPreview({
   console.log("💰 Financial Settings:", financialSettings);
   console.log("💳 Credit Info:", creditInfo);
 
-  const adminFeePercentage = financialSettings?.adminFeePercentage || creditInfo?.adminFeePercentage || 10;
-  const downPaymentPercentage = financialSettings?.downPaymentPercentage || 30;
+  const adminFeePercentage = financialSettings?.adminFeePercentage || creditInfo?.adminFeePercentage || 8;
+  const downPaymentPercentage = financialSettings?.downPaymentPercentage || 25;
 
   console.log("📊 Final values - Admin Fee:", adminFeePercentage, "Down Payment:", downPaymentPercentage);
 
