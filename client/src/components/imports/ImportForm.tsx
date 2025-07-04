@@ -28,6 +28,7 @@ const importFormSchema = z.object({
   transportMethod: z.enum(["maritimo", "aereo", "terrestre"]),
   origin: z.string().min(1, "Origem é obrigatória"),
   destination: z.string().min(1, "Destino é obrigatório"),
+  destinationState: z.string().optional(),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   currency: z.string().default("USD"),
   status: z.string().default("planejamento"),
