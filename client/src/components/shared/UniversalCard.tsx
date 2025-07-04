@@ -42,6 +42,9 @@ interface UniversalCardProps {
   // Actions dropdown
   actions: ActionItem[];
   
+  // Custom actions (additional buttons)
+  customActions?: ReactNode;
+  
   // Footer section (optional)
   footer?: ReactNode;
   
@@ -59,6 +62,7 @@ export function UniversalCard({
   status,
   miniCards,
   actions,
+  customActions,
   footer,
   onClick,
   className = ""
@@ -103,6 +107,13 @@ export function UniversalCard({
               </Badge>
             </div>
           </div>
+          
+          {/* Custom Actions */}
+          {customActions && (
+            <div className="ml-2">
+              {customActions}
+            </div>
+          )}
           
           {/* Actions Menu */}
           <DropdownMenu>

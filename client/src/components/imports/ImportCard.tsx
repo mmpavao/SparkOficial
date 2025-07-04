@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Edit, X, Package, MapPin, Calendar, DollarSign, Truck, Globe, Clock } from "lucide-react";
+import { StatusChanger } from "./StatusChanger";
+import { ImportPipeline } from "./ImportPipeline";
 import { Import } from "@shared/imports-schema";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useLocation } from "wouter";
@@ -122,29 +124,44 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
           show: canCancel
         }
       ]}
+      customActions={
+        <StatusChanger 
+          importId={importData.id} 
+          currentStatus={importData.status}
+        />
+      }
       footer={
-        importData.cargoType === 'LCL' && importData.products && importData.products.length > 0 ? (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Produtos:</span>
-              <Badge variant="secondary" className="text-xs">
-                {importData.products.length} {importData.products.length === 1 ? 'produto' : 'produtos'}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {importData.products.slice(0, 3).map((product: any, index: number) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {product.productName}
+        <div className="space-y-3">
+          {/* Pipeline de Status */}
+          <ImportPipeline 
+            currentStatus={importData.status}
+            cargoType={importData.cargoType}
+          />
+          
+          {/* Produtos (se LCL) */}
+          {importData.cargoType === 'LCL' && importData.products && importData.products.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Produtos:</span>
+                <Badge variant="secondary" className="text-xs">
+                  {importData.products.length} {importData.products.length === 1 ? 'produto' : 'produtos'}
                 </Badge>
-              ))}
-              {importData.products.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{importData.products.length - 3} mais
-                </Badge>
-              )}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {importData.products.slice(0, 3).map((product: any, index: number) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    {product.productName}
+                  </Badge>
+                ))}
+                {importData.products.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{importData.products.length - 3} mais
+                  </Badge>
+                )}
+              </div>
             </div>
-          </div>
-        ) : undefined
+          )}
+        </div>
       }
       onClick={handleViewDetails}
     />
