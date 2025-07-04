@@ -458,6 +458,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user financial settings
+  app.get("/api/user/financial-settings", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      const settings = {
+        adminFeePercentage: user.defaultAdminFeeRate || 10,
+        downPaymentPercentage: user.defaultDownPaymentRate || 30,
+        paymentTerms: user.defaultPaymentTerms || "30,60,90"
+      };
+
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching user financial settings:", error);
+      res.status(500).json({ message: "Erro ao buscar configurações financeiras" });
+    }
+  });
+
   // User management routes (Admin area)
   app.post("/api/admin/users", requireAuth, async (req: any, res) => {
     try {

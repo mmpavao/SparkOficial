@@ -19,6 +19,12 @@ interface CreditInfo {
   adminFeePercentage: number;
 }
 
+interface FinancialSettings {
+  adminFeePercentage: number;
+  downPaymentPercentage: number;
+  paymentTerms: string;
+}
+
 export default function ImportFinancialPreview({ 
   fobValue, 
   currency = "USD",
@@ -32,8 +38,14 @@ export default function ImportFinancialPreview({
     enabled: showCreditCheck
   });
 
-  const adminFeePercentage = creditInfo?.adminFeePercentage || 10;
-  const downPaymentPercentage = 30;
+  // Fetch user-specific financial settings
+  const { data: financialSettings } = useQuery<FinancialSettings>({
+    queryKey: ["/api/user/financial-settings"],
+    enabled: showCreditCheck
+  });
+
+  const adminFeePercentage = financialSettings?.adminFeePercentage || creditInfo?.adminFeePercentage || 10;
+  const downPaymentPercentage = financialSettings?.downPaymentPercentage || 30;
 
   // Calculate all costs
   const downPayment = fobValue * (downPaymentPercentage / 100);
