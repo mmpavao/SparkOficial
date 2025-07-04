@@ -501,6 +501,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get specific user financial settings (for admin use)
+  app.get("/api/admin/users/:userId/financial-settings", async (req: any, res) => {
+    try {
+      const sessionId = req.sessionID;
+      const currentUserId = req.session?.userId;
+      const targetUserId = parseInt(req.params.userId);
+      
+      console.log(`[Session Debug] GET /api/admin/users/${targetUserId}/financial-settings - Session ID: ${sessionId}, Current User ID: ${currentUserId}`);
+      
+      if (!req.session || !currentUserId) {
+        console.log("Authentication failed - no session or user ID");
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+
+      console.log("🔍 Fetching financial settings for target user:", targetUserId);
+      
+      const user = await storage.getUser(targetUserId);
+      
+      if (!user) {
+        console.log("❌ Target user not found:", targetUserId);
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      console.log("👤 Target user data:", {
+        id: user.id,
+        defaultAdminFeeRate: user.defaultAdminFeeRate,
+        defaultDownPaymentRate: user.defaultDownPaymentRate,
+        defaultPaymentTerms: user.defaultPaymentTerms
+      });
+
+      const settings = {
+        adminFeePercentage: user.defaultAdminFeeRate || 10,
+        downPaymentPercentage: user.defaultDownPaymentRate || 30,
+        paymentTerms: user.defaultPaymentTerms || "30,60,90"
+      };
+
+      console.log("💰 Admin fetching settings for user", targetUserId, ":", settings);
+      res.json(settings);
+    } catch (error) {
+      console.error("❌ Error fetching user financial settings:", error);
+      res.status(500).json({ message: "Erro ao buscar configurações financeiras do usuário" });
+    }
+  });
+
   // User management routes (Admin area)
   app.post("/api/admin/users", requireAuth, async (req: any, res) => {
     try {

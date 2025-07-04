@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,16 +16,44 @@ interface AdminFinalizationPanelProps {
   onUpdate: () => void;
 }
 
+interface UserFinancialSettings {
+  adminFeePercentage: number;
+  downPaymentPercentage: number;
+  paymentTerms: string;
+}
+
 export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizationPanelProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Fetch user-specific financial settings for this application
+  const { data: userSettings } = useQuery<UserFinancialSettings>({
+    queryKey: [`/api/admin/users/${application.userId}/financial-settings`],
+    enabled: !!application.userId
+  });
+
+  console.log("👤 User Settings for Application:", userSettings);
+  console.log("📝 Application Data:", { userId: application.userId, creditLimit: application.creditLimit });
+
   const [formData, setFormData] = useState({
     finalCreditLimit: application.creditLimit || "",
     finalApprovedTerms: "", // Iniciar vazio para evitar concatenação
-    finalDownPayment: application.finalDownPayment || "10",
-    adminFee: application.adminFee || "0",
+    finalDownPayment: userSettings?.downPaymentPercentage?.toString() || application.finalDownPayment || "25",
+    adminFee: userSettings?.adminFeePercentage?.toString() || application.adminFee || "8",
     adminFinalNotes: application.adminFinalNotes || ""
   });
+
+  // Update form when user settings are loaded
+  useEffect(() => {
+    if (userSettings) {
+      setFormData(prev => ({
+        ...prev,
+        finalDownPayment: userSettings.downPaymentPercentage?.toString() || prev.finalDownPayment,
+        adminFee: userSettings.adminFeePercentage?.toString() || prev.adminFee,
+        finalApprovedTerms: userSettings.paymentTerms || prev.finalApprovedTerms
+      }));
+    }
+  }, [userSettings]);
 
   // Only show if application is financially approved but not admin finalized
   if (application.financialStatus !== 'approved' || application.adminStatus === 'admin_finalized') {

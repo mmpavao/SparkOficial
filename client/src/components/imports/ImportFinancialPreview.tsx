@@ -39,12 +39,16 @@ export default function ImportFinancialPreview({
   });
 
   // Fetch user-specific financial settings
-  const { data: financialSettings } = useQuery<FinancialSettings>({
+  const { data: financialSettings, isLoading: settingsLoading, error: settingsError } = useQuery<FinancialSettings>({
     queryKey: ["/api/user/financial-settings"],
-    enabled: showCreditCheck
+    enabled: showCreditCheck,
+    retry: 3,
+    refetchOnWindowFocus: false
   });
 
   // Debug logging
+  console.log("🔄 Settings Loading:", settingsLoading);
+  console.log("❌ Settings Error:", settingsError);
   console.log("💰 Financial Settings:", financialSettings);
   console.log("💳 Credit Info:", creditInfo);
 

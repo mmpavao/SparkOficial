@@ -1,8 +1,8 @@
 // CRITICAL - DO NOT MODIFY WITHOUT AUTHORIZATION
 // This component handles the 4-tier approval workflow:
 // 1. Importador applies → 2. Admin pre-approves → 3. Financeira approves → 4. Admin finalizes
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,6 +72,15 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
   const { toast } = useToast();
   const { playApprovalSound, playStatusChangeSound, playSubmitSound } = useSoundEffects();
 
+  // Fetch user-specific financial settings for this application
+  const { data: userSettings } = useQuery({
+    queryKey: [`/api/admin/users/${application.userId}/financial-settings`],
+    enabled: !!application.userId && permissions.isFinanceira
+  });
+
+  console.log("👤 User Financial Settings for Application:", userSettings);
+  console.log("📝 Application Data:", { userId: application.userId, creditLimit: application.creditLimit });
+
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
     riskLevel: application.riskLevel || "medium",
@@ -80,13 +89,23 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     observations: application.adminObservations || ""
   });
 
-  // Financeira-specific state
+  // Financeira-specific state - initialize with user settings when available
   const [financialData, setFinancialData] = useState({
     creditLimit: application.creditLimit || "",
-    approvedTerms: application.approvedTerms ? application.approvedTerms.split(',') : [],
+    approvedTerms: userSettings?.paymentTerms ? userSettings.paymentTerms.split(',') : (application.approvedTerms ? application.approvedTerms.split(',') : []),
     financialNotes: application.financialNotes || "",
     attachments: [] as File[]
   });
+
+  // Update financial data when user settings are loaded
+  useEffect(() => {
+    if (userSettings && permissions.isFinanceira) {
+      setFinancialData(prev => ({
+        ...prev,
+        approvedTerms: userSettings.paymentTerms ? userSettings.paymentTerms.split(',') : prev.approvedTerms
+      }));
+    }
+  }, [userSettings, permissions.isFinanceira]);
 
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
