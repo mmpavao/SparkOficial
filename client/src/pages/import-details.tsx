@@ -46,7 +46,15 @@ export default function ImportDetailsPage() {
       if (!response.ok) {
         throw new Error('Importação não encontrada');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('📋 Import data received:', {
+        origin: data.origin,
+        destination: data.destination,
+        estimatedDelivery: data.estimatedDelivery,
+        estimatedArrival: data.estimatedArrival,
+        fullData: data
+      });
+      return data;
     },
   });
 
@@ -231,9 +239,11 @@ export default function ImportDetailsPage() {
                       <div>
                         <p className="text-sm font-medium text-gray-600">Data Estimada de Chegada</p>
                         <p className="text-lg">
-                          {importData.estimatedArrival 
-                            ? new Date(importData.estimatedArrival).toLocaleDateString('pt-BR')
-                            : 'N/A'
+                          {importData.estimatedDelivery 
+                            ? new Date(importData.estimatedDelivery).toLocaleDateString('pt-BR')
+                            : importData.estimatedArrival 
+                              ? new Date(importData.estimatedArrival).toLocaleDateString('pt-BR')
+                              : 'N/A'
                           }
                         </p>
                       </div>
