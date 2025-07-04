@@ -128,6 +128,7 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
         <StatusChanger 
           importId={importData.id} 
           currentStatus={importData.status}
+          shippingMethod={importData.shippingMethod || 'sea'}
         />
       }
       footer={

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, CheckCircle } from "lucide-react";
-import { IMPORT_STATUS, IMPORT_STATUS_LABELS, getImportStatusColor } from "@/utils/importStatus";
+import { IMPORT_STATUS, IMPORT_STATUS_LABELS, getImportStatusColor, getImportStatusLabelsForShippingMethod } from "@/utils/importStatus";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,10 +15,11 @@ import { useQueryClient } from "@tanstack/react-query";
 interface StatusChangerProps {
   importId: number;
   currentStatus: string;
+  shippingMethod: string;
   onStatusChange?: (newStatus: string) => void;
 }
 
-export function StatusChanger({ importId, currentStatus, onStatusChange }: StatusChangerProps) {
+export function StatusChanger({ importId, currentStatus, shippingMethod, onStatusChange }: StatusChangerProps) {
   const [isChanging, setIsChanging] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -67,7 +68,7 @@ export function StatusChanger({ importId, currentStatus, onStatusChange }: Statu
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        {Object.entries(IMPORT_STATUS_LABELS).map(([status, label]) => (
+        {Object.entries(getImportStatusLabelsForShippingMethod(shippingMethod)).map(([status, label]) => (
           <DropdownMenuItem
             key={status}
             onClick={(e) => {

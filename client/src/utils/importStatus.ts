@@ -92,3 +92,31 @@ export function isFinalImportStatus(status: string): boolean {
 export function isTransportImportStatus(status: string): boolean {
   return TRANSPORT_IMPORT_STATUSES.includes(status as ImportStatus);
 }
+
+// Função para obter status baseado no shipping method
+export function getTransportStatusForShippingMethod(shippingMethod: string): ImportStatus {
+  if (shippingMethod === 'air') {
+    return IMPORT_STATUS.TRANSPORTE_AEREO;
+  } else if (shippingMethod === 'sea') {
+    return IMPORT_STATUS.TRANSPORTE_MARITIMO;
+  }
+  // Default para marítimo se não especificado
+  return IMPORT_STATUS.TRANSPORTE_MARITIMO;
+}
+
+// Função para obter lista de status dinâmica baseada no shipping method
+export function getImportStatusLabelsForShippingMethod(shippingMethod: string): Record<string, string> {
+  const transportStatus = getTransportStatusForShippingMethod(shippingMethod);
+  const transportLabel = shippingMethod === 'air' ? 'Transporte Aéreo' : 'Transporte Marítimo';
+  
+  return {
+    [IMPORT_STATUS.PLANEJAMENTO]: "Planejamento",
+    [IMPORT_STATUS.PRODUCAO]: "Produção",
+    [IMPORT_STATUS.ENTREGUE_AGENTE]: "Entregue ao Agente",
+    [transportStatus]: transportLabel,
+    [IMPORT_STATUS.DESEMBARACO]: "Desembaraço", 
+    [IMPORT_STATUS.TRANSPORTE_NACIONAL]: "Transporte Nacional",
+    [IMPORT_STATUS.CONCLUIDO]: "Concluído",
+    [IMPORT_STATUS.CANCELADO]: "Cancelado"
+  };
+}
