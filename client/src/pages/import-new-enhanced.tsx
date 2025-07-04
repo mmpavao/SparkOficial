@@ -122,18 +122,6 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
     },
   });
 
-  // Show loading while importing data is being fetched
-  if (isEditing && importLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Carregando dados da importação...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Product form
   const productForm = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -171,6 +159,18 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
     queryKey: ['/api/imports', importId],
     enabled: isEditing && !!importId,
   });
+
+  // Show loading while importing data is being fetched
+  if (isEditing && importLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Carregando dados da importação...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Use real suppliers or mock for development
   const suppliers = suppliersData.length > 0 ? suppliersData : [
