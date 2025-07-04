@@ -3868,6 +3868,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Payment endpoints
 
+  // Get upcoming payments for dashboard
+  app.get('/api/payments/upcoming', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Get all payment schedules for user's imports
+      const userImports = await storage.getImportsByUser(userId);
+      const allPayments = [];
+
+      for (const importRecord of userImports) {
+        const paymentSchedules = await storage.getPaymentScheduleByImport(importRecord.id);
+        
+        // Filter pending payments and add import context
+        const pendingPayments = paymentSchedules
+          .filter(schedule => schedule.status === 'pending')
+          .map(schedule => ({
+            ...schedule,
+            importName: importRecord.importName || `Importação ${importRecord.id}`,
+            importId: importRecord.id
+          }));
+        
+        allPayments.push(...pendingPayments);
+      }
+
+      // Sort by due date and limit to next 5 payments
+      const upcomingPayments = allPayments
+        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+        .slice(0, 5);
+
+      res.json(upcomingPayments);
+    } catch (error) {
+      console.error("Error fetching upcoming payments:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Get individual payment details
   app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
     try {

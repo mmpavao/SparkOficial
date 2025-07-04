@@ -1,9 +1,10 @@
 
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { useImporterDashboard } from '@/hooks/useImporterDashboard';
 import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/utils/soundEffects';
@@ -53,6 +54,13 @@ export default function Dashboard() {
   const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
   const { data: importerData, isLoading: importerDataLoading, error } = useImporterDashboard(isImporter);
   const { data: financeiraMetrics, isLoading: financeiraMetricsLoading } = useFinanceiraMetrics(isFinanceira);
+  
+  // Buscar pagamentos próximos para importadores
+  const { data: upcomingPayments } = useQuery({
+    queryKey: ['/api/payments/upcoming'],
+    queryFn: () => apiRequest('/api/payments/upcoming', 'GET'),
+    enabled: isImporter,
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1188,93 +1196,134 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {/* Mock payment data - será substituído por dados reais */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-amber-600" />
+                {upcomingPayments && upcomingPayments.length > 0 ? (
+                  upcomingPayments.map((payment: any) => {
+                    const dueDate = new Date(payment.dueDate);
+                    const today = new Date();
+                    const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                    const isOverdue = diffDays < 0;
+                    const isDueSoon = diffDays <= 3 && diffDays >= 0;
+                    
+                    const getPaymentStyle = () => {
+                      if (isOverdue) {
+                        return {
+                          bg: 'from-red-50 to-pink-50',
+                          border: 'border-red-200',
+                          iconBg: 'bg-red-100',
+                          iconColor: 'text-red-600',
+                          textColor: 'text-red-800',
+                          subTextColor: 'text-red-600',
+                          priceColor: 'text-red-700',
+                          badge: 'destructive' as const,
+                          badgeText: 'Em Atraso',
+                          icon: AlertCircle,
+                          dateText: `Vencido há ${Math.abs(diffDays)} dias`,
+                          buttonVariant: 'destructive' as const,
+                          buttonText: 'Pagar Urgente'
+                        };
+                      } else if (isDueSoon) {
+                        return {
+                          bg: 'from-amber-50 to-orange-50',
+                          border: 'border-amber-200',
+                          iconBg: 'bg-amber-100',
+                          iconColor: 'text-amber-600',
+                          textColor: 'text-amber-800',
+                          subTextColor: 'text-amber-600',
+                          priceColor: 'text-amber-700',
+                          badge: 'secondary' as const,
+                          badgeText: `${diffDays === 0 ? 'Hoje' : `${diffDays} dias`}`,
+                          icon: Clock,
+                          dateText: diffDays === 0 ? 'Vence hoje' : `Vencimento em ${diffDays} dias`,
+                          buttonVariant: 'outline' as const,
+                          buttonText: 'Pagar Agora'
+                        };
+                      } else {
+                        return {
+                          bg: 'from-blue-50 to-indigo-50',
+                          border: 'border-blue-200',
+                          iconBg: 'bg-blue-100',
+                          iconColor: 'text-blue-600',
+                          textColor: 'text-blue-800',
+                          subTextColor: 'text-blue-600',
+                          priceColor: 'text-blue-700',
+                          badge: 'outline' as const,
+                          badgeText: `${diffDays} dias`,
+                          icon: Calendar,
+                          dateText: `Vencimento em ${diffDays} dias`,
+                          buttonVariant: 'outline' as const,
+                          buttonText: 'Ver Detalhes'
+                        };
+                      }
+                    };
+                    
+                    const style = getPaymentStyle();
+                    const IconComponent = style.icon;
+                    
+                    return (
+                      <div key={payment.id} className={`bg-gradient-to-r ${style.bg} p-4 rounded-lg border ${style.border}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 ${style.iconBg} rounded-lg flex items-center justify-center`}>
+                              <IconComponent className={`w-4 h-4 ${style.iconColor}`} />
+                            </div>
+                            <div>
+                              <p className={`font-semibold text-sm ${style.textColor}`}>
+                                {payment.importName}
+                              </p>
+                              <p className={`text-xs ${style.subTextColor}`}>
+                                {style.dateText}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-bold ${style.priceColor}`}>
+                              {formatCurrency(parseFloat(payment.amount))}
+                            </p>
+                            <Badge variant={style.badge} className="text-xs">
+                              {payment.paymentType === 'entry' ? 'Entrada' : 
+                               payment.installmentNumber ? `${payment.installmentNumber}ª Parcela` : 
+                               style.badgeText}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className={`flex items-center justify-between pt-2 border-t ${style.border}`}>
+                          <span className={`text-xs ${style.subTextColor}`}>
+                            {formatDate(payment.dueDate)}
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant={style.buttonVariant} 
+                            className="text-xs h-7"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setLocation(`/payments/${payment.id}/checkout`);
+                            }}
+                          >
+                            {style.buttonText}
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm text-amber-800">Importação Equipamentos</p>
-                        <p className="text-xs text-amber-600">Vencimento em 3 dias</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-amber-700">US$ 8,983</p>
-                      <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
-                        2ª Parcela
-                      </Badge>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum pagamento pendente</h3>
+                    <p className="text-gray-500">Você está em dia com todos os pagamentos.</p>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-amber-200">
-                    <span className="text-xs text-amber-600">07/07/2025</span>
-                    <Button size="sm" variant="outline" className="text-xs h-7 border-amber-300 text-amber-700 hover:bg-amber-100">
-                      Pagar Agora
-                    </Button>
+                )}
+                
+                {upcomingPayments && upcomingPayments.length > 0 && (
+                  <div className="text-center pt-2">
+                    <Link href="/payments">
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        Ver Todos os Pagamentos
+                        <ChevronRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </Link>
                   </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-lg border border-red-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                        <AlertCircle className="w-4 h-4 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm text-red-800">Importação Maquinário</p>
-                        <p className="text-xs text-red-600">Vencido há 2 dias</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-red-700">US$ 11,550</p>
-                      <Badge variant="destructive" className="text-xs">
-                        Em Atraso
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-red-200">
-                    <span className="text-xs text-red-600">02/07/2025</span>
-                    <Button size="sm" variant="destructive" className="text-xs h-7">
-                      Pagar Urgente
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Calendar className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm text-green-800">Importação Componentes</p>
-                        <p className="text-xs text-green-600">Vencimento em 15 dias</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-700">US$ 8,983</p>
-                      <Badge variant="default" className="text-xs bg-green-100 text-green-700 hover:bg-green-100">
-                        1ª Parcela
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-green-200">
-                    <span className="text-xs text-green-600">19/07/2025</span>
-                    <Button size="sm" variant="outline" className="text-xs h-7 border-green-300 text-green-700 hover:bg-green-100">
-                      Ver Detalhes
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="text-center pt-2">
-                  <Link href="/payments">
-                    <Button variant="ghost" size="sm" className="text-xs">
-                      Ver Todos os Pagamentos
-                      <ChevronRight className="w-3 h-3 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
