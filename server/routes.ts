@@ -1755,8 +1755,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         res.json(updatedImport);
       } else {
-        // For full edits, only allow if status is 'planning'
-        if (importRecord.status !== 'planning') {
+        // For full edits, only allow if status is 'planejamento'
+        if (importRecord.status !== 'planejamento') {
           return res.status(400).json({ message: "Só é possível editar importações em planejamento" });
         }
         

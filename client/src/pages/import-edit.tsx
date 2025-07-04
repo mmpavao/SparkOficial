@@ -22,12 +22,12 @@ const importSchema = z.object({
   cargoType: z.enum(["FCL", "LCL"], { required_error: "Selecione o tipo de carga" }),
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
-  shippingMethod: z.enum(["sea", "air"], { required_error: "Selecione o método de envio" }),
+  transportMethod: z.enum(["maritimo", "aereo"], { required_error: "Selecione o método de transporte" }),
   incoterms: z.enum(["FOB", "CIF", "EXW"], { required_error: "Selecione o Incoterm" }),
-  portOfLoading: z.string().min(2, "Porto de embarque é obrigatório"),
-  portOfDischarge: z.string().min(2, "Porto de desembarque é obrigatório"),
-  finalDestination: z.string().min(2, "Destino final é obrigatório"),
-  estimatedDelivery: z.string().min(1, "Data estimada de entrega é obrigatória"),
+  origin: z.string().min(2, "Porto de origem é obrigatório"),
+  destination: z.string().min(2, "Porto de destino é obrigatório"),
+  destinationState: z.string().optional(),
+  estimatedArrival: z.string().min(1, "Data estimada de chegada é obrigatória"),
   notes: z.string().optional(),
 });
 
@@ -84,7 +84,7 @@ export default function ImportEditPage() {
     resolver: zodResolver(importSchema),
     defaultValues: {
       cargoType: "FCL",
-      shippingMethod: "sea",
+      transportMethod: "maritimo",
       incoterms: "FOB",
     },
   });
@@ -149,13 +149,17 @@ export default function ImportEditPage() {
         cargoType: importData.cargoType || 'FCL',
         containerNumber: importData.containerNumber || '',
         sealNumber: importData.sealNumber || '',
-        shippingMethod: importData.shippingMethod || 'sea',
+        transportMethod: importData.transportMethod === 'sea' ? 'maritimo' : 
+                        importData.transportMethod === 'air' ? 'aereo' : 
+                        importData.transportMethod || 'maritimo',
         incoterms: importData.incoterms || 'FOB',
-        portOfLoading: importData.portOfLoading || '',
-        portOfDischarge: importData.portOfDischarge || '',
-        finalDestination: importData.finalDestination || '',
-        estimatedDelivery: importData.estimatedDelivery ? 
-          new Date(importData.estimatedDelivery).toISOString().split('T')[0] : '',
+        origin: importData.origin || '',
+        destination: importData.destination || '',
+        destinationState: importData.destinationState || '',
+        estimatedArrival: importData.estimatedDelivery ? 
+          new Date(importData.estimatedDelivery).toISOString().split('T')[0] : 
+          importData.estimatedArrival ? 
+          new Date(importData.estimatedArrival).toISOString().split('T')[0] : '',
         notes: importData.notes || '',
       });
 
@@ -343,10 +347,10 @@ export default function ImportEditPage() {
 
                     <FormField
                       control={form.control}
-                      name="shippingMethod"
+                      name="transportMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Método de Envio</FormLabel>
+                          <FormLabel>Método de Transporte</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -354,8 +358,8 @@ export default function ImportEditPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="sea">Marítimo</SelectItem>
-                              <SelectItem value="air">Aéreo</SelectItem>
+                              <SelectItem value="maritimo">Marítimo</SelectItem>
+                              <SelectItem value="aereo">Aéreo</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -433,10 +437,10 @@ export default function ImportEditPage() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
-                      name="portOfLoading"
+                      name="origin"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Porto de Embarque</FormLabel>
+                          <FormLabel>Porto de Origem</FormLabel>
                           <FormControl>
                             <Input placeholder="Ex: Shanghai, China" {...field} />
                           </FormControl>
@@ -447,10 +451,10 @@ export default function ImportEditPage() {
 
                     <FormField
                       control={form.control}
-                      name="portOfDischarge"
+                      name="destination"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Porto de Desembarque</FormLabel>
+                          <FormLabel>Porto de Destino</FormLabel>
                           <FormControl>
                             <Input placeholder="Ex: Santos, Brasil" {...field} />
                           </FormControl>
@@ -463,12 +467,12 @@ export default function ImportEditPage() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
-                      name="finalDestination"
+                      name="destinationState"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Destino Final</FormLabel>
+                          <FormLabel>Estado de Destino</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: São Paulo, SP" {...field} />
+                            <Input placeholder="Ex: São Paulo" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -477,10 +481,10 @@ export default function ImportEditPage() {
 
                     <FormField
                       control={form.control}
-                      name="estimatedDelivery"
+                      name="estimatedArrival"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data Estimada de Entrega</FormLabel>
+                          <FormLabel>Data Estimada de Chegada</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>

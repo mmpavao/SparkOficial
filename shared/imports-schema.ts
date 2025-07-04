@@ -14,9 +14,10 @@ export const imports = pgTable('imports', {
   importCode: text('import_code'),
   cargoType: text('cargo_type').notNull(), // 'FCL' or 'LCL'
   
-  // Origin and destination
-  origin: text('origin').notNull(),
-  destination: text('destination').notNull(),
+  // Origin and destination (ports)
+  origin: text('origin').notNull(), // Porto de origem (China)
+  destination: text('destination').notNull(), // Porto de destino (Brasil)
+  destinationState: text('destination_state'), // Estado de destino no Brasil
   transportMethod: text('transport_method').notNull(), // 'maritimo' or 'aereo'
   
   // Financial information
@@ -130,8 +131,9 @@ export const insertImportSchema = createInsertSchema(imports, {
   cargoType: z.enum(['FCL', 'LCL'], { required_error: 'Tipo de carga é obrigatório' }),
   transportMethod: z.enum(['maritimo', 'aereo'], { required_error: 'Método de transporte é obrigatório' }),
   incoterms: z.enum(['FOB', 'CIF', 'EXW'], { required_error: 'Incoterms é obrigatório' }),
-  origin: z.string().min(1, 'Origem é obrigatória'),
-  destination: z.string().min(1, 'Destino é obrigatório')
+  origin: z.string().min(1, 'Porto de origem é obrigatório'),
+  destination: z.string().min(1, 'Porto de destino é obrigatório'),
+  destinationState: z.string().optional()
 }).omit({
   id: true,
   createdAt: true,
