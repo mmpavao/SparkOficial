@@ -65,7 +65,7 @@ type CreditApplicationForm = {
 };
 
 // Componente para calcular e exibir dados reais de crédito
-function CreditSummaryCards({ applications, permissions, t }: { applications: any[], permissions: any, t: (key: string) => string }) {
+function CreditSummaryCards({ applications, permissions }: { applications: any[], permissions: any }) {
   if (!Array.isArray(applications)) {
     return null;
   }
@@ -108,16 +108,13 @@ function CreditSummaryCards({ applications, permissions, t }: { applications: an
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.isFinanceira ? t('financeira.analysis.approved') : (permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado")}
+                {permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado"}
               </p>
               <p className="text-2xl font-bold text-green-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalApproved)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {permissions.isFinanceira ? 
-                  `${approvedApplications.length} ${approvedApplications.length === 1 ? t('financeira.analysis.application') : t('financeira.analysis.applications')}` :
-                  `${approvedApplications.length} ${approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}`
-                }
+                {approvedApplications.length} {approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -132,16 +129,13 @@ function CreditSummaryCards({ applications, permissions, t }: { applications: an
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.isFinanceira ? t('financeira.analysis.inAnalysis') : (permissions.canViewAllApplications ? "Em Análise" : "Em Análise")}
+                {permissions.canViewAllApplications ? "Em Análise" : "Em Análise"}
               </p>
               <p className="text-2xl font-bold text-blue-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {permissions.isFinanceira ?
-                  `${underReviewApplications.length} ${underReviewApplications.length === 1 ? t('financeira.analysis.application') : t('financeira.analysis.applications')}` :
-                  `${underReviewApplications.length} ${underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}`
-                }
+                {underReviewApplications.length} {underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -156,16 +150,13 @@ function CreditSummaryCards({ applications, permissions, t }: { applications: an
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                {permissions.isFinanceira ? t('financeira.analysis.pending') : (permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes")}
+                {permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes"}
               </p>
               <p className="text-2xl font-bold text-orange-600">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {permissions.isFinanceira ?
-                  `${pendingApplications.length} ${pendingApplications.length === 1 ? t('financeira.analysis.application') : t('financeira.analysis.applications')}` :
-                  `${pendingApplications.length} ${pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}`
-                }
+                {pendingApplications.length} {pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -262,17 +253,17 @@ export default function CreditPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
-              ? t('financeira.analysis.creditManagement') 
+              ? "Análise Financeira - Aprovação de Crédito" 
               : permissions.canViewAllApplications 
-                ? t('financeira.analysis.creditManagement') 
-                : t('financeira.analysis.creditApplications')}
+                ? "Gestão de Crédito - Área Administrativa" 
+                : "Solicitações de Crédito"}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
-              ? t('financeira.analysis.evaluateAndApprove')
+              ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
               : permissions.canViewAllApplications 
-                ? t('financeira.analysis.viewAndManage')
-                : t('financeira.analysis.requestCredit')}
+                ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
+                : "Solicite crédito para suas importações"}
           </p>
         </div>
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
@@ -281,7 +272,7 @@ export default function CreditPage() {
             className="bg-spark-600 hover:bg-spark-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {t('financeira.analysis.newCreditApplication')}
+            Nova Solicitação de Crédito
           </Button>
         )}
       </div>
@@ -292,29 +283,29 @@ export default function CreditPage() {
       )}
 
       {/* Credit Summary Cards - Dados Reais */}
-      <CreditSummaryCards applications={applications as CreditApplication[]} permissions={permissions} t={t} />
+      <CreditSummaryCards applications={applications as CreditApplication[]} permissions={permissions} />
 
       {/* Applications List */}
       <Card>
         <CardHeader>
           <CardTitle>
             {permissions.canViewAllApplications 
-              ? t('financeira.analysis.allCreditApplications') 
-              : t('financeira.analysis.creditApplications')}
+              ? "Todas as Solicitações de Crédito" 
+              : "Minhas Solicitações"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">{t('loading')}</p>
+              <p className="text-gray-600">Carregando...</p>
             </div>
           ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">{t('financeira.analysis.noApplicationsFound')}</p>
+              <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
               <p className="text-sm text-gray-400">
-                {t('financeira.analysis.noApplicationsMessage')}
+                Suas solicitações de crédito aparecerão aqui.
               </p>
             </div>
           ) : (

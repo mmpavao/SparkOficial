@@ -7,7 +7,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/utils/soundEffects';
-import { useTranslation } from '@/contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +44,6 @@ import {
 export default function Dashboard() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { t } = useTranslation();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isFinanceira = user?.role === 'financeira';
   const isImporter = !isAdmin && !isFinanceira;
@@ -451,9 +449,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.requestedCredit') : 'Crédito Solicitado'}</p>
+                    <p className="text-sm font-medium text-gray-600">Crédito Solicitado</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditRequested || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.totalRequested') : 'Volume total pedido'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Volume total pedido</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-purple-600" />
                 </div>
@@ -464,9 +462,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.approvedCredit') : 'Crédito Aprovado'}</p>
+                    <p className="text-sm font-medium text-gray-600">Crédito Aprovado</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditApproved || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.totalApproved') : 'Volume concedido'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Volume concedido</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
@@ -477,9 +475,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.approvalRate') : 'Taxa de Aprovação'}</p>
+                    <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.approvalRate || 0}%</p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.approvalEfficiency') : 'Eficiência de aprovação'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Eficiência de aprovação</p>
                   </div>
                   <Target className="w-8 h-8 text-orange-600" />
                 </div>
@@ -493,9 +491,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.creditInUse') : 'Crédito Em Uso'}</p>
+                    <p className="text-sm font-medium text-gray-600">Crédito Em Uso</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditInUse || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.beingUtilized') : 'Sendo utilizado'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Sendo utilizado</p>
                   </div>
                   <PiggyBank className="w-8 h-8 text-emerald-600" />
                 </div>
@@ -506,9 +504,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.creditAvailable') : 'Crédito Disponível'}</p>
+                    <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(financeiraMetrics?.totalCreditAvailable || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.availableForUse') : 'Livre para uso'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Livre para uso</p>
                   </div>
                   <CreditCard className="w-8 h-8 text-cyan-600" />
                 </div>
@@ -519,9 +517,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.averageApprovalTime') : 'Tempo Médio Aprovação'}</p>
+                    <p className="text-sm font-medium text-gray-600">Tempo Médio Aprovação</p>
                     <p className="text-2xl font-bold text-gray-900">{financeiraMetrics?.averageApprovalTime || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.daysToApprove') : 'Dias para aprovar'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Dias para aprovar</p>
                   </div>
                   <Clock className="w-8 h-8 text-yellow-600" />
                 </div>
@@ -532,13 +530,13 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{isFinanceira ? t('financeira.dashboard.utilizationRate') : 'Taxa de Utilização'}</p>
+                    <p className="text-sm font-medium text-gray-600">Taxa de Utilização</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {financeiraMetrics?.totalCreditApproved > 0 
                         ? Math.round(((financeiraMetrics?.totalCreditInUse || 0) / financeiraMetrics.totalCreditApproved) * 100)
                         : 0}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">{isFinanceira ? t('financeira.dashboard.ofApprovedCredit') : 'Do crédito aprovado'}</p>
+                    <p className="text-xs text-gray-500 mt-1">Do crédito aprovado</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-red-600" />
                 </div>
@@ -553,7 +551,7 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  {isFinanceira ? t('financeira.dashboard.applicationStatus') : 'Status das Aplicações de Crédito'}
+                  Status das Aplicações de Crédito
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -561,7 +559,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="font-medium">{isFinanceira ? t('financeira.dashboard.pending') : 'Pendentes'}</span>
+                      <span className="font-medium">Pendentes</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.pending || 0}</span>
                   </div>
@@ -569,7 +567,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span className="font-medium">{isFinanceira ? t('financeira.dashboard.underReview') : 'Em Análise'}</span>
+                      <span className="font-medium">Em Análise</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.under_review || 0}</span>
                   </div>
@@ -577,7 +575,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="font-medium">{isFinanceira ? t('financeira.dashboard.approved') : 'Aprovadas'}</span>
+                      <span className="font-medium">Aprovadas</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.approved || 0}</span>
                   </div>
@@ -585,7 +583,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="font-medium">{isFinanceira ? t('financeira.dashboard.rejected') : 'Rejeitadas'}</span>
+                      <span className="font-medium">Rejeitadas</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.rejected || 0}</span>
                   </div>
@@ -593,7 +591,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                      <span className="font-medium">{isFinanceira ? t('financeira.dashboard.cancelled') : 'Canceladas'}</span>
+                      <span className="font-medium">Canceladas</span>
                     </div>
                     <span className="text-lg font-bold">{financeiraMetrics?.applicationsByStatus?.cancelled || 0}</span>
                   </div>
@@ -606,14 +604,14 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
-                  {isFinanceira ? t('financeira.dashboard.monthlyStats') : 'Estatísticas do Mês'}
+                  Estatísticas do Mês
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-blue-800">{isFinanceira ? t('financeira.dashboard.applicationsReceived') : 'Aplicações Recebidas'}</span>
+                      <span className="font-medium text-blue-800">Aplicações Recebidas</span>
                       <FileText className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
@@ -624,7 +622,7 @@ export default function Dashboard() {
 
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-green-800">{isFinanceira ? t('financeira.dashboard.approvals') : 'Aprovações'}</span>
+                      <span className="font-medium text-green-800">Aprovações</span>
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     </div>
                     <div className="text-2xl font-bold text-green-600">
@@ -635,7 +633,7 @@ export default function Dashboard() {
 
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-800">{isFinanceira ? t('financeira.dashboard.approvedVolume') : 'Volume Aprovado'}</span>
+                      <span className="font-medium text-purple-800">Volume Aprovado</span>
                       <DollarSign className="w-4 h-4 text-purple-600" />
                     </div>
                     <div className="text-2xl font-bold text-purple-600">
@@ -653,7 +651,7 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                {isFinanceira ? t('financeira.dashboard.recentActivity') : 'Atividade Recente'}
+                Atividade Recente
               </CardTitle>
             </CardHeader>
             <CardContent>
