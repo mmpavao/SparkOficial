@@ -2193,13 +2193,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // External payment submission
-  app.post('/api/payments/external', requireAuth, upload.array('receipts', 5), async (req: any, res) => {
+  app.post('/api/payments/external', requireAuth, upload.single('receipts'), async (req: any, res) => {
     try {
       const { paymentScheduleId, amount, paymentDate, notes, paymentMethod } = req.body;
-      const files = req.files;
+      const file = req.file;
 
       console.log('🔍 External payment request body:', req.body);
       console.log('🔍 PaymentScheduleId:', paymentScheduleId, 'Amount:', amount);
+      console.log('🔍 Uploaded file:', file ? file.originalname : 'none');
 
       if (!paymentScheduleId || !amount) {
         console.log('❌ Missing required data - PaymentScheduleId:', paymentScheduleId, 'Amount:', amount);
@@ -2212,8 +2213,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: 'USD',
         paymentMethod: paymentMethod || 'external',
         paymentReference: 'EXT-' + Date.now(),
-        proofDocument: files && files.length > 0 ? files[0].buffer.toString('base64') : null,
-        proofFilename: files && files.length > 0 ? files[0].originalname : null,
+        proofDocument: file ? file.buffer.toString('base64') : null,
+        proofFilename: file ? file.originalname : null,
         status: 'pending',
         paidAt: new Date(paymentDate || Date.now()),
         notes: notes || ''
