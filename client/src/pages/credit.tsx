@@ -138,7 +138,10 @@ function CreditSummaryCards({ applications, permissions, t }: { applications: an
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {underReviewApplications.length} {underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}
+                {permissions.isFinanceira ?
+                  `${underReviewApplications.length} ${underReviewApplications.length === 1 ? t('financeira.analysis.application') : t('financeira.analysis.applications')}` :
+                  `${underReviewApplications.length} ${underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}`
+                }
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -159,7 +162,10 @@ function CreditSummaryCards({ applications, permissions, t }: { applications: an
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {pendingApplications.length} {pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}
+                {permissions.isFinanceira ?
+                  `${pendingApplications.length} ${pendingApplications.length === 1 ? t('financeira.analysis.application') : t('financeira.analysis.applications')}` :
+                  `${pendingApplications.length} ${pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}`
+                }
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">

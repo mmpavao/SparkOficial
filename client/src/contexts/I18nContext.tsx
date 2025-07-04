@@ -319,7 +319,10 @@ const defaultTranslations: Record<Language, Translations> = {
         requestedOn: 'Requested on',
         lastUpdated: 'Last Updated',
         noApplicationsFound: 'No credit applications found',
-        noApplicationsMessage: 'Your credit applications will appear here.'
+        noApplicationsMessage: 'Your credit applications will appear here.',
+        approved: 'Approved',
+        application: 'application',
+        applications: 'applications'
       },
       preview: {
         title: 'Financial Preview',
