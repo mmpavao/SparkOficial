@@ -4,15 +4,8 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
-// Navigation labels - using Portuguese for Brazilian users
-const navTranslations = {
-  dashboard: 'Dashboard',
-  credit: 'Crédito',
-  reports: 'Relatórios',
-  settings: 'Configurações',
-  logout: 'Sair'
-};
 
 import NotificationCenter from "@/components/NotificationCenter";
 import {
@@ -57,6 +50,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const logoutMutation = useMutation({
@@ -124,40 +118,37 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const isFinanceira = user?.role === "financeira";
   const isImporter = user?.role === "importer" || (!isAdmin && !isFinanceira);
 
+  // Helper function to get navigation labels based on user role
+  const getNavigationLabel = (baseKey: string) => {
+    if (baseKey === 'credit') {
+      return (isAdmin || isFinanceira) ? t('financeira.navigation.creditAnalysis') : t('navigation.credit');
+    }
+    if (baseKey === 'imports') {
+      if (isFinanceira) return t('financeira.navigation.importAnalysis');
+      if (isAdmin) return t('navigation.allImports');
+      return t('navigation.myImports');
+    }
+    if (baseKey === 'suppliers') {
+      if (isFinanceira || isAdmin) return t('financeira.navigation.allSuppliers');
+      return t('navigation.suppliers');
+    }
+    return t(`navigation.${baseKey}`);
+  };
+
   // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
   const navigation = [
-    { path: "/", icon: Home, label: navTranslations.dashboard },
-    { 
-      path: "/credit", 
-      icon: CreditCard, 
-      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
-    },
-    { 
-      path: "/imports", 
-      icon: Package, 
-      label: isFinanceira 
-        ? "Análise de Importações" 
-        : isAdmin 
-          ? "Todas as Importações" 
-          : "Minhas Importações"
-    },
-    { 
-      path: "/suppliers", 
-      icon: Building, 
-      label: isFinanceira 
-        ? "Todos Fornecedores" 
-        : isAdmin 
-          ? "Todos Fornecedores" 
-          : "Fornecedores"
-    },
-    { path: "/payments", icon: DollarSign, label: "Pagamentos" },
-    { path: "/reports", icon: BarChart3, label: navTranslations.reports },
+    { path: "/", icon: Home, label: getNavigationLabel('dashboard') },
+    { path: "/credit", icon: CreditCard, label: getNavigationLabel('credit') },
+    { path: "/imports", icon: Package, label: getNavigationLabel('imports') },
+    { path: "/suppliers", icon: Building, label: getNavigationLabel('suppliers') },
+    { path: "/payments", icon: DollarSign, label: getNavigationLabel('payments') },
+    { path: "/reports", icon: BarChart3, label: getNavigationLabel('reports') },
   ];
 
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
-    { path: "/users", icon: Users, label: "Gerenciar Usuários" },
-    { path: "/importers", icon: UserCog, label: "Importadores" },
+    { path: "/users", icon: Users, label: t('navigation.manageUsers') },
+    { path: "/importers", icon: UserCog, label: t('navigation.importers') },
   ];
 
   const isActiveRoute = (path: string) => {
@@ -399,7 +390,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex items-center w-full px-3 py-2">
                     <Settings className="w-4 h-4 mr-3" />
-                    {navTranslations.settings}
+                    {t('navigation.settings')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -427,7 +418,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className="text-red-600 focus:text-red-600 px-3 py-2"
                 >
                   <LogOut className="w-4 h-4 mr-3" />
-                  {logoutMutation.isPending ? `${navTranslations.logout}...` : navTranslations.logout}
+                  {logoutMutation.isPending ? 'Saindo...' : 'Sair'}
                 </DropdownMenuItem>
               </div>
             </DropdownMenuContent>

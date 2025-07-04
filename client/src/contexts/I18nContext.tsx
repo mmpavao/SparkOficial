@@ -55,6 +55,78 @@ const defaultTranslations: Record<Language, Translations> = {
       rejected: 'Rejeitado',
       underReview: 'Em Análise'
     },
+    // Financial module
+    financeira: {
+      dashboard: {
+        title: 'Painel Financeiro',
+        submittedCredits: 'Créditos Submetidos',
+        requestedCredit: 'Crédito Solicitado',
+        approvedCredit: 'Crédito Aprovado',
+        approvalRate: 'Taxa de Aprovação',
+        creditInUse: 'Crédito Em Uso',
+        availableCredit: 'Crédito Disponível',
+        averageApprovalTime: 'Tempo Médio Aprovação',
+        utilizationRate: 'Taxa de Utilização',
+        applicationsStatus: 'Status das Aplicações de Crédito',
+        recentActivity: 'Atividade Recente Financeira',
+        monthlyStats: 'Estatísticas do Mês',
+        volumeConceded: 'Volume concedido',
+        volumeRequested: 'Volume total pedido',
+        totalApplications: 'Total de aplicações',
+        approvalEfficiency: 'Eficiência de aprovação',
+        beingUsed: 'Sendo utilizado',
+        freeForUse: 'Livre para uso',
+        daysToApprove: 'Dias para aprovar',
+        ofApprovedCredit: 'Do crédito aprovado'
+      },
+      status: {
+        pending: 'Pendentes',
+        underReview: 'Em Análise',
+        approved: 'Aprovadas',
+        rejected: 'Rejeitadas',
+        cancelled: 'Canceladas'
+      },
+      navigation: {
+        creditAnalysis: 'Análise de Crédito',
+        importAnalysis: 'Análise de Importações',
+        allSuppliers: 'Todos Fornecedores',
+        allImports: 'Todas as Importações'
+      },
+      preview: {
+        title: 'Pré-visualização Financeira',
+        adminFee: 'Taxa Administrativa',
+        downPayment: 'Entrada',
+        financedAmount: 'Valor Financiado',
+        totalCost: 'Custo Total',
+        creditLimit: 'Limite de Crédito',
+        availableBalance: 'Saldo Disponível'
+      },
+      terms: {
+        title: 'Termos e Condições',
+        financialSummary: 'Resumo Financeiro',
+        fobValue: 'Valor FOB',
+        totalCost: 'Custo Total',
+        paymentSchedule: 'Cronograma de Pagamentos',
+        downPaymentRequired: 'Entrada Requerida',
+        financedValue: 'Valor a Financiar',
+        administrativeFee: 'Taxa Administrativa'
+      }
+    },
+    // Navigation
+    navigation: {
+      dashboard: 'Dashboard',
+      credit: 'Crédito',
+      imports: 'Importações',
+      suppliers: 'Fornecedores',
+      payments: 'Pagamentos',
+      reports: 'Relatórios',
+      settings: 'Configurações',
+      administration: 'Administração',
+      manageUsers: 'Gerenciar Usuários',
+      importers: 'Importadores',
+      myImports: 'Minhas Importações',
+      allImports: 'Todas as Importações'
+    },
     // Common terms
     common: {
       save: 'Salvar',
@@ -94,6 +166,78 @@ const defaultTranslations: Record<Language, Translations> = {
       rejected: 'Rejected',
       underReview: 'Under Review'
     },
+    // Financial module - English
+    financeira: {
+      dashboard: {
+        title: 'Financial Panel',
+        submittedCredits: 'Submitted Credits',
+        requestedCredit: 'Requested Credit',
+        approvedCredit: 'Approved Credit',
+        approvalRate: 'Approval Rate',
+        creditInUse: 'Credit In Use',
+        availableCredit: 'Available Credit',
+        averageApprovalTime: 'Average Approval Time',
+        utilizationRate: 'Utilization Rate',
+        applicationsStatus: 'Credit Applications Status',
+        recentActivity: 'Recent Financial Activity',
+        monthlyStats: 'Monthly Statistics',
+        volumeConceded: 'Volume granted',
+        volumeRequested: 'Total volume requested',
+        totalApplications: 'Total applications',
+        approvalEfficiency: 'Approval efficiency',
+        beingUsed: 'Being used',
+        freeForUse: 'Free for use',
+        daysToApprove: 'Days to approve',
+        ofApprovedCredit: 'Of approved credit'
+      },
+      status: {
+        pending: 'Pending',
+        underReview: 'Under Review',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        cancelled: 'Cancelled'
+      },
+      navigation: {
+        creditAnalysis: 'Credit Analysis',
+        importAnalysis: 'Import Analysis',
+        allSuppliers: 'All Suppliers',
+        allImports: 'All Imports'
+      },
+      preview: {
+        title: 'Financial Preview',
+        adminFee: 'Administrative Fee',
+        downPayment: 'Down Payment',
+        financedAmount: 'Financed Amount',
+        totalCost: 'Total Cost',
+        creditLimit: 'Credit Limit',
+        availableBalance: 'Available Balance'
+      },
+      terms: {
+        title: 'Terms and Conditions',
+        financialSummary: 'Financial Summary',
+        fobValue: 'FOB Value',
+        totalCost: 'Total Cost',
+        paymentSchedule: 'Payment Schedule',
+        downPaymentRequired: 'Down Payment Required',
+        financedValue: 'Value to Finance',
+        administrativeFee: 'Administrative Fee'
+      }
+    },
+    // Navigation - English
+    navigation: {
+      dashboard: 'Dashboard',
+      credit: 'Credit',
+      imports: 'Imports',
+      suppliers: 'Suppliers',
+      payments: 'Payments',
+      reports: 'Reports',
+      settings: 'Settings',
+      administration: 'Administration',
+      manageUsers: 'Manage Users',
+      importers: 'Importers',
+      myImports: 'My Imports',
+      allImports: 'All Imports'
+    },
     common: {
       save: 'Save',
       cancel: 'Cancel',
@@ -132,6 +276,78 @@ const defaultTranslations: Record<Language, Translations> = {
       rejected: '已拒绝',
       underReview: '审核中'
     },
+    // Financial module - Chinese
+    financeira: {
+      dashboard: {
+        title: '财务面板',
+        submittedCredits: '已提交信贷',
+        requestedCredit: '申请信贷',
+        approvedCredit: '已批准信贷',
+        approvalRate: '批准率',
+        creditInUse: '使用中信贷',
+        availableCredit: '可用信贷',
+        averageApprovalTime: '平均批准时间',
+        utilizationRate: '使用率',
+        applicationsStatus: '信贷申请状态',
+        recentActivity: '最近财务活动',
+        monthlyStats: '月度统计',
+        volumeConceded: '已批准金额',
+        volumeRequested: '申请总金额',
+        totalApplications: '申请总数',
+        approvalEfficiency: '批准效率',
+        beingUsed: '使用中',
+        freeForUse: '可使用',
+        daysToApprove: '批准天数',
+        ofApprovedCredit: '已批准信贷的'
+      },
+      status: {
+        pending: '待处理',
+        underReview: '审核中',
+        approved: '已批准',
+        rejected: '已拒绝',
+        cancelled: '已取消'
+      },
+      navigation: {
+        creditAnalysis: '信贷分析',
+        importAnalysis: '进口分析',
+        allSuppliers: '所有供应商',
+        allImports: '所有进口'
+      },
+      preview: {
+        title: '财务预览',
+        adminFee: '管理费',
+        downPayment: '首付款',
+        financedAmount: '融资金额',
+        totalCost: '总成本',
+        creditLimit: '信贷额度',
+        availableBalance: '可用余额'
+      },
+      terms: {
+        title: '条款和条件',
+        financialSummary: '财务摘要',
+        fobValue: 'FOB价值',
+        totalCost: '总成本',
+        paymentSchedule: '付款计划',
+        downPaymentRequired: '所需首付款',
+        financedValue: '融资价值',
+        administrativeFee: '管理费'
+      }
+    },
+    // Navigation - Chinese
+    navigation: {
+      dashboard: '仪表板',
+      credit: '信贷',
+      imports: '进口',
+      suppliers: '供应商',
+      payments: '付款',
+      reports: '报告',
+      settings: '设置',
+      administration: '管理',
+      manageUsers: '管理用户',
+      importers: '进口商',
+      myImports: '我的进口',
+      allImports: '所有进口'
+    },
     common: {
       save: '保存',
       cancel: '取消',
@@ -169,6 +385,78 @@ const defaultTranslations: Record<Language, Translations> = {
       approved: 'Aprobado',
       rejected: 'Rechazado',
       underReview: 'En Revisión'
+    },
+    // Financial module - Spanish
+    financeira: {
+      dashboard: {
+        title: 'Panel Financiero',
+        submittedCredits: 'Créditos Enviados',
+        requestedCredit: 'Crédito Solicitado',
+        approvedCredit: 'Crédito Aprobado',
+        approvalRate: 'Tasa de Aprobación',
+        creditInUse: 'Crédito en Uso',
+        availableCredit: 'Crédito Disponible',
+        averageApprovalTime: 'Tiempo Promedio de Aprobación',
+        utilizationRate: 'Tasa de Utilización',
+        applicationsStatus: 'Estado de Solicitudes de Crédito',
+        recentActivity: 'Actividad Financiera Reciente',
+        monthlyStats: 'Estadísticas Mensuales',
+        volumeConceded: 'Volumen concedido',
+        volumeRequested: 'Volumen total solicitado',
+        totalApplications: 'Total de solicitudes',
+        approvalEfficiency: 'Eficiencia de aprobación',
+        beingUsed: 'En uso',
+        freeForUse: 'Libre para uso',
+        daysToApprove: 'Días para aprobar',
+        ofApprovedCredit: 'Del crédito aprobado'
+      },
+      status: {
+        pending: 'Pendientes',
+        underReview: 'En Revisión',
+        approved: 'Aprobadas',
+        rejected: 'Rechazadas',
+        cancelled: 'Canceladas'
+      },
+      navigation: {
+        creditAnalysis: 'Análisis de Crédito',
+        importAnalysis: 'Análisis de Importaciones',
+        allSuppliers: 'Todos los Proveedores',
+        allImports: 'Todas las Importaciones'
+      },
+      preview: {
+        title: 'Vista Previa Financiera',
+        adminFee: 'Tarifa Administrativa',
+        downPayment: 'Pago Inicial',
+        financedAmount: 'Monto Financiado',
+        totalCost: 'Costo Total',
+        creditLimit: 'Límite de Crédito',
+        availableBalance: 'Saldo Disponible'
+      },
+      terms: {
+        title: 'Términos y Condiciones',
+        financialSummary: 'Resumen Financiero',
+        fobValue: 'Valor FOB',
+        totalCost: 'Costo Total',
+        paymentSchedule: 'Cronograma de Pagos',
+        downPaymentRequired: 'Pago Inicial Requerido',
+        financedValue: 'Valor a Financiar',
+        administrativeFee: 'Tarifa Administrativa'
+      }
+    },
+    // Navigation - Spanish
+    navigation: {
+      dashboard: 'Panel de Control',
+      credit: 'Crédito',
+      imports: 'Importaciones',
+      suppliers: 'Proveedores',
+      payments: 'Pagos',
+      reports: 'Reportes',
+      settings: 'Configuraciones',
+      administration: 'Administración',
+      manageUsers: 'Gestionar Usuarios',
+      importers: 'Importadores',
+      myImports: 'Mis Importaciones',
+      allImports: 'Todas las Importaciones'
     },
     common: {
       save: 'Guardar',
