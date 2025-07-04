@@ -98,13 +98,13 @@ export default function CreditDetailsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const permissions = useUserPermissions();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
-  const permissions = useUserPermissions();
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
   const [isEditingCredit, setIsEditingCredit] = useState(false);
@@ -315,7 +315,7 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       toast({
         title: "Sucesso!",
-        description: "Solicitação de crédito cancelada com sucesso.",
+        description: permissions.isFinanceira ? t('financeira.analysis.requestCancelled') : "Solicitação de crédito cancelada com sucesso.",
       });
       // Navigate back to credit applications list
       setLocation('/credit');
@@ -338,32 +338,32 @@ export default function CreditDetailsPage() {
       pre_analysis: { 
         variant: "secondary" as const, 
         icon: Clock, 
-        label: "Pré-Análise" 
+        label: permissions.isFinanceira ? t('financeira.analysis.preAnalysis') : "Pré-Análise" 
       },
       pre_approved: { 
         variant: "default" as const, 
         icon: CheckCircle, 
-        label: "Pré-Aprovado" 
+        label: permissions.isFinanceira ? t('financeira.analysis.preApproved') : "Pré-Aprovado" 
       },
       final_analysis: { 
         variant: "outline" as const, 
         icon: AlertTriangle, 
-        label: "Análise Final" 
+        label: permissions.isFinanceira ? t('financeira.analysis.finalAnalysis') : "Análise Final" 
       },
       approved: { 
         variant: "default" as const, 
         icon: CheckCircle, 
-        label: "Aprovado" 
+        label: permissions.isFinanceira ? t('financeira.analysis.approved') : "Aprovado" 
       },
       rejected: { 
         variant: "destructive" as const, 
         icon: XCircle, 
-        label: "Rejeitado" 
+        label: permissions.isFinanceira ? t('financeira.analysis.rejected') : "Rejeitado" 
       },
       cancelled: { 
         variant: "secondary" as const, 
         icon: XCircle, 
-        label: "Cancelado" 
+        label: permissions.isFinanceira ? t('financeira.analysis.cancelled') : "Cancelado" 
       }
     };
 
@@ -524,9 +524,9 @@ export default function CreditDetailsPage() {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">
-            Solicitação de Crédito #{application.id}
+            {permissions.isFinanceira ? t('financeira.analysis.creditRequest') : 'Solicitação de Crédito'} #{application.id}
           </h1>
-          <p className="text-gray-600">Detalhes da solicitação de crédito</p>
+          <p className="text-gray-600">{permissions.isFinanceira ? t('financeira.analysis.requestDetails') : 'Detalhes da solicitação de crédito'}</p>
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(application.status)}
@@ -588,34 +588,34 @@ export default function CreditDetailsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="w-5 h-5" />
-                Informações da Empresa
+                {permissions.isFinanceira ? t('financeira.analysis.companyInfo') : 'Informações da Empresa'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-600">Razão Social</Label>
+                  <Label className="text-sm font-medium text-gray-600">{permissions.isFinanceira ? t('financeira.analysis.legalName') : 'Razão Social'}</Label>
                   <p className="text-gray-900">{application.legalCompanyName}</p>
                 </div>
                 {application.tradingName && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Nome Fantasia</Label>
+                    <Label className="text-sm font-medium text-gray-600">{permissions.isFinanceira ? t('financeira.analysis.tradingName') : 'Nome Fantasia'}</Label>
                     <p className="text-gray-900">{application.tradingName}</p>
                   </div>
                 )}
                 <div>
-                  <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
+                  <Label className="text-sm font-medium text-gray-600">{permissions.isFinanceira ? t('financeira.analysis.cnpj') : 'CNPJ'}</Label>
                   <p className="text-gray-900">{application.cnpj}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-600">Email</Label>
+                  <Label className="text-sm font-medium text-gray-600">{permissions.isFinanceira ? t('financeira.analysis.email') : 'Email'}</Label>
                   <p className="text-gray-900 flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     {application.email}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-600">Telefone</Label>
+                  <Label className="text-sm font-medium text-gray-600">{permissions.isFinanceira ? t('financeira.analysis.phone') : 'Telefone'}</Label>
                   <p className="text-gray-900 flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     {application.phone}
@@ -722,7 +722,7 @@ export default function CreditDetailsPage() {
                         }
                       });
                       
-                      return `${totalFilesUploaded} Arquivos Enviados`;
+                      return permissions.isFinanceira ? t('financeira.analysis.filesUploaded', { count: totalFilesUploaded.toString() }) : `${totalFilesUploaded} Arquivos Enviados`;
                     })()}
                   </span>
                 </div>
@@ -736,7 +736,7 @@ export default function CreditDetailsPage() {
                       ).length;
                       const mandatoryPending = mandatoryDocuments.length - mandatoryUploaded;
                       
-                      return `${mandatoryPending} Obrigatórios Pendentes`;
+                      return permissions.isFinanceira ? t('financeira.analysis.mandatoryPending', { count: mandatoryPending.toString() }) : `${mandatoryPending} Obrigatórios Pendentes`;
                     })()}
                   </span>
                 </div>
@@ -745,7 +745,7 @@ export default function CreditDetailsPage() {
             <CardContent className="space-y-6">
               {/* Mandatory Documents */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Documentos Obrigatórios</h4>
+                <h4 className="font-medium text-gray-900 mb-3">{permissions.isFinanceira ? t('financeira.analysis.mandatoryDocuments') : 'Documentos Obrigatórios'}</h4>
                 <div className="space-y-3">
                   {mandatoryDocuments.map((doc) => (
                     <UnifiedDocumentUpload
@@ -772,7 +772,7 @@ export default function CreditDetailsPage() {
               {/* Optional Documents */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">Documentos Opcionais</h4>
+                  <h4 className="font-medium text-gray-900">{permissions.isFinanceira ? t('financeira.analysis.optionalDocuments') : 'Documentos Opcionais'}</h4>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <CheckCircle className="w-4 h-4 text-green-600" />
