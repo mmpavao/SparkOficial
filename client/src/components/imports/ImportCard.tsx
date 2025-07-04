@@ -8,6 +8,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useLocation } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { UniversalCard } from "@/components/shared/UniversalCard";
+import { getImportStatusLabel, getImportStatusColor } from "@/utils/importStatus";
 
 interface ImportCardProps {
   importData: Import & {
@@ -19,36 +20,6 @@ interface ImportCardProps {
   onCancel?: (id: number) => void;
   onViewDetails?: (id: number) => void;
 }
-
-const getStatusColor = (status: string) => {
-  const statusColors = {
-    planejamento: "bg-blue-100 text-blue-800 border-blue-200",
-    producao: "bg-orange-100 text-orange-800 border-orange-200", 
-    entregue_agente: "bg-purple-100 text-purple-800 border-purple-200",
-    transporte_maritimo: "bg-cyan-100 text-cyan-800 border-cyan-200",
-    transporte_aereo: "bg-sky-100 text-sky-800 border-sky-200",
-    desembaraco: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    transporte_nacional: "bg-indigo-100 text-indigo-800 border-indigo-200",
-    concluido: "bg-green-100 text-green-800 border-green-200",
-    cancelado: "bg-red-100 text-red-800 border-red-200"
-  };
-  return statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200";
-};
-
-const getStatusLabel = (status: string) => {
-  const statusLabels = {
-    planejamento: "Planejamento",
-    producao: "Produção",
-    entregue_agente: "Entregue ao Agente",
-    transporte_maritimo: "Transporte Marítimo", 
-    transporte_aereo: "Transporte Aéreo",
-    desembaraco: "Desembaraço",
-    transporte_nacional: "Transporte Nacional",
-    concluido: "Concluído",
-    cancelado: "Cancelado"
-  };
-  return statusLabels[status as keyof typeof statusLabels] || status;
-};
 
 export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: ImportCardProps) {
   const permissions = useUserPermissions();
@@ -80,8 +51,8 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
   const canCancel = permissions.canViewOwnDataOnly && !['concluido', 'cancelado'].includes(importData.status || '');
 
   const getStatusInfo = () => {
-    const statusColor = getStatusColor(importData.status || '');
-    const statusLabel = getStatusLabel(importData.status || '');
+    const statusColor = getImportStatusColor(importData.status || '');
+    const statusLabel = getImportStatusLabel(importData.status || '');
     
     return {
       label: statusLabel,
@@ -127,7 +98,7 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
         {
           icon: <Clock className="w-4 h-4 text-orange-600" />,
           label: "Criado",
-          value: formatDate(importData.createdAt),
+          value: formatDate(importData.createdAt || new Date()),
           color: "bg-orange-50 border-orange-200"
         }
       ]}
