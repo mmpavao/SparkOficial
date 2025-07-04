@@ -1549,16 +1549,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Reserve credit for this import
       await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
 
-      // Create payment schedule
-      await storage.createPaymentSchedule(importRecord.id, {
-        totalAmount: totalWithFees.toString(),
-        downPaymentAmount: downPaymentAmount.toString(),
-        downPaymentDueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        finalPaymentAmount: (totalWithFees - downPaymentAmount).toString(),
-        finalPaymentDueDate: new Date(Date.now() + cleanedData.paymentTermsDays * 24 * 60 * 60 * 1000),
-        adminFeeAmount: feeAmount.toString(),
-        adminFeeRate: feeRate.toString(),
-      });
+      // Generate correct payment schedule using the advanced logic
+      await storage.generatePaymentSchedule(
+        importRecord.id,
+        totalWithFees.toString(),
+        creditApp.id
+      );
 
       res.status(201).json(importRecord);
     } catch (error) {
