@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
 import PaymentCheckoutModal from "./PaymentCheckoutModal";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,12 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
   const [, setLocation] = useLocation();
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
+  const { isFinanceira } = useUserPermissions();
+
+  // Ocultar completamente para usuários Financeira
+  if (isFinanceira) {
+    return null;
+  }
 
   // Buscar pagamentos específicos desta importação
   const { data: paymentsData, isLoading } = useQuery({
