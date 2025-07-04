@@ -50,7 +50,15 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
   const { data: paymentsData, isLoading } = useQuery({
     queryKey: ['/api/payment-schedules', { importId }],
     queryFn: () => apiRequest('/api/payment-schedules', 'GET'),
-    select: (data: PaymentSchedule[]) => data.filter(payment => payment.importId === importId)
+    select: (data: PaymentSchedule[]) => {
+      const filtered = data.filter(payment => payment.importId === importId);
+      // Ordenar cronologicamente: down_payment primeiro, depois parcelas por data de vencimento
+      return filtered.sort((a, b) => {
+        if (a.paymentType === 'down_payment' && b.paymentType !== 'down_payment') return -1;
+        if (a.paymentType !== 'down_payment' && b.paymentType === 'down_payment') return 1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+    }
   });
 
   const getStatusBadge = (status: string) => {

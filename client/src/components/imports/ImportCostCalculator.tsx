@@ -35,19 +35,19 @@ export function ImportCostCalculator({ totalValue, creditApplication }: ImportCo
 
   // Cálculos baseados no crédito aprovado
   const adminFeeRate = creditApplication.adminFee / 100; // Converte para decimal
-  const downPaymentRate = creditApplication.finalDownPayment / 100; // 30% = 0.30
   
-  // Cálculo da entrada (sobre valor FOB)
-  const downPayment = totalValue * downPaymentRate;
-  
-  // Valor a ser financiado (valor FOB - entrada)
-  const financedAmount = totalValue - downPayment;
-  
-  // Taxa administrativa (apenas sobre valor financiado)
-  const adminFeeAmount = financedAmount * adminFeeRate;
+  // Primeiro calcular taxa administrativa sobre FOB
+  const adminFeeAmount = totalValue * adminFeeRate;
   
   // Valor total da importação (FOB + Taxa Admin)
   const totalImportValue = totalValue + adminFeeAmount;
+  
+  // Entrada calculada sobre valor total (30% do total com taxas)
+  const downPaymentRate = 0.30; // Fixo em 30%
+  const downPayment = totalImportValue * downPaymentRate;
+  
+  // Valor a ser financiado (valor total - entrada)
+  const financedAmount = totalImportValue - downPayment;
   
   // Número de parcelas baseado nos termos aprovados
   const installmentTerms = creditApplication.finalApprovedTerms.length;
@@ -73,7 +73,7 @@ export function ImportCostCalculator({ totalValue, creditApplication }: ImportCo
           <div className="flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-yellow-600" />
             <span className="text-sm font-medium text-yellow-800">
-              Entrada ({creditApplication.finalDownPayment}%):
+              Entrada (30%):
             </span>
           </div>
           <span className="font-bold text-lg text-yellow-800">
