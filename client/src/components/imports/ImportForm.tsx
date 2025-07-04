@@ -21,6 +21,7 @@ import { z } from "zod";
 
 // Import form schema based on actual fields needed
 const importFormSchema = z.object({
+  creditApplicationId: z.number().min(1, "Aplicação de crédito é obrigatória"),
   importName: z.string().min(1, "Nome da importação é obrigatório"),
   importCode: z.string().optional(),
   cargoType: z.enum(["FCL", "LCL"]),
@@ -30,7 +31,6 @@ const importFormSchema = z.object({
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   currency: z.string().default("USD"),
   status: z.string().default("planejamento"),
-  creditApplicationId: z.number().optional(),
   supplierId: z.number().optional(),
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
@@ -65,11 +65,17 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
     enabled: true
   });
 
-  // Get credit applications for dropdown
-  const { data: creditApplications = [] } = useQuery({
+  // Get credit applications for dropdown - only approved ones
+  const { data: allCreditApplications = [] } = useQuery({
     queryKey: ['/api/credit/applications'],
     enabled: true
   });
+
+  // Filter only approved credit applications
+  const creditApplications = allCreditApplications.filter((app: any) => 
+    app.financialStatus === 'approved' && 
+    (app.adminStatus === 'admin_finalized' || app.adminStatus === 'finalized')
+  );
 
   // Get selected credit application for cost calculation
   const form = useForm<ImportFormData>({
@@ -96,9 +102,16 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
   });
 
   // Get selected credit application for cost calculation
+  const selectedCreditAppId = form.watch("creditApplicationId");
   const selectedCreditApp = Array.isArray(creditApplications) 
-    ? creditApplications.find(app => app.id === form.watch("creditApplicationId"))
+    ? creditApplications.find(app => app.id === selectedCreditAppId)
     : null;
+
+  // Get admin fee for selected credit application
+  const { data: adminFeeData } = useQuery({
+    queryKey: ['/api/user/admin-fee'],
+    enabled: !!selectedCreditAppId
+  });
 
   // Watch totalValue for real-time cost calculation
   const totalValue = parseFloat(form.watch("totalValue") || "0");
@@ -167,7 +180,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -184,8 +197,11 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
         </Button>
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Formulário Principal */}
+        <div className="lg:col-span-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -238,7 +254,14 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                       <SelectContent>
                         {creditApplications.map((app: any) => (
                           <SelectItem key={app.id} value={app.id.toString()}>
-                            {app.legalCompanyName} - {app.requestedAmount}
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                US$ {parseInt(app.finalCreditLimit || app.requestedAmount).toLocaleString()}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                Termos: {app.finalApprovedTerms || 'N/A'} dias
+                              </span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -582,8 +605,40 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
               }
             </Button>
           </div>
-        </form>
-      </Form>
+            </form>
+          </Form>
+        </div>
+
+        {/* Prévia Financeira */}
+        <div className="lg:col-span-1">
+          {selectedCreditApp && totalValue > 0 && (
+            <ImportCostCalculator
+              totalValue={totalValue}
+              creditApplication={{
+                adminFee: adminFeeData?.feePercentage || 10,
+                finalCreditLimit: selectedCreditApp.finalCreditLimit || selectedCreditApp.requestedAmount,
+                finalApprovedTerms: selectedCreditApp.finalApprovedTerms ? selectedCreditApp.finalApprovedTerms.split(',') : ['60', '90', '120'],
+                finalDownPayment: 30
+              }}
+            />
+          )}
+          {!selectedCreditApp && (
+            <Card className="bg-gray-50 border-gray-200 sticky top-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  Prévia Financeira
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Selecione uma aplicação de crédito para ver a prévia financeira
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
