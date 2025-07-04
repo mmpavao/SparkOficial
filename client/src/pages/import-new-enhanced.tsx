@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { z } from "zod";
 import { ArrowLeft, Plus, Trash2, Building2, Package, DollarSign, Ship, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -99,8 +99,13 @@ const BRAZIL_STATES = [
   "Sergipe (SE)", "Tocantins (TO)"
 ];
 
-export default function ImportNewEnhancedPage() {
+interface ImportNewEnhancedPageProps {
+  isEditing?: boolean;
+}
+
+export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEnhancedPageProps) {
   const [, setLocation] = useLocation();
+  const { id: importId } = useParams<{ id: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showTermsConfirmation, setShowTermsConfirmation] = useState(false);
@@ -116,6 +121,18 @@ export default function ImportNewEnhancedPage() {
       incoterms: "FOB",
     },
   });
+
+  // Show loading while importing data is being fetched
+  if (isEditing && importLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Carregando dados da importação...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Product form
   const productForm = useForm<ProductFormData>({
@@ -149,6 +166,12 @@ export default function ImportNewEnhancedPage() {
     enabled: true
   });
 
+  // Fetch import data when editing
+  const { data: importData, isLoading: importLoading } = useQuery({
+    queryKey: ['/api/imports', importId],
+    enabled: isEditing && !!importId,
+  });
+
   // Use real suppliers or mock for development
   const suppliers = suppliersData.length > 0 ? suppliersData : [
     {
@@ -177,17 +200,65 @@ export default function ImportNewEnhancedPage() {
   const cargoType = form.watch("cargoType");
   const totalValue = products.reduce((sum, product) => sum + product.totalValue, 0);
 
-  // Create import mutation
-  const createImportMutation = useMutation({
+  // Load import data when editing
+  useEffect(() => {
+    if (isEditing && importData) {
+      // Populate form with import data
+      form.reset({
+        importName: importData.importName || '',
+        cargoType: importData.cargoType || 'FCL',
+        containerNumber: importData.containerNumber || '',
+        sealNumber: importData.sealNumber || '',
+        shippingMethod: importData.shippingMethod === 'sea' ? 'sea' : 'air',
+        incoterms: importData.incoterms || 'FOB',
+        portOfLoading: importData.origin || '',
+        portOfDischarge: importData.destination || '',
+        finalDestination: importData.finalDestination || '',
+        estimatedDelivery: importData.estimatedDelivery ? new Date(importData.estimatedDelivery).toISOString().split('T')[0] : '',
+        notes: importData.notes || '',
+      });
+
+      // Populate products
+      if (importData.products && Array.isArray(importData.products)) {
+        const formattedProducts = importData.products.map((product: any, index: number) => ({
+          id: product.id || index.toString(),
+          name: product.name || '',
+          description: product.description || '',
+          hsCode: product.hsCode || '',
+          quantity: product.quantity || 1,
+          unitPrice: product.unitPrice || 0,
+          supplierId: product.supplierId || 1,
+          totalValue: product.totalValue || (product.quantity * product.unitPrice),
+          supplierName: product.supplierName || ''
+        }));
+        setProducts(formattedProducts);
+      }
+    }
+  }, [isEditing, importData, form]);
+
+  // Create/Update import mutation
+  const saveImportMutation = useMutation({
     mutationFn: async (data: ImportFormData & { products: Product[] }) => {
-      return await apiRequest('/api/imports', 'POST', data);
+      if (isEditing && importId) {
+        return await apiRequest(`/api/imports/${importId}`, 'PUT', data);
+      } else {
+        return await apiRequest('/api/imports', 'POST', data);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
-      toast({
-        title: "Importação criada",
-        description: "A importação foi criada com sucesso.",
-      });
+      if (isEditing) {
+        queryClient.invalidateQueries({ queryKey: ['/api/imports', importId] });
+        toast({
+          title: "Importação atualizada",
+          description: "A importação foi atualizada com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Importação criada",
+          description: "A importação foi criada com sucesso.",
+        });
+      }
       setLocation('/imports');
     },
     onError: (error: any) => {
@@ -246,7 +317,7 @@ export default function ImportNewEnhancedPage() {
   const handleConfirmTerms = () => {
     setShowTermsConfirmation(false);
     const formData = form.getValues();
-    createImportMutation.mutate({ ...formData, products });
+    saveImportMutation.mutate({ ...formData, products });
   };
 
   // Check for credit limit validation
@@ -265,7 +336,9 @@ export default function ImportNewEnhancedPage() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
-        <h1 className="text-2xl font-bold">Nova Importação</h1>
+        <h1 className="text-2xl font-bold">
+          {isEditing ? "Editar Importação" : "Nova Importação"}
+        </h1>
       </div>
 
       {/* Credit Status Alert */}
@@ -632,9 +705,9 @@ export default function ImportNewEnhancedPage() {
                 <Button 
                   type="submit" 
                   className="bg-emerald-600 hover:bg-emerald-700"
-                  disabled={createImportMutation.isPending || products.length === 0}
+                  disabled={saveImportMutation.isPending || products.length === 0}
                 >
-                  {createImportMutation.isPending ? "Criando..." : "Revisar e Confirmar"}
+                  {saveImportMutation.isPending ? (isEditing ? "Salvando..." : "Criando...") : (isEditing ? "Atualizar" : "Revisar e Confirmar")}
                 </Button>
               </div>
             </form>
