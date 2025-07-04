@@ -1743,13 +1743,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      // Only allow editing if status is 'planejamento'
-      if (importRecord.status !== 'planejamento') {
-        return res.status(400).json({ message: "Só é possível editar importações em planejamento" });
+      // Check if this is just a status change (single field update)
+      const isStatusChangeOnly = Object.keys(req.body).length === 1 && req.body.status;
+      
+      if (isStatusChangeOnly) {
+        // Allow status changes for any import status
+        console.log(`🔄 Status change request: ${importRecord.status} → ${req.body.status}`);
+        const updatedImport = await storage.updateImportStatus(id, req.body.status, {
+          status: req.body.status,
+          updatedAt: new Date()
+        });
+        res.json(updatedImport);
+      } else {
+        // For full edits, only allow if status is 'planning'
+        if (importRecord.status !== 'planning') {
+          return res.status(400).json({ message: "Só é possível editar importações em planejamento" });
+        }
+        
+        const updatedImport = await storage.updateImportStatus(id, importRecord.status, req.body);
+        res.json(updatedImport);
       }
-
-      const updatedImport = await storage.updateImportStatus(id, importRecord.status, req.body);
-      res.json(updatedImport);
     } catch (error) {
       console.error("Error updating import:", error);
       res.status(500).json({ message: "Erro ao atualizar importação" });
