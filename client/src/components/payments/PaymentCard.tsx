@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import PaymentModal from "./PaymentModal";
 
 interface PaymentCardProps {
   payment: {
@@ -52,6 +53,8 @@ interface PaymentCardProps {
 export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
   const [, setLocation] = useLocation();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const queryClient = useQueryClient();
 
   const getPaymentTypeLabel = (type: string) => {
     switch (type) {
@@ -102,16 +105,8 @@ export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
   };
 
   const handlePay = () => {
-    // Pre-carregar dados antes da navegação para transição instantânea
-    const queryClient = useQueryClient();
-    queryClient.prefetchQuery({
-      queryKey: ['/api/payment-schedules', payment.id],
-      queryFn: () => apiRequest("GET", `/api/payment-schedules/${payment.id}`),
-      staleTime: 1000 * 60 * 5
-    });
-    
-    // Navegação instantânea
-    setLocation(`/payments/pay/${payment.id}`);
+    // Abre modal instantâneo - sem navegação
+    setShowPaymentModal(true);
   };
 
   const handleEdit = () => {
@@ -264,6 +259,27 @@ export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Pagamento */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        paymentSchedule={{
+          id: payment.id,
+          amount: payment.amount,
+          currency: "USD",
+          dueDate: payment.dueDate,
+          status: payment.status,
+          paymentType: payment.paymentType,
+          installmentNumber: payment.installmentNumber,
+          totalInstallments: payment.totalInstallments
+        }}
+        onSuccess={() => {
+          // Invalidar cache para atualizar lista de pagamentos
+          queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
+          setShowPaymentModal(false);
+        }}
+      />
     </>
   );
 }
