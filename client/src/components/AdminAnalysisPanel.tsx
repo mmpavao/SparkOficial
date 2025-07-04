@@ -721,12 +721,24 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 )}
 
                 {/* Status: PRE_APPROVED - Show submit to financial (only if not already processed) */}
-                {(application.status === 'pre_approved' || application.preAnalysisStatus === 'pre_approved') && 
-                 !application.financialStatus && 
-                 !application.adminStatus && 
-                 application.status !== 'submitted_to_financial' && 
-                 application.status !== 'approved' && 
-                 application.status !== 'admin_finalized' && (
+                {(() => {
+                  const shouldShowSubmitButton = (application.status === 'pre_approved' || application.preAnalysisStatus === 'pre_approved') && 
+                   (application.financialStatus !== 'approved' && application.financialStatus !== 'rejected') && 
+                   application.adminStatus !== 'admin_finalized' && 
+                   application.status !== 'submitted_to_financial' && 
+                   application.status !== 'approved' && 
+                   application.status !== 'admin_finalized';
+                  
+                  console.log('🔍 SUBMIT BUTTON DEBUG:', {
+                    status: application.status,
+                    preAnalysisStatus: application.preAnalysisStatus,
+                    financialStatus: application.financialStatus,
+                    adminStatus: application.adminStatus,
+                    shouldShow: shouldShowSubmitButton
+                  });
+                  
+                  return shouldShowSubmitButton;
+                })() && (
                   <div className="space-y-3">
                     <div className="bg-green-50 p-3 rounded-lg">
                       <p className="text-sm text-green-700 mb-2 flex items-center">
