@@ -87,14 +87,20 @@ export class DatabaseStorage {
   }
 
   async updateImporterData(id: number, data: Partial<User>): Promise<User> {
-    const updateData = {
-      ...data,
-      updatedAt: new Date()
-    };
+    // Clean the data to only include valid fields and convert dates properly
+    const cleanData: Partial<User> = {};
+    
+    // Only include fields that are actually being updated
+    if (data.defaultAdminFeeRate !== undefined) cleanData.defaultAdminFeeRate = data.defaultAdminFeeRate;
+    if (data.defaultDownPaymentRate !== undefined) cleanData.defaultDownPaymentRate = data.defaultDownPaymentRate;
+    if (data.defaultPaymentTerms !== undefined) cleanData.defaultPaymentTerms = data.defaultPaymentTerms;
+    
+    // Always set updatedAt to current timestamp
+    cleanData.updatedAt = new Date();
     
     const [user] = await db
       .update(users)
-      .set(updateData)
+      .set(cleanData)
       .where(eq(users.id, id))
       .returning();
     return user;

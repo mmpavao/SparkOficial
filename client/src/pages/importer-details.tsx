@@ -127,7 +127,7 @@ export default function ImporterDetailsPage() {
   // Update importer mutation
   const updateMutation = useMutation({
     mutationFn: (data: Partial<ImporterDetails>) => 
-      apiRequest(`/api/admin/importers/${importerId}`, "PUT", data),
+      apiRequest(`/api/test/importers/${importerId}`, "PUT", data),
     onSuccess: () => {
       toast({
         title: "Sucesso",
