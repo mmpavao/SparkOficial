@@ -53,7 +53,7 @@ export default function PaymentsPage() {
   // Buscar cronograma de pagamentos
   const { data: paymentsData, isLoading } = useQuery({
     queryKey: ["/api/payment-schedules"],
-    queryFn: () => apiRequest("GET", "/api/payment-schedules")
+    queryFn: () => apiRequest("/api/payment-schedules", "GET")
   });
 
   const payments: PaymentSchedule[] = paymentsData || [];
