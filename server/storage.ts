@@ -19,7 +19,7 @@ import {
   type InsertSupplier,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like, asc } from "drizzle-orm";
+import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like, asc, lt } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage {
@@ -1128,14 +1128,22 @@ export class DatabaseStorage {
     type: string;
     title: string;
     message: string;
-    data?: any;
+    actionUrl?: string;
+    metadata?: any;
     priority?: string;
+    isRead?: boolean;
   }) {
     return await db
       .insert(notifications)
       .values({
-        ...notificationData,
-        priority: notificationData.priority || "normal",
+        userId: notificationData.userId,
+        type: notificationData.type,
+        title: notificationData.title,
+        message: notificationData.message,
+        data: notificationData.metadata || {},
+        priority: notificationData.priority || "medium",
+        status: notificationData.isRead ? "read" : "unread",
+        createdAt: new Date(),
       })
       .returning();
   }
@@ -1192,6 +1200,107 @@ export class DatabaseStorage {
         )
       )
       .returning();
+  }
+
+  // ===== ADDITIONAL NOTIFICATION HELPER METHODS =====
+
+  async getUsersByRole(role: string) {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.role, role));
+  }
+
+  async getAllActiveUsers() {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.status, 'active'));
+  }
+
+  async getPaymentsDueBefore(date: Date) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(
+        and(
+          lte(paymentSchedules.dueDate, date),
+          eq(paymentSchedules.status, 'pending')
+        )
+      );
+  }
+
+  async getOverduePayments(currentDate: Date) {
+    return await db
+      .select()
+      .from(paymentSchedules)
+      .where(
+        and(
+          lt(paymentSchedules.dueDate, currentDate),
+          eq(paymentSchedules.status, 'pending')
+        )
+      );
+  }
+
+  async getNotificationByPaymentReminder(paymentId: number) {
+    return await db
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.type, 'payment_due_reminder'),
+          sql`notifications.data->>'paymentId' = ${paymentId.toString()}`
+        )
+      )
+      .limit(1);
+  }
+
+  async getCreditInfoByUser(userId: number) {
+    try {
+      // Get approved credit applications for user
+      const creditApplications = await this.getCreditApplicationsByUser(userId);
+      const approvedApplications = creditApplications.filter(app => 
+        app.financialStatus === 'approved' && 
+        (app.adminStatus === 'admin_finalized' || app.adminStatus === 'finalized')
+      );
+
+      if (approvedApplications.length === 0) {
+        return { totalCredit: 0, usedCredit: 0, availableCredit: 0 };
+      }
+
+      // Calculate total credit limit
+      const totalCredit = approvedApplications.reduce((sum, app) => {
+        const creditLimit = app.finalCreditLimit ? 
+          parseFloat(app.finalCreditLimit) : 
+          parseFloat(app.requestedAmount || '0');
+        return sum + creditLimit;
+      }, 0);
+
+      // Get user's imports and calculate used credit
+      const imports = await this.getImportsByUser(userId);
+      const approvedIds = approvedApplications.map(app => app.id);
+      
+      const activeImports = imports.filter(imp => {
+        const isActiveStatus = imp.status !== 'cancelado' && 
+                              imp.status !== 'cancelled' &&
+                              imp.status !== 'planejamento';
+        const hasLinkedCredit = imp.creditApplicationId && approvedIds.includes(imp.creditApplicationId);
+        return isActiveStatus && hasLinkedCredit;
+      });
+
+      const usedCredit = activeImports.reduce((sum, imp) => {
+        return sum + parseFloat(imp.totalValue || '0');
+      }, 0);
+
+      return {
+        totalCredit,
+        usedCredit,
+        availableCredit: Math.max(0, totalCredit - usedCredit)
+      };
+    } catch (error) {
+      console.error('Error getting credit info for user:', error);
+      return { totalCredit: 0, usedCredit: 0, availableCredit: 0 };
+    }
   }
 
   // Helper function to create notifications for credit events

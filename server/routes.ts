@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { notificationService } from "./notification-service";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
@@ -859,6 +860,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const application = await storage.createCreditApplication(applicationData);
+      
+      // Criar notificação automática de nova solicitação
+      try {
+        await notificationService.onCreditApplicationSubmitted(
+          userId,
+          application.id,
+          applicationData.legalCompanyName || 'Empresa'
+        );
+      } catch (notifError) {
+        console.error('Erro ao criar notificação:', notifError);
+        // Não falhar a criação da aplicação por erro de notificação
+      }
       
       // Invalidate all caches for this user to ensure fresh data
       delete userCreditCache[userId];
@@ -5084,6 +5097,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing PayComex payment:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== NOTIFICATION ENDPOINTS =====
+
+  // Get user notifications
+  app.get('/api/notifications', requireAuth, async (req: any, res) => {
+    try {
+      const notifications = await storage.getUserNotifications(req.session.userId, 20);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get unread notifications count
+  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
+    try {
+      const count = await storage.getUnreadNotificationsCount(req.session.userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Mark notification as read
+  app.put('/api/notifications/:id/read', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.markNotificationAsRead(parseInt(id), req.session.userId);
+      res.json({ message: "Notificação marcada como lida" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Mark all notifications as read
+  app.put('/api/notifications/mark-all-read', requireAuth, async (req: any, res) => {
+    try {
+      await storage.markAllNotificationsAsRead(req.session.userId);
+      res.json({ message: "Todas as notificações marcadas como lidas" });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Create demo notifications (temporary endpoint for testing)
+  app.post('/api/notifications/demo', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      
+      // Create sample notifications
+      const demoNotifications = [
+        {
+          userId,
+          type: 'credit_approved',
+          title: 'Crédito Aprovado!',
+          message: 'Sua solicitação de crédito de US$ 750.000 foi aprovada pela financeira.',
+          actionUrl: '/credit',
+          priority: 'high'
+        },
+        {
+          userId,
+          type: 'payment_due_reminder',
+          title: 'Pagamento Vencendo',
+          message: 'Você tem um pagamento de US$ 21.000 vencendo em 3 dias.',
+          actionUrl: '/payments',
+          priority: 'medium'
+        },
+        {
+          userId,
+          type: 'document_missing',
+          title: 'Documento Pendente',
+          message: 'Faltam documentos para finalizar sua aplicação de crédito.',
+          actionUrl: '/credit/64',
+          priority: 'urgent'
+        },
+        {
+          userId,
+          type: 'import_status_changed',
+          title: 'Status da Importação Atualizado',
+          message: 'Sua importação "Nova importacao" mudou para status "Em Produção".',
+          actionUrl: '/imports/13',
+          priority: 'low'
+        }
+      ];
+
+      for (const notification of demoNotifications) {
+        await storage.createNotification(notification);
+      }
+
+      res.json({ message: "Notificações de demonstração criadas com sucesso!", count: demoNotifications.length });
+    } catch (error) {
+      console.error("Error creating demo notifications:", error);
+      res.status(500).json({ message: "Erro ao criar notificações de demonstração" });
     }
   });
 

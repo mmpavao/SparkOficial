@@ -14,7 +14,7 @@ const navTranslations = {
   logout: 'Sair'
 };
 
-import NotificationCenter from "@/components/NotificationCenter";
+import { NotificationCenter, useNotificationCount } from "@/components/NotificationCenter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,10 +54,14 @@ interface AuthenticatedLayoutProps {
 export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get unread notification count
+  const { data: unreadCountData } = useNotificationCount();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -458,7 +462,28 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
-            <NotificationCenter />
+            {/* Notification Bell */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNotificationOpen(!notificationOpen)}
+                className="relative p-2 hover:bg-gray-100"
+              >
+                <Bell className="w-5 h-5 text-gray-600" />
+                {unreadCountData?.count > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    {unreadCountData.count > 99 ? '99+' : unreadCountData.count}
+                  </span>
+                )}
+              </Button>
+            </div>
+
+            {/* Notification Center Modal */}
+            <NotificationCenter 
+              isOpen={notificationOpen} 
+              onClose={() => setNotificationOpen(false)} 
+            />
           </div>
         </div>
       </header>
