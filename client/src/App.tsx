@@ -31,7 +31,7 @@ import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
 import PaymentsPage from "@/pages/payments";
 import PaymentDetailsPage from "@/pages/payment-details";
-import PaymentCheckoutPage from "@/pages/payment-checkout";
+import PaymentCheckoutUnifiedPage from "@/pages/payment-checkout-unified";
 import ImporterDetailsPage from "@/pages/importer-details";
 
 import NotFound from "@/pages/not-found";
@@ -82,7 +82,7 @@ function Router() {
         
         <Route path="/payments" component={PaymentsPage} />
         <Route path="/payments/:id" component={PaymentDetailsPage} />
-        <Route path="/payments/:id/checkout" component={PaymentCheckoutPage} />
+        <Route path="/payments/:id/checkout" component={PaymentCheckoutUnifiedPage} />
         <Route path="/reports" component={ReportsPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />

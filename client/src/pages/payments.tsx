@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
+import PaymentCheckoutModal from "@/components/payments/PaymentCheckoutModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +50,8 @@ export default function PaymentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
 
   // Buscar cronograma de pagamentos
   const { data: paymentsData, isLoading } = useQuery({
@@ -267,7 +270,10 @@ export default function PaymentsPage() {
                           Ver detalhes
                         </DropdownMenuItem>
                         {payment.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => setLocation(`/payments/${payment.id}/pay`)}>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedPaymentId(payment.id);
+                            setCheckoutModalOpen(true);
+                          }}>
                             <DollarSign className="mr-2 h-4 w-4" />
                             Pagar
                           </DropdownMenuItem>
@@ -312,6 +318,18 @@ export default function PaymentsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Payment Checkout Modal */}
+      {selectedPaymentId && (
+        <PaymentCheckoutModal
+          isOpen={checkoutModalOpen}
+          onClose={() => {
+            setCheckoutModalOpen(false);
+            setSelectedPaymentId(null);
+          }}
+          paymentId={selectedPaymentId}
+        />
+      )}
     </div>
   );
 }

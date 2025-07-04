@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
+import PaymentCheckoutModal from "@/components/payments/PaymentCheckoutModal";
 import { 
   ArrowLeft,
   DollarSign,
@@ -24,6 +26,7 @@ export default function PaymentDetailsPage() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
 
   // Buscar detalhes do pagamento
   const { data: payment, isLoading } = useQuery({
@@ -127,6 +130,17 @@ export default function PaymentDetailsPage() {
         <div className="flex items-center gap-4">
           {getStatusBadge(payment.status)}
           {getPaymentTypeBadge(payment.paymentType)}
+          
+          {/* Botão Pagar - apenas para pagamentos pendentes */}
+          {payment.status === 'pending' && (
+            <Button 
+              onClick={() => setCheckoutModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Pagar
+            </Button>
+          )}
         </div>
       </div>
 
@@ -348,6 +362,13 @@ export default function PaymentDetailsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Payment Checkout Modal */}
+      <PaymentCheckoutModal
+        isOpen={checkoutModalOpen}
+        onClose={() => setCheckoutModalOpen(false)}
+        paymentId={parseInt(id || "0")}
+      />
     </div>
   );
 }
