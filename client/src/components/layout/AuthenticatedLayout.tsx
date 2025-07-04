@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
+import LanguageSelector from "@/components/ui/language-selector";
 
 import NotificationCenter from "@/components/NotificationCenter";
 import {
@@ -449,6 +450,12 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
+            {/* Seletor de idioma apenas para usuários financeira */}
+            {isFinanceira && (
+              <div className="w-48">
+                <LanguageSelector />
+              </div>
+            )}
             <NotificationCenter />
           </div>
         </div>
