@@ -61,6 +61,7 @@ export function StatusChanger({ importId, currentStatus, onStatusChange }: Statu
           size="sm" 
           disabled={isChanging}
           className="h-8 text-xs"
+          onClick={(e) => e.stopPropagation()}
         >
           Status <ChevronDown className="ml-1 h-3 w-3" />
         </Button>
@@ -69,7 +70,10 @@ export function StatusChanger({ importId, currentStatus, onStatusChange }: Statu
         {Object.entries(IMPORT_STATUS_LABELS).map(([status, label]) => (
           <DropdownMenuItem
             key={status}
-            onClick={() => handleStatusChange(status)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleStatusChange(status);
+            }}
             className="flex items-center justify-between cursor-pointer"
           >
             <span className="flex-1">{label}</span>
