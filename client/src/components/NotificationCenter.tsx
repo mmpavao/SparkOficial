@@ -41,7 +41,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   // Mark notification as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      return apiRequest('PUT', `/api/notifications/${notificationId}/read`);
+      return apiRequest(`/api/notifications/${notificationId}/read`, 'PUT');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -59,7 +59,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('PUT', '/api/notifications/mark-all-read');
+      return apiRequest('/api/notifications/mark-all-read', 'PUT');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -255,3 +255,6 @@ export function useNotificationCount() {
     refetchInterval: 60000, // Refetch every minute
   });
 }
+
+// Default export for compatibility
+export default NotificationCenter;
