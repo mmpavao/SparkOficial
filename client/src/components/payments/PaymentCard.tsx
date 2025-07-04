@@ -32,9 +32,11 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react";
-import { useLocation } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import { useToast } from "@/hooks/use-toast";
 import PaymentModal from "./PaymentModal";
+import PaymentDetailsModal from "./PaymentDetailsModal";
+import PaymentEditModal from "./PaymentEditModal";
 
 interface PaymentCardProps {
   payment: {
@@ -51,10 +53,12 @@ interface PaymentCardProps {
 }
 
 export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
-  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const queryClient = useQueryClient();
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const getPaymentTypeLabel = (type: string) => {
     switch (type) {
@@ -101,7 +105,7 @@ export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
   const StatusIcon = statusInfo.icon;
 
   const handleViewDetails = () => {
-    setLocation(`/payments/details/${payment.id}`);
+    setShowDetailsModal(true);
   };
 
   const handlePay = () => {
@@ -110,7 +114,7 @@ export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
   };
 
   const handleEdit = () => {
-    setLocation(`/payments/edit/${payment.id}`);
+    setShowEditModal(true);
   };
 
   const handleCancelConfirm = () => {
@@ -275,10 +279,23 @@ export function PaymentCard({ payment, onCancel }: PaymentCardProps) {
           totalInstallments: payment.totalInstallments
         }}
         onSuccess={() => {
-          // Invalidar cache para atualizar lista de pagamentos
           queryClient.invalidateQueries({ queryKey: ['/api/payment-schedules'] });
           setShowPaymentModal(false);
         }}
+      />
+
+      {/* Modal de Detalhes */}
+      <PaymentDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        paymentId={payment.id}
+      />
+
+      {/* Modal de Edição */}
+      <PaymentEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        paymentId={payment.id}
       />
     </>
   );
