@@ -7,9 +7,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/utils/soundEffects';
-import { useScreenReader } from '@/hooks/useScreenReader';
-import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
-import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,27 +57,6 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { playApprovalSound, playPaymentSound, playStatusChangeSound, playNotificationSound } = useSoundEffects();
-  
-  // Accessibility hooks
-  const { announce, announceNavigation, announceDataLoaded } = useScreenReader();
-  const { containerRef, focusFirstElement } = useKeyboardNavigation({
-    enableArrowKeys: true,
-    enableEscapeKey: false
-  });
-
-  // Announce data loaded for screen readers and focus management
-  useEffect(() => {
-    if (isAdmin && adminMetrics && !adminMetricsLoading) {
-      announceDataLoaded('Dashboard administrativo carregado com métricas atualizadas');
-      focusFirstElement();
-    } else if (isImporter && importerData && !importerDataLoading) {
-      announceDataLoaded('Dashboard do importador carregado com informações de crédito e importações');
-      focusFirstElement();
-    } else if (isFinanceira && financeiraMetrics && !financeiraMetricsLoading) {
-      announceDataLoaded('Dashboard financeiro carregado com métricas de aprovação');
-      focusFirstElement();
-    }
-  }, [adminMetrics, adminMetricsLoading, importerData, importerDataLoading, financeiraMetrics, financeiraMetricsLoading, isAdmin, isImporter, isFinanceira, announceDataLoaded, focusFirstElement]);
 
   // Navigation handlers
   const handleCreditClick = (creditId: number) => {
@@ -142,94 +118,56 @@ export default function Dashboard() {
   }
 
   return (
-    <div 
-      ref={containerRef}
-      className="space-y-6"
-      role="main"
-      aria-label="Dashboard principal"
-      tabIndex={-1}
-    >
+    <div className="space-y-6">
       {/* Welcome Section - Different for Admin vs Financeira vs Importer */}
-      <div 
-        className="from-spark-500 to-spark-600 rounded-xl p-6 text-white bg-[#15ad7a]"
-        role="banner"
-        aria-label="Área de boas-vindas e informações principais"
-      >
+      <div className="from-spark-500 to-spark-600 rounded-xl p-6 text-white bg-[#15ad7a]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 
-              className="text-3xl font-bold mb-1"
-              aria-label={`${isAdmin ? 'Painel Administrativo' : 
-                           isFinanceira ? 'Painel Financeiro' : 
-                           `Bom dia, ${user?.companyName?.split(' ')[0] || 'Usuário'}`}`}
-            >
+            <h1 className="text-3xl font-bold mb-1">
               {isAdmin ? 'Painel Administrativo' : 
                isFinanceira ? 'Painel Financeiro' : 
                `Bom dia, ${user?.companyName?.split(' ')[0] || 'Usuário'}!`} 👋
             </h1>
-            <p 
-              className="text-spark-100 text-sm"
-              aria-label="Descrição das funcionalidades disponíveis"
-            >
+            <p className="text-spark-100 text-sm">
               {isAdmin ? 'Visão completa da plataforma Spark Comex' : 
                isFinanceira ? 'Análise e aprovação de créditos para importações' :
                'Gerencie seus créditos e importações da China de forma simples e eficiente.'}
             </p>
           </div>
-          <div 
-            className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center"
-            role="img"
-            aria-label={`Avatar da empresa ${user?.companyName || 'Usuário'}`}
-          >
+          <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center">
             <span className="text-2xl font-bold">{user?.companyName?.charAt(0) || 'U'}</span>
           </div>
         </div>
         
         {/* Quick Actions - Only for Importers */}
         {isImporter && (
-          <div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6"
-            role="group"
-            aria-label="Ações rápidas disponíveis"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
             <button
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
-              onClick={() => {
-                announceNavigation('Navegando para solicitar crédito');
-                window.location.href = '/credit/new';
-              }}
-              aria-label="Solicitar novo crédito - abre formulário de aplicação"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
+              onClick={() => window.location.href = '/credit/new'}
             >
               <div className="flex items-center">
-                <CreditCard className="w-4 h-4 mr-2" aria-hidden="true" />
+                <CreditCard className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Solicitar Crédito</span>
               </div>
             </button>
 
             <button
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
-              onClick={() => {
-                announceNavigation('Navegando para cadastrar fornecedor');
-                window.location.href = '/suppliers/new';
-              }}
-              aria-label="Cadastrar novo fornecedor chinês"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
+              onClick={() => window.location.href = '/suppliers/new'}
             >
               <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2" aria-hidden="true" />
+                <Users className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Cadastrar Fornecedor</span>
               </div>
             </button>
 
             <button
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
-              onClick={() => {
-                announceNavigation('Navegando para iniciar importação');
-                window.location.href = '/imports/new';
-              }}
-              aria-label="Iniciar nova importação da China"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-3 text-left transition-all duration-200 border border-white/20"
+              onClick={() => window.location.href = '/imports/new'}
             >
               <div className="flex items-center">
-                <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+                <Plus className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Iniciar Importação</span>
               </div>
             </button>
@@ -243,48 +181,28 @@ export default function Dashboard() {
         <>
           {/* Admin Main Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card 
-              className="border-l-4 border-l-blue-500"
-              role="region"
-              aria-label="Métricas de importadores"
-              tabIndex={0}
-            >
+            <Card className="border-l-4 border-l-blue-500">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total de Importadores</p>
-                    <p 
-                      className="text-2xl font-bold text-gray-900"
-                      aria-label={`${adminMetrics?.totalImporters || 0} importadores cadastrados`}
-                    >
-                      {adminMetrics?.totalImporters || 0}
-                    </p>
+                    <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImporters || 0}</p>
                     <p className="text-xs text-gray-500 mt-1">Usuários ativos</p>
                   </div>
-                  <Users className="w-8 h-8 text-blue-600" aria-hidden="true" />
+                  <Users className="w-8 h-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-l-4 border-l-green-500"
-              role="region"
-              aria-label="Aplicações de crédito processadas"
-              tabIndex={0}
-            >
+            <Card className="border-l-4 border-l-green-500">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
-                    <p 
-                      className="text-2xl font-bold text-gray-900"
-                      aria-label={`${adminMetrics?.totalApplications || 0} aplicações de crédito processadas`}
-                    >
-                      {adminMetrics?.totalApplications || 0}
-                    </p>
+                    <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalApplications || 0}</p>
                     <p className="text-xs text-gray-500 mt-1">Total processadas</p>
                   </div>
-                  <FileText className="w-8 h-8 text-green-600" aria-hidden="true" />
+                  <FileText className="w-8 h-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
@@ -812,65 +730,44 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card 
-              role="region"
-              aria-label="Informações de crédito disponível"
-              tabIndex={0}
-            >
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Crédito Disponível</p>
-                    <p 
-                      className="text-2xl font-bold text-gray-900"
-                      aria-label={`Crédito disponível: ${formatCompactCurrency(importerData?.creditMetrics?.availableAmount || 0)}`}
-                    >
+                    <p className="text-2xl font-bold text-gray-900">
                       {formatCompactCurrency(importerData?.creditMetrics?.availableAmount || 0)}
                     </p>
                   </div>
-                  <CreditCard className="w-8 h-8 text-blue-600" aria-hidden="true" />
+                  <CreditCard className="w-8 h-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card 
-              role="region"
-              aria-label="Volume total importado"
-              tabIndex={0}
-            >
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Volume Importado</p>
-                    <p 
-                      className="text-2xl font-bold text-gray-900"
-                      aria-label={`Volume total importado: ${formatCompactCurrency(importerData?.importMetrics?.totalValue || 0)}`}
-                    >
+                    <p className="text-2xl font-bold text-gray-900">
                       {formatCompactCurrency(importerData?.importMetrics?.totalValue || 0)}
                     </p>
                   </div>
-                  <Package className="w-8 h-8 text-orange-600" aria-hidden="true" />
+                  <Package className="w-8 h-8 text-orange-600" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card 
-              role="region"
-              aria-label="Número total de importações"
-              tabIndex={0}
-            >
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total de Importações</p>
-                    <p 
-                      className="text-2xl font-bold text-gray-900"
-                      aria-label={`${importerData?.importMetrics?.totalImports || 0} importações realizadas`}
-                    >
+                    <p className="text-2xl font-bold text-gray-900">
                       {importerData?.importMetrics?.totalImports || 0}
                     </p>
                   </div>
-                  <BarChart3 className="w-8 h-8 text-purple-600" aria-hidden="true" />
+                  <BarChart3 className="w-8 h-8 text-purple-600" />
                 </div>
               </CardContent>
             </Card>
