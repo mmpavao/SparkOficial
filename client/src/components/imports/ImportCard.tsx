@@ -39,7 +39,7 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
     if (onEdit) {
       onEdit(importData.id);
     } else {
-      setLocation(`/imports/${importData.id}/edit`);
+      setLocation(`/imports/edit/${importData.id}`);
     }
   };
 
