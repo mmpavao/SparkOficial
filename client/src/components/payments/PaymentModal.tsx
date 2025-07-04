@@ -62,7 +62,7 @@ export default function PaymentModal({ isOpen, onClose, paymentSchedule, onSucce
   // Mutação para pagamento externo
   const externalPaymentMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest(`/api/payments/external`, "POST", data);
+      const response = await apiRequest(`/api/payment-schedules/${paymentSchedule.id}/external-payment`, "POST", data);
       return response;
     },
     onSuccess: () => {
@@ -118,14 +118,13 @@ export default function PaymentModal({ isOpen, onClose, paymentSchedule, onSucce
   const handleExternalPayment = () => {
     setIsProcessing(true);
     const formData = new FormData();
-    formData.append('paymentScheduleId', paymentSchedule.id.toString());
     formData.append('amount', paymentSchedule.amount);
     formData.append('paymentDate', externalData.paymentDate);
     formData.append('notes', externalData.notes);
     formData.append('paymentMethod', 'external');
     
     if (externalData.receipt) {
-      formData.append('receipts', externalData.receipt);
+      formData.append('receipt', externalData.receipt);
     }
 
     externalPaymentMutation.mutate(formData);
