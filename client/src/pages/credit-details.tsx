@@ -1027,7 +1027,11 @@ export default function CreditDetailsPage() {
                             if (permissions.isFinanceira) {
                               return application.approvedTerms || '30';
                             }
-                            // Para outros usuários, mostrar termos finais do Admin se existirem
+                            // Para outros usuários, mostrar configuração salva se existir
+                            if (financialSettings?.paymentTerms) {
+                              return financialSettings.paymentTerms;
+                            }
+                            // Senão, mostrar termos finais do Admin se existirem
                             if (application.finalApprovedTerms) {
                               return application.finalApprovedTerms;
                             }
@@ -1041,7 +1045,18 @@ export default function CreditDetailsPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Entrada Requerida</span>
                         <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                          10% do valor do pedido
+                          {(() => {
+                            // Para Financeira, mostrar apenas os termos que ela própria configurou
+                            if (permissions.isFinanceira) {
+                              return application.finalDownPayment ? `${application.finalDownPayment}% do valor do pedido` : '10% do valor do pedido';
+                            }
+                            // Para outros usuários, mostrar configuração do usuário se existir
+                            if (financialSettings?.downPaymentPercentage) {
+                              return `${financialSettings.downPaymentPercentage}% do valor do pedido`;
+                            }
+                            // Fallback para valores da aplicação
+                            return application.finalDownPayment ? `${application.finalDownPayment}% do valor do pedido` : '10% do valor do pedido';
+                          })()}
                         </Badge>
                       </div>
 
@@ -1050,7 +1065,14 @@ export default function CreditDetailsPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600">Taxa Admin</span>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                            {application.adminFee || 0}%
+                            {(() => {
+                              // Usar configuração salva do usuário se existir
+                              if (financialSettings?.adminFeePercentage) {
+                                return `${financialSettings.adminFeePercentage}%`;
+                              }
+                              // Fallback para taxa da aplicação
+                              return `${application.adminFee || 0}%`;
+                            })()}
                           </Badge>
                         </div>
                       )}
