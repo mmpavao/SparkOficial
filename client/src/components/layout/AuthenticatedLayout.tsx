@@ -410,11 +410,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     <span className="font-medium">Spark Comex Beta</span>
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span>v1.0.0</span>
+                      <span>v1.0.1</span>
                     </div>
                   </div>
                   <div className="mt-1 text-gray-400">
-                    30/06/2025 - 05:05 UTC
+                    04/07/2025 - 14:47 UTC
                   </div>
                   <div className="mt-1 text-gray-400">
                     Sistema Estável
