@@ -620,8 +620,15 @@ importRoutes.put('/imports/:id', requireAuth, async (req, res) => {
     
     // Convert any date fields from string to Date object
     dateFields.forEach(field => {
-      if (updateData[field]) {
+      if (updateData[field] !== undefined && updateData[field] !== null) {
         if (typeof updateData[field] === 'string') {
+          // Skip empty strings
+          if (updateData[field].trim() === '') {
+            console.log(`Removing empty string for ${field}`);
+            delete updateData[field];
+            return;
+          }
+          
           console.log(`Converting ${field} from string: ${updateData[field]}`);
           const dateValue = new Date(updateData[field]);
           if (!isNaN(dateValue.getTime())) {
