@@ -256,17 +256,17 @@ export default function CreditPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
-              ? "Análise Financeira - Aprovação de Crédito" 
+              ? t('financeira.analysis.creditManagement') 
               : permissions.canViewAllApplications 
-                ? "Gestão de Crédito - Área Administrativa" 
-                : "Solicitações de Crédito"}
+                ? t('financeira.analysis.creditManagement') 
+                : t('financeira.analysis.creditApplications')}
           </h1>
           <p className="text-gray-600">
             {permissions.isFinanceira
-              ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
+              ? t('financeira.analysis.evaluateAndApprove')
               : permissions.canViewAllApplications 
-                ? "Visualize e gerencie todas as solicitações de crédito da plataforma"
-                : "Solicite crédito para suas importações"}
+                ? t('financeira.analysis.viewAndManage')
+                : t('financeira.analysis.requestCredit')}
           </p>
         </div>
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
@@ -275,7 +275,7 @@ export default function CreditPage() {
             className="bg-spark-600 hover:bg-spark-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nova Solicitação de Crédito
+            {t('financeira.analysis.newCreditApplication')}
           </Button>
         )}
       </div>
@@ -293,22 +293,22 @@ export default function CreditPage() {
         <CardHeader>
           <CardTitle>
             {permissions.canViewAllApplications 
-              ? "Todas as Solicitações de Crédito" 
-              : "Minhas Solicitações"}
+              ? t('financeira.analysis.allCreditApplications') 
+              : t('financeira.analysis.creditApplications')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando...</p>
+              <p className="text-gray-600">{t('loading')}</p>
             </div>
           ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">Nenhuma solicitação de crédito encontrada</p>
+              <p className="text-gray-500 mb-2">{t('financeira.analysis.noApplicationsFound')}</p>
               <p className="text-sm text-gray-400">
-                Suas solicitações de crédito aparecerão aqui.
+                {t('financeira.analysis.noApplicationsMessage')}
               </p>
             </div>
           ) : (
