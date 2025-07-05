@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -115,10 +115,10 @@ export default function PreparationGuideModal({ isOpen, onClose, onContinue }: P
             </div>
             Prepare-se para o Sucesso!
           </DialogTitle>
-          <DialogDescription className="text-gray-600 mt-2">
+          <p className="text-gray-600 mt-2">
             Antes de iniciar sua solicitação de crédito, vamos mostrar tudo que você precisará. 
             Isso garantirá um processo mais rápido e sem interrupções.
-          </DialogDescription>
+          </p>
         </DialogHeader>
 
         <div className="space-y-6">
