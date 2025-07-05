@@ -162,7 +162,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex">
+    <div className="min-h-screen w-full flex bg-white">
       {/* Left Panel - Welcome Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#29bc86] text-white relative overflow-hidden">
         <div className="w-full flex flex-col justify-center items-center p-12 text-center">
@@ -193,23 +193,23 @@ export default function AuthPage() {
         </div>
       </div>
       {/* Right Panel - Auth Forms */}
-      <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center p-8 lg:p-12">
-        <div className="max-w-md mx-auto w-full">
+      <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center px-4 py-8 lg:p-12 min-h-screen">
+        <div className="max-w-md mx-auto w-full relative">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-8">
+          <div className="lg:hidden text-center mb-6">
             <img 
               src="/spark-logo.png" 
               alt="Spark Comex" 
-              className="h-16 w-auto mx-auto"
+              className="h-12 w-auto mx-auto"
             />
           </div>
 
           {/* Login Form */}
           {isLogin ? (
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{authTranslations.welcomeBack}</h2>
-                <p className="text-gray-600">{authTranslations.loginDescription}</p>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">{authTranslations.welcomeBack}</h2>
+                <p className="text-sm lg:text-base text-gray-600">{authTranslations.loginDescription}</p>
               </div>
 
               <Form {...loginForm}>
@@ -296,10 +296,10 @@ export default function AuthPage() {
             </div>
           ) : (
             /* Register Form */
-            (<div className="space-y-6" key="register-form">
+            (<div className="space-y-4 lg:space-y-6" key="register-form">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{authTranslations.createAccount}</h2>
-                <p className="text-gray-600">{authTranslations.createAccountDescription}</p>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">{authTranslations.createAccount}</h2>
+                <p className="text-sm lg:text-base text-gray-600">{authTranslations.createAccountDescription}</p>
               </div>
               <Form {...registerForm} key="register-form-inner">
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
@@ -505,11 +505,11 @@ export default function AuthPage() {
         </div>
       </div>
       
-      {/* Version in bottom right corner */}
-      <div className="fixed bottom-4 right-4 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm text-xs text-gray-500 z-50">
-        <div className="flex items-center space-x-2">
+      {/* Version in bottom corner - responsive positioning */}
+      <div className="fixed bottom-2 right-2 lg:bottom-4 lg:right-4 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg px-2 py-1 lg:px-3 lg:py-2 shadow-sm text-xs text-gray-500 z-50">
+        <div className="flex items-center space-x-1 lg:space-x-2">
           <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-          <span>v1.0.1</span>
+          <span className="text-xs">v1.0.1</span>
         </div>
       </div>
     </div>
