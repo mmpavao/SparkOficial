@@ -377,8 +377,8 @@ export default function AuthPage() {
                           <FormControl>
                             <Input 
                               placeholder="(11) 99999-9999"
-                              value={formatPhone(field.value || "")}
-                              onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+                              value={field.value || ""}
+                              onChange={field.onChange}
                               onBlur={field.onBlur}
                               name={field.name}
                               ref={field.ref}
