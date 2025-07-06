@@ -326,40 +326,49 @@ export class DatabaseStorage {
     console.log(`🔍 Storage: Getting imports for user ${userId}`);
     
     try {
-      const result = await db
-        .select()
-        .from(imports)
-        .where(eq(imports.userId, userId))
-        .orderBy(desc(imports.createdAt));
+      // Use raw SQL for compatibility with SQLite structure
+      const statement = db.$client.prepare(`
+        SELECT * FROM imports 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC
+      `);
       
-      console.log(`📊 Storage: Query executed successfully - Found ${result.length} imports for user ${userId}`);
+      const rows = statement.all(userId);
       
-      if (result.length > 0) {
-        console.log(`📋 Import IDs:`, result.map(imp => imp.id));
+      const imports = rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        importName: row.import_name,
+        cargoType: row.cargo_type,
+        supplierId: row.supplier_id,
+        supplierData: row.supplier_data,
+        products: row.products,
+        containerInfo: row.container_info,
+        fobValue: row.fob_value,
+        adminFeeRate: row.admin_fee_rate,
+        totalValue: row.total_value,
+        status: row.status,
+        shippingMethod: row.shipping_method,
+        dischargePort: row.discharge_port,
+        estimatedArrival: row.estimated_arrival,
+        creditApplicationId: row.credit_application_id,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      console.log(`📊 Storage: Query executed successfully - Found ${imports.length} imports for user ${userId}`);
+      
+      if (imports.length > 0) {
+        console.log(`📋 Import IDs:`, imports.map(imp => imp.id));
         console.log(`📋 First import sample:`, {
-          id: result[0].id,
-          name: result[0].importName,
-          userId: result[0].userId,
-          status: result[0].status
+          id: imports[0].id,
+          name: imports[0].importName,
+          userId: imports[0].userId,
+          status: imports[0].status
         });
-      } else {
-        console.log(`⚠️ No imports found for user ${userId} - checking if user exists in any imports`);
-        
-        // Debug query to check if user has any imports at all
-        const allImports = await db.select().from(imports);
-        const userInAnyImport = allImports.find(imp => imp.userId === userId);
-        console.log(`🔍 User ${userId} found in any imports:`, !!userInAnyImport);
-        
-        if (userInAnyImport) {
-          console.log(`🎯 Sample user import:`, {
-            id: userInAnyImport.id,
-            name: userInAnyImport.importName,
-            userId: userInAnyImport.userId
-          });
-        }
       }
       
-      return result;
+      return imports;
     } catch (error) {
       console.error(`❌ Database error in getImportsByUser for user ${userId}:`, error);
       throw error;
@@ -593,13 +602,41 @@ export class DatabaseStorage {
   }
 
   async getAllImports(): Promise<Import[]> {
-    const importsTable = imports;
-    const importsResult = await db
-      .select()
-      .from(importsTable)
-      .orderBy(desc(importsTable.createdAt));
-
-    return importsResult;
+    try {
+      // Use raw SQL for compatibility with SQLite structure
+      const statement = db.$client.prepare(`
+        SELECT * FROM imports 
+        ORDER BY created_at DESC
+      `);
+      
+      const rows = statement.all();
+      
+      const imports = rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        importName: row.import_name,
+        cargoType: row.cargo_type,
+        supplierId: row.supplier_id,
+        supplierData: row.supplier_data,
+        products: row.products,
+        containerInfo: row.container_info,
+        fobValue: row.fob_value,
+        adminFeeRate: row.admin_fee_rate,
+        totalValue: row.total_value,
+        status: row.status,
+        shippingMethod: row.shipping_method,
+        dischargePort: row.discharge_port,
+        estimatedArrival: row.estimated_arrival,
+        creditApplicationId: row.credit_application_id,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      return imports;
+    } catch (error) {
+      console.error('Error in getAllImports:', error);
+      throw error;
+    }
   }
 
   async getAllImportsOptimized(): Promise<Import[]> {
@@ -644,27 +681,18 @@ export class DatabaseStorage {
 
     const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
 
-    // Get all active imports linked to this credit application
-    // Include both English and Portuguese status values for compatibility
-    const activeImports = await db
-      .select()
-      .from(imports)
-      .where(
-        and(
-          eq(imports.creditApplicationId, creditApplicationId),
-          inArray(imports.status, [
-            // Portuguese status values
-            "planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional",
-            // English status values
-            "planning", "production", "delivered_agent", "maritime_transport", "air_transport", "customs_clearance", "national_transport"
-          ])
-        )
-      );
+    // Use raw SQL query for SQLite compatibility
+    const statement = db.$client.prepare(`
+      SELECT * FROM imports 
+      WHERE credit_application_id = ?
+      AND status IN ('planejamento', 'producao', 'entregue_agente', 'transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional', 'planning', 'production', 'delivered_agent', 'maritime_transport', 'air_transport', 'customs_clearance', 'national_transport')
+    `);
 
-    // Calculate total used credit from active imports (full FOB value - credit covers entire import)
-    const usedCredit = activeImports.reduce((total, importRecord) => {
-      const importValue = parseFloat(importRecord.totalValue || "0");
-      // Credit usage is the full FOB value, not just financed amount
+    const activeImports = statement.all(creditApplicationId) || [];
+
+    // Calculate total used credit from active imports
+    const usedCredit = activeImports.reduce((total: number, importRecord: any) => {
+      const importValue = parseFloat(importRecord.total_value || "0");
       return total + importValue;
     }, 0);
 

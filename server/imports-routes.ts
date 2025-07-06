@@ -171,8 +171,8 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     console.log(`📝 Executing SQL query for role ${currentUser.role}`);
     console.log(`🔧 Parameters: [${queryParams.join(', ')}]`);
 
-    const importsResult = await db.execute(sql.raw(sqlQuery, queryParams));
-    const importsData = importsResult.rows || [];
+    const statement = db.$client.prepare(sqlQuery);
+    const importsData = statement.all(...queryParams);
 
     console.log(`✅ Raw SQL query returned ${importsData.length} imports`);
 
@@ -197,8 +197,9 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       }
     }
 
-    const countResult = await db.execute(sql.raw(countQuery, countParams));
-    const totalCount = Number(countResult.rows?.[0]?.count) || 0;
+    const countStatement = db.$client.prepare(countQuery);
+    const countResult = countStatement.get(...countParams);
+    const totalCount = Number(countResult?.count) || 0;
 
     console.log(`📊 Total count: ${totalCount}`);
 
@@ -208,13 +209,9 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       userId: row.user_id,
       creditApplicationId: row.credit_application_id,
       importName: row.import_name,
-      importNumber: row.import_number,
-      importCode: row.import_code,
       cargoType: row.cargo_type,
       totalValue: row.total_value,
-      currency: row.currency,
       status: row.status,
-      paymentStatus: row.payment_status,
       supplierId: row.supplier_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,

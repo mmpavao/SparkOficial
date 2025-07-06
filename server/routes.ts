@@ -2074,32 +2074,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Fetching fresh credit applications");
       
       // Use raw SQL query for production compatibility
-      const applications = await db.execute(`
+      const statement = db.$client.prepare(`
         SELECT 
-          id, user_id, legal_company_name, requested_amount, status,
+          id, user_id, requested_amount, status,
           pre_analysis_status, financial_status, admin_status,
-          created_at, updated_at, final_credit_limit, credit_limit,
-          approved_terms, final_approved_terms
+          created_at, updated_at, final_credit_limit,
+          approved_terms, final_approved_terms, company_data
         FROM credit_applications 
         ORDER BY created_at DESC
       `);
+      
+      const applications = statement.all();
 
-      const formattedApplications = applications.rows.map((row: any) => ({
-        id: row.id,
-        userId: row.user_id,
-        legalCompanyName: row.legal_company_name,
-        requestedAmount: row.requested_amount,
-        status: row.status,
-        preAnalysisStatus: row.pre_analysis_status,
-        financialStatus: row.financial_status,
-        adminStatus: row.admin_status,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        finalCreditLimit: row.final_credit_limit,
-        creditLimit: row.credit_limit,
-        approvedTerms: row.approved_terms,
-        finalApprovedTerms: row.final_approved_terms
-      }));
+      const formattedApplications = applications.map((row: any) => {
+        // Parse company_data JSON if it exists
+        let companyData = {};
+        try {
+          companyData = row.company_data ? JSON.parse(row.company_data) : {};
+        } catch (e) {
+          console.error('Error parsing company_data:', e);
+        }
+        
+        return {
+          id: row.id,
+          userId: row.user_id,
+          legalCompanyName: companyData.legalCompanyName || 'Empresa não identificada',
+          requestedAmount: row.requested_amount,
+          status: row.status,
+          preAnalysisStatus: row.pre_analysis_status,
+          financialStatus: row.financial_status,
+          adminStatus: row.admin_status,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          finalCreditLimit: row.final_credit_limit,
+          approvedTerms: row.approved_terms,
+          finalApprovedTerms: row.final_approved_terms
+        };
+      });
 
       console.log(`Found ${formattedApplications.length} credit applications`);
 

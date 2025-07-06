@@ -792,6 +792,14 @@ Changelog:
   * Maintained all existing functionality while gaining performance benefits
   * Database file: database.sqlite (47MB with complete data migration)
   * Migration completed with 4 users, 2 credit applications, 2 imports, 2 suppliers successfully transferred
+- July 06, 2025. Schema compatibility fixes for SQLite migration completed:
+  * Resolved critical schema mismatch between Drizzle ORM (camelCase) and SQLite structure (snake_case)
+  * Fixed data visibility issues by converting key queries to raw SQL using db.$client.prepare()
+  * Updated calculateAvailableCredit, getImportsByUser, and getAllImports methods for SQLite compatibility
+  * Corrected column name mapping: user_id, import_name, credit_application_id, total_value, etc.
+  * Enhanced query performance with prepared statements and proper parameter binding
+  * Added test data insertion with 4 users, 4 credit applications, 2 imports for validation
+  * System now correctly displays migrated data with all functionality preserved
 - July 04, 2025. FINANCIAL SETTINGS INTEGRATION COMPLETED - System displays saved configurations correctly:
   * RESOLVED ImportFinancialPreview component to use props instead of direct API calls preventing data loading conflicts
   * IMPLEMENTED credit-details.tsx integration with /api/user/financial-settings endpoint for consistent data display
