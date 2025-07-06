@@ -1,47 +1,33 @@
 const Database = require('better-sqlite3');
 
-const db = new Database('database.sqlite');
+const db = Database('database.sqlite');
 
-console.log('🔍 Verificando estrutura das tabelas...\n');
+console.log('=== ESTRUTURA DA TABELA USERS ===');
+const userStructure = db.prepare("PRAGMA table_info(users)").all();
+console.log('Colunas da tabela users:');
+userStructure.forEach(col => {
+  console.log(`  ${col.name}: ${col.type} ${col.notnull ? 'NOT NULL' : ''} ${col.dflt_value ? `DEFAULT ${col.dflt_value}` : ''}`);
+});
 
-// Verificar estrutura da tabela credit_applications
-try {
-  const tableInfo = db.prepare("PRAGMA table_info(credit_applications)").all();
-  console.log('📋 CREDIT_APPLICATIONS COLUMNS:');
-  tableInfo.forEach(col => {
-    console.log(`  ${col.name} (${col.type})`);
-  });
-} catch (error) {
-  console.log('❌ Erro ao verificar credit_applications:', error.message);
-}
+console.log('\n=== ESTRUTURA DA TABELA CREDIT_APPLICATIONS ===');
+const creditStructure = db.prepare("PRAGMA table_info(credit_applications)").all();
+console.log('Colunas da tabela credit_applications:');
+creditStructure.forEach(col => {
+  console.log(`  ${col.name}: ${col.type} ${col.notnull ? 'NOT NULL' : ''}`);
+});
 
-console.log('\n');
+console.log('\n=== ESTRUTURA DA TABELA SUPPLIERS ===');
+const supplierStructure = db.prepare("PRAGMA table_info(suppliers)").all();
+console.log('Colunas da tabela suppliers:');
+supplierStructure.forEach(col => {
+  console.log(`  ${col.name}: ${col.type} ${col.notnull ? 'NOT NULL' : ''}`);
+});
 
-// Verificar estrutura da tabela imports
-try {
-  const tableInfo = db.prepare("PRAGMA table_info(imports)").all();
-  console.log('📋 IMPORTS COLUMNS:');
-  tableInfo.forEach(col => {
-    console.log(`  ${col.name} (${col.type})`);
-  });
-} catch (error) {
-  console.log('❌ Erro ao verificar imports:', error.message);
-}
-
-console.log('\n');
-
-// Verificar dados existentes
-try {
-  const creditCount = db.prepare('SELECT COUNT(*) as count FROM credit_applications').get();
-  const importCount = db.prepare('SELECT COUNT(*) as count FROM imports').get();
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
-  
-  console.log('📊 CONTAGEM DE DADOS:');
-  console.log(`Usuários: ${userCount.count}`);
-  console.log(`Aplicações de crédito: ${creditCount.count}`);
-  console.log(`Importações: ${importCount.count}`);
-} catch (error) {
-  console.log('❌ Erro ao contar dados:', error.message);
-}
+console.log('\n=== ESTRUTURA DA TABELA IMPORTS ===');
+const importStructure = db.prepare("PRAGMA table_info(imports)").all();
+console.log('Colunas da tabela imports:');
+importStructure.forEach(col => {
+  console.log(`  ${col.name}: ${col.type} ${col.notnull ? 'NOT NULL' : ''}`);
+});
 
 db.close();
