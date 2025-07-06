@@ -141,9 +141,21 @@ export default function UnifiedDocumentUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Process multiple files
-      Array.from(files).forEach((file) => {
-        handleFileUpload(file);
+      // Process multiple files - validate all first
+      const validFiles: File[] = [];
+      
+      for (const file of Array.from(files)) {
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+          alert(`${file.name}: ${validation.error}`);
+        } else {
+          validFiles.push(file);
+        }
+      }
+      
+      // Upload all valid files
+      validFiles.forEach((file) => {
+        onUpload(documentKey, file);
       });
     }
     // Reset input value
