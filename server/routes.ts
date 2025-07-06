@@ -2,12 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { notificationService } from "./notification-service";
-import { insertUserSchema, loginSchema, receitaWsConsultations } from "@shared/schema";
+import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
 import { importRoutes } from "./imports-routes";
 
 // Extend the session interface
@@ -5329,18 +5328,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         participacoes_outras_empresas: [] // Vazio por padrão
       };
 
-      // Salvar consulta no banco de dados
-      const cost = plan === 'basic' ? 'R$ 35,00' : 'R$ 90,00';
-      
-      await db.insert(receitaWsConsultations).values({
-        applicationId: parseInt(applicationId),
-        cnpj: cleanCnpj,
-        plan,
-        userId: req.session.userId,
-        cost,
-        data: consultationResult
-      });
-
       // Log da consulta realizada
       console.log(`📊 RECEITA WS: Consulta ${plan} realizada para CNPJ ${cleanCnpj} por usuário ${req.session.userId}`);
       
@@ -5349,29 +5336,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erro na consulta Receita WS:', error);
       res.status(500).json({ error: 'Erro interno do servidor na consulta' });
-    }
-  });
-
-  // Endpoint para buscar consulta salva
-  app.get('/api/receita-ws/consultar/:applicationId', requireAuth, async (req: any, res) => {
-    try {
-      const applicationId = parseInt(req.params.applicationId);
-      
-      const consultation = await db
-        .select()
-        .from(receitaWsConsultations)
-        .where(eq(receitaWsConsultations.applicationId, applicationId))
-        .orderBy(desc(receitaWsConsultations.consultedAt))
-        .limit(1);
-
-      if (consultation.length === 0) {
-        return res.status(404).json({ error: 'Consulta não encontrada' });
-      }
-
-      res.json(consultation[0].data);
-    } catch (error) {
-      console.error('Erro ao buscar consulta salva:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 

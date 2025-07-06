@@ -860,11 +860,6 @@ Changelog:
   * Fixed sequential upload logic to properly process all selected files instead of just the first one
   * Removed blocking logic that prevented multiple uploads when documents already existed
   * Final security cleanup: Removed remaining console.log statements exposing user settings and application data in AdminFinalizationPanel component
-- July 06, 2025. ReceitaWS component title updated to correct branding:
-  * Changed component title from "Consulta Receita WS" to "Análise Crédito - Credit Score"
-  * Updated both card header and dialog modal titles for consistency
-  * Component maintains single card vertical layout with CNPJ input positioned above consultation button
-  * Database persistence and all functionality remain unchanged
 ```
 
 ## User Preferences

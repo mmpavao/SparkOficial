@@ -584,21 +584,8 @@ export const notifications = pgTable("notifications", {
   readAt: timestamp("read_at"),
 });
 
-// Tabela para consultas da Receita WS
-export const receitaWsConsultations = pgTable("receita_ws_consultations", {
-  id: serial("id").primaryKey(),
-  applicationId: integer("application_id").notNull(), // FK para credit_applications
-  cnpj: text("cnpj").notNull(),
-  plan: text("plan").notNull(), // 'basic' ou 'advanced'
-  userId: integer("user_id").notNull(), // FK para users - quem fez a consulta
-  cost: text("cost").notNull(), // Custo da consulta (R$ 35,00 ou R$ 90,00)
-  data: jsonb("data").notNull(), // Dados retornados da API
-  consultedAt: timestamp("consulted_at").defaultNow(),
-});
-
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
-export type ReceitaWsConsultation = typeof receitaWsConsultations.$inferSelect;
 
 // Import all imports-related tables and schemas
 export * from './imports-schema';
