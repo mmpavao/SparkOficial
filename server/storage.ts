@@ -1794,6 +1794,7 @@ export class DatabaseStorage {
       .select()
       .from(cnpjAnalyses)
       .where(eq(cnpjAnalyses.creditApplicationId, applicationId))
+      .orderBy(desc(cnpjAnalyses.consultedAt))
       .limit(1);
     return result[0];
   }

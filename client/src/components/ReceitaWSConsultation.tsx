@@ -86,15 +86,32 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
   useEffect(() => {
     const checkExistingConsultation = async () => {
       try {
+        console.log('🔍 RECEITA WS: Verificando consulta existente para aplicação', applicationId);
         const response = await apiRequest(`/api/cnpj-analyses/${applicationId}`, 'GET');
-        if (response && response.analysis_result) {
+        console.log('🔍 RECEITA WS: Resposta do servidor:', response);
+        
+        if (response && response.company_data) {
+          console.log('✅ RECEITA WS: Consulta existente encontrada, definindo como persistente');
           setHasExistingConsultation(true);
           setExistingData(response);
-          setConsultationData(JSON.parse(response.company_data));
+          
+          // Parse do JSON com verificação de segurança
+          try {
+            const parsedData = JSON.parse(response.company_data);
+            setConsultationData(parsedData);
+            console.log('✅ RECEITA WS: Dados parseados e estado definido');
+          } catch (parseError) {
+            console.error('❌ RECEITA WS: Erro ao fazer parse dos dados da empresa:', parseError);
+          }
+        } else {
+          console.log('❌ RECEITA WS: Nenhuma consulta existente encontrada');
+          setHasExistingConsultation(false);
         }
       } catch (error) {
-        // Não há consulta existente, isso é normal
+        console.log('❌ RECEITA WS: Erro ao verificar consulta existente (normal se não existe):', error);
         setHasExistingConsultation(false);
+        setExistingData(null);
+        setConsultationData(null);
       }
     };
 
