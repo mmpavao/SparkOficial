@@ -125,16 +125,27 @@ export default function CreditDetailsPage() {
         userRole: user?.role
       });
 
+      let result;
       if (permissions.isFinanceira) {
         console.log("Using Financeira endpoint");
-        return await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
+        result = await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
       } else if (permissions.isAdmin) {
         console.log("Using Admin endpoint");
-        return await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
+        result = await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
       } else {
         console.log("Using regular endpoint");
-        return await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
+        result = await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
       }
+      
+      console.log("Debug - Application data loaded:", {
+        id: result?.id,
+        hasRequiredDocuments: !!result?.requiredDocuments,
+        requiredDocumentsKeys: result?.requiredDocuments ? Object.keys(result.requiredDocuments) : [],
+        hasOptionalDocuments: !!result?.optionalDocuments,
+        optionalDocumentsKeys: result?.optionalDocuments ? Object.keys(result.optionalDocuments) : []
+      });
+      
+      return result;
     },
     enabled: !!applicationId,
   }) as { data: any, isLoading: boolean };

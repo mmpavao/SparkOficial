@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, creditApplications } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -3621,8 +3622,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.documentsStatus = 'partial';
       }
 
-      // Update the application
-      await storage.updateCreditApplication(applicationId, updateData);
+      // Update the application using raw SQL to bypass all type issues
+      await db.execute(`
+        UPDATE credit_applications 
+        SET 
+          required_documents = $1::jsonb,
+          optional_documents = $2::jsonb,
+          documents_status = $3,
+          status = $4,
+          updated_at = $5
+        WHERE id = $6
+      `, [
+        JSON.stringify(updateData.requiredDocuments),
+        JSON.stringify(updateData.optionalDocuments),
+        updateData.documentsStatus,
+        updateData.status,
+        new Date(),
+        applicationId
+      ]);
 
       // Invalidate cache
       console.log('Credit applications cache invalidated');

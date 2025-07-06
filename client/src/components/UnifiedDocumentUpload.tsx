@@ -73,6 +73,13 @@ export default function UnifiedDocumentUpload({
     ? (Array.isArray(currentDocuments) ? currentDocuments : [currentDocuments])
     : [];
 
+  console.log(`Debug - UnifiedDocumentUpload [${documentKey}]:`, {
+    uploadedDocuments,
+    currentDocuments,
+    documentsArray,
+    hasDocuments: documentsArray.length > 0
+  });
+
   const hasDocuments = documentsArray.length > 0;
   const isComplete = hasDocuments && isRequired;
 
