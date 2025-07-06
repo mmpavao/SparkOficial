@@ -8,8 +8,6 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
 import { importRoutes } from "./imports-routes";
-import { consultamaisAnalysis } from "@shared/schema";
-import { eq } from "drizzle-orm";
 
 // Extend the session interface
 declare module "express-session" {
@@ -5338,88 +5336,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erro na consulta Receita WS:', error);
       res.status(500).json({ error: 'Erro interno do servidor na consulta' });
-    }
-  });
-
-  // ===== RECEITA WS CONSULTATION ROUTES =====
-
-  // Get existing consultation data for an application
-  app.get('/api/receita-ws/consultation/:applicationId', requireAuth, async (req: any, res) => {
-    try {
-      const applicationId = parseInt(req.params.applicationId);
-      
-      // Check if consultation exists in consultamais_analysis table
-      const result = await db.select()
-        .from(consultamaisAnalysis)
-        .where(eq(consultamaisAnalysis.creditApplicationId, applicationId))
-        .limit(1);
-
-      if (result.length === 0) {
-        return res.status(404).json({ message: "Consulta não encontrada" });
-      }
-
-      const consultation = result[0];
-      
-      // Parse the stored JSON data
-      const responseData = {
-        data: JSON.parse(consultation.companyData || '{}'),
-        score: consultation.riskScore ? {
-          score: consultation.riskScore,
-          risk_level: consultation.riskLevel || 'N/A',
-          payment_behavior: consultation.paymentBehavior || 'N/A',
-          financial_health: consultation.financialHealth || 'N/A'
-        } : null
-      };
-
-      res.json(responseData);
-    } catch (error) {
-      console.error("Error fetching consultation data:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Save consultation data to database
-  app.post('/api/receita-ws/save-consultation', requireAuth, async (req: any, res) => {
-    try {
-      const { applicationId, data, score, plan } = req.body;
-      
-      // Extract CNPJ from the nested data structure
-      const cnpj = data?.data?.cnpj || data?.cnpj || '';
-      
-      // Insert or update consultation data
-      const consultationData = {
-        creditApplicationId: applicationId,
-        cnpj: cnpj,
-        companyData: JSON.stringify(data),
-        consultationPlan: plan,
-        riskScore: score?.score || null,
-        riskLevel: score?.risk_level || null,
-        paymentBehavior: score?.payment_behavior || null,
-        financialHealth: score?.financial_health || null,
-        consultedAt: new Date(),
-        consultedBy: req.session.userId
-      };
-
-      // Check if consultation already exists
-      const existing = await db.select()
-        .from(consultamaisAnalysis)
-        .where(eq(consultamaisAnalysis.creditApplicationId, applicationId))
-        .limit(1);
-
-      if (existing.length > 0) {
-        // Update existing consultation
-        await db.update(consultamaisAnalysis)
-          .set(consultationData)
-          .where(eq(consultamaisAnalysis.creditApplicationId, applicationId));
-      } else {
-        // Insert new consultation
-        await db.insert(consultamaisAnalysis).values(consultationData);
-      }
-
-      res.json({ success: true, message: "Consulta salva com sucesso" });
-    } catch (error) {
-      console.error("Error saving consultation data:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
