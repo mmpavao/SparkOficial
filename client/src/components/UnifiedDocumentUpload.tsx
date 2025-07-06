@@ -130,7 +130,10 @@ export default function UnifiedDocumentUpload({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileUpload(files[0]);
+      // Process multiple files from drag and drop
+      files.forEach((file) => {
+        handleFileUpload(file);
+      });
     }
   };
 
@@ -138,7 +141,10 @@ export default function UnifiedDocumentUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+      // Process multiple files
+      Array.from(files).forEach((file) => {
+        handleFileUpload(file);
+      });
     }
     // Reset input value
     e.target.value = '';
@@ -289,6 +295,7 @@ export default function UnifiedDocumentUpload({
                   accept={acceptedTypes.join(',')}
                   onChange={handleFileChange}
                   disabled={isUploading}
+                  multiple
                 />
               </label>
             </p>
