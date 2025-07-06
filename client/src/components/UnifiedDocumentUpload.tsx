@@ -243,7 +243,7 @@ export default function UnifiedDocumentUpload({
           </div>
           <Badge 
             variant={hasDocuments ? "default" : isRequired ? "destructive" : "secondary"}
-            className={`ml-2 ${statusInfo.color}`}
+            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-destructive hover:bg-destructive/80 ml-2 text-[#ffffff]"
           >
             {statusInfo.label}
           </Badge>
@@ -255,7 +255,6 @@ export default function UnifiedDocumentUpload({
           </div>
         )}
       </CardHeader>
-
       <CardContent className="pt-0">
         {/* Upload Area */}
         {!isUploading && (allowMultiple || !hasDocuments) && (
