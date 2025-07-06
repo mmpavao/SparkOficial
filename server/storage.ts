@@ -1807,19 +1807,8 @@ export class DatabaseStorage {
   // ===== DATABASE VIEWER METHODS =====
   
   async getAllUsers() {
-    return await db.select().from(users);
-  }
-
-  async getAllCreditApplications() {
-    return await db.select().from(creditApplications);
-  }
-
-  async getAllImports() {
-    return await db.select().from(imports);
-  }
-
-  async getAllSuppliers() {
-    return await db.select().from(suppliers);
+    const statement = db.$client.prepare(`SELECT * FROM users ORDER BY created_at DESC`);
+    return statement.all();
   }
 
   async getAllPaymentSchedules() {
