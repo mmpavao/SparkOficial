@@ -5339,6 +5339,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // CNPJ ANALYSES ENDPOINTS
+  // ============================================
+  
+  // Get CNPJ analysis for a credit application
+  app.get('/api/cnpj-analyses/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const { applicationId } = req.params;
+      
+      const analysis = await storage.getCnpjAnalysisByApplicationId(parseInt(applicationId));
+      
+      if (!analysis) {
+        return res.status(404).json({ message: "Análise não encontrada" });
+      }
+      
+      res.json(analysis);
+      
+    } catch (error) {
+      console.error('Erro ao buscar análise de CNPJ:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+  
+  // Save CNPJ analysis
+  app.post('/api/cnpj-analyses', requireAuth, async (req: any, res) => {
+    try {
+      const { credit_application_id, cnpj, company_data, analysis_result, risk_score } = req.body;
+      
+      if (!credit_application_id || !cnpj || !company_data) {
+        return res.status(400).json({ error: 'Dados obrigatórios não fornecidos' });
+      }
+      
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+      
+      // Verificar se já existe uma análise para esta aplicação
+      const existingAnalysis = await storage.getCnpjAnalysisByApplicationId(credit_application_id);
+      
+      if (existingAnalysis) {
+        return res.status(409).json({ error: 'Análise já existe para esta aplicação' });
+      }
+      
+      // Inserir nova análise
+      const analysisData = {
+        cnpj,
+        creditApplicationId: credit_application_id,
+        companyData: company_data,
+        analysisResult: analysis_result,
+        riskScore: risk_score || null,
+        consultedBy: currentUser.id
+      };
+
+      const savedAnalysis = await storage.createCnpjAnalysis(analysisData);
+      
+      console.log(`📊 CNPJ ANALYSIS: Análise salva para aplicação ${credit_application_id} por usuário ${currentUser.id}`);
+      
+      res.json({ 
+        id: savedAnalysis.id,
+        message: 'Análise salva com sucesso',
+        credit_application_id,
+        cnpj 
+      });
+      
+    } catch (error) {
+      console.error('Erro ao salvar análise de CNPJ:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Register imports routes
   console.log('Registering imports routes...');
   app.use('/api', importRoutes);

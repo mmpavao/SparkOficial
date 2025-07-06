@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Building, Users, MapPin, Calendar, DollarSign, FileText, TrendingUp, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,7 +78,30 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
   const [consultationData, setConsultationData] = useState<ReceitaWSData | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'advanced' | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [existingData, setExistingData] = useState<any | null>(null);
+  const [hasExistingConsultation, setHasExistingConsultation] = useState(false);
   const { toast } = useToast();
+
+  // Verificar se já existe consulta ao carregar o componente
+  useEffect(() => {
+    const checkExistingConsultation = async () => {
+      try {
+        const response = await apiRequest(`/api/cnpj-analyses/${applicationId}`, 'GET');
+        if (response && response.analysis_result) {
+          setHasExistingConsultation(true);
+          setExistingData(response);
+          setConsultationData(JSON.parse(response.company_data));
+        }
+      } catch (error) {
+        // Não há consulta existente, isso é normal
+        setHasExistingConsultation(false);
+      }
+    };
+
+    if (applicationId) {
+      checkExistingConsultation();
+    }
+  }, [applicationId]);
 
   const formatCNPJ = (cnpj: string) => {
     return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
@@ -119,10 +142,26 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
       });
 
       setConsultationData(response);
+      
+      // Salvar os dados no banco de dados
+      await apiRequest(`/api/cnpj-analyses`, 'POST', {
+        credit_application_id: applicationId,
+        cnpj: cnpj,
+        company_data: JSON.stringify(response),
+        analysis_result: `Consulta ${selectedPlan} realizada com sucesso. Score: ${response.score}`,
+        risk_score: response.score
+      });
+
       toast({
         title: "Consulta realizada com sucesso",
-        description: "Dados da empresa obtidos da Receita Federal",
+        description: "Dados salvos e análise concluída",
       });
+
+      // Fechar o componente automaticamente após 2 segundos
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 2000);
+
     } catch (error) {
       console.error('Erro na consulta:', error);
       toast({
@@ -157,13 +196,14 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
               <p className="text-sm text-gray-600">CNPJ da Empresa</p>
               <p className="font-medium">{formatCNPJ(cnpj)}</p>
             </div>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Search className="h-4 w-4" />
-                  Consultar CNPJ
-                </Button>
-              </DialogTrigger>
+            {!hasExistingConsultation && (
+              <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    Consultar CNPJ
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Consulta de Empresa</DialogTitle>
@@ -231,6 +271,16 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
                 </div>
               </DialogContent>
             </Dialog>
+            )}
+            {hasExistingConsultation && (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">Consulta realizada</span>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {existingData?.consulted_at ? new Date(existingData.consulted_at).toLocaleDateString('pt-BR') : 'Consulta anterior'}
+                </Badge>
+              </div>
+            )}
           </div>
 
           {consultationData && (

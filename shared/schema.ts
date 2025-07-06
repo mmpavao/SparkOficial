@@ -584,8 +584,22 @@ export const notifications = pgTable("notifications", {
   readAt: timestamp("read_at"),
 });
 
+// CNPJ Analysis table for ReceitaWS integration
+export const cnpjAnalyses = pgTable("cnpj_analyses", {
+  id: serial("id").primaryKey(),
+  cnpj: text("cnpj").notNull(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id),
+  companyData: jsonb("company_data"), // Complete company data from ReceitaWS
+  analysisResult: jsonb("analysis_result"), // Analysis results and insights
+  riskScore: integer("risk_score"), // Risk score from 0-1000
+  consultedAt: timestamp("consulted_at").defaultNow(),
+  consultedBy: integer("consulted_by").references(() => users.id),
+});
+
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
+export type CnpjAnalysis = typeof cnpjAnalyses.$inferSelect;
+export type InsertCnpjAnalysis = typeof cnpjAnalyses.$inferInsert;
 
 // Import all imports-related tables and schemas
 export * from './imports-schema';
