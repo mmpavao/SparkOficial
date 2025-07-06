@@ -92,7 +92,7 @@ export default function UnifiedDocumentUpload({
     return { isValid: true };
   };
 
-  // Handle file upload
+  // Handle single file upload
   const handleFileUpload = (file: File) => {
     const validation = validateFile(file);
     if (!validation.isValid) {
@@ -112,6 +112,45 @@ export default function UnifiedDocumentUpload({
     onUpload(documentKey, file);
   };
 
+  // Handle multiple files upload
+  const handleMultipleFilesUpload = (files: FileList) => {
+    const filesArray = Array.from(files);
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    // Validate all files first
+    filesArray.forEach(file => {
+      const validation = validateFile(file);
+      if (validation.isValid) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(`${file.name}: ${validation.error}`);
+      }
+    });
+
+    // Show validation errors if any
+    if (invalidFiles.length > 0) {
+      alert(`Alguns arquivos não puderam ser enviados:\n${invalidFiles.join('\n')}`);
+    }
+
+    // Upload valid files
+    if (validFiles.length > 0) {
+      // For single file mode, ask for confirmation if documents exist
+      if (!allowMultiple && hasDocuments && validFiles.length > 0) {
+        if (confirm(`Já existe um documento. Deseja substituí-lo pelos ${validFiles.length} novos arquivos?`)) {
+          onRemove(documentKey);
+        } else {
+          return;
+        }
+      }
+
+      // Upload each valid file
+      validFiles.forEach(file => {
+        onUpload(documentKey, file);
+      });
+    }
+  };
+
   // Handle drag and drop
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -128,9 +167,13 @@ export default function UnifiedDocumentUpload({
     e.stopPropagation();
     setDragActive(false);
 
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileUpload(files[0]);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      if (files.length === 1) {
+        handleFileUpload(files[0]);
+      } else {
+        handleMultipleFilesUpload(files);
+      }
     }
   };
 
@@ -138,7 +181,11 @@ export default function UnifiedDocumentUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+      if (files.length === 1) {
+        handleFileUpload(files[0]);
+      } else {
+        handleMultipleFilesUpload(files);
+      }
     }
     // Reset input value
     e.target.value = '';
@@ -276,13 +323,14 @@ export default function UnifiedDocumentUpload({
             <p className="text-sm text-gray-600 mb-2">
               Arraste e solte ou{' '}
               <label className="text-blue-600 hover:text-blue-700 cursor-pointer underline">
-                clique para enviar
+                clique para enviar (múltiplos arquivos)
                 <input
                   type="file"
                   className="hidden"
                   accept={acceptedTypes.join(',')}
                   onChange={handleFileChange}
                   disabled={isUploading}
+                  multiple
                 />
               </label>
             </p>

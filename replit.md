@@ -848,6 +848,15 @@ Changelog:
   * Enhanced production security by preventing sensitive data leakage through browser console
   * System now fully compliant with enterprise security standards for data protection
   * Maintained all debugging functionality as comments for development environments
+- July 06, 2025. Multiple file selection enhancement implemented in document upload system:
+  * Enhanced UnifiedDocumentUpload component to support multiple file selection in single operation
+  * Added intelligent file handling: single file uploads use existing logic, multiple files trigger batch processing
+  * Implemented comprehensive validation for multiple files with individual error reporting for invalid files
+  * Added drag-and-drop support for multiple files with proper validation and confirmation dialogs
+  * Updated user interface to indicate multiple file support with "(múltiplos arquivos)" text
+  * Enhanced file input with 'multiple' attribute enabling users to select several files at once from file browser
+  * Maintained backward compatibility with existing single-file upload workflows
+  * Feature works in both credit application registration and credit details document upload sections
 ```
 
 ## User Preferences
