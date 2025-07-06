@@ -152,6 +152,14 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
         risk_score: response.score
       });
 
+      // Atualizar estado para indicar que já existe consulta
+      setHasExistingConsultation(true);
+      setExistingData({
+        company_data: JSON.stringify(response),
+        analysis_result: `Consulta ${selectedPlan} realizada com sucesso. Score: ${response.score}`,
+        risk_score: response.score
+      });
+
       toast({
         title: "Consulta realizada com sucesso",
         description: "Dados salvos e análise concluída",
@@ -196,7 +204,12 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
               <p className="text-sm text-gray-600">CNPJ da Empresa</p>
               <p className="font-medium">{formatCNPJ(cnpj)}</p>
             </div>
-            {!hasExistingConsultation && (
+            {hasExistingConsultation ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-sm text-green-600 font-medium">Consulta realizada</span>
+              </div>
+            ) : (
               <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="flex items-center gap-2">
