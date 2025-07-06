@@ -568,37 +568,68 @@ export class DatabaseStorage {
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
-    const applications = await db
-      .select()
-      .from(creditApplications)
-      .orderBy(desc(creditApplications.createdAt));
-
-    return applications;
+    const stmt = db.$client.prepare(`
+      SELECT * FROM credit_applications 
+      ORDER BY created_at DESC
+    `);
+    const applications = stmt.all();
+    
+    return applications.map((app: any) => ({
+      ...app,
+      id: app.id,
+      userId: app.user_id,
+      legalCompanyName: app.legal_company_name,
+      requestedAmount: app.requested_amount,
+      status: app.status,
+      preAnalysisStatus: app.pre_analysis_status,
+      financialStatus: app.financial_status,
+      adminStatus: app.admin_status,
+      creditLimit: app.credit_limit,
+      finalCreditLimit: app.final_credit_limit,
+      createdAt: app.created_at,
+      updatedAt: app.updated_at
+    }));
   }
 
   async getAllCreditApplicationsOptimized(): Promise<CreditApplication[]> {
     // Query otimizada sem dados pesados desnecessários
-    const applications = await db
-      .select({
-        id: creditApplications.id,
-        userId: creditApplications.userId,
-        legalCompanyName: creditApplications.legalCompanyName,
-        requestedAmount: creditApplications.requestedAmount,
-        status: creditApplications.status,
-        preAnalysisStatus: creditApplications.preAnalysisStatus,
-        financialStatus: creditApplications.financialStatus,
-        adminStatus: creditApplications.adminStatus,
-        createdAt: creditApplications.createdAt,
-        updatedAt: creditApplications.updatedAt,
-        finalCreditLimit: creditApplications.finalCreditLimit,
-        creditLimit: creditApplications.creditLimit,
-        approvedTerms: creditApplications.approvedTerms,
-        finalApprovedTerms: creditApplications.finalApprovedTerms
-      })
-      .from(creditApplications)
-      .orderBy(desc(creditApplications.createdAt));
+    const stmt = db.$client.prepare(`
+      SELECT 
+        id,
+        user_id,
+        legal_company_name,
+        requested_amount,
+        status,
+        pre_analysis_status,
+        financial_status,
+        admin_status,
+        created_at,
+        updated_at,
+        final_credit_limit,
+        credit_limit,
+        approved_terms,
+        final_approved_terms
+      FROM credit_applications 
+      ORDER BY created_at DESC
+    `);
+    const applications = stmt.all();
 
-    return applications;
+    return applications.map((app: any) => ({
+      id: app.id,
+      userId: app.user_id,
+      legalCompanyName: app.legal_company_name,
+      requestedAmount: app.requested_amount,
+      status: app.status,
+      preAnalysisStatus: app.pre_analysis_status,
+      financialStatus: app.financial_status,
+      adminStatus: app.admin_status,
+      createdAt: app.created_at,
+      updatedAt: app.updated_at,
+      finalCreditLimit: app.final_credit_limit,
+      creditLimit: app.credit_limit,
+      approvedTerms: app.approved_terms,
+      finalApprovedTerms: app.final_approved_terms
+    }));
   }
 
   async getAllImports(): Promise<Import[]> {
