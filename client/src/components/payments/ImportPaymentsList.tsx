@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
-import PaymentCheckoutModal from "./PaymentCheckoutModal";
-import { useUserPermissions } from "@/hooks/useUserPermissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,14 +45,6 @@ interface PaymentSchedule {
 
 export default function ImportPaymentsList({ importId }: ImportPaymentsListProps) {
   const [, setLocation] = useLocation();
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
-  const { isFinanceira } = useUserPermissions();
-
-  // Ocultar completamente para usuários Financeira
-  if (isFinanceira) {
-    return null;
-  }
 
   // Buscar pagamentos específicos desta importação
   const { data: paymentsData, isLoading } = useQuery({
@@ -172,20 +162,10 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
                           Ver detalhes
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {payment.status === 'pending' ? (
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedPaymentId(payment.id);
-                            setCheckoutModalOpen(true);
-                          }}>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            Pagar
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem className="text-gray-500" disabled>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            Pagar (View-only)
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem className="text-gray-500" disabled>
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Pagar (View-only)
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-gray-500" disabled>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar (View-only)
@@ -229,18 +209,6 @@ export default function ImportPaymentsList({ importId }: ImportPaymentsListProps
           );
         })}
       </div>
-
-      {/* Payment Checkout Modal */}
-      {selectedPaymentId && (
-        <PaymentCheckoutModal
-          isOpen={checkoutModalOpen}
-          onClose={() => {
-            setCheckoutModalOpen(false);
-            setSelectedPaymentId(null);
-          }}
-          paymentId={selectedPaymentId}
-        />
-      )}
     </div>
   );
 }

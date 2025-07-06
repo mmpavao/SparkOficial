@@ -14,7 +14,7 @@ const navTranslations = {
   logout: 'Sair'
 };
 
-import { NotificationCenter, useNotificationCount } from "@/components/NotificationCenter";
+import NotificationCenter from "@/components/NotificationCenter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,14 +54,10 @@ interface AuthenticatedLayoutProps {
 export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notificationOpen, setNotificationOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Get unread notification count
-  const { data: unreadCountData } = useNotificationCount();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -414,11 +410,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     <span className="font-medium">Spark Comex Beta</span>
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span>v1.0.1</span>
+                      <span>v1.0.0</span>
                     </div>
                   </div>
                   <div className="mt-1 text-gray-400">
-                    04/07/2025 - 14:47 UTC
+                    30/06/2025 - 05:05 UTC
                   </div>
                   <div className="mt-1 text-gray-400">
                     Sistema Estável
@@ -462,28 +458,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
-            {/* Notification Bell */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setNotificationOpen(!notificationOpen)}
-                className="relative p-2 hover:bg-gray-100"
-              >
-                <Bell className="w-5 h-5 text-gray-600" />
-                {unreadCountData?.count > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {unreadCountData.count > 99 ? '99+' : unreadCountData.count}
-                  </span>
-                )}
-              </Button>
-            </div>
-
-            {/* Notification Center Modal */}
-            <NotificationCenter 
-              isOpen={notificationOpen} 
-              onClose={() => setNotificationOpen(false)} 
-            />
+            <NotificationCenter />
           </div>
         </div>
       </header>

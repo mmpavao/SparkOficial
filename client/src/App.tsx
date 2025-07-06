@@ -31,7 +31,6 @@ import SupplierEditPage from "@/pages/supplier-edit";
 import SupplierNewPage from "@/pages/supplier-new";
 import PaymentsPage from "@/pages/payments";
 import PaymentDetailsPage from "@/pages/payment-details";
-import PaymentCheckoutUnifiedPage from "@/pages/payment-checkout-unified";
 import ImporterDetailsPage from "@/pages/importer-details";
 
 import NotFound from "@/pages/not-found";
@@ -69,9 +68,9 @@ function Router() {
         <Route path="/credit/edit/:id" component={CreditEditPage} />
 
         <Route path="/imports" component={ImportsPageIntegrated} />
-        <Route path="/imports/new" component={ImportsNewFormPage} />
+        <Route path="/imports/new" component={ImportNewEnhancedPage} />
         <Route path="/imports/new-form" component={ImportsNewFormPage} />
-        <Route path="/imports/new-enhanced" component={ImportsNewFormPage} />
+        <Route path="/imports/new-enhanced" component={ImportNewEnhancedPage} />
         <Route path="/imports/:id" component={ImportDetailsPage} />
         <Route path="/imports/:id/edit" component={ImportEdit} />
 
@@ -82,7 +81,6 @@ function Router() {
         
         <Route path="/payments" component={PaymentsPage} />
         <Route path="/payments/:id" component={PaymentDetailsPage} />
-        <Route path="/payments/:id/checkout" component={PaymentCheckoutUnifiedPage} />
         <Route path="/reports" component={ReportsPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />

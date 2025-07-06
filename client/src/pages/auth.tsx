@@ -504,14 +504,6 @@ export default function AuthPage() {
           )}
         </div>
       </div>
-      
-      {/* Version in bottom right corner */}
-      <div className="fixed bottom-4 right-4 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm text-xs text-gray-500 z-50">
-        <div className="flex items-center space-x-2">
-          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-          <span>v1.0.1</span>
-        </div>
-      </div>
     </div>
   );
 }

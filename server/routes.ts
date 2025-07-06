@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { notificationService } from "./notification-service";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
@@ -860,18 +859,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const application = await storage.createCreditApplication(applicationData);
-      
-      // Criar notificação automática de nova solicitação
-      try {
-        await notificationService.onCreditApplicationSubmitted(
-          userId,
-          application.id,
-          applicationData.legalCompanyName || 'Empresa'
-        );
-      } catch (notifError) {
-        console.error('Erro ao criar notificação:', notifError);
-        // Não falhar a criação da aplicação por erro de notificação
-      }
       
       // Invalidate all caches for this user to ensure fresh data
       delete userCreditCache[userId];
@@ -2722,126 +2709,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Process external payment (new checkout method)
-  app.post('/api/payment-schedules/:id/pay-external', requireAuth, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const { amount, description, paymentDate } = req.body;
-      
-      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
-      if (!paymentSchedule) {
-        return res.status(404).json({ message: "Pagamento não encontrado" });
-      }
-
-      // Check permissions
-      const currentUser = await storage.getUser(req.session.userId);
-      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
-
-      if (!isAdmin) {
-        const importRecord = await storage.getImport(paymentSchedule.importId);
-        if (!importRecord || importRecord.userId !== req.session.userId) {
-          return res.status(403).json({ message: "Acesso negado" });
-        }
-      }
-
-      // Update payment schedule status
-      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
-
-      // Create payment record
-      const paymentData = {
-        paymentScheduleId: parseInt(id),
-        importId: paymentSchedule.importId,
-        amount: amount,
-        currency: paymentSchedule.currency,
-        paymentMethod: 'external',
-        paymentReference: description,
-        status: 'confirmed',
-        paidAt: new Date(paymentDate),
-        confirmedAt: new Date(),
-        confirmedBy: req.session.userId,
-        notes: `Pagamento externo: ${description}`
-      };
-
-      await storage.createPayment(paymentData);
-
-      res.json({ message: "Pagamento registrado com sucesso" });
-    } catch (error) {
-      console.error("Error processing external payment:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Process Pay Comex payment (new checkout method)
-  app.post('/api/payment-schedules/:id/pay-comex', requireAuth, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const { method, details } = req.body; // method: 'pix' or 'card'
-      
-      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
-      if (!paymentSchedule) {
-        return res.status(404).json({ message: "Pagamento não encontrado" });
-      }
-
-      // Check permissions
-      const currentUser = await storage.getUser(req.session.userId);
-      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
-
-      if (!isAdmin) {
-        const importRecord = await storage.getImport(paymentSchedule.importId);
-        if (!importRecord || importRecord.userId !== req.session.userId) {
-          return res.status(403).json({ message: "Acesso negado" });
-        }
-      }
-
-      // Simulate payment processing based on method
-      const exchangeRate = 5.65; // USD to BRL
-      const payComexFee = method === 'pix' ? 0.015 : 0.025; // 1.5% PIX, 2.5% card
-      const usdAmount = parseFloat(paymentSchedule.amount);
-      const brlAmount = usdAmount * exchangeRate;
-      const feeAmount = brlAmount * payComexFee;
-      const totalBrlAmount = brlAmount + feeAmount;
-
-      // Generate transaction ID
-      const transactionId = `PAYCOMEX_${method.toUpperCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      // Update payment schedule status
-      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
-
-      // Create payment record
-      const paymentData = {
-        paymentScheduleId: parseInt(id),
-        importId: paymentSchedule.importId,
-        amount: paymentSchedule.amount,
-        currency: paymentSchedule.currency,
-        paymentMethod: `paycomex_${method}`,
-        paymentReference: transactionId,
-        status: 'confirmed',
-        paidAt: new Date(),
-        confirmedAt: new Date(),
-        confirmedBy: req.session.userId,
-        notes: `Pay Comex ${method.toUpperCase()} payment. Total BRL: R$ ${totalBrlAmount.toFixed(2)} (rate: ${exchangeRate}, fee: ${(payComexFee * 100).toFixed(1)}%)`
-      };
-
-      await storage.createPayment(paymentData);
-
-      res.json({ 
-        message: "Pagamento processado com sucesso",
-        transactionId,
-        exchangeData: {
-          usdAmount: paymentSchedule.amount,
-          brlAmount: brlAmount.toFixed(2),
-          feeAmount: feeAmount.toFixed(2),
-          totalBrlAmount: totalBrlAmount.toFixed(2),
-          exchangeRate,
-          feePercentage: payComexFee
-        }
-      });
-    } catch (error) {
-      console.error("Error processing Pay Comex payment:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
   // Cancel payment schedule
   app.delete('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
     try {
@@ -3880,47 +3747,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment endpoints
-
-  // Get upcoming payments for dashboard
-  app.get('/api/payments/upcoming', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.session.userId;
-      const currentUser = await storage.getUser(userId);
-      
-      if (!currentUser) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-
-      // Get all payment schedules for user's imports
-      const userImports = await storage.getImportsByUser(userId);
-      const allPayments = [];
-
-      for (const importRecord of userImports) {
-        const paymentSchedules = await storage.getPaymentScheduleByImport(importRecord.id);
-        
-        // Filter pending payments and add import context
-        const pendingPayments = paymentSchedules
-          .filter(schedule => schedule.status === 'pending')
-          .map(schedule => ({
-            ...schedule,
-            importName: importRecord.importName || `Importação ${importRecord.id}`,
-            importId: importRecord.id
-          }));
-        
-        allPayments.push(...pendingPayments);
-      }
-
-      // Sort by due date and limit to next 5 payments
-      const upcomingPayments = allPayments
-        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-        .slice(0, 5);
-
-      res.json(upcomingPayments);
-    } catch (error) {
-      console.error("Error fetching upcoming payments:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
 
   // Get individual payment details
   app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
@@ -5097,105 +4923,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing PayComex payment:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // ===== NOTIFICATION ENDPOINTS =====
-
-  // Get user notifications
-  app.get('/api/notifications', requireAuth, async (req: any, res) => {
-    try {
-      const notifications = await storage.getUserNotifications(req.session.userId, 20);
-      res.json(notifications);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Get unread notifications count
-  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
-    try {
-      const count = await storage.getUnreadNotificationsCount(req.session.userId);
-      res.json({ count });
-    } catch (error) {
-      console.error("Error fetching unread count:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Mark notification as read
-  app.put('/api/notifications/:id/read', requireAuth, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      await storage.markNotificationAsRead(parseInt(id), req.session.userId);
-      res.json({ message: "Notificação marcada como lida" });
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Mark all notifications as read
-  app.put('/api/notifications/mark-all-read', requireAuth, async (req: any, res) => {
-    try {
-      await storage.markAllNotificationsAsRead(req.session.userId);
-      res.json({ message: "Todas as notificações marcadas como lidas" });
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Create demo notifications (temporary endpoint for testing)
-  app.post('/api/notifications/demo', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.session.userId;
-      
-      // Create sample notifications
-      const demoNotifications = [
-        {
-          userId,
-          type: 'credit_approved',
-          title: 'Crédito Aprovado!',
-          message: 'Sua solicitação de crédito de US$ 750.000 foi aprovada pela financeira.',
-          actionUrl: '/credit',
-          priority: 'high'
-        },
-        {
-          userId,
-          type: 'payment_due_reminder',
-          title: 'Pagamento Vencendo',
-          message: 'Você tem um pagamento de US$ 21.000 vencendo em 3 dias.',
-          actionUrl: '/payments',
-          priority: 'medium'
-        },
-        {
-          userId,
-          type: 'document_missing',
-          title: 'Documento Pendente',
-          message: 'Faltam documentos para finalizar sua aplicação de crédito.',
-          actionUrl: '/credit/64',
-          priority: 'urgent'
-        },
-        {
-          userId,
-          type: 'import_status_changed',
-          title: 'Status da Importação Atualizado',
-          message: 'Sua importação "Nova importacao" mudou para status "Em Produção".',
-          actionUrl: '/imports/13',
-          priority: 'low'
-        }
-      ];
-
-      for (const notification of demoNotifications) {
-        await storage.createNotification(notification);
-      }
-
-      res.json({ message: "Notificações de demonstração criadas com sucesso!", count: demoNotifications.length });
-    } catch (error) {
-      console.error("Error creating demo notifications:", error);
-      res.status(500).json({ message: "Erro ao criar notificações de demonstração" });
     }
   });
 

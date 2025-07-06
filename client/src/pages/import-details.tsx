@@ -17,7 +17,6 @@ import {
 import { formatCurrency } from "@/lib/formatters";
 import { ImportFinancialSummary } from "@/components/imports/ImportFinancialSummary";
 import ImportPaymentsList from "@/components/payments/ImportPaymentsList";
-import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 // Status mapping for display
 const getStatusInfo = (status: string) => {
@@ -37,7 +36,6 @@ const getStatusInfo = (status: string) => {
 
 export default function ImportDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { isFinanceira } = useUserPermissions();
 
   const { data: importData, isLoading, error } = useQuery({
     queryKey: ['/api/imports', id],
@@ -416,7 +414,7 @@ export default function ImportDetailsPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="custos" className="w-full">
-              <TabsList className={`grid w-full ${isFinanceira ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="custos" className="flex items-center gap-2">
                   <Calculator className="w-4 h-4" />
                   Cálculo de Custos
@@ -425,12 +423,10 @@ export default function ImportDetailsPage() {
                   <FileText className="w-4 h-4" />
                   Documentos
                 </TabsTrigger>
-                {!isFinanceira && (
-                  <TabsTrigger value="pagamentos" className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Pagamentos
-                  </TabsTrigger>
-                )}
+                <TabsTrigger value="pagamentos" className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Pagamentos
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="custos" className="mt-6">
@@ -560,11 +556,9 @@ export default function ImportDetailsPage() {
                 </div>
               </TabsContent>
               
-              {!isFinanceira && (
-                <TabsContent value="pagamentos" className="mt-6">
-                  <ImportPaymentsList importId={parseInt(id)} />
-                </TabsContent>
-              )}
+              <TabsContent value="pagamentos" className="mt-6">
+                <ImportPaymentsList importId={parseInt(id)} />
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>

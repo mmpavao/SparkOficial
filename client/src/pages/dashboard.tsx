@@ -1,10 +1,9 @@
 
-import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { useImporterDashboard } from '@/hooks/useImporterDashboard';
 import { useFinanceiraMetrics } from '@/hooks/useFinanceiraMetrics';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/utils/soundEffects';
@@ -34,8 +33,6 @@ import {
   Plus,
   Calculator,
   Percent,
-  Calendar,
-  ChevronRight,
   Bell,
   TestTube,
   Target,
@@ -54,13 +51,6 @@ export default function Dashboard() {
   const { data: adminMetrics, isLoading: adminMetricsLoading } = useAdminMetrics(isAdmin);
   const { data: importerData, isLoading: importerDataLoading, error } = useImporterDashboard(isImporter);
   const { data: financeiraMetrics, isLoading: financeiraMetricsLoading } = useFinanceiraMetrics(isFinanceira);
-  
-  // Buscar pagamentos próximos para importadores
-  const { data: upcomingPayments } = useQuery({
-    queryKey: ['/api/payments/upcoming'],
-    queryFn: () => apiRequest('/api/payments/upcoming', 'GET'),
-    enabled: isImporter,
-  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -783,7 +773,7 @@ export default function Dashboard() {
 
           {/* Two Column Layout for Importers */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Detalhes do Crédito - MELHORADO */}
+            {/* Detalhes do Crédito usando dados reais */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -794,22 +784,14 @@ export default function Dashboard() {
               <CardContent>
                 {(importerData?.creditMetrics?.approvedAmount || 0) > 0 ? (
                   <div className="space-y-4">
-                    {/* Crédito Aprovado - DESTAQUE MAIOR */}
-                    <div className="flex items-center justify-between p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200 shadow-sm">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center shadow-sm">
-                          <CheckCircle className="w-7 h-7 text-green-600" />
+                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <CreditCard className="w-5 h-5 text-green-600" />
                         </div>
-                        <div>
-                          <span className="font-bold text-green-800 text-lg">Crédito Aprovado</span>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100">
-                              Aprovado
-                            </Badge>
-                          </div>
-                        </div>
+                        <span className="font-medium text-green-800">Crédito Aprovado</span>
                       </div>
-                      <span className="text-3xl font-bold text-green-600">
+                      <span className="text-lg font-bold text-green-600">
                         {formatCompactCurrency(importerData?.creditMetrics?.approvedAmount || 0)}
                       </span>
                     </div>
@@ -845,9 +827,9 @@ export default function Dashboard() {
                           {(importerData?.creditMetrics?.utilizationRate || 0).toFixed(1)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300 shadow-sm" 
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
                           style={{ width: `${Math.min(importerData?.creditMetrics?.utilizationRate || 0, 100)}%` }}
                         ></div>
                       </div>
@@ -873,7 +855,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Pipeline de Importações - MELHORADO */}
+            {/* Pipeline de Importações */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -882,116 +864,33 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {/* Importações em Andamento */}
-                  {importerData?.recentActivity?.imports?.filter(imp => imp.status !== 'concluido')?.length > 0 ? (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Truck className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-blue-800">Importações em Andamento</h4>
-                          <p className="text-sm text-blue-600">
-                            {importerData?.recentActivity?.imports?.filter(imp => imp.status !== 'concluido')?.length} em processo
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Timeline das importações */}
-                      <div className="space-y-3">
-                        {importerData?.recentActivity?.imports?.filter(imp => imp.status !== 'concluido')?.map((import_) => {
-                          const getProgressPercentage = (status: string) => {
-                            switch (status) {
-                              case 'planejamento': return 15;
-                              case 'producao': return 35;
-                              case 'entregue_agente': return 55;
-                              case 'transporte_maritimo': return 75;
-                              case 'transporte_aereo': return 75;
-                              case 'desembaraco': return 85;
-                              case 'transporte_nacional': return 95;
-                              case 'concluido': return 100;
-                              default: return 10;
-                            }
-                          };
-                          
-                          const getStatusLabel = (status: string) => {
-                            switch (status) {
-                              case 'planejamento': return 'Planejamento';
-                              case 'producao': return 'Produção';
-                              case 'entregue_agente': return 'Entregue ao Agente';
-                              case 'transporte_maritimo': return 'Transporte Marítimo';
-                              case 'transporte_aereo': return 'Transporte Aéreo';
-                              case 'desembaraco': return 'Desembaraço';
-                              case 'transporte_nacional': return 'Transporte Nacional';
-                              case 'concluido': return 'Concluído';
-                              default: return 'Em Processo';
-                            }
-                          };
-                          
-                          const progress = getProgressPercentage(import_.status);
-                          
-                          return (
-                            <div key={import_.id} className="bg-white p-3 rounded-lg border border-blue-100">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium text-sm text-gray-800">{import_.name}</span>
-                                <span className="text-xs text-gray-500">{progress}%</span>
-                              </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {getStatusLabel(import_.status)}
-                                </Badge>
-                                <span className="text-xs text-gray-500">
-                                  {formatCurrency(parseFloat(import_.value))}
-                                </span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-300" 
-                                  style={{ width: `${progress}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="text-2xl font-bold text-yellow-700">
+                      {importerData?.statusBreakdown?.planning || 0}
                     </div>
-                  ) : (
-                    <div className="text-center py-6 bg-gray-50 rounded-lg">
-                      <Package className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Nenhuma importação em andamento</p>
-                    </div>
-                  )}
+                    <div className="text-sm text-yellow-600 font-medium">Planejamento</div>
+                  </div>
                   
-                  {/* Status Grid */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <div className="text-xl font-bold text-yellow-700">
-                        {importerData?.statusBreakdown?.planning || 0}
-                      </div>
-                      <div className="text-xs text-yellow-600 font-medium">Planejamento</div>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-2xl font-bold text-blue-700">
+                      {importerData?.statusBreakdown?.production || 0}
                     </div>
-                    
-                    <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="text-xl font-bold text-blue-700">
-                        {importerData?.statusBreakdown?.production || 0}
-                      </div>
-                      <div className="text-xs text-blue-600 font-medium">Produção</div>
+                    <div className="text-sm text-blue-600 font-medium">Produção</div>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="text-2xl font-bold text-purple-700">
+                      {importerData?.statusBreakdown?.shipping || 0}
                     </div>
-                    
-                    <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="text-xl font-bold text-purple-700">
-                        {importerData?.statusBreakdown?.shipping || 0}
-                      </div>
-                      <div className="text-xs text-purple-600 font-medium">Transporte</div>
+                    <div className="text-sm text-purple-600 font-medium">Transporte</div>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="text-2xl font-bold text-green-700">
+                      {importerData?.statusBreakdown?.completed || 0}
                     </div>
-                    
-                    <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="text-xl font-bold text-green-700">
-                        {importerData?.statusBreakdown?.completed || 0}
-                      </div>
-                      <div className="text-xs text-green-600 font-medium">Concluído</div>
-                    </div>
+                    <div className="text-sm text-green-600 font-medium">Concluído</div>
                   </div>
                 </div>
               </CardContent>
@@ -1063,7 +962,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Aplicações de Crédito - MELHORADO */}
+            {/* Aplicações de Crédito Recentes */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1073,101 +972,42 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {(importerData?.recentActivity?.creditApplications?.length || 0) > 0 ? (
-                  <div className="space-y-4">
-                    {importerData?.recentActivity?.creditApplications?.map((app) => {
-                      const getStatusColor = (status: string) => {
-                        switch (status) {
-                          case 'finalized':
-                          case 'approved':
-                            return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'default' };
-                          case 'pending':
-                            return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'secondary' };
-                          case 'under_review':
-                            return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'outline' };
-                          default:
-                            return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', badge: 'outline' };
-                        }
-                      };
-                      
-                      const getStatusLabel = (status: string) => {
-                        switch (status) {
-                          case 'finalized': return 'Finalizado';
-                          case 'approved': return 'Aprovado';
-                          case 'pending': return 'Pendente';
-                          case 'under_review': return 'Em Análise';
-                          case 'pre_approved': return 'Pré-Aprovado';
-                          case 'submitted_to_financial': return 'Análise Final';
-                          default: return 'Em Processo';
-                        }
-                      };
-                      
-                      const statusInfo = getStatusColor(app.status);
-                      
-                      return (
-                        <div 
-                          key={app.id} 
-                          className={`p-4 border rounded-lg hover:shadow-sm transition-all cursor-pointer ${statusInfo.bg} ${statusInfo.border}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Card clicado!', app.id);
-                            handleCreditClick(app.id);
-                          }}
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                                <CreditCard className="w-4 h-4 text-gray-600" />
-                              </div>
-                              <div>
-                                <p className="font-semibold text-sm text-gray-800">Aplicação #{app.id}</p>
-                                <p className="text-xs text-gray-600">{formatCurrency(parseFloat(app.amount))}</p>
-                              </div>
-                            </div>
-                            <Badge variant={statusInfo.badge as any} className={`${statusInfo.text} font-medium`}>
-                              {getStatusLabel(app.status)}
-                            </Badge>
+                  <div className="space-y-3">
+                    {importerData?.recentActivity?.creditApplications?.map((app) => (
+                      <div 
+                        key={app.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Card clicado!', app.id);
+                          handleCreditClick(app.id);
+                        }}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CreditCard className="w-4 h-4 text-gray-500" />
+                            <p className="font-medium text-sm">Aplicação #{app.id}</p>
                           </div>
-                          
-                          {/* Status-specific information */}
-                          {app.status === 'pending' && (
-                            <div className="flex items-center gap-2 p-2 bg-orange-100 rounded-lg border border-orange-200">
-                              <AlertCircle className="w-4 h-4 text-orange-600" />
-                              <span className="text-xs text-orange-700 font-medium">
-                                Documentos pendentes - Complete para acelerar análise
-                              </span>
-                            </div>
-                          )}
-                          
-                          {app.status === 'under_review' && (
-                            <div className="flex items-center gap-2 p-2 bg-blue-100 rounded-lg border border-blue-200">
-                              <Clock className="w-4 h-4 text-blue-600" />
-                              <span className="text-xs text-blue-700 font-medium">
-                                Em análise pela equipe - Aguarde retorno
-                              </span>
-                            </div>
-                          )}
-                          
-                          {(app.status === 'finalized' || app.status === 'approved') && (
-                            <div className="flex items-center gap-2 p-2 bg-green-100 rounded-lg border border-green-200">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                              <span className="text-xs text-green-700 font-medium">
-                                Crédito aprovado e disponível para uso
-                              </span>
-                            </div>
-                          )}
-                          
-                          <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-200">
-                            <span className="text-xs text-gray-500">
-                              {formatDate(app.date)}
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              Clique para mais detalhes
-                            </span>
-                          </div>
+                          <p className="text-xs text-gray-500">{formatCurrency(parseFloat(app.amount))}</p>
                         </div>
-                      );
-                    })}
+                        <div className="text-right">
+                          <Badge variant={
+                            app.status === 'finalized' || app.status === 'approved' ? 'default' : 
+                            app.status === 'pending' ? 'secondary' : 
+                            'outline'
+                          }>
+                            {app.status === 'finalized' ? 'Finalizado' :
+                             app.status === 'approved' ? 'Aprovado' :
+                             app.status === 'pending' ? 'Pendente' : 
+                             'Aprovado'}
+                          </Badge>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatDate(app.date)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -1185,148 +1025,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Próximos Pagamentos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Próximos Pagamentos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {upcomingPayments && upcomingPayments.length > 0 ? (
-                  upcomingPayments.map((payment: any) => {
-                    const dueDate = new Date(payment.dueDate);
-                    const today = new Date();
-                    const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                    const isOverdue = diffDays < 0;
-                    const isDueSoon = diffDays <= 3 && diffDays >= 0;
-                    
-                    const getPaymentStyle = () => {
-                      if (isOverdue) {
-                        return {
-                          bg: 'from-red-50 to-pink-50',
-                          border: 'border-red-200',
-                          iconBg: 'bg-red-100',
-                          iconColor: 'text-red-600',
-                          textColor: 'text-red-800',
-                          subTextColor: 'text-red-600',
-                          priceColor: 'text-red-700',
-                          badge: 'destructive' as const,
-                          badgeText: 'Em Atraso',
-                          icon: AlertCircle,
-                          dateText: `Vencido há ${Math.abs(diffDays)} dias`,
-                          buttonVariant: 'destructive' as const,
-                          buttonText: 'Pagar Urgente'
-                        };
-                      } else if (isDueSoon) {
-                        return {
-                          bg: 'from-amber-50 to-orange-50',
-                          border: 'border-amber-200',
-                          iconBg: 'bg-amber-100',
-                          iconColor: 'text-amber-600',
-                          textColor: 'text-amber-800',
-                          subTextColor: 'text-amber-600',
-                          priceColor: 'text-amber-700',
-                          badge: 'secondary' as const,
-                          badgeText: `${diffDays === 0 ? 'Hoje' : `${diffDays} dias`}`,
-                          icon: Clock,
-                          dateText: diffDays === 0 ? 'Vence hoje' : `Vencimento em ${diffDays} dias`,
-                          buttonVariant: 'outline' as const,
-                          buttonText: 'Pagar Agora'
-                        };
-                      } else {
-                        return {
-                          bg: 'from-blue-50 to-indigo-50',
-                          border: 'border-blue-200',
-                          iconBg: 'bg-blue-100',
-                          iconColor: 'text-blue-600',
-                          textColor: 'text-blue-800',
-                          subTextColor: 'text-blue-600',
-                          priceColor: 'text-blue-700',
-                          badge: 'outline' as const,
-                          badgeText: `${diffDays} dias`,
-                          icon: Calendar,
-                          dateText: `Vencimento em ${diffDays} dias`,
-                          buttonVariant: 'outline' as const,
-                          buttonText: 'Ver Detalhes'
-                        };
-                      }
-                    };
-                    
-                    const style = getPaymentStyle();
-                    const IconComponent = style.icon;
-                    
-                    return (
-                      <div key={payment.id} className={`bg-gradient-to-r ${style.bg} p-4 rounded-lg border ${style.border}`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 ${style.iconBg} rounded-lg flex items-center justify-center`}>
-                              <IconComponent className={`w-4 h-4 ${style.iconColor}`} />
-                            </div>
-                            <div>
-                              <p className={`font-semibold text-sm ${style.textColor}`}>
-                                {payment.importName}
-                              </p>
-                              <p className={`text-xs ${style.subTextColor}`}>
-                                {style.dateText}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className={`font-bold ${style.priceColor}`}>
-                              {formatCurrency(parseFloat(payment.amount))}
-                            </p>
-                            <Badge variant={style.badge} className="text-xs">
-                              {payment.paymentType === 'entry' ? 'Entrada' : 
-                               payment.installmentNumber ? `${payment.installmentNumber}ª Parcela` : 
-                               style.badgeText}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className={`flex items-center justify-between pt-2 border-t ${style.border}`}>
-                          <span className={`text-xs ${style.subTextColor}`}>
-                            {formatDate(payment.dueDate)}
-                          </span>
-                          <Button 
-                            size="sm" 
-                            variant={style.buttonVariant} 
-                            className="text-xs h-7"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setLocation(`/payments/${payment.id}/checkout`);
-                            }}
-                          >
-                            {style.buttonText}
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8">
-                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum pagamento pendente</h3>
-                    <p className="text-gray-500">Você está em dia com todos os pagamentos.</p>
-                  </div>
-                )}
-                
-                {upcomingPayments && upcomingPayments.length > 0 && (
-                  <div className="text-center pt-2">
-                    <Link href="/payments">
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        Ver Todos os Pagamentos
-                        <ChevronRight className="w-3 h-3 ml-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </>
       )}
     </div>

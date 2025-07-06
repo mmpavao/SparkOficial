@@ -789,15 +789,6 @@ Changelog:
   * ESTABLISHED data integrity validation ensuring consistency between import creation and credit detail pages
   * COMPLETED full system analysis documenting 100% functional status across all modules
   * USER CONFIRMED successful implementation: "agora sim... deu certo" - all financial settings working correctly
-- July 04, 2025. DUAL PAYMENT CHECKOUT SYSTEM IMPLEMENTATION COMPLETED:
-  * CREATED comprehensive PaymentCheckoutPage with External and Pay Comex payment options
-  * IMPLEMENTED External payment method: manual value entry, description, receipt upload with 10MB file support
-  * INTEGRATED Pay Comex simulated checkout: PIX (1.5% fee) and credit card (2.5% fee) with real-time BRL conversion
-  * ADDED backend endpoints /api/payment-schedules/:id/pay-external and /api/payment-schedules/:id/pay-comex
-  * ENHANCED ImportPaymentsList component with conditional "Pagar" button directing to /payments/:id/checkout
-  * CREATED interactive payment modals: PIX QR code simulation and card form validation
-  * ESTABLISHED complete payment workflow from selection to confirmation with proper status updates
-  * ADDED Itajaí, SC port to Brazilian discharge ports list for comprehensive geographic coverage
 - July 02, 2025. Financial interface down payment correction and standardization:
   * Fixed Financeira interface regression - removed editable down payment field that had returned
   * Replaced editable "Down Payment (%)" field with informational display: "Cobertura da Apólice: 90% (Down payment 10%)"
