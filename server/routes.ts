@@ -5383,10 +5383,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { applicationId, data, score, plan } = req.body;
       
+      // Extract CNPJ from the nested data structure
+      const cnpj = data?.data?.cnpj || data?.cnpj || '';
+      
       // Insert or update consultation data
       const consultationData = {
         creditApplicationId: applicationId,
-        cnpj: data.cnpj,
+        cnpj: cnpj,
         companyData: JSON.stringify(data),
         consultationPlan: plan,
         riskScore: score?.score || null,
