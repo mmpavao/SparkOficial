@@ -360,7 +360,7 @@ const ReceitaWSConsultation: React.FC<ConsultationProps> = ({ cnpj, applicationI
               </div>
               <div>
                 <CardTitle className="text-green-900">Consulta Realizada</CardTitle>
-                <p className="text-sm text-green-600">{consultationData.razao_social}</p>
+                <p className="text-sm text-green-600">{consultationData?.razao_social || "Empresa"}</p>
               </div>
             </div>
             {scoreData && <ScoreDisplay score={scoreData.score} />}
@@ -404,25 +404,25 @@ const ReceitaWSConsultation: React.FC<ConsultationProps> = ({ cnpj, applicationI
               <InfoMiniCard
                 icon={Activity}
                 title="Situação"
-                value={consultationData.situacao}
-                color={consultationData.situacao === "ATIVA" ? "green" : "red"}
+                value={consultationData?.situacao || "Não informado"}
+                color={consultationData?.situacao === "ATIVA" ? "green" : "red"}
               />
               <InfoMiniCard
                 icon={Calendar}
                 title="Data de Abertura"
-                value={new Date(consultationData.data_abertura).toLocaleDateString('pt-BR')}
+                value={consultationData?.data_abertura ? new Date(consultationData.data_abertura).toLocaleDateString('pt-BR') : "Não informado"}
                 color="blue"
               />
               <InfoMiniCard
                 icon={DollarSign}
                 title="Capital Social"
-                value={`R$ ${parseFloat(consultationData.capital_social).toLocaleString('pt-BR')}`}
+                value={consultationData?.capital_social ? `R$ ${parseFloat(consultationData.capital_social).toLocaleString('pt-BR')}` : "Não informado"}
                 color="green"
               />
               <InfoMiniCard
                 icon={Users}
                 title="Porte"
-                value={consultationData.porte}
+                value={consultationData?.porte || "Não informado"}
                 color="purple"
               />
             </div>
@@ -454,13 +454,15 @@ const ReceitaWSConsultation: React.FC<ConsultationProps> = ({ cnpj, applicationI
               <InfoMiniCard
                 icon={MapPin}
                 title="Endereço Completo"
-                value={`${consultationData.endereco.logradouro}, ${consultationData.endereco.numero} - ${consultationData.endereco.bairro}, ${consultationData.endereco.municipio}/${consultationData.endereco.uf}`}
+                value={consultationData.endereco ? 
+                  `${consultationData.endereco.logradouro || ''}, ${consultationData.endereco.numero || ''} - ${consultationData.endereco.bairro || ''}, ${consultationData.endereco.municipio || ''}/${consultationData.endereco.uf || ''}` : 
+                  "Não informado"}
                 color="yellow"
               />
               <InfoMiniCard
                 icon={Phone}
                 title="Telefone"
-                value={consultationData.telefone || "Não informado"}
+                value={consultationData?.telefone || "Não informado"}
                 color="blue"
               />
             </div>
@@ -493,19 +495,19 @@ const ReceitaWSConsultation: React.FC<ConsultationProps> = ({ cnpj, applicationI
                 <InfoMiniCard
                   icon={Star}
                   title="Nível de Risco"
-                  value={scoreData.risk_level}
-                  color={scoreData.risk_level === "BAIXO" ? "green" : scoreData.risk_level === "MÉDIO" ? "yellow" : "red"}
+                  value={scoreData?.risk_level || "Não avaliado"}
+                  color={scoreData?.risk_level === "BAIXO" ? "green" : scoreData?.risk_level === "MÉDIO" ? "yellow" : "red"}
                 />
                 <InfoMiniCard
                   icon={CreditCard}
                   title="Comportamento de Pagamento"
-                  value={scoreData.payment_behavior}
+                  value={scoreData?.payment_behavior || "Não avaliado"}
                   color="blue"
                 />
                 <InfoMiniCard
                   icon={Shield}
                   title="Saúde Financeira"
-                  value={scoreData.financial_health}
+                  value={scoreData?.financial_health || "Não avaliado"}
                   color="purple"
                 />
               </div>
