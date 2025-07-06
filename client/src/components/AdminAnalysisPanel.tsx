@@ -78,9 +78,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     enabled: !!application.userId && permissions.isFinanceira
   });
 
-  console.log("👤 User Financial Settings for Application:", userSettings);
-  console.log("📝 Application Data:", { userId: application.userId, creditLimit: application.creditLimit });
-
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
     riskLevel: application.riskLevel || "medium",
@@ -728,14 +725,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                    application.status !== 'submitted_to_financial' && 
                    application.status !== 'approved' && 
                    application.status !== 'admin_finalized';
-                  
-                  console.log('🔍 SUBMIT BUTTON DEBUG:', {
-                    status: application.status,
-                    preAnalysisStatus: application.preAnalysisStatus,
-                    financialStatus: application.financialStatus,
-                    adminStatus: application.adminStatus,
-                    shouldShow: shouldShowSubmitButton
-                  });
                   
                   return shouldShowSubmitButton;
                 })() && (

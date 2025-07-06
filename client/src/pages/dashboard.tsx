@@ -68,17 +68,14 @@ export default function Dashboard() {
 
   // Navigation handlers
   const handleCreditClick = (creditId: number) => {
-    console.log('Navegando para crédito:', creditId);
     setLocation(`/credit/details/${creditId}`);
   };
 
   const handleImportClick = (importId: number) => {
-    console.log('Navegando para importação:', importId);
     setLocation(`/imports/${importId}`);
   };
 
   const handleSupplierClick = (supplierId: number) => {
-    console.log('Navegando para fornecedor:', supplierId);
     setLocation(`/suppliers/details/${supplierId}`);
   };
 
@@ -1018,7 +1015,6 @@ export default function Dashboard() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('Card de importação clicado!', import_.id);
                           handleImportClick(import_.id);
                         }}
                       >
@@ -1110,7 +1106,6 @@ export default function Dashboard() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('Card clicado!', app.id);
                             handleCreditClick(app.id);
                           }}
                         >

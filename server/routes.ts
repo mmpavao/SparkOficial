@@ -67,7 +67,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Session debugging middleware
   app.use((req: any, res, next) => {
     if (req.path.startsWith('/api/')) {
-      console.log(`[Session Debug] ${req.method} ${req.path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+      // Session debugging disabled for security
+      // console.log(`[Session Debug] ${req.method} ${req.path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
     }
     next();
   });
@@ -84,10 +85,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   const requireAuth = async (req: any, res: any, next: any) => {
-    console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
+    // Auth check logs disabled for security
 
     if (!req.session?.userId) {
-      console.log("Authentication failed - no session or user ID");
       return res.status(401).json({ message: "Não autorizado" });
     }
 
@@ -95,13 +95,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user data and attach to request for authorization middleware
       const user = await storage.getUser(req.session.userId);
       if (!user) {
-        console.log("User not found for session:", req.session.userId);
         req.session.destroy(() => {}); // Clear invalid session
         return res.status(401).json({ message: "Usuário não encontrado" });
       }
 
       req.user = { id: user.id, email: user.email, role: user.role };
-      console.log("Authentication successful for user:", req.session.userId, "Role:", user.role);
       next();
     } catch (error) {
       console.error("Error in authentication middleware:", error);
@@ -174,12 +172,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Normalize email
       userData.email = userData.email.toLowerCase().trim();
-      console.log("Registration attempt for email:", userData.email);
 
       // Check if user already exists
       const existingUserByEmail = await storage.getUserByEmail(userData.email);
       if (existingUserByEmail) {
-        console.log("User already exists with email:", userData.email);
         return res.status(409).json({ 
           message: "Este e-mail já possui uma conta cadastrada", 
           type: "email_exists",
