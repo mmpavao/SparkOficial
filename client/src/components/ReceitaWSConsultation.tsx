@@ -140,7 +140,7 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <Search className="h-5 w-5 text-blue-600" />
-            Consulta Receita WS
+            Análise Crédito - Credit Score
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -198,7 +198,7 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
-              Consultar Receita WS
+              Análise Crédito - Credit Score
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
