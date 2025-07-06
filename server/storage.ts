@@ -564,7 +564,26 @@ export class DatabaseStorage {
   // ===== ADMIN OPERATIONS =====
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+    const stmt = db.$client.prepare(`
+      SELECT * FROM users 
+      ORDER BY created_at DESC
+    `);
+    const usersList = stmt.all();
+    
+    return usersList.map((user: any) => ({
+      ...user,
+      id: user.id,
+      fullName: user.full_name,
+      email: user.email,
+      phone: user.phone,
+      companyName: user.company_name,
+      cnpj: user.cnpj,
+      role: user.role,
+      status: user.status,
+      avatar: user.avatar,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at
+    }));
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
@@ -701,7 +720,34 @@ export class DatabaseStorage {
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
-    return await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
+    const stmt = db.$client.prepare(`
+      SELECT * FROM suppliers 
+      ORDER BY created_at DESC
+    `);
+    const suppliersList = stmt.all();
+    
+    return suppliersList.map((supplier: any) => ({
+      ...supplier,
+      id: supplier.id,
+      userId: supplier.user_id,
+      companyName: supplier.company_name,
+      contactName: supplier.contact_name,
+      contactEmail: supplier.contact_email,
+      contactPhone: supplier.contact_phone,
+      address: supplier.address,
+      city: supplier.city,
+      province: supplier.province,
+      country: supplier.country,
+      postalCode: supplier.postal_code,
+      website: supplier.website,
+      businessLicense: supplier.business_license,
+      taxId: supplier.tax_id,
+      bankName: supplier.bank_name,
+      bankAccount: supplier.bank_account,
+      swiftCode: supplier.swift_code,
+      createdAt: supplier.created_at,
+      updatedAt: supplier.updated_at
+    }));
   }
 
   // ===== CREDIT MANAGEMENT =====
