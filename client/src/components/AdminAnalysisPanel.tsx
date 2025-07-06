@@ -28,6 +28,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useSoundEffects } from "@/utils/soundEffects";
 import { useAuth } from '../hooks/useAuth';
 import { useModuleGuard } from '../hooks/useModuleGuard';
+import ReceitaWSConsultation from './ReceitaWSConsultation';
 
 // Currency formatting function
 const formatCurrency = (value: string | number): string => {
@@ -714,6 +715,16 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       <XCircle className="w-4 h-4 mr-2" />
                       Rejeitar
                     </Button>
+                  </div>
+                )}
+
+                {/* Consulta Receita WS - Disponível após pré-aprovação */}
+                {(application?.status === 'pre_approved' || application?.preAnalysisStatus === 'pre_approved' || application?.financialStatus === 'approved' || application?.adminStatus === 'admin_finalized') && (
+                  <div className="mt-4">
+                    <ReceitaWSConsultation 
+                      cnpj={application.cnpj} 
+                      applicationId={application.id} 
+                    />
                   </div>
                 )}
 

@@ -16,7 +16,6 @@ import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import CreditCommunication from "@/components/CreditCommunication";
-import ReceitaWSConsultation from "@/components/ReceitaWSConsultation";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
@@ -1079,14 +1078,6 @@ export default function CreditDetailsPage() {
           {(permissions.isAdmin || permissions.isFinanceira) && (
             <>
               <AdminAnalysisPanel application={application} />
-              
-              {/* Consulta Receita WS - Disponível após pré-aprovação */}
-              {application?.status === 'pre_approved' || application?.preAnalysisStatus === 'pre_approved' || application?.financialStatus === 'approved' || application?.adminStatus === 'admin_finalized' ? (
-                <ReceitaWSConsultation 
-                  cnpj={application.cnpj} 
-                  applicationId={application.id} 
-                />
-              ) : null}
               
               {permissions.isAdmin && application.financialStatus === 'approved' && (
                 <AdminFinalizationPanel 
