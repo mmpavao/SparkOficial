@@ -5379,21 +5379,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se já existe uma análise para esta aplicação
       const existingAnalysis = await storage.getCnpjAnalysisByApplicationId(credit_application_id);
       
+      let savedAnalysis;
       if (existingAnalysis) {
-        return res.status(409).json({ error: 'Análise já existe para esta aplicação' });
+        // Atualizar análise existente
+        const updateData = {
+          companyData: company_data,
+          analysisResult: analysis_result,
+          riskScore: risk_score || null,
+          consultedBy: currentUser.id,
+          consultedAt: new Date()
+        };
+        savedAnalysis = await storage.updateCnpjAnalysis(existingAnalysis.id, updateData);
+      } else {
+        // Inserir nova análise
+        const analysisData = {
+          cnpj,
+          creditApplicationId: credit_application_id,
+          companyData: company_data,
+          analysisResult: analysis_result,
+          riskScore: risk_score || null,
+          consultedBy: currentUser.id
+        };
+        savedAnalysis = await storage.createCnpjAnalysis(analysisData);
       }
-      
-      // Inserir nova análise
-      const analysisData = {
-        cnpj,
-        creditApplicationId: credit_application_id,
-        companyData: company_data,
-        analysisResult: analysis_result,
-        riskScore: risk_score || null,
-        consultedBy: currentUser.id
-      };
-
-      const savedAnalysis = await storage.createCnpjAnalysis(analysisData);
       
       console.log(`📊 CNPJ ANALYSIS: Análise salva para aplicação ${credit_application_id} por usuário ${currentUser.id}`);
       

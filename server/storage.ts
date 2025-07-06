@@ -1807,6 +1807,15 @@ export class DatabaseStorage {
       .limit(1);
     return result[0];
   }
+
+  async updateCnpjAnalysis(id: number, updateData: Partial<CnpjAnalysis>): Promise<CnpjAnalysis> {
+    const [analysis] = await db
+      .update(cnpjAnalyses)
+      .set(updateData)
+      .where(eq(cnpjAnalyses.id, id))
+      .returning();
+    return analysis;
+  }
 }
 
 export const storage = new DatabaseStorage();
