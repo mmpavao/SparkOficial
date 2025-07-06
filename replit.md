@@ -860,6 +860,16 @@ Changelog:
   * Fixed sequential upload logic to properly process all selected files instead of just the first one
   * Removed blocking logic that prevented multiple uploads when documents already existed
   * Final security cleanup: Removed remaining console.log statements exposing user settings and application data in AdminFinalizationPanel component
+- July 06, 2025. Complete Receita WS consultation persistence fix implemented:
+  * Fixed critical bug where API was returning 'companyData' but frontend was checking 'company_data'
+  * Corrected data persistence issue ensuring consultations remain visible after page refresh
+  * Updated ReceitaWSConsultation component to properly detect and display existing consultations
+  * Removed duplicate records from cnpj_analyses table and improved data integrity
+  * Enhanced storage.ts with proper ordering to always return most recent analysis per application
+  * Implemented one-time consultation system - button disappears permanently after first consultation
+  * Data now properly persists in database and interface shows consultation results consistently
+  * Fixed JSON parsing to handle both string and object formats for company data
+  * System now correctly shows "Consulta realizada" status with date for completed consultations
 ```
 
 ## User Preferences
