@@ -5196,6 +5196,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database viewer endpoints
+  app.get('/api/database/stats', async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const creditApplications = await storage.getAllCreditApplications();
+      const imports = await storage.getAllImports();
+      const suppliers = await storage.getAllSuppliers();
+      const payments = await storage.getAllPaymentSchedules();
+
+      const stats = {
+        totalUsers: users.length,
+        totalCreditApplications: creditApplications.length,
+        totalImports: imports.length,
+        totalSuppliers: suppliers.length,
+        totalPayments: payments.length,
+        databaseSize: '100KB'
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching database stats:', error);
+      res.status(500).json({ error: 'Failed to fetch database stats' });
+    }
+  });
+
+  app.get('/api/database/table/:tableName', async (req, res) => {
+    try {
+      const { tableName } = req.params;
+      let data = [];
+
+      switch (tableName) {
+        case 'users':
+          data = await storage.getAllUsers();
+          break;
+        case 'credit_applications':
+          data = await storage.getAllCreditApplications();
+          break;
+        case 'imports':
+          data = await storage.getAllImports();
+          break;
+        case 'suppliers':
+          data = await storage.getAllSuppliers();
+          break;
+        case 'payment_schedules':
+          data = await storage.getAllPaymentSchedules();
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid table name' });
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching table data:', error);
+      res.status(500).json({ error: 'Failed to fetch table data' });
+    }
+  });
+
   // Register imports routes
   console.log('Registering imports routes...');
   app.use('/api', importRoutes);

@@ -1775,6 +1775,28 @@ export class DatabaseStorage {
       })))
       .returning();
   }
+
+  // ===== DATABASE VIEWER METHODS =====
+  
+  async getAllUsers() {
+    return await db.select().from(users);
+  }
+
+  async getAllCreditApplications() {
+    return await db.select().from(creditApplications);
+  }
+
+  async getAllImports() {
+    return await db.select().from(imports);
+  }
+
+  async getAllSuppliers() {
+    return await db.select().from(suppliers);
+  }
+
+  async getAllPaymentSchedules() {
+    return await db.select().from(paymentSchedules);
+  }
 }
 
 export const storage = new DatabaseStorage();
