@@ -28,7 +28,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useSoundEffects } from "@/utils/soundEffects";
 import { useAuth } from '../hooks/useAuth';
 import { useModuleGuard } from '../hooks/useModuleGuard';
-import ReceitaWSConsultation from './ReceitaWSConsultation';
 
 // Currency formatting function
 const formatCurrency = (value: string | number): string => {
@@ -78,6 +77,9 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     queryKey: [`/api/admin/users/${application.userId}/financial-settings`],
     enabled: !!application.userId && permissions.isFinanceira
   });
+
+  console.log("👤 User Financial Settings for Application:", userSettings);
+  console.log("📝 Application Data:", { userId: application.userId, creditLimit: application.creditLimit });
 
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
@@ -718,14 +720,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   </div>
                 )}
 
-                {/* Consulta Receita WS - Disponível para análise administrativa */}
-                <div className="mt-4">
-                  <ReceitaWSConsultation 
-                    cnpj={application.cnpj} 
-                    applicationId={application.id} 
-                  />
-                </div>
-
                 {/* Status: PRE_APPROVED - Show submit to financial (only if not already processed) */}
                 {(() => {
                   const shouldShowSubmitButton = (application.status === 'pre_approved' || application.preAnalysisStatus === 'pre_approved') && 
@@ -734,6 +728,14 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                    application.status !== 'submitted_to_financial' && 
                    application.status !== 'approved' && 
                    application.status !== 'admin_finalized';
+                  
+                  console.log('🔍 SUBMIT BUTTON DEBUG:', {
+                    status: application.status,
+                    preAnalysisStatus: application.preAnalysisStatus,
+                    financialStatus: application.financialStatus,
+                    adminStatus: application.adminStatus,
+                    shouldShow: shouldShowSubmitButton
+                  });
                   
                   return shouldShowSubmitButton;
                 })() && (

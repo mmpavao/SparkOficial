@@ -839,37 +839,6 @@ Changelog:
   * REGENERATED PAYMENT SCHEDULES: Recreated payment schedules for import ID 11 with correct values (Entry: $11,550, Installments: $8,983.33 each)
   * UNIFIED PAYMENT DISPLAY: Ensured payment schedules in import details match global payment page with identical values and visual consistency
   * ESTABLISHED DEFINITIVE PAYMENT RULES: Payment calculations now follow confirmed terms from TermsConfirmation modal during import creation
-- July 06, 2025. CRITICAL SECURITY ENHANCEMENT: Console.log sanitization completed - Production-grade security implementation:
-  * Systematically removed ALL console.log statements exposing sensitive data throughout the application
-  * Frontend sanitization: credit-details.tsx, dashboard.tsx (removed user IDs, navigation data, card interactions)
-  * Backend sanitization: server/routes.ts (disabled session debugging, authentication logs, registration data exposure)
-  * Component sanitization: AdminAnalysisPanel.tsx (removed user financial settings, application data, debug status)
-  * Imports module sanitization: ImportFinancialPreview.tsx (removed financial settings, credit info, calculation data)
-  * Enhanced production security by preventing sensitive data leakage through browser console
-  * System now fully compliant with enterprise security standards for data protection
-  * Maintained all debugging functionality as comments for development environments
-- July 06, 2025. Multiple file selection enhancement implemented in document upload system:
-  * Enhanced UnifiedDocumentUpload component to support multiple file selection in single operation
-  * Added intelligent file handling: single file uploads use existing logic, multiple files trigger batch processing
-  * Implemented comprehensive validation for multiple files with individual error reporting for invalid files
-  * Added drag-and-drop support for multiple files with proper validation and confirmation dialogs
-  * Updated user interface to indicate multiple file support with "(múltiplos arquivos)" text
-  * Enhanced file input with 'multiple' attribute enabling users to select several files at once from file browser
-  * Maintained backward compatibility with existing single-file upload workflows
-  * Feature works in both credit application registration and credit details document upload sections
-  * Fixed sequential upload logic to properly process all selected files instead of just the first one
-  * Removed blocking logic that prevented multiple uploads when documents already existed
-  * Final security cleanup: Removed remaining console.log statements exposing user settings and application data in AdminFinalizationPanel component
-- July 06, 2025. Complete Receita WS consultation persistence fix implemented:
-  * Fixed critical bug where API was returning 'companyData' but frontend was checking 'company_data'
-  * Corrected data persistence issue ensuring consultations remain visible after page refresh
-  * Updated ReceitaWSConsultation component to properly detect and display existing consultations
-  * Removed duplicate records from cnpj_analyses table and improved data integrity
-  * Enhanced storage.ts with proper ordering to always return most recent analysis per application
-  * Implemented one-time consultation system - button disappears permanently after first consultation
-  * Data now properly persists in database and interface shows consultation results consistently
-  * Fixed JSON parsing to handle both string and object formats for company data
-  * System now correctly shows "Consulta realizada" status with date for completed consultations
 ```
 
 ## User Preferences

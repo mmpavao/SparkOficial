@@ -67,8 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Session debugging middleware
   app.use((req: any, res, next) => {
     if (req.path.startsWith('/api/')) {
-      // Session debugging disabled for security
-      // console.log(`[Session Debug] ${req.method} ${req.path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+      console.log(`[Session Debug] ${req.method} ${req.path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
     }
     next();
   });
@@ -85,9 +84,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   const requireAuth = async (req: any, res: any, next: any) => {
-    // Auth check logs disabled for security
+    console.log("Auth check - Session ID:", req.sessionID, "User ID:", req.session?.userId);
 
     if (!req.session?.userId) {
+      console.log("Authentication failed - no session or user ID");
       return res.status(401).json({ message: "Não autorizado" });
     }
 
@@ -95,11 +95,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user data and attach to request for authorization middleware
       const user = await storage.getUser(req.session.userId);
       if (!user) {
+        console.log("User not found for session:", req.session.userId);
         req.session.destroy(() => {}); // Clear invalid session
         return res.status(401).json({ message: "Usuário não encontrado" });
       }
 
       req.user = { id: user.id, email: user.email, role: user.role };
+      console.log("Authentication successful for user:", req.session.userId, "Role:", user.role);
       next();
     } catch (error) {
       console.error("Error in authentication middleware:", error);
@@ -172,10 +174,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Normalize email
       userData.email = userData.email.toLowerCase().trim();
+      console.log("Registration attempt for email:", userData.email);
 
       // Check if user already exists
       const existingUserByEmail = await storage.getUserByEmail(userData.email);
       if (existingUserByEmail) {
+        console.log("User already exists with email:", userData.email);
         return res.status(409).json({ 
           message: "Este e-mail já possui uma conta cadastrada", 
           type: "email_exists",
@@ -5192,229 +5196,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating demo notifications:", error);
       res.status(500).json({ message: "Erro ao criar notificações de demonstração" });
-    }
-  });
-
-  // ============================================
-  // RECEITA WS API INTEGRATION
-  // ============================================
-  
-  // Consulta completa de empresa via Receita WS
-  app.post('/api/receita-ws/consultar', requireAuth, async (req: any, res) => {
-    try {
-      const { cnpj, plan, applicationId } = req.body;
-      
-      if (!cnpj || !plan || !applicationId) {
-        return res.status(400).json({ error: 'CNPJ, plano e ID da aplicação são obrigatórios' });
-      }
-
-      const receitaApiKey = process.env.RECEITA_WS_API_KEY;
-      if (!receitaApiKey) {
-        return res.status(500).json({ error: 'Chave da API Receita WS não configurada' });
-      }
-
-      // Remove formatação do CNPJ
-      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
-      
-      // Determine API endpoint based on plan
-      const baseUrl = 'https://receitaws.com.br/v1';
-      const endpoint = plan === 'advanced' ? `${baseUrl}/cnpj/${cleanCnpj}?token=${receitaApiKey}&plugins=registrations,simples` : `${baseUrl}/cnpj/${cleanCnpj}?token=${receitaApiKey}`;
-
-      // Consulta à API da Receita WS
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'SparkComex/1.0'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API Receita WS retornou erro: ${response.status}`);
-      }
-
-      const receitaData = await response.json();
-      
-      if (receitaData.status === 'ERROR') {
-        return res.status(400).json({ error: receitaData.message || 'Erro na consulta da Receita WS' });
-      }
-
-      // Gerar score simulado baseado nos dados reais
-      const calculateScore = (data: any) => {
-        let score = 500; // Base score
-        
-        // Situação da empresa
-        if (data.situacao === 'ATIVA') score += 200;
-        else score -= 300;
-        
-        // Capital social
-        const capital = parseFloat(data.capital_social?.replace(/[^\d,]/g, '').replace(',', '.') || '0');
-        if (capital > 1000000) score += 150;
-        else if (capital > 100000) score += 100;
-        else if (capital > 10000) score += 50;
-        
-        // Tempo de atividade
-        const abertura = new Date(data.abertura);
-        const anos = (new Date().getTime() - abertura.getTime()) / (1000 * 60 * 60 * 24 * 365);
-        if (anos > 10) score += 100;
-        else if (anos > 5) score += 50;
-        else if (anos > 2) score += 25;
-        
-        // Porte da empresa
-        if (data.porte === 'DEMAIS') score += 100;
-        else if (data.porte === 'EPP') score += 75;
-        else if (data.porte === 'ME') score += 50;
-        
-        // Garantir que o score esteja entre 0 e 1000
-        return Math.min(1000, Math.max(0, score));
-      };
-
-      // Estruturar dados de resposta
-      const consultationResult = {
-        cnpj: receitaData.cnpj,
-        razao_social: receitaData.nome || 'Não informado',
-        nome_fantasia: receitaData.fantasia || receitaData.nome || 'Não informado',
-        situacao: receitaData.situacao || 'INATIVA',
-        data_abertura: receitaData.abertura || new Date().toISOString(),
-        capital_social: receitaData.capital_social || '0,00',
-        natureza_juridica: receitaData.natureza_juridica || 'Não informado',
-        porte: receitaData.porte || 'Não informado',
-        atividade_principal: {
-          codigo: receitaData.atividade_principal?.[0]?.code || '0000-0/00',
-          descricao: receitaData.atividade_principal?.[0]?.text || 'Não informado'
-        },
-        atividades_secundarias: receitaData.atividades_secundarias?.map((ativ: any) => ({
-          codigo: ativ.code || '0000-0/00',
-          descricao: ativ.text || 'Não informado'
-        })) || [],
-        endereco: {
-          logradouro: receitaData.logradouro || 'Não informado',
-          numero: receitaData.numero || 'S/N',
-          complemento: receitaData.complemento || '',
-          bairro: receitaData.bairro || 'Não informado',
-          municipio: receitaData.municipio || 'Não informado',
-          uf: receitaData.uf || 'Não informado',
-          cep: receitaData.cep || '00000-000'
-        },
-        telefone: receitaData.telefone || 'Não informado',
-        email: receitaData.email || 'Não informado',
-        qsa: receitaData.qsa?.map((socio: any) => ({
-          nome: socio.nome || 'Não informado',
-          cargo: socio.qual || 'Não informado',
-          participacao: '33.33', // Participação simulada
-          data_entrada: '2020-01-01' // Data simulada
-        })) || [],
-        score: calculateScore(receitaData),
-        indicadores: {
-          protestos: false, // Simulado como limpo
-          negativacoes: false, // Simulado como limpo
-          pendencias: false // Simulado como limpo
-        },
-        historico_consultas: {
-          total: Math.floor(Math.random() * 50) + 1,
-          periodo: '01/06/2024 até 01/06/2025',
-          ultima_consulta: new Date().toISOString(),
-          consultas_recentes: [
-            '30/05/2025 (SP-RCO/ORTHO SYSTEM)',
-            '12/05/2025 (DIMENSA S.A)',
-            '07/05/2025 (BRADESCO)'
-          ]
-        },
-        cheques: {
-          sem_fundo: 0,
-          sustados: 0,
-          status: 'Regular'
-        },
-        participacoes_outras_empresas: [] // Vazio por padrão
-      };
-
-      // Log da consulta realizada
-      console.log(`📊 RECEITA WS: Consulta ${plan} realizada para CNPJ ${cleanCnpj} por usuário ${req.session.userId}`);
-      
-      res.json(consultationResult);
-      
-    } catch (error) {
-      console.error('Erro na consulta Receita WS:', error);
-      res.status(500).json({ error: 'Erro interno do servidor na consulta' });
-    }
-  });
-
-  // ============================================
-  // CNPJ ANALYSES ENDPOINTS
-  // ============================================
-  
-  // Get CNPJ analysis for a credit application
-  app.get('/api/cnpj-analyses/:applicationId', requireAuth, async (req: any, res) => {
-    try {
-      const { applicationId } = req.params;
-      
-      const analysis = await storage.getCnpjAnalysisByApplicationId(parseInt(applicationId));
-      
-      if (!analysis) {
-        return res.status(404).json({ message: "Análise não encontrada" });
-      }
-      
-      res.json(analysis);
-      
-    } catch (error) {
-      console.error('Erro ao buscar análise de CNPJ:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-  
-  // Save CNPJ analysis
-  app.post('/api/cnpj-analyses', requireAuth, async (req: any, res) => {
-    try {
-      const { credit_application_id, cnpj, company_data, analysis_result, risk_score } = req.body;
-      
-      if (!credit_application_id || !cnpj || !company_data) {
-        return res.status(400).json({ error: 'Dados obrigatórios não fornecidos' });
-      }
-      
-      const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-      
-      // Verificar se já existe uma análise para esta aplicação
-      const existingAnalysis = await storage.getCnpjAnalysisByApplicationId(credit_application_id);
-      
-      let savedAnalysis;
-      if (existingAnalysis) {
-        // Atualizar análise existente
-        const updateData = {
-          companyData: company_data,
-          analysisResult: analysis_result,
-          riskScore: risk_score || null,
-          consultedBy: currentUser.id,
-          consultedAt: new Date()
-        };
-        savedAnalysis = await storage.updateCnpjAnalysis(existingAnalysis.id, updateData);
-      } else {
-        // Inserir nova análise
-        const analysisData = {
-          cnpj,
-          creditApplicationId: credit_application_id,
-          companyData: company_data,
-          analysisResult: analysis_result,
-          riskScore: risk_score || null,
-          consultedBy: currentUser.id
-        };
-        savedAnalysis = await storage.createCnpjAnalysis(analysisData);
-      }
-      
-      console.log(`📊 CNPJ ANALYSIS: Análise salva para aplicação ${credit_application_id} por usuário ${currentUser.id}`);
-      
-      res.json({ 
-        id: savedAnalysis.id,
-        message: 'Análise salva com sucesso',
-        credit_application_id,
-        cnpj 
-      });
-      
-    } catch (error) {
-      console.error('Erro ao salvar análise de CNPJ:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 

@@ -9,7 +9,6 @@ import {
   payments,
   importDocuments,
   notifications,
-  cnpjAnalyses,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -18,8 +17,6 @@ import {
   type InsertImport,
   type Supplier,
   type InsertSupplier,
-  type CnpjAnalysis,
-  type InsertCnpjAnalysis,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like, asc, lt } from "drizzle-orm";
@@ -1777,45 +1774,6 @@ export class DatabaseStorage {
         updatedAt: new Date()
       })))
       .returning();
-  }
-
-  // ===== CNPJ ANALYSIS OPERATIONS =====
-
-  async createCnpjAnalysis(data: InsertCnpjAnalysis): Promise<CnpjAnalysis> {
-    const [analysis] = await db
-      .insert(cnpjAnalyses)
-      .values(data)
-      .returning();
-    return analysis;
-  }
-
-  async getCnpjAnalysisByApplicationId(applicationId: number): Promise<CnpjAnalysis | undefined> {
-    const result = await db
-      .select()
-      .from(cnpjAnalyses)
-      .where(eq(cnpjAnalyses.creditApplicationId, applicationId))
-      .orderBy(desc(cnpjAnalyses.consultedAt))
-      .limit(1);
-    return result[0];
-  }
-
-  async getCnpjAnalysisByCnpj(cnpj: string): Promise<CnpjAnalysis | undefined> {
-    const result = await db
-      .select()
-      .from(cnpjAnalyses)
-      .where(eq(cnpjAnalyses.cnpj, cnpj))
-      .orderBy(desc(cnpjAnalyses.consultedAt))
-      .limit(1);
-    return result[0];
-  }
-
-  async updateCnpjAnalysis(id: number, updateData: Partial<CnpjAnalysis>): Promise<CnpjAnalysis> {
-    const [analysis] = await db
-      .update(cnpjAnalyses)
-      .set(updateData)
-      .where(eq(cnpjAnalyses.id, id))
-      .returning();
-    return analysis;
   }
 }
 
