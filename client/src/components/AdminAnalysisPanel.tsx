@@ -718,15 +718,13 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   </div>
                 )}
 
-                {/* Consulta Receita WS - Disponível após pré-aprovação */}
-                {(application?.status === 'pre_approved' || application?.preAnalysisStatus === 'pre_approved' || application?.financialStatus === 'approved' || application?.adminStatus === 'admin_finalized') && (
-                  <div className="mt-4">
-                    <ReceitaWSConsultation 
-                      cnpj={application.cnpj} 
-                      applicationId={application.id} 
-                    />
-                  </div>
-                )}
+                {/* Consulta Receita WS - Disponível para análise administrativa */}
+                <div className="mt-4">
+                  <ReceitaWSConsultation 
+                    cnpj={application.cnpj} 
+                    applicationId={application.id} 
+                  />
+                </div>
 
                 {/* Status: PRE_APPROVED - Show submit to financial (only if not already processed) */}
                 {(() => {
