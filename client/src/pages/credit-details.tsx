@@ -105,7 +105,6 @@ export default function CreditDetailsPage() {
     return () => setMounted(false);
   }, []);
   const permissions = useUserPermissions();
-  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
   const [isEditingCredit, setIsEditingCredit] = useState(false);
   const [editCreditData, setEditCreditData] = useState({
@@ -179,7 +178,6 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
-      setUploadingDocument(null);
       toast({
         title: "Documento enviado",
         description: "O documento foi enviado com sucesso.",
@@ -192,7 +190,6 @@ export default function CreditDetailsPage() {
         description: error.message || "Não foi possível enviar o documento. Tente novamente.",
         variant: "destructive",
       });
-      setUploadingDocument(null);
     },
   });
 
@@ -228,7 +225,7 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentUpload = (documentType: string, file: File) => {
-    setUploadingDocument(documentType);
+    // Don't set uploading state here to allow multiple uploads
     uploadDocumentMutation.mutate({ documentType, file });
   };
 
@@ -756,7 +753,7 @@ export default function CreditDetailsPage() {
                       documentObservation={doc.observation}
                       isRequired={doc.required}
                       applicationId={applicationId!}
-                      isUploading={uploadingDocument === doc.key}
+                      isUploading={false}
                       onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
                       onDownload={(docKey, index) => {
@@ -818,7 +815,7 @@ export default function CreditDetailsPage() {
                       documentObservation={doc.observation}
                       isRequired={doc.required}
                       applicationId={applicationId!}
-                      isUploading={uploadingDocument === doc.key}
+                      isUploading={false}
                       onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
                       onDownload={(docKey, index) => {
