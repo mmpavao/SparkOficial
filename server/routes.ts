@@ -5196,8 +5196,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Database viewer endpoints
-  app.get('/api/database/stats', async (req, res) => {
+  // Database viewer endpoints (Admin only)
+  app.get('/api/database/stats', requireAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       const creditApplications = await storage.getAllCreditApplications();
@@ -5221,7 +5221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/database/table/:tableName', async (req, res) => {
+  app.get('/api/database/table/:tableName', requireAdmin, async (req, res) => {
     try {
       const { tableName } = req.params;
       let data = [];

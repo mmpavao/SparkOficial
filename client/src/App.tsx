@@ -92,7 +92,7 @@ function Router() {
         <Route path="/importers/:id" component={() => <AdminRoute><ImporterDetailsPage /></AdminRoute>} />
         <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
-        <Route path="/database" component={DatabaseViewer} />
+        <Route path="/database" component={() => <AdminRoute><DatabaseViewer /></AdminRoute>} />
 
         <Route component={NotFound} />
       </Switch>
