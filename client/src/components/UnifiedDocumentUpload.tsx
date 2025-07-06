@@ -113,7 +113,7 @@ export default function UnifiedDocumentUpload({
   };
 
   // Handle multiple files upload
-  const handleMultipleFilesUpload = (files: FileList) => {
+  const handleMultipleFilesUpload = async (files: FileList) => {
     const filesArray = Array.from(files);
     const validFiles: File[] = [];
     const invalidFiles: string[] = [];
@@ -144,10 +144,10 @@ export default function UnifiedDocumentUpload({
         }
       }
 
-      // Upload each valid file
-      validFiles.forEach(file => {
-        onUpload(documentKey, file);
-      });
+      // Upload each valid file sequentially
+      for (const file of validFiles) {
+        await onUpload(documentKey, file);
+      }
     }
   };
 
@@ -162,7 +162,7 @@ export default function UnifiedDocumentUpload({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -172,19 +172,19 @@ export default function UnifiedDocumentUpload({
       if (files.length === 1) {
         handleFileUpload(files[0]);
       } else {
-        handleMultipleFilesUpload(files);
+        await handleMultipleFilesUpload(files);
       }
     }
   };
 
   // Handle file input change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       if (files.length === 1) {
         handleFileUpload(files[0]);
       } else {
-        handleMultipleFilesUpload(files);
+        await handleMultipleFilesUpload(files);
       }
     }
     // Reset input value
