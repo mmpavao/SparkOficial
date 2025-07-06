@@ -859,6 +859,7 @@ Changelog:
   * Feature works in both credit application registration and credit details document upload sections
   * Fixed sequential upload logic to properly process all selected files instead of just the first one
   * Removed blocking logic that prevented multiple uploads when documents already existed
+  * Final security cleanup: Removed remaining console.log statements exposing user settings and application data in AdminFinalizationPanel component
 ```
 
 ## User Preferences
