@@ -857,6 +857,8 @@ Changelog:
   * Enhanced file input with 'multiple' attribute enabling users to select several files at once from file browser
   * Maintained backward compatibility with existing single-file upload workflows
   * Feature works in both credit application registration and credit details document upload sections
+  * Fixed sequential upload logic to properly process all selected files instead of just the first one
+  * Removed blocking logic that prevented multiple uploads when documents already existed
 ```
 
 ## User Preferences

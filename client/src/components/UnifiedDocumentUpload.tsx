@@ -135,15 +135,6 @@ export default function UnifiedDocumentUpload({
 
     // Upload valid files
     if (validFiles.length > 0) {
-      // For single file mode, ask for confirmation if documents exist
-      if (!allowMultiple && hasDocuments && validFiles.length > 0) {
-        if (confirm(`Já existe um documento. Deseja substituí-lo pelos ${validFiles.length} novos arquivos?`)) {
-          onRemove(documentKey);
-        } else {
-          return;
-        }
-      }
-
       // Upload each valid file sequentially
       for (const file of validFiles) {
         await onUpload(documentKey, file);
