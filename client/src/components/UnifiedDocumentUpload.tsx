@@ -130,9 +130,11 @@ export default function UnifiedDocumentUpload({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      // Process multiple files from drag and drop
-      files.forEach((file) => {
-        handleFileUpload(file);
+      // Process multiple files from drag and drop with delay
+      files.forEach((file, index) => {
+        setTimeout(() => {
+          handleFileUpload(file);
+        }, index * 100); // 100ms delay between each file
       });
     }
   };
@@ -153,9 +155,11 @@ export default function UnifiedDocumentUpload({
         }
       }
       
-      // Upload all valid files
-      validFiles.forEach((file) => {
-        onUpload(documentKey, file);
+      // Upload all valid files with a small delay between each to avoid race conditions
+      validFiles.forEach((file, index) => {
+        setTimeout(() => {
+          onUpload(documentKey, file);
+        }, index * 100); // 100ms delay between each file
       });
     }
     // Reset input value

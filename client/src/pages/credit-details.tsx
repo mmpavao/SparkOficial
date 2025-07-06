@@ -231,8 +231,12 @@ export default function CreditDetailsPage() {
 
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
-    mutationFn: async ({ documentId }: { documentId: string }) => {
-      const response = await fetch(`/api/credit/applications/${applicationId}/documents/${documentId}`, {
+    mutationFn: async ({ documentId, index }: { documentId: string; index?: number }) => {
+      const url = index !== undefined 
+        ? `/api/credit/applications/${applicationId}/documents/${documentId}?index=${index}`
+        : `/api/credit/applications/${applicationId}/documents/${documentId}`;
+        
+      const response = await fetch(url, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -265,7 +269,7 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
-    deleteDocumentMutation.mutate({ documentId });
+    deleteDocumentMutation.mutate({ documentId, index });
   };
 
   const initializeEditMode = () => {

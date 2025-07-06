@@ -3655,8 +3655,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const applicationId = parseInt(req.params.id);
       const documentId = req.params.documentId;
+      const { index } = req.query; // Get index from query params
 
-      console.log(`Document deletion attempt: ${documentId} for application ${applicationId}`);
+      console.log(`Document deletion attempt: ${documentId} for application ${applicationId}, index: ${index}`);
 
       // Check if user owns the application or has admin/financeira access
       const application = await storage.getCreditApplication(applicationId);
@@ -3691,11 +3692,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First, try to find the document by exact key match in required documents
       if (currentRequired[documentId]) {
         const updatedRequired = { ...currentRequired };
-        delete updatedRequired[documentId];
-        updateData.requiredDocuments = updatedRequired;
-        documentFound = true;
         
-        console.log(`Removed from required documents: ${documentId}`);
+        // Handle array of documents with index
+        if (index !== undefined && Array.isArray(currentRequired[documentId])) {
+          const docArray = [...currentRequired[documentId]];
+          const indexNum = parseInt(index as string);
+          
+          if (indexNum >= 0 && indexNum < docArray.length) {
+            docArray.splice(indexNum, 1);
+            
+            // If array is empty after removal, delete the key
+            if (docArray.length === 0) {
+              delete updatedRequired[documentId];
+            } else {
+              updatedRequired[documentId] = docArray;
+            }
+            documentFound = true;
+            console.log(`Removed document at index ${index} from required documents: ${documentId}`);
+          }
+        } else {
+          // Single document or no index provided - remove entire document
+          delete updatedRequired[documentId];
+          documentFound = true;
+          console.log(`Removed from required documents: ${documentId}`);
+        }
+        
+        updateData.requiredDocuments = updatedRequired;
 
         // Update status based on remaining mandatory documents
         const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
@@ -3714,11 +3736,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if document exists in optional documents (only if not found in required)
       if (!documentFound && currentOptional[documentId]) {
         const updatedOptional = { ...currentOptional };
-        delete updatedOptional[documentId];
-        updateData.optionalDocuments = updatedOptional;
-        documentFound = true;
         
-        console.log(`Removed from optional documents: ${documentId}`);
+        // Handle array of documents with index
+        if (index !== undefined && Array.isArray(currentOptional[documentId])) {
+          const docArray = [...currentOptional[documentId]];
+          const indexNum = parseInt(index as string);
+          
+          if (indexNum >= 0 && indexNum < docArray.length) {
+            docArray.splice(indexNum, 1);
+            
+            // If array is empty after removal, delete the key
+            if (docArray.length === 0) {
+              delete updatedOptional[documentId];
+            } else {
+              updatedOptional[documentId] = docArray;
+            }
+            documentFound = true;
+            console.log(`Removed document at index ${index} from optional documents: ${documentId}`);
+          }
+        } else {
+          // Single document or no index provided - remove entire document
+          delete updatedOptional[documentId];
+          documentFound = true;
+          console.log(`Removed from optional documents: ${documentId}`);
+        }
+        
+        updateData.optionalDocuments = updatedOptional;
       }
 
       if (!documentFound) {
