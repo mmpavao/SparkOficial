@@ -111,15 +111,27 @@ export default function ReceitaWSConsultation({ cnpj, applicationId }: ReceitaWS
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro na consulta');
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Erro na consulta');
+        } else {
+          // If not JSON, it might be an HTML error page
+          throw new Error(`Erro no servidor: ${response.status} - ${response.statusText}`);
+        }
       }
 
       const data = await response.json();
       setConsultationData(data);
       setShowResults(true);
     } catch (error: any) {
-      setError(error.message || 'Erro ao consultar Receita WS');
+      // Handle different types of errors more gracefully
+      if (error.name === 'SyntaxError' && error.message.includes('JSON')) {
+        setError('Erro no servidor: resposta inválida. Verifique se a API está configurada corretamente.');
+      } else {
+        setError(error.message || 'Erro ao consultar Receita WS');
+      }
     } finally {
       setIsLoading(false);
     }
