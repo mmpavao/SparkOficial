@@ -5,7 +5,7 @@ import { notificationService } from "./notification-service";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
 import { db } from "./db";
 import { importRoutes } from "./imports-routes";
 
@@ -38,11 +38,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Session configuration with MemoryStore
+  // Session configuration
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const MemStore = MemoryStore(session);
-  const sessionStore = new MemStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
   });
 
   app.use(session({
@@ -2074,43 +2077,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Fetching fresh credit applications");
       
       // Use raw SQL query for production compatibility
-      const statement = db.$client.prepare(`
+      const applications = await db.execute(`
         SELECT 
-          id, user_id, requested_amount, status,
+          id, user_id, legal_company_name, requested_amount, status,
           pre_analysis_status, financial_status, admin_status,
-          created_at, updated_at, final_credit_limit,
-          approved_terms, final_approved_terms, company_data
+          created_at, updated_at, final_credit_limit, credit_limit,
+          approved_terms, final_approved_terms
         FROM credit_applications 
         ORDER BY created_at DESC
       `);
-      
-      const applications = statement.all();
 
-      const formattedApplications = applications.map((row: any) => {
-        // Parse company_data JSON if it exists
-        let companyData = {};
-        try {
-          companyData = row.company_data ? JSON.parse(row.company_data) : {};
-        } catch (e) {
-          console.error('Error parsing company_data:', e);
-        }
-        
-        return {
-          id: row.id,
-          userId: row.user_id,
-          legalCompanyName: companyData.legalCompanyName || 'Empresa não identificada',
-          requestedAmount: row.requested_amount,
-          status: row.status,
-          preAnalysisStatus: row.pre_analysis_status,
-          financialStatus: row.financial_status,
-          adminStatus: row.admin_status,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          finalCreditLimit: row.final_credit_limit,
-          approvedTerms: row.approved_terms,
-          finalApprovedTerms: row.final_approved_terms
-        };
-      });
+      const formattedApplications = applications.rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        legalCompanyName: row.legal_company_name,
+        requestedAmount: row.requested_amount,
+        status: row.status,
+        preAnalysisStatus: row.pre_analysis_status,
+        financialStatus: row.financial_status,
+        adminStatus: row.admin_status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        finalCreditLimit: row.final_credit_limit,
+        creditLimit: row.credit_limit,
+        approvedTerms: row.approved_terms,
+        finalApprovedTerms: row.final_approved_terms
+      }));
 
       console.log(`Found ${formattedApplications.length} credit applications`);
 
@@ -5204,63 +5196,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating demo notifications:", error);
       res.status(500).json({ message: "Erro ao criar notificações de demonstração" });
-    }
-  });
-
-  // Database viewer endpoints (Admin only)
-  app.get('/api/database/stats', requireAdmin, async (req, res) => {
-    try {
-      const users = await storage.getAllUsers();
-      const creditApplications = await storage.getAllCreditApplications();
-      const imports = await storage.getAllImports();
-      const suppliers = await storage.getAllSuppliers();
-      const payments = await storage.getAllPaymentSchedules();
-
-      const stats = {
-        totalUsers: users.length,
-        totalCreditApplications: creditApplications.length,
-        totalImports: imports.length,
-        totalSuppliers: suppliers.length,
-        totalPayments: payments.length,
-        databaseSize: '100KB'
-      };
-
-      res.json(stats);
-    } catch (error) {
-      console.error('Error fetching database stats:', error);
-      res.status(500).json({ error: 'Failed to fetch database stats' });
-    }
-  });
-
-  app.get('/api/database/table/:tableName', requireAdmin, async (req, res) => {
-    try {
-      const { tableName } = req.params;
-      let data = [];
-
-      switch (tableName) {
-        case 'users':
-          data = await storage.getAllUsers();
-          break;
-        case 'credit_applications':
-          data = await storage.getAllCreditApplications();
-          break;
-        case 'imports':
-          data = await storage.getAllImports();
-          break;
-        case 'suppliers':
-          data = await storage.getAllSuppliers();
-          break;
-        case 'payment_schedules':
-          data = await storage.getAllPaymentSchedules();
-          break;
-        default:
-          return res.status(400).json({ error: 'Invalid table name' });
-      }
-
-      res.json(data);
-    } catch (error) {
-      console.error('Error fetching table data:', error);
-      res.status(500).json({ error: 'Failed to fetch table data' });
     }
   });
 

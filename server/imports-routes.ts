@@ -104,9 +104,8 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     console.log(`🚀 IMPORTS ENDPOINT - User: ${userId}, Role: ${currentUser.role}`);
 
     // Direct database query to verify data exists
-    const countStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports`);
-    const countResult = countStmt.get();
-    console.log(`🗄️ Total imports in database: ${countResult?.count || 0}`);
+    const allImportsCount = await db.select({ count: count() }).from(imports);
+    console.log(`🗄️ Total imports in database: ${allImportsCount[0].count}`);
 
     // CRITICAL FIX: Always filter by user for importers, show all for admin/financeira
     let sqlQuery = `
@@ -172,8 +171,8 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     console.log(`📝 Executing SQL query for role ${currentUser.role}`);
     console.log(`🔧 Parameters: [${queryParams.join(', ')}]`);
 
-    const statement = db.$client.prepare(sqlQuery);
-    const importsData = statement.all(...queryParams);
+    const importsResult = await db.execute(sql.raw(sqlQuery, queryParams));
+    const importsData = importsResult.rows || [];
 
     console.log(`✅ Raw SQL query returned ${importsData.length} imports`);
 
@@ -198,9 +197,8 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       }
     }
 
-    const countStatement = db.$client.prepare(countQuery);
-    const countResult2 = countStatement.get(...countParams);
-    const totalCount = Number(countResult2?.count) || 0;
+    const countResult = await db.execute(sql.raw(countQuery, countParams));
+    const totalCount = Number(countResult.rows?.[0]?.count) || 0;
 
     console.log(`📊 Total count: ${totalCount}`);
 
@@ -210,9 +208,13 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       userId: row.user_id,
       creditApplicationId: row.credit_application_id,
       importName: row.import_name,
+      importNumber: row.import_number,
+      importCode: row.import_code,
       cargoType: row.cargo_type,
       totalValue: row.total_value,
+      currency: row.currency,
       status: row.status,
+      paymentStatus: row.payment_status,
       supplierId: row.supplier_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -250,36 +252,74 @@ importRoutes.get('/imports/metrics', requireAuth, async (req, res) => {
       ? eq(imports.userId, currentUser.id) 
       : undefined;
 
-    // Get metrics using raw SQL
-    const isAdmin = currentUser.role === 'admin' || currentUser.role === 'financeira';
-    const userFilter = isAdmin ? '' : `WHERE user_id = ${currentUser.id}`;
-    
-    const totalImportsStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports ${userFilter}`);
-    const totalImports = totalImportsStmt.get()?.count || 0;
+    // Get total imports
+    const [{ count: totalImports }] = await db
+      .select({ count: count() })
+      .from(imports)
+      .where(baseCondition);
 
-    const activeImportsStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports ${userFilter} ${isAdmin ? 'WHERE' : 'AND'} status != 'concluido'`);
-    const activeImports = activeImportsStmt.get()?.count || 0;
+    // Get active imports (not completed)
+    const [{ count: activeImports }] = await db
+      .select({ count: count() })
+      .from(imports)
+      .where(baseCondition ? 
+        and(baseCondition, sql`${imports.status} != 'concluido'`) :
+        sql`${imports.status} != 'concluido'`
+      );
 
-    const completedImportsStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports ${userFilter} ${isAdmin ? 'WHERE' : 'AND'} status = 'concluido'`);
-    const completedImports = completedImportsStmt.get()?.count || 0;
+    // Get completed imports
+    const [{ count: completedImports }] = await db
+      .select({ count: count() })
+      .from(imports)
+      .where(baseCondition ? 
+        and(baseCondition, eq(imports.status, 'concluido')) :
+        eq(imports.status, 'concluido')
+      );
 
-    const totalValueStmt = db.$client.prepare(`SELECT COALESCE(SUM(CAST(total_value AS DECIMAL)), 0) as total FROM imports ${userFilter}`);
-    const totalValue = totalValueStmt.get()?.total || 0;
+    // Get total value
+    const totalValueResult = await db
+      .select({ total: sql`COALESCE(SUM(${imports.totalValue}::numeric), 0)` })
+      .from(imports)
+      .where(baseCondition);
 
-    // Status distribution using raw SQL (simplified)
-    const statusDistribution = [];
+    const totalValue = totalValueResult[0]?.total || 0;
+
+    // Get status distribution
+    const statusDistribution = await db
+      .select({
+        status: imports.status,
+        count: count()
+      })
+      .from(imports)
+      .where(baseCondition)
+      .groupBy(imports.status);
 
     // Get planning stage imports
-    const planningImportsStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports ${userFilter} ${isAdmin ? 'WHERE' : 'AND'} status = 'planejamento'`);
-    const planningImports = planningImportsStmt.get()?.count || 0;
+    const [{ count: planningImports }] = await db
+      .select({ count: count() })
+      .from(imports)
+      .where(baseCondition ? 
+        and(baseCondition, eq(imports.status, 'planejamento')) :
+        eq(imports.status, 'planejamento')
+      );
 
     // Get production stage imports
-    const productionImportsStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports ${userFilter} ${isAdmin ? 'WHERE' : 'AND'} status = 'producao'`);
-    const productionImports = productionImportsStmt.get()?.count || 0;
+    const [{ count: productionImports }] = await db
+      .select({ count: count() })
+      .from(imports)
+      .where(baseCondition ? 
+        and(baseCondition, eq(imports.status, 'producao')) :
+        eq(imports.status, 'producao')
+      );
 
     // Get transport stage imports
-    const transportImportsStmt = db.$client.prepare(`SELECT COUNT(*) as count FROM imports ${userFilter} ${isAdmin ? 'WHERE' : 'AND'} status IN ('transporte_maritimo', 'transporte_aereo', 'transporte_nacional')`);
-    const transportImports = transportImportsStmt.get()?.count || 0;
+    const [{ count: transportImports }] = await db
+      .select({ count: count() })
+      .from(imports)
+      .where(baseCondition ? 
+        and(baseCondition, sql`${imports.status} IN ('transporte_maritimo', 'transporte_aereo', 'transporte_nacional')`) :
+        sql`${imports.status} IN ('transporte_maritimo', 'transporte_aereo', 'transporte_nacional')`
+      );
 
     // Calculate success rate (completed / total * 100)
     const successRate = totalImports > 0 ? (completedImports / totalImports * 100) : 0;
@@ -473,25 +513,37 @@ importRoutes.get('/imports/:id', requireAuth, async (req, res) => {
     }
 
     // Get products
-    const productsStmt = db.$client.prepare(`
-      SELECT * FROM import_products WHERE import_id = ?
-    `);
-    const products = productsStmt.all(importId);
+    const products = await db
+      .select()
+      .from(importProducts)
+      .where(eq(importProducts.importId, importId));
 
     // Get documents
-    const documentsStmt = db.$client.prepare(`
-      SELECT * FROM import_documents WHERE import_id = ?
-    `);
-    const documents = documentsStmt.all(importId);
+    const documents = await db
+      .select()
+      .from(importDocuments)
+      .where(eq(importDocuments.importId, importId));
 
-    // Get timeline (placeholder for now)
-    const timeline = [];
+    // Get timeline
+    const timeline = await db
+      .select({
+        timeline: importTimeline,
+        user: {
+          id: users.id,
+          fullName: users.fullName
+        }
+      })
+      .from(importTimeline)
+      .leftJoin(users, eq(importTimeline.changedBy, users.id))
+      .where(eq(importTimeline.importId, importId))
+      .orderBy(desc(importTimeline.changedAt));
 
     // Get payments
-    const paymentsStmt = db.$client.prepare(`
-      SELECT * FROM payment_schedules WHERE import_id = ? ORDER BY due_date
-    `);
-    const payments = paymentsStmt.all(importId);
+    const payments = await db
+      .select()
+      .from(importPayments)
+      .where(eq(importPayments.importId, importId))
+      .orderBy(importPayments.dueDate);
 
     res.json({
       ...importData.import,

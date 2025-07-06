@@ -1,14 +1,15 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import * as schema from '@shared/schema';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "@shared/schema";
 
-// Create SQLite database connection
-const sqlite = new Database('database.sqlite');
+neonConfig.webSocketConstructor = ws;
 
-// Enable foreign keys
-sqlite.pragma('foreign_keys = ON');
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
+}
 
-// Create Drizzle database instance
-export const db = drizzle(sqlite, { schema });
-
-console.log('🔗 SQLite database connected successfully');
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });

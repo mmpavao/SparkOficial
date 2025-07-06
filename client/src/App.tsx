@@ -33,7 +33,6 @@ import PaymentsPage from "@/pages/payments";
 import PaymentDetailsPage from "@/pages/payment-details";
 import PaymentCheckoutUnifiedPage from "@/pages/payment-checkout-unified";
 import ImporterDetailsPage from "@/pages/importer-details";
-import DatabaseViewer from "@/pages/database-viewer";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -92,7 +91,6 @@ function Router() {
         <Route path="/importers/:id" component={() => <AdminRoute><ImporterDetailsPage /></AdminRoute>} />
         <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
-        <Route path="/database" component={() => <AdminRoute><DatabaseViewer /></AdminRoute>} />
 
         <Route component={NotFound} />
       </Switch>

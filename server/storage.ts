@@ -326,49 +326,40 @@ export class DatabaseStorage {
     console.log(`🔍 Storage: Getting imports for user ${userId}`);
     
     try {
-      // Use raw SQL for compatibility with SQLite structure
-      const statement = db.$client.prepare(`
-        SELECT * FROM imports 
-        WHERE user_id = ? 
-        ORDER BY created_at DESC
-      `);
+      const result = await db
+        .select()
+        .from(imports)
+        .where(eq(imports.userId, userId))
+        .orderBy(desc(imports.createdAt));
       
-      const rows = statement.all(userId);
+      console.log(`📊 Storage: Query executed successfully - Found ${result.length} imports for user ${userId}`);
       
-      const imports = rows.map((row: any) => ({
-        id: row.id,
-        userId: row.user_id,
-        importName: row.import_name,
-        cargoType: row.cargo_type,
-        supplierId: row.supplier_id,
-        supplierData: row.supplier_data,
-        products: row.products,
-        containerInfo: row.container_info,
-        fobValue: row.fob_value,
-        adminFeeRate: row.admin_fee_rate,
-        totalValue: row.total_value,
-        status: row.status,
-        shippingMethod: row.shipping_method,
-        dischargePort: row.discharge_port,
-        estimatedArrival: row.estimated_arrival,
-        creditApplicationId: row.credit_application_id,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
-      
-      console.log(`📊 Storage: Query executed successfully - Found ${imports.length} imports for user ${userId}`);
-      
-      if (imports.length > 0) {
-        console.log(`📋 Import IDs:`, imports.map(imp => imp.id));
+      if (result.length > 0) {
+        console.log(`📋 Import IDs:`, result.map(imp => imp.id));
         console.log(`📋 First import sample:`, {
-          id: imports[0].id,
-          name: imports[0].importName,
-          userId: imports[0].userId,
-          status: imports[0].status
+          id: result[0].id,
+          name: result[0].importName,
+          userId: result[0].userId,
+          status: result[0].status
         });
+      } else {
+        console.log(`⚠️ No imports found for user ${userId} - checking if user exists in any imports`);
+        
+        // Debug query to check if user has any imports at all
+        const allImports = await db.select().from(imports);
+        const userInAnyImport = allImports.find(imp => imp.userId === userId);
+        console.log(`🔍 User ${userId} found in any imports:`, !!userInAnyImport);
+        
+        if (userInAnyImport) {
+          console.log(`🎯 Sample user import:`, {
+            id: userInAnyImport.id,
+            name: userInAnyImport.importName,
+            userId: userInAnyImport.userId
+          });
+        }
       }
       
-      return imports;
+      return result;
     } catch (error) {
       console.error(`❌ Database error in getImportsByUser for user ${userId}:`, error);
       throw error;
@@ -564,129 +555,51 @@ export class DatabaseStorage {
   // ===== ADMIN OPERATIONS =====
 
   async getAllUsers(): Promise<User[]> {
-    const stmt = db.$client.prepare(`
-      SELECT * FROM users 
-      ORDER BY created_at DESC
-    `);
-    const usersList = stmt.all();
-    
-    return usersList.map((user: any) => ({
-      ...user,
-      id: user.id,
-      fullName: user.full_name,
-      email: user.email,
-      phone: user.phone,
-      companyName: user.company_name,
-      cnpj: user.cnpj,
-      role: user.role,
-      status: user.status,
-      avatar: user.avatar,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at
-    }));
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
-    const stmt = db.$client.prepare(`
-      SELECT * FROM credit_applications 
-      ORDER BY created_at DESC
-    `);
-    const applications = stmt.all();
-    
-    return applications.map((app: any) => ({
-      ...app,
-      id: app.id,
-      userId: app.user_id,
-      legalCompanyName: app.legal_company_name,
-      requestedAmount: app.requested_amount,
-      status: app.status,
-      preAnalysisStatus: app.pre_analysis_status,
-      financialStatus: app.financial_status,
-      adminStatus: app.admin_status,
-      creditLimit: app.credit_limit,
-      finalCreditLimit: app.final_credit_limit,
-      createdAt: app.created_at,
-      updatedAt: app.updated_at
-    }));
+    const applications = await db
+      .select()
+      .from(creditApplications)
+      .orderBy(desc(creditApplications.createdAt));
+
+    return applications;
   }
 
   async getAllCreditApplicationsOptimized(): Promise<CreditApplication[]> {
     // Query otimizada sem dados pesados desnecessários
-    const stmt = db.$client.prepare(`
-      SELECT 
-        id,
-        user_id,
-        legal_company_name,
-        requested_amount,
-        status,
-        pre_analysis_status,
-        financial_status,
-        admin_status,
-        created_at,
-        updated_at,
-        final_credit_limit,
-        credit_limit,
-        approved_terms,
-        final_approved_terms
-      FROM credit_applications 
-      ORDER BY created_at DESC
-    `);
-    const applications = stmt.all();
+    const applications = await db
+      .select({
+        id: creditApplications.id,
+        userId: creditApplications.userId,
+        legalCompanyName: creditApplications.legalCompanyName,
+        requestedAmount: creditApplications.requestedAmount,
+        status: creditApplications.status,
+        preAnalysisStatus: creditApplications.preAnalysisStatus,
+        financialStatus: creditApplications.financialStatus,
+        adminStatus: creditApplications.adminStatus,
+        createdAt: creditApplications.createdAt,
+        updatedAt: creditApplications.updatedAt,
+        finalCreditLimit: creditApplications.finalCreditLimit,
+        creditLimit: creditApplications.creditLimit,
+        approvedTerms: creditApplications.approvedTerms,
+        finalApprovedTerms: creditApplications.finalApprovedTerms
+      })
+      .from(creditApplications)
+      .orderBy(desc(creditApplications.createdAt));
 
-    return applications.map((app: any) => ({
-      id: app.id,
-      userId: app.user_id,
-      legalCompanyName: app.legal_company_name,
-      requestedAmount: app.requested_amount,
-      status: app.status,
-      preAnalysisStatus: app.pre_analysis_status,
-      financialStatus: app.financial_status,
-      adminStatus: app.admin_status,
-      createdAt: app.created_at,
-      updatedAt: app.updated_at,
-      finalCreditLimit: app.final_credit_limit,
-      creditLimit: app.credit_limit,
-      approvedTerms: app.approved_terms,
-      finalApprovedTerms: app.final_approved_terms
-    }));
+    return applications;
   }
 
   async getAllImports(): Promise<Import[]> {
-    try {
-      // Use raw SQL for compatibility with SQLite structure
-      const statement = db.$client.prepare(`
-        SELECT * FROM imports 
-        ORDER BY created_at DESC
-      `);
-      
-      const rows = statement.all();
-      
-      const imports = rows.map((row: any) => ({
-        id: row.id,
-        userId: row.user_id,
-        importName: row.import_name,
-        cargoType: row.cargo_type,
-        supplierId: row.supplier_id,
-        supplierData: row.supplier_data,
-        products: row.products,
-        containerInfo: row.container_info,
-        fobValue: row.fob_value,
-        adminFeeRate: row.admin_fee_rate,
-        totalValue: row.total_value,
-        status: row.status,
-        shippingMethod: row.shipping_method,
-        dischargePort: row.discharge_port,
-        estimatedArrival: row.estimated_arrival,
-        creditApplicationId: row.credit_application_id,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
-      
-      return imports;
-    } catch (error) {
-      console.error('Error in getAllImports:', error);
-      throw error;
-    }
+    const importsTable = imports;
+    const importsResult = await db
+      .select()
+      .from(importsTable)
+      .orderBy(desc(importsTable.createdAt));
+
+    return importsResult;
   }
 
   async getAllImportsOptimized(): Promise<Import[]> {
@@ -720,34 +633,7 @@ export class DatabaseStorage {
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
-    const stmt = db.$client.prepare(`
-      SELECT * FROM suppliers 
-      ORDER BY created_at DESC
-    `);
-    const suppliersList = stmt.all();
-    
-    return suppliersList.map((supplier: any) => ({
-      ...supplier,
-      id: supplier.id,
-      userId: supplier.user_id,
-      companyName: supplier.company_name,
-      contactName: supplier.contact_name,
-      contactEmail: supplier.contact_email,
-      contactPhone: supplier.contact_phone,
-      address: supplier.address,
-      city: supplier.city,
-      province: supplier.province,
-      country: supplier.country,
-      postalCode: supplier.postal_code,
-      website: supplier.website,
-      businessLicense: supplier.business_license,
-      taxId: supplier.tax_id,
-      bankName: supplier.bank_name,
-      bankAccount: supplier.bank_account,
-      swiftCode: supplier.swift_code,
-      createdAt: supplier.created_at,
-      updatedAt: supplier.updated_at
-    }));
+    return await db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
   }
 
   // ===== CREDIT MANAGEMENT =====
@@ -758,18 +644,27 @@ export class DatabaseStorage {
 
     const creditLimit = parseFloat(application.finalCreditLimit || application.creditLimit || "0");
 
-    // Use raw SQL query for SQLite compatibility
-    const statement = db.$client.prepare(`
-      SELECT * FROM imports 
-      WHERE credit_application_id = ?
-      AND status IN ('planejamento', 'producao', 'entregue_agente', 'transporte_maritimo', 'transporte_aereo', 'desembaraco', 'transporte_nacional', 'planning', 'production', 'delivered_agent', 'maritime_transport', 'air_transport', 'customs_clearance', 'national_transport')
-    `);
+    // Get all active imports linked to this credit application
+    // Include both English and Portuguese status values for compatibility
+    const activeImports = await db
+      .select()
+      .from(imports)
+      .where(
+        and(
+          eq(imports.creditApplicationId, creditApplicationId),
+          inArray(imports.status, [
+            // Portuguese status values
+            "planejamento", "producao", "entregue_agente", "transporte_maritimo", "transporte_aereo", "desembaraco", "transporte_nacional",
+            // English status values
+            "planning", "production", "delivered_agent", "maritime_transport", "air_transport", "customs_clearance", "national_transport"
+          ])
+        )
+      );
 
-    const activeImports = statement.all(creditApplicationId) || [];
-
-    // Calculate total used credit from active imports
-    const usedCredit = activeImports.reduce((total: number, importRecord: any) => {
-      const importValue = parseFloat(importRecord.total_value || "0");
+    // Calculate total used credit from active imports (full FOB value - credit covers entire import)
+    const usedCredit = activeImports.reduce((total, importRecord) => {
+      const importValue = parseFloat(importRecord.totalValue || "0");
+      // Credit usage is the full FOB value, not just financed amount
       return total + importValue;
     }, 0);
 
@@ -1879,17 +1774,6 @@ export class DatabaseStorage {
         updatedAt: new Date()
       })))
       .returning();
-  }
-
-  // ===== DATABASE VIEWER METHODS =====
-  
-  async getAllUsers() {
-    const statement = db.$client.prepare(`SELECT * FROM users ORDER BY created_at DESC`);
-    return statement.all();
-  }
-
-  async getAllPaymentSchedules() {
-    return await db.select().from(paymentSchedules);
   }
 }
 
