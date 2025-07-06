@@ -5,7 +5,7 @@ import { notificationService } from "./notification-service";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
+import MemoryStore from "memorystore";
 import { db } from "./db";
 import { importRoutes } from "./imports-routes";
 
@@ -38,14 +38,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Session configuration
+  // Session configuration with MemoryStore
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
+  const MemStore = MemoryStore(session);
+  const sessionStore = new MemStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
   });
 
   app.use(session({
