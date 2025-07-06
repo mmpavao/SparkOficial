@@ -224,10 +224,75 @@ export default function CreditDetailsPage() {
     },
   });
 
+  // Track pending files for batch upload
+  const [pendingFiles, setPendingFiles] = useState<{ [key: string]: File[] }>({});
+
   const handleDocumentUpload = (documentType: string, file: File) => {
-    // Don't set uploading state here to allow multiple uploads
-    uploadDocumentMutation.mutate({ documentType, file });
+    // Collect files for batch upload
+    setPendingFiles(prev => {
+      const existing = prev[documentType] || [];
+      const updated = { ...prev, [documentType]: [...existing, file] };
+      
+      // Process batch after a short delay to collect all files
+      setTimeout(() => {
+        const files = updated[documentType];
+        if (files && files.length > 0) {
+          // Send all files at once
+          uploadMultipleDocumentsMutation.mutate({ documentType, files });
+          
+          // Clear pending files for this document type
+          setPendingFiles(current => {
+            const { [documentType]: _, ...rest } = current;
+            return rest;
+          });
+        }
+      }, 500); // 500ms delay to collect all files
+      
+      return updated;
+    });
   };
+
+  // Multiple documents upload mutation
+  const uploadMultipleDocumentsMutation = useMutation({
+    mutationFn: async ({ documentType, files }: { documentType: string; files: File[] }) => {
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('documents', file);
+      });
+      formData.append('documentType', documentType);
+
+      const response = await fetch(`/api/credit/applications/${applicationId}/documents-multiple`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Falha no upload dos documentos');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Invalidate specific queries instead of clearing all cache
+      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
+      toast({
+        title: "Upload concluído",
+        description: data.message || "Documentos enviados com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Upload error:", error);
+      toast({
+        title: "Erro no upload",
+        description: error.message || "Não foi possível enviar os documentos. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Delete document mutation
   const deleteDocumentMutation = useMutation({

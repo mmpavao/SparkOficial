@@ -130,11 +130,9 @@ export default function UnifiedDocumentUpload({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      // Process multiple files from drag and drop with delay
-      files.forEach((file, index) => {
-        setTimeout(() => {
-          handleFileUpload(file);
-        }, index * 100); // 100ms delay between each file
+      // Process multiple files from drag and drop
+      files.forEach((file) => {
+        handleFileUpload(file);
       });
     }
   };
@@ -155,12 +153,14 @@ export default function UnifiedDocumentUpload({
         }
       }
       
-      // Upload all valid files with a small delay between each to avoid race conditions
-      validFiles.forEach((file, index) => {
-        setTimeout(() => {
+      // Instead of uploading individually, collect all files and send them at once
+      if (validFiles.length > 0) {
+        // If onUpload can handle multiple files, pass them all
+        // Otherwise, we need to modify the parent component to handle batch uploads
+        validFiles.forEach((file) => {
           onUpload(documentKey, file);
-        }, index * 100); // 100ms delay between each file
-      });
+        });
+      }
     }
     // Reset input value
     e.target.value = '';
