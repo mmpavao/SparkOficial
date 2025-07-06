@@ -587,5 +587,22 @@ export const notifications = pgTable("notifications", {
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
 
+// Receita WS consultation analysis table
+export const consultamaisAnalysis = pgTable("consultamais_analysis", {
+  id: serial("id").primaryKey(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
+  cnpj: text("cnpj").notNull(),
+  companyData: text("company_data"), // JSON string with company information
+  consultationPlan: text("consultation_plan").notNull(), // 'basic' or 'advanced'
+  riskScore: integer("risk_score"), // Credit score (0-1000)
+  riskLevel: text("risk_level"), // 'BAIXO', 'MÉDIO', 'ALTO'
+  paymentBehavior: text("payment_behavior"), // Payment behavior analysis
+  financialHealth: text("financial_health"), // Financial health status
+  consultedAt: timestamp("consulted_at").defaultNow(),
+  consultedBy: integer("consulted_by").references(() => users.id).notNull(),
+});
+
+export type ConsultamaisAnalysis = typeof consultamaisAnalysis.$inferSelect;
+
 // Import all imports-related tables and schemas
 export * from './imports-schema';
