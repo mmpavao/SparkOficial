@@ -504,6 +504,17 @@ export default function AuthPage() {
           )}
         </div>
       </div>
+      
+      {/* Version tag in bottom right corner */}
+      <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200">
+        <div className="flex items-center text-xs text-gray-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+          <span className="font-medium">v1.0.2</span>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          7 de julho às 4h42 am
+        </div>
+      </div>
     </div>
   );
 }
