@@ -22,7 +22,10 @@ import {
   Briefcase,
   BarChart3,
   Activity,
-  AlertCircle
+  AlertCircle,
+  Download,
+  Camera,
+  ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -37,6 +40,8 @@ interface CreditScoreAnalysisProps {
 export default function CreditScoreAnalysis({ application }: CreditScoreAnalysisProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [creditScore, setCreditScore] = useState<CreditScore | null>(null);
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const { toast } = useToast();
   const permissions = useUserPermissions();
 
@@ -94,6 +99,96 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownloadPhoto = async () => {
+    setIsLoadingPhoto(true);
+    try {
+      console.log('📸 Requesting location photo for application:', application.id);
+      const response = await fetch(`/api/credit/applications/${application.id}/location-photo`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `foto-local-${application.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "Foto baixada",
+          description: "Foto do local da empresa baixada com sucesso",
+        });
+      } else {
+        toast({
+          title: "Foto não disponível",
+          description: "Não foi possível obter a foto do local para esta empresa",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ Photo download error:', error);
+      toast({
+        title: "Erro no download",
+        description: "Erro ao baixar foto do local",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingPhoto(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsLoadingPdf(true);
+    try {
+      console.log('📄 Requesting consultation PDF for application:', application.id);
+      const response = await fetch(`/api/credit/applications/${application.id}/consultation-pdf`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        
+        // Get filename from response headers or use default
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = `consulta-${application.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.pdf`;
+        if (contentDisposition && contentDisposition.includes('filename=')) {
+          filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+        }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "PDF gerado",
+          description: "Comprovante de consulta baixado com sucesso",
+        });
+      } else {
+        toast({
+          title: "Erro na geração do PDF",
+          description: "Não foi possível gerar o comprovante de consulta",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ PDF download error:', error);
+      toast({
+        title: "Erro no download",
+        description: "Erro ao gerar comprovante de consulta",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingPdf(false);
     }
   };
 
@@ -165,16 +260,48 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 Última consulta: {new Date(creditScore.scoreDate).toLocaleDateString('pt-BR')}
               </span>
               {permissions.isAdmin && (
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  onClick={handleConsultar}
-                  disabled={isLoading}
-                  className="w-full sm:w-auto"
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  Atualizar
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={handleConsultar}
+                    disabled={isLoading}
+                    className="w-full sm:w-auto"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Atualizar
+                  </Button>
+                  
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDownloadPhoto}
+                    disabled={isLoadingPhoto}
+                    className="w-full sm:w-auto"
+                  >
+                    {isLoadingPhoto ? (
+                      <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Camera className="w-3 h-3 mr-1" />
+                    )}
+                    Foto Local
+                  </Button>
+                  
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDownloadPDF}
+                    disabled={isLoadingPdf}
+                    className="w-full sm:w-auto"
+                  >
+                    {isLoadingPdf ? (
+                      <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Download className="w-3 h-3 mr-1" />
+                    )}
+                    PDF
+                  </Button>
+                </div>
               )}
             </div>
           )}

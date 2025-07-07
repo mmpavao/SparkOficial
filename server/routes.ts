@@ -2903,6 +2903,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CNPJá Location Photo endpoint
+  app.get('/api/credit/applications/:id/location-photo', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      const cnpj = application.cnpj.replace(/\D/g, '');
+      console.log('📸 Fetching location photo for CNPJ:', cnpj);
+
+      // Try street view first, then map view
+      const endpoints = [
+        `https://cnpja.com/office/${cnpj}/street`,
+        `https://cnpja.com/office/${cnpj}/map`
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+            }
+          });
+
+          if (response.ok) {
+            const imageBuffer = await response.arrayBuffer();
+            res.set({
+              'Content-Type': 'image/png',
+              'Content-Length': imageBuffer.byteLength,
+              'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+            });
+            console.log('✅ Location photo retrieved successfully from:', endpoint);
+            return res.send(Buffer.from(imageBuffer));
+          }
+        } catch (error) {
+          console.log(`⚠️ Failed to fetch from ${endpoint}:`, error);
+        }
+      }
+
+      // If both fail, return error
+      console.log('❌ No location photo available for CNPJ:', cnpj);
+      return res.status(404).json({ error: 'Location photo not available' });
+    } catch (error) {
+      console.error('❌ Location photo error:', error);
+      res.status(500).json({ error: 'Failed to fetch location photo' });
+    }
+  });
+
+  // CNPJá Consultation PDF endpoint
+  app.get('/api/credit/applications/:id/consultation-pdf', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      const cnpj = application.cnpj.replace(/\D/g, '');
+      console.log('📄 Generating consultation PDF for CNPJ:', cnpj);
+
+      const response = await fetch(`https://cnpja.com/office/${cnpj}/receipt`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+        }
+      });
+
+      if (response.ok) {
+        const pdfBuffer = await response.arrayBuffer();
+        res.set({
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="consulta-cnpj-${cnpj}-${new Date().toISOString().split('T')[0]}.pdf"`,
+          'Content-Length': pdfBuffer.byteLength
+        });
+        console.log('✅ PDF consultation generated successfully for CNPJ:', cnpj);
+        return res.send(Buffer.from(pdfBuffer));
+      } else {
+        console.log('⚠️ CNPJá PDF generation failed, creating fallback report...');
+        
+        // Fallback: Generate a text-based consultation report
+        const creditScore = await storage.getCreditScore(applicationId);
+        const consultationData = {
+          cnpj: cnpj,
+          companyName: application.legalName || 'Não informado',
+          consultationDate: new Date().toLocaleString('pt-BR'),
+          creditScore: creditScore?.creditScore || 'N/A',
+          hasDebts: creditScore?.hasDebts ? 'Sim' : 'Não',
+          hasProtests: creditScore?.hasProtests ? 'Sim' : 'Não',
+          hasBankruptcy: creditScore?.hasBankruptcy ? 'Sim' : 'Não',
+          hasLawsuits: creditScore?.hasLawsuits ? 'Sim' : 'Não'
+        };
+
+        const reportContent = `
+RELATÓRIO DE CONSULTA EMPRESARIAL
+=================================
+
+DADOS DA EMPRESA
+CNPJ: ${consultationData.cnpj}
+Razão Social: ${consultationData.companyName}
+Data da Consulta: ${consultationData.consultationDate}
+
+ANÁLISE DE CRÉDITO
+==================
+Score de Crédito: ${consultationData.creditScore}/1000
+Débitos: ${consultationData.hasDebts}
+Protestos: ${consultationData.hasProtests}
+Falência: ${consultationData.hasBankruptcy}
+Processos Judiciais: ${consultationData.hasLawsuits}
+
+INFORMAÇÕES ADICIONAIS
+======================
+Fonte dos Dados: CNPJá API
+Sistema: Spark Comex - Plataforma de Crédito para Importadores
+Gerado em: ${new Date().toLocaleString('pt-BR')}
+
+OBSERVAÇÕES
+===========
+Este relatório foi gerado automaticamente pelo sistema Spark Comex
+baseado em dados obtidos através da CNPJá API. As informações podem
+estar sujeitas a alterações conforme atualizações dos órgãos oficiais.
+        `;
+
+        res.set({
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Content-Disposition': `attachment; filename="relatorio-consulta-${cnpj}-${new Date().toISOString().split('T')[0]}.txt"`
+        });
+        return res.send(reportContent);
+      }
+    } catch (error) {
+      console.error('❌ PDF generation error:', error);
+      res.status(500).json({ error: 'Failed to generate consultation PDF' });
+    }
+  });
+
   // Get existing credit score
   app.get('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
