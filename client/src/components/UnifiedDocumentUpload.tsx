@@ -92,35 +92,35 @@ export default function UnifiedDocumentUpload({
     return { isValid: true };
   };
 
-  // Handle multiple files upload sequentially
-  const handleMultipleFiles = async (files: File[]) => {
-    for (const file of files) {
-      const validation = validateFile(file);
-      if (!validation.isValid) {
-        alert(`${file.name}: ${validation.error}`);
-        continue;
-      }
-
-      // Check if multiple files are allowed
-      if (!allowMultiple && hasDocuments) {
-        if (confirm('Já existe um documento. Deseja substituí-lo?')) {
-          onRemove(documentKey);
-        } else {
-          continue;
-        }
-      }
-
-      // Upload each file individually
-      onUpload(documentKey, file);
-      
-      // Small delay to ensure proper processing
-      await new Promise(resolve => setTimeout(resolve, 100));
+  // Handle single file upload with proper validation
+  const handleSingleFileUpload = (file: File) => {
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      alert(`${file.name}: ${validation.error}`);
+      return;
     }
+
+    // Check if multiple files are allowed
+    if (!allowMultiple && hasDocuments) {
+      if (confirm('Já existe um documento. Deseja substituí-lo?')) {
+        onRemove(documentKey);
+      } else {
+        return;
+      }
+    }
+
+    // Upload file
+    onUpload(documentKey, file);
   };
 
-  // Handle file upload
-  const handleFileUpload = (file: File) => {
-    handleMultipleFiles([file]);
+  // Handle multiple files by processing them one at a time
+  const handleMultipleFiles = (files: File[]) => {
+    files.forEach((file, index) => {
+      // Add a small delay between files to prevent race conditions
+      setTimeout(() => {
+        handleSingleFileUpload(file);
+      }, index * 200); // 200ms delay between each file
+    });
   };
 
   // Handle drag and drop
@@ -139,17 +139,30 @@ export default function UnifiedDocumentUpload({
     e.stopPropagation();
     setDragActive(false);
 
+    if (isUploading) return; // Prevent uploads while already uploading
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleMultipleFiles(files);
+      if (files.length === 1) {
+        handleSingleFileUpload(files[0]);
+      } else {
+        handleMultipleFiles(files);
+      }
     }
   };
 
   // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isUploading) return; // Prevent uploads while already uploading
+    
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleMultipleFiles(Array.from(files));
+      const fileArray = Array.from(files);
+      if (fileArray.length === 1) {
+        handleSingleFileUpload(fileArray[0]);
+      } else {
+        handleMultipleFiles(fileArray);
+      }
     }
     // Reset input value
     e.target.value = '';
