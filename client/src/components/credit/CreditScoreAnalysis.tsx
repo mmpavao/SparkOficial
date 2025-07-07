@@ -233,7 +233,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Razão Social</p>
                   <p className="font-medium text-sm break-words">{creditScore.legalName || application.legalCompanyName}</p>

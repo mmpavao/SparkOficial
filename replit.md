@@ -875,6 +875,8 @@ Changelog:
   * Updated login success message to "Login realizado com sucesso!" for intuitive user feedback
   * Fixed registration success message to "Conta criada com sucesso!" for consistency
   * Added basic click handlers for "Editar Termos" and "Bloquear Crédito" buttons without breaking existing functionality
+  * Fixed Credit Score Analysis company data layout from messy two-column grid to organized single-column format
+  * Replaced "grid grid-cols-1 md:grid-cols-2 gap-4" with "space-y-4" for better visual organization
   * Maintained visual consistency between financeira and importer modules with identical layouts
 ```
 
