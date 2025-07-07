@@ -72,11 +72,11 @@ const requiredData = [
 
 const requiredDocuments = [
   { name: "Contrato Social", critical: true },
+  { name: "Alvará de Funcionamento", critical: true },
   { name: "Documentos dos Sócios (CPF e RG)", critical: true }
 ];
 
 const optionalDocuments = [
-  "Alvará de Funcionamento",
   "Certificado de Constituição", 
   "Demonstrações Financeiras (3 anos)",
   "Carta de Referência Bancária",
