@@ -830,6 +830,14 @@ Changelog:
   * REGENERATED PAYMENT SCHEDULES: Recreated payment schedules for import ID 11 with correct values (Entry: $11,550, Installments: $8,983.33 each)
   * UNIFIED PAYMENT DISPLAY: Ensured payment schedules in import details match global payment page with identical values and visual consistency
   * ESTABLISHED DEFINITIVE PAYMENT RULES: Payment calculations now follow confirmed terms from TermsConfirmation modal during import creation
+- July 07, 2025. Document System Consolidation Initiative:
+  * CREATED useDocumentUpload hook to centralize all document upload/remove operations
+  * IMPLEMENTED DocumentService singleton for consistent document processing across the system
+  * CONSOLIDATED validation logic into single location reducing code duplication
+  * UNIFIED document array/single handling with normalized processing methods
+  * CENTRALIZED toast notifications and error handling in the custom hook
+  * MAINTAINED all existing functionality while reducing codebase complexity
+  * FIXED toast notification rendering issue where "O documento" appeared as "0 documento"
 ```
 
 ## User Preferences
