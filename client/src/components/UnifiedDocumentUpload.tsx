@@ -319,11 +319,7 @@ export default function UnifiedDocumentUpload({
       // Removido o toast de sucesso que estava aparecendo incorretamente
     } catch (error) {
       console.error('Erro ao remover documento:', error);
-      toast({
-        title: "Erro ao remover documento",
-        description: "Não foi possível remover o documento",
-        variant: "destructive"
-      });
+      // Não mostrar toast de erro, usar apenas logs
     }
   };
 

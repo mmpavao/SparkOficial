@@ -269,7 +269,7 @@ export default function CreditDetailsPage() {
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
     console.log(`Attempting to remove document: ${documentId} with index: ${index}`);
-    
+
     // Se o documentId já contém o formato composto (documentKey_filename), usar diretamente
     if (documentId.includes('_') && typeof index === 'number') {
       console.log(`Removing specific document from array: ${documentId}`);
@@ -519,6 +519,41 @@ export default function CreditDetailsPage() {
       </div>
     );
   }
+
+  // UnifiedDocumentUpload component's handleDocumentUpload function needs to be updated to remove the toast notification on successful upload.
+  const handleDocumentUpload = async (documentKey: string, file: File) => {
+    console.log(`🔄 Iniciando upload de documento: ${documentKey}`);
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('documentKey', documentKey);
+
+      const response = await fetch(`/api/credit/applications/${applicationId}/documents`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro no upload');
+      }
+
+      const data = await response.json();
+      console.log(`✅ Upload concluído:`, data);
+
+      // Recarregar dados da aplicação sem toast
+      await refetchApplication();
+
+    } catch (error) {
+      console.error('❌ Erro no upload:', error);
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
