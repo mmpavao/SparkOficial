@@ -268,6 +268,22 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
+    // Se temos múltiplos documentos, incluir o índice na identificação
+    if (typeof index === 'number' && index >= 0) {
+      const currentDocs = uploadedDocuments[documentId];
+      const documentsArray = Array.isArray(currentDocs) ? currentDocs : [currentDocs];
+      
+      if (documentsArray.length > 1) {
+        // Para múltiplos documentos, usar o filename específico do documento
+        const docToRemove = documentsArray[index];
+        if (docToRemove && docToRemove.filename) {
+          deleteDocumentMutation.mutate({ documentId: `${documentId}_${docToRemove.filename}` });
+          return;
+        }
+      }
+    }
+    
+    // Fallback para remoção padrão
     deleteDocumentMutation.mutate({ documentId });
   };
 

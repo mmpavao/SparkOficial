@@ -320,11 +320,8 @@ export default function UnifiedDocumentUpload({
       return;
     }
 
-    if (documentsArray.length === 1) {
-      onRemove(documentKey);
-    } else {
-      onRemove(documentKey, index);
-    }
+    // Sempre passar o índice para remoção individual
+    onRemove(documentKey, index);
   };
 
   // Obter informações de status
