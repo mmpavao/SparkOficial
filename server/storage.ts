@@ -1959,6 +1959,92 @@ export class DatabaseStorage {
       .where(eq(ticketMessages.ticketId, ticketId))
       .orderBy(ticketMessages.createdAt);
   }
+
+  // ===== SUPPORT TICKETS OPERATIONS =====
+
+  async getSupportTicketsByUser(userId: number): Promise<SupportTicket[]> {
+    return await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.createdBy, userId))
+      .orderBy(desc(supportTickets.createdAt));
+  }
+
+  async createSupportTicket(data: {
+    userId: number;
+    title: string;
+    description: string;
+    priority: string;
+  }): Promise<SupportTicket> {
+    // Generate ticket number
+    const ticketNumber = `TK-${Date.now()}`;
+    
+    const [ticket] = await db
+      .insert(supportTickets)
+      .values({
+        ticketNumber,
+        createdBy: data.userId,
+        subject: data.title,
+        category: 'general_inquiry',
+        priority: data.priority,
+        status: 'open',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+
+    return ticket;
+  }
+
+  async getSupportTicket(id: number): Promise<SupportTicket | undefined> {
+    const [ticket] = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.id, id))
+      .limit(1);
+
+    return ticket;
+  }
+
+  async addTicketMessage(data: {
+    ticketId: number;
+    userId: number;
+    message: string;
+    isFromAdmin: boolean;
+  }): Promise<TicketMessage> {
+    const [message] = await db
+      .insert(ticketMessages)
+      .values({
+        ticketId: data.ticketId,
+        senderId: data.userId,
+        message: data.message,
+        isInternal: false,
+        createdAt: new Date()
+      })
+      .returning();
+
+    // Update ticket's updated_at timestamp
+    await db
+      .update(supportTickets)
+      .set({ updatedAt: new Date() })
+      .where(eq(supportTickets.id, data.ticketId));
+
+    return message;
+  }
+
+  async updateTicketStatus(ticketId: number, status: string): Promise<SupportTicket> {
+    const [ticket] = await db
+      .update(supportTickets)
+      .set({ 
+        status,
+        updatedAt: new Date(),
+        ...(status === 'resolved' ? { resolvedAt: new Date() } : {})
+      })
+      .where(eq(supportTickets.id, ticketId))
+      .returning();
+
+    return ticket;
+  }
 }
 
 export const storage = new DatabaseStorage();

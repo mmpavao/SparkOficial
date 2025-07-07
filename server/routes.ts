@@ -5471,6 +5471,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== SUPPORT SYSTEM ROUTES =====
+
+  // Get all tickets for current user
+  app.get('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tickets = await storage.getSupportTicketsByUser(userId);
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching support tickets:", error);
+      res.status(500).json({ message: "Erro ao buscar tickets" });
+    }
+  });
+
+  // Create new support ticket
+  app.post('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { title, description, priority } = req.body;
+
+      const ticket = await storage.createSupportTicket({
+        userId,
+        title,
+        description,
+        priority
+      });
+
+      res.status(201).json(ticket);
+    } catch (error) {
+      console.error("Error creating support ticket:", error);
+      res.status(500).json({ message: "Erro ao criar ticket" });
+    }
+  });
+
+  // Get specific ticket details
+  app.get('/api/support/tickets/:id', requireAuth, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check if user owns the ticket or is admin
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin && ticket.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error fetching ticket:", error);
+      res.status(500).json({ message: "Erro ao buscar ticket" });
+    }
+  });
+
+  // Add message to ticket
+  app.post('/api/support/tickets/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const { message } = req.body;
+
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check if user owns the ticket or is admin
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin && ticket.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const newMessage = await storage.addTicketMessage({
+        ticketId,
+        userId,
+        message,
+        isFromAdmin: isAdmin
+      });
+
+      res.status(201).json(newMessage);
+    } catch (error) {
+      console.error("Error adding ticket message:", error);
+      res.status(500).json({ message: "Erro ao enviar mensagem" });
+    }
+  });
+
+  // Update ticket status (admin only)
+  app.put('/api/support/tickets/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const { status } = req.body;
+
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const updatedTicket = await storage.updateTicketStatus(ticketId, status);
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status" });
+    }
+  });
+
   // Register imports routes
   console.log('Registering imports routes...');
   app.use('/api', importRoutes);

@@ -15,7 +15,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
-import CommunicationTabs from "@/components/communications/CommunicationTabs";
+
 import CreditScoreAnalysis from "@/components/credit/CreditScoreAnalysis";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
@@ -42,7 +42,8 @@ import {
   Edit,
   Save,
   X,
-  Trash2
+  Trash2,
+  MessageSquare
 } from "lucide-react";
 
 // Dynamic document generation function for shareholders
@@ -1146,11 +1147,35 @@ export default function CreditDetailsPage() {
                   </div>
                 )}
 
-                {/* Communication Tabs */}
-                <CommunicationTabs 
-                  creditApplicationId={application.id}
-                  applicationUserId={application.userId}
-                />
+                {/* Admin/Financeira Observations - Read Only */}
+                {(application.adminObservations || application.analysisNotes || application.adminFinalNotes) && (
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Observações da Análise
+                    </h4>
+                    <div className="space-y-2 text-sm text-blue-800">
+                      {application.adminObservations && (
+                        <div>
+                          <span className="font-medium">Observações Administrativas:</span>
+                          <p className="mt-1">{application.adminObservations}</p>
+                        </div>
+                      )}
+                      {application.analysisNotes && (
+                        <div>
+                          <span className="font-medium">Notas de Análise:</span>
+                          <p className="mt-1">{application.analysisNotes}</p>
+                        </div>
+                      )}
+                      {application.adminFinalNotes && (
+                        <div>
+                          <span className="font-medium">Observações Finais:</span>
+                          <p className="mt-1">{application.adminFinalNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
