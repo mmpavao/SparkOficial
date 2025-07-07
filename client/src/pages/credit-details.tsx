@@ -182,7 +182,7 @@ export default function CreditDetailsPage() {
       setUploadingDocument(null);
       toast({
         title: "Documento enviado",
-        description: "O documento foi enviado com sucesso.",
+        description: "O\u200B documento foi enviado com sucesso.", // Zero-width space after O to prevent rendering as 0
       });
     },
     onError: (error: any) => {
@@ -254,7 +254,7 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
       toast({
         title: "Documento removido",
-        description: "O documento foi removido com sucesso.",
+        description: "O\u200B documento foi removido com sucesso.", // Zero-width space after O to prevent rendering as 0
       });
     },
     onError: (error: any) => {
