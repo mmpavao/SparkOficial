@@ -197,14 +197,29 @@ export class DatabaseStorage {
   }
 
   async getCreditApplication(id: number): Promise<CreditApplication | undefined> {
-    const result = await db
-      .select()
+    const results = await db
+      .select({
+        creditApp: creditApplications,
+        creditScore: creditScores
+      })
       .from(creditApplications)
+      .leftJoin(creditScores, eq(creditScores.creditApplicationId, creditApplications.id))
       .where(eq(creditApplications.id, id))
       .limit(1);
     
-    if (result[0]) {
-      const application = { ...result[0] };
+    if (results[0]) {
+      const { creditApp, creditScore } = results[0];
+      const application = { ...creditApp };
+      
+      // Add credit score data if available
+      if (creditScore) {
+        (application as any).creditScore = creditScore.creditScore;
+        (application as any).scoreDate = creditScore.scoreDate;
+        (application as any).hasDebts = creditScore.hasDebts;
+        (application as any).hasProtests = creditScore.hasProtests;
+        (application as any).hasBankruptcy = creditScore.hasBankruptcy;
+        (application as any).hasLawsuits = creditScore.hasLawsuits;
+      }
       
       // Parse JSON documents back to objects
       if (application.requiredDocuments && typeof application.requiredDocuments === 'string') {
@@ -226,7 +241,7 @@ export class DatabaseStorage {
       return application;
     }
     
-    return result[0];
+    return undefined;
   }
 
   async updateCreditApplicationStatus(id: number, status: string, reviewData?: any): Promise<CreditApplication> {

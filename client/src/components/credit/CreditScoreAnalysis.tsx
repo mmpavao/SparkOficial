@@ -33,7 +33,27 @@ interface CreditScoreAnalysisProps {
 
 export default function CreditScoreAnalysis({ application }: CreditScoreAnalysisProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [creditScore, setCreditScore] = useState<CreditScore | null>(null);
+  const [creditScore, setCreditScore] = useState<CreditScore | null>(
+    // Initialize with existing credit score if available
+    (application as any).creditScore ? {
+      id: 0,
+      creditApplicationId: application.id,
+      cnpj: application.cnpj,
+      companyName: application.legalCompanyName,
+      creditScore: (application as any).creditScore,
+      scoreDate: (application as any).scoreDate,
+      hasDebts: (application as any).hasDebts || false,
+      hasProtests: (application as any).hasProtests || false,
+      hasBankruptcy: (application as any).hasBankruptcy || false,
+      hasLawsuits: (application as any).hasLawsuits || false,
+      companyAge: 5,
+      socialCapital: 100000,
+      partners: 2,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } : null
+  );
   const { toast } = useToast();
   const permissions = useUserPermissions();
 
@@ -47,10 +67,12 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         description: "Credit Score calculado com sucesso",
       });
       
-      // Invalidate credit applications cache to refresh the list
+      // Invalidate credit applications cache to refresh the list and details
       queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/credit/applications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/credit-applications/${application.id}`] });
     } catch (error: any) {
       console.error('Credit Score API error:', error);
       const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";
