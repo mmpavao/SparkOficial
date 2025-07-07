@@ -22,7 +22,7 @@ interface ImporterDashboardData {
       id: number;
       name: string;
       status: string;
-      value: string;
+      totalValue: string;
       date: string;
     }>;
     creditApplications: Array<{
@@ -38,6 +38,16 @@ interface ImporterDashboardData {
     shipping: number;
     completed: number;
   };
+  upcomingPayments: Array<{
+    id: number;
+    type: 'installment' | 'entry';
+    amount: number;
+    dueDate: string;
+    daysUntilDue: number;
+    importId: number;
+    importName?: string;
+    supplier?: string;
+  }>;
 }
 
 export function useImporterDashboard(enabled: boolean) {
