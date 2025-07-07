@@ -3688,121 +3688,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Current required documents:', Object.keys(currentRequired));
       console.log('Current optional documents:', Object.keys(currentOptional));
 
-      // Check for compound document ID (e.g., "articles_of_association_filename.jpg")
-      let baseDocumentKey = documentId;
-      let isCompoundId = false;
-      let targetFilename = null;
-      
-      // If documentId contains underscores, it might be a compound ID
-      if (documentId.includes('_')) {
-        const parts = documentId.split('_');
-        if (parts.length >= 2) {
-          // Try different combinations to find the base key
-          for (let i = parts.length - 1; i >= 1; i--) {
-            const potentialBaseKey = parts.slice(0, i).join('_');
-            if (currentRequired[potentialBaseKey] || currentOptional[potentialBaseKey]) {
-              baseDocumentKey = potentialBaseKey;
-              targetFilename = parts.slice(i).join('_'); // Remaining parts form the filename
-              isCompoundId = true;
-              console.log(`Found compound document: base key = ${baseDocumentKey}, target file = ${targetFilename}`);
-              break;
-            }
-          }
-        }
-      }
-
       // First, try to find the document by exact key match in required documents
       if (currentRequired[documentId]) {
         const updatedRequired = { ...currentRequired };
         delete updatedRequired[documentId];
         updateData.requiredDocuments = updatedRequired;
         documentFound = true;
-        console.log(`Removed exact match from required documents: ${documentId}`);
-      }
-      // If compound ID, try to remove from array within base document key
-      else if (isCompoundId && currentRequired[baseDocumentKey]) {
-        const updatedRequired = { ...currentRequired };
-        const currentDoc = updatedRequired[baseDocumentKey];
         
-        if (Array.isArray(currentDoc)) {
-          // Remove specific file from array based on exact filename match
-          const initialLength = currentDoc.length;
-          updatedRequired[baseDocumentKey] = currentDoc.filter(doc => {
-            const docFilename = doc.filename || doc.originalName || '';
-            const matches = docFilename === targetFilename;
-            if (matches) {
-              console.log(`Removing file: ${docFilename} (matches target: ${targetFilename})`);
-            }
-            return !matches;
-          });
-          
-          const finalLength = updatedRequired[baseDocumentKey].length;
-          console.log(`Array length: ${initialLength} -> ${finalLength}`);
-          
-          // If array becomes empty, remove the key entirely
-          if (updatedRequired[baseDocumentKey].length === 0) {
-            delete updatedRequired[baseDocumentKey];
-            console.log(`Removed empty document key: ${baseDocumentKey}`);
-          }
-        } else {
-          // Single document, remove entirely
-          delete updatedRequired[baseDocumentKey];
-          console.log(`Removed single document: ${baseDocumentKey}`);
-        }
-        
-        updateData.requiredDocuments = updatedRequired;
-        documentFound = true;
-        console.log(`Removed compound document from required: ${documentId}`);
-      }
+        console.log(`Removed from required documents: ${documentId}`);
 
-      // Check if document exists in optional documents (only if not found in required)
-      if (!documentFound && currentOptional[documentId]) {
-        const updatedOptional = { ...currentOptional };
-        delete updatedOptional[documentId];
-        updateData.optionalDocuments = updatedOptional;
-        documentFound = true;
-        console.log(`Removed exact match from optional documents: ${documentId}`);
-      }
-      // If compound ID in optional documents
-      else if (!documentFound && isCompoundId && currentOptional[baseDocumentKey]) {
-        const updatedOptional = { ...currentOptional };
-        const currentDoc = updatedOptional[baseDocumentKey];
-        
-        if (Array.isArray(currentDoc)) {
-          // Remove specific file from array based on exact filename match
-          const initialLength = currentDoc.length;
-          updatedOptional[baseDocumentKey] = currentDoc.filter(doc => {
-            const docFilename = doc.filename || doc.originalName || '';
-            const matches = docFilename === targetFilename;
-            if (matches) {
-              console.log(`Removing optional file: ${docFilename} (matches target: ${targetFilename})`);
-            }
-            return !matches;
-          });
-          
-          const finalLength = updatedOptional[baseDocumentKey].length;
-          console.log(`Optional array length: ${initialLength} -> ${finalLength}`);
-          
-          // If array becomes empty, remove the key entirely
-          if (updatedOptional[baseDocumentKey].length === 0) {
-            delete updatedOptional[baseDocumentKey];
-            console.log(`Removed empty optional document key: ${baseDocumentKey}`);
-          }
-        } else {
-          // Single document, remove entirely
-          delete updatedOptional[baseDocumentKey];
-          console.log(`Removed single optional document: ${baseDocumentKey}`);
-        }
-        
-        updateData.optionalDocuments = updatedOptional;
-        documentFound = true;
-        console.log(`Removed compound document from optional: ${documentId}`);
-      }
-
-      // Update status based on remaining mandatory documents if we removed from required
-      if (documentFound && (currentRequired[documentId] || (isCompoundId && currentRequired[baseDocumentKey]))) {
-        const mandatoryDocKeys = ['articles_of_association', 'business_license', 'legal_representative_id'];
-        const updatedRequired = updateData.requiredDocuments || currentRequired;
+        // Update status based on remaining mandatory documents
+        const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
         const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
         
         if (uploadedMandatory === 0) {
@@ -3813,6 +3709,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (uploadedMandatory < mandatoryDocKeys.length) {
           updateData.documentsStatus = 'partial';
         }
+      }
+
+      // Check if document exists in optional documents (only if not found in required)
+      if (!documentFound && currentOptional[documentId]) {
+        const updatedOptional = { ...currentOptional };
+        delete updatedOptional[documentId];
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+        
+        console.log(`Removed from optional documents: ${documentId}`);
       }
 
       if (!documentFound) {
