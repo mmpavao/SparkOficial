@@ -602,11 +602,11 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
               </div>
 
               {/* Action Buttons for Financeira */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-4">
+              <div className="flex flex-col gap-2 pt-4">
                 <Button 
                   onClick={handleApprove}
                   disabled={updateStatusMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                  className="bg-green-600 hover:bg-green-700 w-full"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Aprovação Final
@@ -615,7 +615,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   variant="destructive"
                   onClick={handleReject}
                   disabled={updateStatusMutation.isPending}
-                  className="w-full sm:w-auto"
+                  className="w-full"
                 >
                   <XCircle className="w-4 h-4 mr-2" />
                   Rejeitar
@@ -701,11 +701,11 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                  (application.status === 'pending' || application.status === 'under_review' || application.status === 'pre_analysis') && 
                  (!application.preAnalysisStatus || application.preAnalysisStatus === 'pending' || application.preAnalysisStatus === 'pending_admin') && 
                  application.preAnalysisStatus !== 'pre_approved' && (
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button 
                       onClick={handleApprove}
                       disabled={updateStatusMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                      className="bg-green-600 hover:bg-green-700 w-full"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Pré-aprovar
@@ -714,7 +714,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       variant="destructive"
                       onClick={handleReject}
                       disabled={updateStatusMutation.isPending}
-                      className="w-full sm:w-auto"
+                      className="w-full"
                     >
                       <XCircle className="w-4 h-4 mr-2" />
                       Rejeitar
