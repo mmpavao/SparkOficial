@@ -6057,10 +6057,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const url = `https://api.cnpja.com/office/${cnpj}`;
       console.log('🔗 Request URL:', url);
       
+      const apiKey = process.env.CREDIT_API_KEY;
+      console.log('🔑 API Key present:', !!apiKey);
+      console.log('🔑 API Key length:', apiKey?.length || 0);
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': process.env.CREDIT_API_KEY || '',
+          'Authorization': apiKey,
           'Accept': 'application/json',
           'User-Agent': 'SparkComex/1.0'
         }
@@ -6101,7 +6105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const companiesResponse = await fetch(companiesUrl, {
           method: 'GET',
           headers: {
-            'Authorization': process.env.CREDIT_API_KEY || '',
+            'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`,
             'Accept': 'application/json',
             'User-Agent': 'SparkComex/1.0'
           }
