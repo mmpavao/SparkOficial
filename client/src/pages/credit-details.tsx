@@ -530,7 +530,7 @@ export default function CreditDetailsPage() {
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(application.status)}
-          
+
           {/* Action Buttons - Show only for pending/under_review status */}
           {(application.status === 'pending' || application.status === 'under_review') && !permissions.isAdmin && !permissions.isFinanceira && (
             <>
@@ -701,9 +701,9 @@ export default function CreditDetailsPage() {
                       // Count INDIVIDUAL FILES uploaded (consistent with listing page)
                       const requiredDocs = application.requiredDocuments || {};
                       const optionalDocs = application.optionalDocuments || {};
-                      
+
                       let totalFilesUploaded = 0;
-                      
+
                       // Count all individual files in required documents
                       Object.values(requiredDocs).forEach(doc => {
                         if (Array.isArray(doc)) {
@@ -712,7 +712,7 @@ export default function CreditDetailsPage() {
                           totalFilesUploaded += 1;  // Single file
                         }
                       });
-                      
+
                       // Count all individual files in optional documents
                       Object.values(optionalDocs).forEach(doc => {
                         if (Array.isArray(doc)) {
@@ -721,7 +721,7 @@ export default function CreditDetailsPage() {
                           totalFilesUploaded += 1;  // Single file
                         }
                       });
-                      
+
                       return `${totalFilesUploaded} Arquivos Enviados`;
                     })()}
                   </span>
@@ -735,7 +735,7 @@ export default function CreditDetailsPage() {
                         application.requiredDocuments?.[doc.key]
                       ).length;
                       const mandatoryPending = mandatoryDocuments.length - mandatoryUploaded;
-                      
+
                       return `${mandatoryPending} Obrigatórios Pendentes`;
                     })()}
                   </span>
@@ -781,7 +781,7 @@ export default function CreditDetailsPage() {
                           // Count individual files in optional documents
                           const optionalDocs = application.optionalDocuments || {};
                           let optionalFilesCount = 0;
-                          
+
                           Object.values(optionalDocs).forEach(doc => {
                             if (Array.isArray(doc)) {
                               optionalFilesCount += doc.length;
@@ -789,7 +789,7 @@ export default function CreditDetailsPage() {
                               optionalFilesCount += 1;
                             }
                           });
-                          
+
                           return `${optionalFilesCount} Arquivos Enviados`;
                         })()}
                       </span>
@@ -844,8 +844,7 @@ export default function CreditDetailsPage() {
             adminStatus={application.adminStatus}
           />
 
-          {/* Credit Limit Display for Approved Applications */}
-          {application.financialStatus === 'approved' && application.creditLimit && (
+          {/* Credit Limit Display for Approved Applications */}{application.financialStatus === 'approved' && application.creditLimit && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -1132,7 +1131,7 @@ export default function CreditDetailsPage() {
                 {(application.requestedDocuments || application.adminObservations || application.financialNotes) && (
                   <div className="space-y-3">
                     <h4 className="font-medium text-gray-900 text-sm">Comunicações da Administração</h4>
-                    
+
                     {application.requestedDocuments && (
                       <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="flex items-start gap-2">
@@ -1178,4 +1177,3 @@ export default function CreditDetailsPage() {
     </div>
   );
 }
-

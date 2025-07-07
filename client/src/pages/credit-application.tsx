@@ -346,7 +346,7 @@ export default function CreditApplicationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitInProgress, setSubmitInProgress] = useState(false);
   const [submissionCompleted, setSubmissionCompleted] = useState(false);
-  
+
   // Temporary application ID for immediate document persistence
   const [tempApplicationId, setTempApplicationId] = useState<number | null>(null);
 
@@ -635,11 +635,11 @@ export default function CreditApplicationPage() {
       console.log('Submission blocked - already in progress or completed');
       return;
     }
-    
+
     // Set all protection flags immediately
     setIsSubmitting(true);
     setSubmitInProgress(true);
-    
+
     // Add a longer timestamp check to prevent rapid resubmissions
     const now = Date.now();
     if ((window as any).lastSubmissionTime && (now - (window as any).lastSubmissionTime) < 30000) {
@@ -648,7 +648,7 @@ export default function CreditApplicationPage() {
       setSubmitInProgress(false);
       return;
     }
-    
+
     (window as any).lastSubmissionTime = now;
     try {
       // Calculate documents status based on uploaded documents
@@ -738,24 +738,24 @@ export default function CreditApplicationPage() {
 
       // Submit application using temporary application if it exists
       console.log('📤 FRONTEND DEBUG - Sending application data...');
-      
+
       let applicationId;
-      
+
       if (tempApplicationId) {
         // Update existing temporary application to final status
         console.log('📝 Updating temporary application:', tempApplicationId);
-        
+
         const updateData = {
           ...applicationData,
           status: 'pending', // Change from draft to pending
           currentStep: 4,
           documentsStatus: documentsStatus
         };
-        
+
         // Remove document fields since they're already saved
         delete updateData.requiredDocuments;
         delete updateData.optionalDocuments;
-        
+
         await apiRequest(`/api/credit/applications/${tempApplicationId}/finalize`, "PUT", updateData);
         applicationId = tempApplicationId;
         console.log('✅ Temporary application finalized with ID:', applicationId);
@@ -764,21 +764,21 @@ export default function CreditApplicationPage() {
         const applicationWithoutDocs = { ...applicationData };
         applicationWithoutDocs.requiredDocuments = {};
         applicationWithoutDocs.optionalDocuments = {};
-        
+
         const response = await apiRequest("/api/credit/applications", "POST", applicationWithoutDocs);
         applicationId = response.id;
         console.log('✅ New application created with ID:', applicationId);
-        
+
         // Send documents separately if any exist
         if (Object.keys(requiredDocuments).length > 0 || Object.keys(optionalDocuments).length > 0) {
           console.log('📎 Sending documents separately...');
-          
+
           const documentPayload = {
             applicationId: applicationId,
             requiredDocuments: requiredDocuments,
             optionalDocuments: optionalDocuments
           };
-          
+
           await apiRequest(`/api/credit/applications/${applicationId}/documents-batch`, "POST", documentPayload);
           console.log('✅ Documents saved successfully');
         }
@@ -803,7 +803,7 @@ export default function CreditApplicationPage() {
 
     } catch (error: any) {
       console.error("Application submission error:", error);
-      
+
       // Handle duplicate submission (HTTP 429)
       if (error.status === 429) {
         toast({
@@ -811,10 +811,10 @@ export default function CreditApplicationPage() {
           description: "Sua solicitação já foi processada com sucesso. Aguarde um momento antes de enviar uma nova.",
           variant: "default",
         });
-        
+
         // Mark as completed to prevent further attempts
         setSubmissionCompleted(true);
-        
+
         // Navigate after showing success message
         setTimeout(() => {
           setLocation('/credit');
@@ -825,7 +825,7 @@ export default function CreditApplicationPage() {
           description: error.message || "Erro ao enviar solicitação",
           variant: "destructive",
         });
-        
+
         // Reset states on error to allow retry
         setIsSubmitting(false);
         setSubmitInProgress(false);
@@ -1630,7 +1630,7 @@ export default function CreditApplicationPage() {
                     isUploading={uploadingDocument === doc.key}
                     onUpload={handleDocumentUpload}
                     onRemove={removeDocument}
-                    allowMultiple={false}
+                    allowMultiple={true}
                   />
                 ))}
               </div>
@@ -1659,7 +1659,7 @@ export default function CreditApplicationPage() {
                       isUploading={uploadingDocument === doc.key}
                       onUpload={handleDocumentUpload}
                       onRemove={removeDocument}
-                      allowMultiple={false}
+                      allowMultiple={true}
                     />
                   ))}
               </div>
@@ -1714,7 +1714,7 @@ export default function CreditApplicationPage() {
                           isUploading={uploadingDocument === customDoc.key}
                           onUpload={handleDocumentUpload}
                           onRemove={removeDocument}
-                          allowMultiple={false}
+                          allowMultiple={true}
                         />
                         <Button
                           type="button"

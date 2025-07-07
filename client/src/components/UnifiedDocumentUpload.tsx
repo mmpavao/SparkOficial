@@ -304,16 +304,16 @@ export default function UnifiedDocumentUpload({
           >
             <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-600 mb-2">
-              Arraste e solte ou{' '}
+              Arraste e solte {allowMultiple ? 'arquivos' : 'arquivo'} ou{' '}
               <label className="text-blue-600 hover:text-blue-700 cursor-pointer underline">
-                clique para enviar
+                clique para enviar {allowMultiple ? 'múltiplos arquivos' : ''}
                 <input
                   type="file"
                   className="hidden"
                   accept={acceptedTypes.join(',')}
                   onChange={handleFileChange}
                   disabled={isUploading}
-                  multiple
+                  multiple={allowMultiple}
                 />
               </label>
             </p>
@@ -402,13 +402,13 @@ export default function UnifiedDocumentUpload({
           <div className="mt-3">
             <label className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors">
               <Upload className="w-4 h-4" />
-              Adicionar outro documento
+              Adicionar {allowMultiple ? 'mais documentos' : 'outro documento'}
               <input
                 type="file"
                 className="hidden"
                 accept={acceptedTypes.join(',')}
                 onChange={handleFileChange}
-                multiple
+                multiple={allowMultiple}
               />
             </label>
           </div>
