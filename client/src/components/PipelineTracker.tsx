@@ -324,7 +324,7 @@ export default function PipelineTracker({
                         <Button
                           size="sm"
                           onClick={() => setEditingStage(expandedStage)}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-[#22c55d] hover:bg-[#16a34a]"
                         >
                           <Play className="w-4 h-4 mr-1" />
                           Iniciar Etapa

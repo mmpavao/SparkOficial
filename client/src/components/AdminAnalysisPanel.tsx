@@ -726,7 +726,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                         data: { submittedToFinancialAt: new Date() }
                       })}
                       disabled={updateStatusMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700 w-full"
+                      className="bg-[#22c55d] hover:bg-[#16a34a] w-full"
                     >
                       <FileText className="w-4 h-4 mr-2" />
                       Submeter à Financeira

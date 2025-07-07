@@ -598,7 +598,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
             <Button 
               type="submit" 
               disabled={createImportMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#22c55d] hover:bg-[#16a34a]"
             >
               {createImportMutation.isPending 
                 ? (isEditing ? 'Atualizando...' : 'Criando...') 

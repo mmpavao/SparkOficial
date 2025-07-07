@@ -206,7 +206,7 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
                   onClick={() => togglePaymentTerm(term)}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                     paymentTermsArray.includes(term)
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-[#22c55d] text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
