@@ -1868,10 +1868,23 @@ export class DatabaseStorage {
   
   async getSupportTicketsForUser(userId: number, role: string): Promise<SupportTicket[]> {
     if (role === 'admin' || role === 'super_admin' || role === 'financeira') {
-      // Admin/Financeira see all tickets
+      // Admin/Financeira see all tickets with importer names
       return await db
-        .select()
+        .select({
+          id: supportTickets.id,
+          ticketNumber: supportTickets.ticketNumber,
+          createdBy: supportTickets.createdBy,
+          creditApplicationId: supportTickets.creditApplicationId,
+          subject: supportTickets.subject,
+          category: supportTickets.category,
+          priority: supportTickets.priority,
+          status: supportTickets.status,
+          createdAt: supportTickets.createdAt,
+          updatedAt: supportTickets.updatedAt,
+          createdByName: users.companyName // Include company name of ticket creator
+        })
         .from(supportTickets)
+        .leftJoin(users, eq(supportTickets.createdBy, users.id))
         .orderBy(desc(supportTickets.createdAt));
     } else {
       // Importers only see their own tickets

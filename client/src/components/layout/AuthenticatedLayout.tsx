@@ -152,7 +152,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           : "Fornecedores"
     },
     { path: "/payments", icon: DollarSign, label: "Pagamentos" },
-    { path: "/support", icon: MessageSquare, label: "Suporte" },
+    // Suporte só aparece para importadores na navegação principal
+    ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: "Suporte" }] : []),
     { path: "/reports", icon: BarChart3, label: navTranslations.reports },
   ];
 
