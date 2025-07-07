@@ -1,0 +1,118 @@
+Documentação
+Antecedentes Criminais Nacional CPF (R$ 10,00/consulta)
+Antecedentes Criminais Nacional CPF requer os seguintes parâmetros:
+type AntecedentesCriminaisNacionalCpfInput = {
+  cpf: string;
+  webhookUrl?: string | null;
+};typescript
+Uma solicitação Antecedentes Criminais Nacional CPF bem-sucedida conterá os seguintes dados:
+type AntecedentesCriminaisNacionalCpfOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateAntecedentesCriminaisNacionalCpfResponse = {...};
+const createAntecedentesCriminaisNacionalCpfQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createAntecedentesCriminaisNacionalCpf(params: AntecedentesCriminaisNacionalCpfInput) {...};typescript
+Como esta consulta é assíncrona, você precisa registrar um webhook ou checar os dados da consulta da seguinte forma:
+type RetrieveAntecedentesCriminaisNacionalCpfResponse = {...};
+const retrieveAntecedentesCriminaisNacionalCpfQuery = `...`;
+async function retrieveAntecedentesCriminaisNacionalCpf(id: string) {...};typescript
+Crédito & Rating Bancário Completo CNPJ (R$ 24,00/consulta)
+Crédito & Rating Bancário Completo CNPJ requer os seguintes parâmetros:
+type CreditoRatingBancarioCompletoCnpjInput = {
+  cnpj: string;
+};typescript
+Uma solicitação Crédito & Rating Bancário Completo CNPJ bem-sucedida conterá os seguintes dados:
+type CreditoRatingBancarioCompletoCnpjOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateCreditoRatingBancarioCompletoCnpjResponse = {...};
+const createCreditoRatingBancarioCompletoCnpjQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createCreditoRatingBancarioCompletoCnpj(params: CreditoRatingBancarioCompletoCnpjInput) {...};typescript
+Crédito & Rating Bancário Completo CPF (R$ 24,00/consulta)
+Crédito & Rating Bancário Completo CPF requer os seguintes parâmetros:
+type CreditoRatingBancarioCompletoCpfInput = {
+  cpf: string;
+};typescript
+Uma solicitação Crédito & Rating Bancário Completo CPF bem-sucedida conterá os seguintes dados:
+type CreditoRatingBancarioCompletoCpfOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateCreditoRatingBancarioCompletoCpfResponse = {...};
+const createCreditoRatingBancarioCompletoCpfQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createCreditoRatingBancarioCompletoCpf(params: CreditoRatingBancarioCompletoCpfInput) {...};typescript
+Crédito Completo CNPJ (R$ 12,00/consulta)
+Crédito Completo CNPJ requer os seguintes parâmetros:
+type CreditoCompletoCnpjInput = {
+  cnpj: string;
+};typescript
+Uma solicitação Crédito Completo CNPJ bem-sucedida conterá os seguintes dados:
+type CreditoCompletoCnpjOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateCreditoCompletoCnpjResponse = {...};
+const createCreditoCompletoCnpjQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createCreditoCompletoCnpj(params: CreditoCompletoCnpjInput) {...};typescript
+Crédito Completo CPF (R$ 12,00/consulta)
+Crédito Completo CPF requer os seguintes parâmetros:
+type CreditoCompletoCpfInput = {
+  cpf: string;
+};typescript
+Uma solicitação Crédito Completo CPF bem-sucedida conterá os seguintes dados:
+type CreditoCompletoCpfOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateCreditoCompletoCpfResponse = {...};
+const createCreditoCompletoCpfQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createCreditoCompletoCpf(params: CreditoCompletoCpfInput) {...};typescript
+Dados Cadastrais Completo CNPJ (R$ 3,00/consulta)
+Dados Cadastrais Completo CNPJ requer os seguintes parâmetros:
+type DadosCadastraisCompletoCnpjInput = {
+  cnpj: string;
+};typescript
+Uma solicitação Dados Cadastrais Completo CNPJ bem-sucedida conterá os seguintes dados:
+type DadosCadastraisCompletoCnpjOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateDadosCadastraisCompletoCnpjResponse = {...};
+const createDadosCadastraisCompletoCnpjQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createDadosCadastraisCompletoCnpj(params: DadosCadastraisCompletoCnpjInput) {...};typescript
+Dados Cadastrais Completo CPF (R$ 3,00/consulta)
+Dados Cadastrais Completo CPF requer os seguintes parâmetros:
+type DadosCadastraisCompletoCpfInput = {
+  cpf: string;
+};typescript
+Uma solicitação Dados Cadastrais Completo CPF bem-sucedida conterá os seguintes dados:
+type DadosCadastraisCompletoCpfOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateDadosCadastraisCompletoCpfResponse = {...};
+const createDadosCadastraisCompletoCpfQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createDadosCadastraisCompletoCpf(params: DadosCadastraisCompletoCpfInput) {...};typescript
+Veicular Completo (R$ 24,00/consulta)
+Veicular Completo requer os seguintes parâmetros:
+type VeicularCompletoInput = {
+  licensePlate: string;
+};typescript
+Uma solicitação Veicular Completo bem-sucedida conterá os seguintes dados:
+type VeicularCompletoOutput = {...};typescript
+A sua resposta do servidor GraphQL pode ser processada da seguinte maneira:
+type Inquiry = {...};
+type GraphQLResponse<T> = {...};
+type CreateVeicularCompletoResponse = {...};
+const createVeicularCompletoQuery = `...`;
+async function postQuery<T>(query: string, input: Record<string, unknown>) {...};
+async function createVeicularCompleto(params: VeicularCompletoInput) {...};
