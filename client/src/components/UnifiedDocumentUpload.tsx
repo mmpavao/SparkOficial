@@ -61,7 +61,7 @@ export default function UnifiedDocumentUpload({
   acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: UnifiedDocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [localUploadState, setLocalUploadState<{
+  const [localUploadState, setLocalUploadState] = useState<{
     isUploading: boolean;
     currentFile: number;
     totalFiles: number;
