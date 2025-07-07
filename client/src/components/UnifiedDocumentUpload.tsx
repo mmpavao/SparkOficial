@@ -138,7 +138,7 @@ export default function UnifiedDocumentUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Process multiple files sequentially
+      // Process multiple files sequentially like drag and drop
       Array.from(files).forEach(file => {
         handleFileUpload(file);
       });
