@@ -132,27 +132,43 @@ export default function UnifiedDocumentUpload({
         try {
           console.log(`⬆️ Enviando arquivo: ${file.name}`);
           
-          // Criar uma Promise para aguardar o upload ser processado
-          await new Promise<void>((resolve, reject) => {
-            // Timeout de segurança
-            const timeout = setTimeout(() => {
-              reject(new Error('Timeout no upload'));
-            }, 30000);
+          // Temporariamente suprimir notificações de sucesso automáticas
+          const originalToast = window.toast;
+          const suppressNotifications = () => {};
+          
+          // Interceptar possíveis notificações
+          if (typeof window !== 'undefined') {
+            window.toast = suppressNotifications;
+          }
 
-            try {
-              onUpload(documentKey, file);
-              
-              // Aguardar um tempo para o upload ser processado
-              setTimeout(() => {
+          try {
+            // Criar uma Promise para aguardar o upload ser processado
+            await new Promise<void>((resolve, reject) => {
+              // Timeout de segurança
+              const timeout = setTimeout(() => {
+                reject(new Error('Timeout no upload'));
+              }, 30000);
+
+              try {
+                onUpload(documentKey, file);
+                
+                // Aguardar um tempo para o upload ser processado
+                setTimeout(() => {
+                  clearTimeout(timeout);
+                  resolve();
+                }, 1500);
+                
+              } catch (error) {
                 clearTimeout(timeout);
-                resolve();
-              }, 1500);
-              
-            } catch (error) {
-              clearTimeout(timeout);
-              reject(error);
+                reject(error);
+              }
+            });
+          } finally {
+            // Restaurar função de toast original
+            if (originalToast) {
+              window.toast = originalToast;
             }
-          });
+          }
 
           console.log(`✅ Upload concluído: ${file.name}`);
           successCount++;
@@ -186,8 +202,9 @@ export default function UnifiedDocumentUpload({
           }
         }
 
-        // Simular uma notificação toast personalizada
+        // Criar notificação customizada única e consolidada
         const notification = document.createElement('div');
+        notification.setAttribute('data-upload-notification', 'true');
         notification.innerHTML = `
           <div style="
             position: fixed;
@@ -235,17 +252,23 @@ export default function UnifiedDocumentUpload({
           </style>
         `;
         
+        // Remover qualquer notificação anterior do mesmo tipo
+        const existingNotifications = document.querySelectorAll('[data-upload-notification="true"]');
+        existingNotifications.forEach(notif => notif.remove());
+        
         document.body.appendChild(notification);
         
-        // Remover notificação após 5 segundos
+        // Remover notificação após 6 segundos
         setTimeout(() => {
           if (notification.parentNode) {
             notification.style.animation = 'slideIn 0.3s ease-out reverse';
             setTimeout(() => {
-              document.body.removeChild(notification);
+              if (notification.parentNode) {
+                document.body.removeChild(notification);
+              }
             }, 300);
           }
-        }, 5000);
+        }, 6000);
 
         // Mostrar erros detalhados se houver
         if (errors.length > 0) {
