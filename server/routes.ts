@@ -6057,9 +6057,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const url = `https://api.cnpja.com/office/${cnpj}`;
       console.log('🔗 Request URL:', url);
       
-      const apiKey = process.env.CREDIT_API_KEY;
-      console.log('🔑 API Key present:', !!apiKey);
-      console.log('🔑 API Key length:', apiKey?.length || 0);
+      const apiKey = process.env.CNPJA_API_KEY;
+      console.log('🔑 CNPJá API Key present:', !!apiKey);
+      console.log('🔑 CNPJá API Key length:', apiKey?.length || 0);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -6078,9 +6078,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log all available data fields for debugging
         console.log('🔍 Complete response data:', JSON.stringify(result, null, 2));
         
-        // Accept any valid office data
+        // Process real CNPJá office data
         if (result && result.taxId) {
-          console.log('✅ Valid CNPJá office data received for taxId:', result.taxId);
+          console.log('✅ Real CNPJá office data received for:', result.company?.name);
+          console.log('📊 Company status:', result.status?.text);
+          console.log('💰 Company equity:', result.company?.equity);
+          console.log('📅 Founded:', result.founded);
+          
           return {
             success: true,
             data: result,
@@ -6105,7 +6109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const companiesResponse = await fetch(companiesUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`,
+            'Authorization': process.env.CNPJA_API_KEY,
             'Accept': 'application/json',
             'User-Agent': 'SparkComex/1.0'
           }
