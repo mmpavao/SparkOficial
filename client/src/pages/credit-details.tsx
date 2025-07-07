@@ -105,6 +105,7 @@ export default function CreditDetailsPage() {
     return () => setMounted(false);
   }, []);
   const permissions = useUserPermissions();
+  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult>>({});
   const [isEditingCredit, setIsEditingCredit] = useState(false);
   const [editCreditData, setEditCreditData] = useState({
@@ -125,27 +126,16 @@ export default function CreditDetailsPage() {
         userRole: user?.role
       });
 
-      let result;
       if (permissions.isFinanceira) {
         console.log("Using Financeira endpoint");
-        result = await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
+        return await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
       } else if (permissions.isAdmin) {
         console.log("Using Admin endpoint");
-        result = await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
+        return await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
       } else {
         console.log("Using regular endpoint");
-        result = await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
+        return await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
       }
-      
-      console.log("Debug - Application data loaded:", {
-        id: result?.id,
-        hasRequiredDocuments: !!result?.requiredDocuments,
-        requiredDocumentsKeys: result?.requiredDocuments ? Object.keys(result.requiredDocuments) : [],
-        hasOptionalDocuments: !!result?.optionalDocuments,
-        optionalDocumentsKeys: result?.optionalDocuments ? Object.keys(result.optionalDocuments) : []
-      });
-      
-      return result;
     },
     enabled: !!applicationId,
   }) as { data: any, isLoading: boolean };
@@ -189,6 +179,7 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
+      setUploadingDocument(null);
       toast({
         title: "Documento enviado",
         description: "O documento foi enviado com sucesso.",
@@ -201,6 +192,7 @@ export default function CreditDetailsPage() {
         description: error.message || "Não foi possível enviar o documento. Tente novamente.",
         variant: "destructive",
       });
+      setUploadingDocument(null);
     },
   });
 
@@ -235,84 +227,15 @@ export default function CreditDetailsPage() {
     },
   });
 
-  // Track pending files for batch upload
-  const [pendingFiles, setPendingFiles] = useState<{ [key: string]: File[] }>({});
-
   const handleDocumentUpload = (documentType: string, file: File) => {
-    // Collect files for batch upload
-    setPendingFiles(prev => {
-      const existing = prev[documentType] || [];
-      const updated = { ...prev, [documentType]: [...existing, file] };
-      
-      // Process batch after a short delay to collect all files
-      setTimeout(() => {
-        const files = updated[documentType];
-        if (files && files.length > 0) {
-          // Send all files at once
-          uploadMultipleDocumentsMutation.mutate({ documentType, files });
-          
-          // Clear pending files for this document type
-          setPendingFiles(current => {
-            const { [documentType]: _, ...rest } = current;
-            return rest;
-          });
-        }
-      }, 500); // 500ms delay to collect all files
-      
-      return updated;
-    });
+    setUploadingDocument(documentType);
+    uploadDocumentMutation.mutate({ documentType, file });
   };
-
-  // Multiple documents upload mutation
-  const uploadMultipleDocumentsMutation = useMutation({
-    mutationFn: async ({ documentType, files }: { documentType: string; files: File[] }) => {
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('documents', file);
-      });
-      formData.append('documentType', documentType);
-
-      const response = await fetch(`/api/credit/applications/${applicationId}/documents-multiple`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Falha no upload dos documentos');
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      // Invalidate specific queries instead of clearing all cache
-      queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
-      toast({
-        title: "Upload concluído",
-        description: data.message || "Documentos enviados com sucesso.",
-      });
-    },
-    onError: (error: any) => {
-      console.error("Upload error:", error);
-      toast({
-        title: "Erro no upload",
-        description: error.message || "Não foi possível enviar os documentos. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
-    mutationFn: async ({ documentId, index }: { documentId: string; index?: number }) => {
-      const url = index !== undefined 
-        ? `/api/credit/applications/${applicationId}/documents/${documentId}?index=${index}`
-        : `/api/credit/applications/${applicationId}/documents/${documentId}`;
-        
-      const response = await fetch(url, {
+    mutationFn: async ({ documentId }: { documentId: string }) => {
+      const response = await fetch(`/api/credit/applications/${applicationId}/documents/${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -345,7 +268,7 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
-    deleteDocumentMutation.mutate({ documentId, index });
+    deleteDocumentMutation.mutate({ documentId });
   };
 
   const initializeEditMode = () => {
@@ -833,7 +756,7 @@ export default function CreditDetailsPage() {
                       documentObservation={doc.observation}
                       isRequired={doc.required}
                       applicationId={applicationId!}
-                      isUploading={false}
+                      isUploading={uploadingDocument === doc.key}
                       onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
                       onDownload={(docKey, index) => {
@@ -895,7 +818,7 @@ export default function CreditDetailsPage() {
                       documentObservation={doc.observation}
                       isRequired={doc.required}
                       applicationId={applicationId!}
-                      isUploading={false}
+                      isUploading={uploadingDocument === doc.key}
                       onUpload={handleDocumentUpload}
                       onRemove={handleDocumentRemove}
                       onDownload={(docKey, index) => {

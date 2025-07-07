@@ -1,8 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, creditApplications } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { insertUserSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -3501,164 +3500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // =========== DOCUMENT UPLOAD ROUTES ===========
 
-  // Multiple documents upload endpoint
-  app.post('/api/credit/applications/:id/documents-multiple', requireAuth, upload.array('documents', 10), async (req: any, res) => {
-    try {
-      const applicationId = parseInt(req.params.id);
-      const { documentType } = req.body;
-      const files = req.files as Express.Multer.File[];
-
-      console.log(`Multiple documents upload attempt: ${files?.length} files for ${documentType} on application ${applicationId}`);
-
-      if (!files || files.length === 0) {
-        return res.status(400).json({ message: "Nenhum arquivo enviado" });
-      }
-
-      if (!documentType) {
-        return res.status(400).json({ message: "Tipo de documento não especificado" });
-      }
-
-      // Check if user owns the application or has admin/financeira access
-      const application = await storage.getCreditApplication(applicationId);
-      if (!application) {
-        return res.status(404).json({ message: "Solicitação não encontrada" });
-      }
-
-      const userRole = req.session.userRole;
-      const isOwner = application.userId === req.session.userId;
-      const hasAdminAccess = userRole === 'admin' || userRole === 'financeira' || userRole === 'superadmin';
-
-      if (!isOwner && !hasAdminAccess) {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      // Get current documents
-      const currentRequired = application.requiredDocuments || {};
-      const currentOptional = application.optionalDocuments || {};
-
-      // Determine if document is mandatory
-      const isMandatory = [
-        'business_license',
-        'financial_statements',
-        'tax_returns',
-        'bank_statements',
-        'legal_representative_id',
-        'articles_of_association',
-        'ownership_structure',
-        'import_export_license',
-        'compliance_certificates',
-        'business_plan'
-      ].includes(documentType);
-
-      // Process all files
-      const uploadedFiles = [];
-      for (const file of files) {
-        // Validate file size (10MB limit)
-        if (file.size > 10 * 1024 * 1024) {
-          continue; // Skip files that are too large
-        }
-
-        // Create document object
-        const documentData = {
-          fileName: file.originalname,
-          fileType: file.mimetype,
-          fileSize: file.size,
-          uploadDate: new Date().toISOString(),
-          fileData: file.buffer.toString('base64')
-        };
-
-        uploadedFiles.push(documentData);
-      }
-
-      if (uploadedFiles.length === 0) {
-        return res.status(400).json({ message: "Nenhum arquivo válido foi enviado (limite de 10MB por arquivo)" });
-      }
-
-      // Update the appropriate documents object
-      const updateData: any = {};
-      
-      if (isMandatory) {
-        // For mandatory documents, store as array if multiple files
-        if (uploadedFiles.length === 1) {
-          currentRequired[documentType] = uploadedFiles[0];
-        } else {
-          currentRequired[documentType] = uploadedFiles;
-        }
-        updateData.requiredDocuments = currentRequired;
-      } else {
-        // For optional documents, store as array if multiple files
-        if (uploadedFiles.length === 1) {
-          currentOptional[documentType] = uploadedFiles[0];
-        } else {
-          currentOptional[documentType] = uploadedFiles;
-        }
-        updateData.optionalDocuments = currentOptional;
-      }
-
-      // Check if all mandatory documents are uploaded
-      const mandatoryTypes = [
-        'business_license',
-        'financial_statements',
-        'tax_returns',
-        'bank_statements',
-        'legal_representative_id',
-        'articles_of_association',
-        'ownership_structure',
-        'import_export_license',
-        'compliance_certificates',
-        'business_plan'
-      ];
-
-      const allMandatoryUploaded = mandatoryTypes.every(type => currentRequired[type]);
-      
-      if (allMandatoryUploaded) {
-        updateData.documentsStatus = 'complete';
-        
-        // Update status to under_review if currently pending
-        if (application.status === 'pending') {
-          updateData.status = 'under_review';
-        }
-      } else {
-        updateData.documentsStatus = 'partial';
-      }
-
-      // Update the application using raw SQL to bypass all type issues
-      await db.execute(`
-        UPDATE credit_applications 
-        SET 
-          required_documents = $1::jsonb,
-          optional_documents = $2::jsonb,
-          documents_status = $3,
-          status = $4,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5
-      `, [
-        JSON.stringify(updateData.requiredDocuments),
-        JSON.stringify(updateData.optionalDocuments),
-        updateData.documentsStatus,
-        updateData.status,
-        applicationId
-      ]);
-
-      // Invalidate cache
-      console.log('Credit applications cache invalidated');
-
-      console.log(`${uploadedFiles.length} documents uploaded successfully for application ${applicationId}`);
-      res.json({ 
-        success: true, 
-        documentsUploaded: uploadedFiles.length,
-        documentType: documentType,
-        message: `${uploadedFiles.length} documento${uploadedFiles.length > 1 ? 's' : ''} enviado${uploadedFiles.length > 1 ? 's' : ''} com sucesso` 
-      });
-
-    } catch (error) {
-      console.error('Document upload error:', error);
-      res.status(500).json({ message: "Erro ao fazer upload dos documentos" });
-    }
-  });
-
   // Upload document to credit application
-  // Single document upload endpoint
   app.post('/api/credit/applications/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
@@ -3813,9 +3655,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const applicationId = parseInt(req.params.id);
       const documentId = req.params.documentId;
-      const { index } = req.query; // Get index from query params
 
-      console.log(`Document deletion attempt: ${documentId} for application ${applicationId}, index: ${index}`);
+      console.log(`Document deletion attempt: ${documentId} for application ${applicationId}`);
 
       // Check if user owns the application or has admin/financeira access
       const application = await storage.getCreditApplication(applicationId);
@@ -3850,32 +3691,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First, try to find the document by exact key match in required documents
       if (currentRequired[documentId]) {
         const updatedRequired = { ...currentRequired };
-        
-        // Handle array of documents with index
-        if (index !== undefined && Array.isArray(currentRequired[documentId])) {
-          const docArray = [...currentRequired[documentId]];
-          const indexNum = parseInt(index as string);
-          
-          if (indexNum >= 0 && indexNum < docArray.length) {
-            docArray.splice(indexNum, 1);
-            
-            // If array is empty after removal, delete the key
-            if (docArray.length === 0) {
-              delete updatedRequired[documentId];
-            } else {
-              updatedRequired[documentId] = docArray;
-            }
-            documentFound = true;
-            console.log(`Removed document at index ${index} from required documents: ${documentId}`);
-          }
-        } else {
-          // Single document or no index provided - remove entire document
-          delete updatedRequired[documentId];
-          documentFound = true;
-          console.log(`Removed from required documents: ${documentId}`);
-        }
-        
+        delete updatedRequired[documentId];
         updateData.requiredDocuments = updatedRequired;
+        documentFound = true;
+        
+        console.log(`Removed from required documents: ${documentId}`);
 
         // Update status based on remaining mandatory documents
         const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
@@ -3894,32 +3714,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if document exists in optional documents (only if not found in required)
       if (!documentFound && currentOptional[documentId]) {
         const updatedOptional = { ...currentOptional };
-        
-        // Handle array of documents with index
-        if (index !== undefined && Array.isArray(currentOptional[documentId])) {
-          const docArray = [...currentOptional[documentId]];
-          const indexNum = parseInt(index as string);
-          
-          if (indexNum >= 0 && indexNum < docArray.length) {
-            docArray.splice(indexNum, 1);
-            
-            // If array is empty after removal, delete the key
-            if (docArray.length === 0) {
-              delete updatedOptional[documentId];
-            } else {
-              updatedOptional[documentId] = docArray;
-            }
-            documentFound = true;
-            console.log(`Removed document at index ${index} from optional documents: ${documentId}`);
-          }
-        } else {
-          // Single document or no index provided - remove entire document
-          delete updatedOptional[documentId];
-          documentFound = true;
-          console.log(`Removed from optional documents: ${documentId}`);
-        }
-        
+        delete updatedOptional[documentId];
         updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+        
+        console.log(`Removed from optional documents: ${documentId}`);
       }
 
       if (!documentFound) {

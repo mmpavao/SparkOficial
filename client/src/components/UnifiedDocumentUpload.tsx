@@ -73,13 +73,6 @@ export default function UnifiedDocumentUpload({
     ? (Array.isArray(currentDocuments) ? currentDocuments : [currentDocuments])
     : [];
 
-  console.log(`Debug - UnifiedDocumentUpload [${documentKey}]:`, {
-    uploadedDocuments,
-    currentDocuments,
-    documentsArray,
-    hasDocuments: documentsArray.length > 0
-  });
-
   const hasDocuments = documentsArray.length > 0;
   const isComplete = hasDocuments && isRequired;
 
@@ -137,10 +130,7 @@ export default function UnifiedDocumentUpload({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      // Process multiple files from drag and drop
-      files.forEach((file) => {
-        handleFileUpload(file);
-      });
+      handleFileUpload(files[0]);
     }
   };
 
@@ -148,26 +138,7 @@ export default function UnifiedDocumentUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Process multiple files - validate all first
-      const validFiles: File[] = [];
-      
-      for (const file of Array.from(files)) {
-        const validation = validateFile(file);
-        if (!validation.isValid) {
-          alert(`${file.name}: ${validation.error}`);
-        } else {
-          validFiles.push(file);
-        }
-      }
-      
-      // Instead of uploading individually, collect all files and send them at once
-      if (validFiles.length > 0) {
-        // If onUpload can handle multiple files, pass them all
-        // Otherwise, we need to modify the parent component to handle batch uploads
-        validFiles.forEach((file) => {
-          onUpload(documentKey, file);
-        });
-      }
+      handleFileUpload(files[0]);
     }
     // Reset input value
     e.target.value = '';
@@ -257,15 +228,14 @@ export default function UnifiedDocumentUpload({
   const StatusIcon = statusInfo.icon;
 
   return (
-    <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor} ${isRequired && !hasDocuments ? 'border-red-300' : ''}`}>
+    <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <StatusIcon className={`w-4 h-4 ${statusInfo.color} ${isUploading ? 'animate-spin' : ''}`} />
-              {isRequired && !hasDocuments && <span className="text-red-500 font-bold">⚠️</span>}
               {documentLabel}
-              {isRequired && <span className="text-red-500 font-bold text-base">*</span>}
+              {isRequired && <span className="text-red-500">*</span>}
             </CardTitle>
             {documentSubtitle && (
               <p className="text-xs text-gray-500 mt-1">{documentSubtitle}</p>
@@ -273,13 +243,7 @@ export default function UnifiedDocumentUpload({
           </div>
           <Badge 
             variant={hasDocuments ? "default" : isRequired ? "destructive" : "secondary"}
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ml-2 ${
-              hasDocuments 
-                ? "bg-green-600 hover:bg-green-700 border-transparent text-white" 
-                : isRequired 
-                  ? "bg-red-600 hover:bg-red-700 border-transparent text-white" 
-                  : "bg-orange-600 hover:bg-orange-700 border-transparent text-white"
-            }`}
+            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-destructive hover:bg-destructive/80 ml-2 text-[#ffffff]"
           >
             {statusInfo.label}
           </Badge>
@@ -318,7 +282,6 @@ export default function UnifiedDocumentUpload({
                   accept={acceptedTypes.join(',')}
                   onChange={handleFileChange}
                   disabled={isUploading}
-                  multiple
                 />
               </label>
             </p>
