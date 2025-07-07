@@ -62,8 +62,8 @@ export default function UnifiedDocumentUpload({
   acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: UnifiedDocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [uploadQueue, setUploadQueue] = useState<File[]>([]);
-  const [processingFiles, setProcessingFiles] = useState(false);
+  const [currentlyUploading, setCurrentlyUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Obter documentos atuais
@@ -88,67 +88,104 @@ export default function UnifiedDocumentUpload({
     return { isValid: true };
   };
 
-  // Processar fila de upload
-  const processUploadQueue = async (files: File[]) => {
-    if (processingFiles) return;
-    
-    setProcessingFiles(true);
-    console.log(`📤 Processando ${files.length} arquivo(s) para ${documentKey}`);
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      console.log(`📄 [${i + 1}/${files.length}] Processando: ${file.name}`);
-
-      const validation = validateFile(file);
-      if (!validation.isValid) {
-        console.error(`❌ Arquivo inválido: ${file.name} - ${validation.error}`);
-        alert(`${file.name}: ${validation.error}`);
-        continue;
-      }
-
-      // Se não permite múltiplos e já tem documentos, perguntar se quer substituir
-      if (!allowMultiple && hasDocuments && i === 0) {
-        const shouldReplace = confirm('Já existe um documento. Deseja substituí-lo?');
-        if (!shouldReplace) {
-          console.log(`⏭️ Upload cancelado pelo usuário`);
-          continue;
-        }
-        // Remover documento existente
-        onRemove(documentKey);
-        // Aguardar um pouco para garantir que a remoção foi processada
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-
-      try {
-        console.log(`⬆️ Enviando: ${file.name}`);
-        
-        // Chamar função de upload
-        onUpload(documentKey, file);
-        
-        // Aguardar um tempo entre uploads para evitar conflitos
-        if (i < files.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 800));
-        }
-        
-      } catch (error) {
-        console.error(`❌ Erro no upload de ${file.name}:`, error);
-        alert(`Erro ao enviar ${file.name}: ${error.message}`);
-      }
+  // Nova função de upload sequencial
+  const processFilesSequentially = async (files: File[]) => {
+    if (currentlyUploading || isUploading) {
+      console.log('❌ Upload já em andamento, ignorando novos arquivos');
+      return;
     }
 
-    setProcessingFiles(false);
-    setUploadQueue([]);
-    console.log(`✅ Processamento concluído para ${documentKey}`);
+    setCurrentlyUploading(true);
+    setUploadProgress({ current: 0, total: files.length });
+
+    console.log(`🚀 Iniciando upload sequencial de ${files.length} arquivo(s) para ${documentKey}`);
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        console.log(`📄 [${i + 1}/${files.length}] Processando: ${file.name}`);
+        setUploadProgress({ current: i + 1, total: files.length });
+
+        // Validar arquivo
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+          console.error(`❌ Arquivo inválido: ${file.name} - ${validation.error}`);
+          alert(`${file.name}: ${validation.error}`);
+          continue;
+        }
+
+        // Para upload único, confirmar substituição apenas no primeiro arquivo
+        if (!allowMultiple && hasDocuments && i === 0) {
+          const shouldReplace = confirm('Já existe um documento. Deseja substituí-lo?');
+          if (!shouldReplace) {
+            console.log(`⏭️ Upload cancelado pelo usuário`);
+            continue;
+          }
+        }
+
+        try {
+          console.log(`⬆️ Enviando arquivo: ${file.name}`);
+          
+          // Criar uma Promise para aguardar o upload ser processado
+          await new Promise<void>((resolve, reject) => {
+            // Timeout de segurança
+            const timeout = setTimeout(() => {
+              reject(new Error('Timeout no upload'));
+            }, 30000);
+
+            try {
+              onUpload(documentKey, file);
+              
+              // Aguardar um tempo para o upload ser processado
+              setTimeout(() => {
+                clearTimeout(timeout);
+                resolve();
+              }, 1500);
+              
+            } catch (error) {
+              clearTimeout(timeout);
+              reject(error);
+            }
+          });
+
+          console.log(`✅ Upload concluído: ${file.name}`);
+          
+        } catch (error) {
+          console.error(`❌ Erro no upload de ${file.name}:`, error);
+          alert(`Erro ao enviar ${file.name}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+
+        // Intervalo entre uploads para evitar conflitos
+        if (i < files.length - 1) {
+          console.log(`⏸️ Aguardando antes do próximo upload...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ Erro no processo de upload:', error);
+      alert('Erro durante o processo de upload');
+    } finally {
+      setCurrentlyUploading(false);
+      setUploadProgress({ current: 0, total: 0 });
+      console.log(`🏁 Processo de upload finalizado para ${documentKey}`);
+    }
   };
 
   // Lidar com seleção de arquivos
   const handleFileSelection = (files: FileList | null) => {
-    if (!files || files.length === 0 || isUploading || processingFiles) {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    if (currentlyUploading || isUploading) {
+      alert('Upload em andamento. Aguarde a conclusão antes de enviar novos arquivos.');
       return;
     }
 
     const fileArray = Array.from(files);
-    console.log(`📁 Selecionados ${fileArray.length} arquivo(s)`);
+    console.log(`📁 Selecionados ${fileArray.length} arquivo(s) para upload`);
 
     // Validar todos os arquivos primeiro
     const validFiles: File[] = [];
@@ -170,8 +207,7 @@ export default function UnifiedDocumentUpload({
 
     // Processar arquivos válidos
     if (validFiles.length > 0) {
-      setUploadQueue(validFiles);
-      processUploadQueue(validFiles);
+      processFilesSequentially(validFiles);
     }
 
     // Limpar input
@@ -184,7 +220,9 @@ export default function UnifiedDocumentUpload({
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragActive(true);
+    if (!currentlyUploading && !isUploading) {
+      setDragActive(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -202,6 +240,11 @@ export default function UnifiedDocumentUpload({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    
+    if (currentlyUploading || isUploading) {
+      alert('Upload em andamento. Aguarde a conclusão antes de enviar novos arquivos.');
+      return;
+    }
     
     const files = e.dataTransfer.files;
     handleFileSelection(files);
@@ -238,6 +281,11 @@ export default function UnifiedDocumentUpload({
 
   // Remover documento
   const handleRemove = (index: number = 0) => {
+    if (currentlyUploading || isUploading) {
+      alert('Upload em andamento. Aguarde a conclusão antes de remover documentos.');
+      return;
+    }
+
     if (documentsArray.length === 1) {
       onRemove(documentKey);
     } else {
@@ -247,7 +295,7 @@ export default function UnifiedDocumentUpload({
 
   // Obter informações de status
   const getStatusInfo = () => {
-    const isProcessing = isUploading || processingFiles;
+    const isProcessing = isUploading || currentlyUploading;
     
     if (isProcessing) {
       return {
@@ -255,7 +303,9 @@ export default function UnifiedDocumentUpload({
         color: 'text-blue-600',
         bgColor: 'bg-blue-50',
         borderColor: 'border-blue-200',
-        label: 'Enviando...'
+        label: currentlyUploading 
+          ? `Enviando ${uploadProgress.current}/${uploadProgress.total}...` 
+          : 'Enviando...'
       };
     }
 
@@ -290,7 +340,7 @@ export default function UnifiedDocumentUpload({
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
-  const isProcessing = isUploading || processingFiles;
+  const isProcessing = isUploading || currentlyUploading;
 
   return (
     <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
@@ -359,14 +409,22 @@ export default function UnifiedDocumentUpload({
           <div className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-6 text-center">
             <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-3 animate-spin" />
             <p className="text-sm text-blue-700 font-medium mb-2">
-              Enviando documento{uploadQueue.length > 1 ? 's' : ''}...
+              {currentlyUploading 
+                ? `Enviando arquivo ${uploadProgress.current} de ${uploadProgress.total}...`
+                : 'Enviando documento...'
+              }
             </p>
-            {uploadQueue.length > 0 && (
-              <p className="text-xs text-blue-600">
-                {uploadQueue.length} arquivo{uploadQueue.length > 1 ? 's' : ''} na fila
-              </p>
+            {currentlyUploading && uploadProgress.total > 0 && (
+              <>
+                <Progress 
+                  value={(uploadProgress.current / uploadProgress.total) * 100} 
+                  className="w-full mt-3" 
+                />
+                <p className="text-xs text-blue-600 mt-2">
+                  Progresso: {uploadProgress.current}/{uploadProgress.total} arquivos
+                </p>
+              </>
             )}
-            <Progress value={undefined} className="w-full mt-3" />
           </div>
         )}
 
@@ -405,6 +463,7 @@ export default function UnifiedDocumentUpload({
                         size="sm"
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         title="Remover documento"
+                        disabled={isProcessing}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
