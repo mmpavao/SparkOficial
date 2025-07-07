@@ -21,7 +21,8 @@ import {
   Shield,
   Briefcase,
   BarChart3,
-  Activity
+  Activity,
+  AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";

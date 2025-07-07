@@ -5713,38 +5713,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // CNPJá Credit Analysis - Using your existing CREDIT_API_KEY
+  async function callCnpjaCreditAPI(cnpj: string): Promise<any> {
+    try {
+      console.log('🏦 Calling CNPJá Credit Analysis API - CNPJ:', cnpj);
+      
+      // Try CNPJá commercial API for credit analysis using CREDIT_API_KEY
+      const response = await fetch(`https://api.cnpja.com/${process.env.CREDIT_API_KEY}/${cnpj}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ CNPJá Credit API response received');
+        return {
+          success: true,
+          data: result,
+          source: 'CNPJA_COMMERCIAL'
+        };
+      } else {
+        console.log('⚠️ CNPJá Commercial API failed, trying public API...');
+        throw new Error('Commercial API failed');
+      }
+    } catch (error) {
+      console.log('⚠️ Trying CNPJá public API as fallback...');
+      
+      // Fallback to CNPJá public API
+      try {
+        const response = await fetch(`https://api.cnpja.com/open/${cnpj}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ CNPJá Public API response received');
+          return {
+            success: true,
+            data: result,
+            source: 'CNPJA_PUBLIC',
+            limitation: 'Dados limitados - API pública'
+          };
+        }
+      } catch (publicError) {
+        console.error('❌ Both CNPJá APIs failed:', publicError);
+        throw publicError;
+      }
+    }
+  }
+
   async function callCreditAPI(cnpj: string): Promise<any> {
     try {
-      console.log('🏦 Calling CNPJá for Credit Analysis - CNPJ:', cnpj);
+      console.log('🏦 Starting CNPJá Credit Analysis - CNPJ:', cnpj);
       
-      // Call CNPJá API for company data
-      const cnpjaData = await callCnpjaAPI(cnpj);
+      // Use CNPJá for credit analysis
+      const cnpjaResponse = await callCnpjaCreditAPI(cnpj);
       
-      // Transform CNPJá data to our credit analysis format
-      const creditData = {
-        cnpj: cnpjaData.taxId,
-        creditRating: calculateCreditRatingFromCnpja(cnpjaData),
-        bankingScore: calculateBankingScore(cnpjaData),
-        paymentBehavior: 'REGULAR', // Based on company status
-        creditHistory: cnpjaData.company?.founded ? 'ESTABLISHED' : 'NEW',
-        financialProfile: analyzeFinancialProfile(cnpjaData),
-        riskLevel: calculateRiskLevel(cnpjaData),
-        hasDebts: false, // CNPJá doesn't provide this info directly
-        debtDetails: null,
-        hasProtests: false, // CNPJá doesn't provide this info directly
-        protestDetails: null,
-        hasLawsuits: false, // CNPJá doesn't provide this info directly
-        lawsuitDetails: null,
-        hasBankruptcy: cnpjaData.status?.id === 8, // 8 = BAIXADA
-        bankruptcyDetails: cnpjaData.status?.id === 8 ? cnpjaData.status?.text : null
-      };
-      
-      return { data: creditData };
+      if (cnpjaResponse.success) {
+        const cnpjaData = cnpjaResponse.data;
+        
+        // Enhanced credit analysis using CNPJá data
+        const creditData = {
+          cnpj: cnpjaData.taxId || cnpj,
+          creditRating: calculateCreditRatingFromCnpja(cnpjaData),
+          bankingScore: calculateBankingScore(cnpjaData),
+          paymentBehavior: analyzeCreditBehavior(cnpjaData),
+          creditHistory: cnpjaData.company?.founded ? 'ESTABLISHED' : 'NEW',
+          financialProfile: analyzeFinancialProfile(cnpjaData),
+          riskLevel: calculateRiskLevel(cnpjaData),
+          // CNPJá can provide some credit indicators
+          hasDebts: checkForDebtIndicators(cnpjaData),
+          debtDetails: extractDebtDetails(cnpjaData),
+          hasProtests: checkForProtestIndicators(cnpjaData),
+          protestDetails: extractProtestDetails(cnpjaData),
+          hasLawsuits: checkForLawsuitIndicators(cnpjaData),
+          lawsuitDetails: extractLawsuitDetails(cnpjaData),
+          hasBankruptcy: cnpjaData.status?.id === 8 || cnpjaData.status?.text?.includes('BAIXADA'),
+          bankruptcyDetails: cnpjaData.status?.text,
+          dataSource: cnpjaResponse.source,
+          lastUpdate: new Date().toISOString(),
+          apiLimitation: cnpjaResponse.limitation || null
+        };
+        
+        return { data: creditData };
+      } else {
+        throw new Error('CNPJá API failed');
+      }
     } catch (error) {
       console.error('❌ CNPJá Credit API error:', error);
       throw error;
     }
   }
+
+  // Helper functions for enhanced credit analysis
+  function analyzeCreditBehavior(cnpjaData: any): string {
+    if (cnpjaData.status?.id === 2) return 'ACTIVE'; // Ativa
+    if (cnpjaData.status?.id === 3) return 'SUSPENDED'; // Suspensa
+    if (cnpjaData.status?.id === 8) return 'CLOSED'; // Baixada
+    return 'REGULAR';
+  }
+
+  function checkForDebtIndicators(cnpjaData: any): boolean {
+    // Check for debt indicators in CNPJá data
+    if (cnpjaData.status?.id === 3) return true; // Suspensa pode indicar problemas
+    if (cnpjaData.simples?.status === false && cnpjaData.simples?.reason?.includes('DÉBITO')) return true;
+    return false;
+  }
+
+  function extractDebtDetails(cnpjaData: any): any[] | null {
+    const debts = [];
+    if (cnpjaData.simples?.reason?.includes('DÉBITO')) {
+      debts.push({
+        type: 'SIMPLES_NACIONAL',
+        description: cnpjaData.simples.reason,
+        status: 'PENDENTE'
+      });
+    }
+    return debts.length > 0 ? debts : null;
+  }
+
+  function checkForProtestIndicators(cnpjaData: any): boolean {
+    // CNPJá may have protest indicators in some plans
+    return false; // Basic check - would need commercial plan
+  }
+
+  function extractProtestDetails(cnpjaData: any): any[] | null {
+    return null; // Would need commercial CNPJá plan
+  }
+
+  function checkForLawsuitIndicators(cnpjaData: any): boolean {
+    return false; // Would need specialized legal data
+  }
+
+  function extractLawsuitDetails(cnpjaData: any): any[] | null {
+    return null; // Would need specialized legal data
+  }
+
+
 
   // Helper functions for credit analysis
   function calculateCreditRatingFromCnpja(cnpjaData: any): string {
