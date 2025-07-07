@@ -113,14 +113,48 @@ export default function UnifiedDocumentUpload({
     onUpload(documentKey, file);
   };
 
-  // Handle multiple files by processing them one at a time
-  const handleMultipleFiles = (files: File[]) => {
-    files.forEach((file, index) => {
-      // Add a small delay between files to prevent race conditions
-      setTimeout(() => {
-        handleSingleFileUpload(file);
-      }, index * 200); // 200ms delay between each file
-    });
+  // Handle multiple files with proper queue management
+  const handleMultipleFiles = async (files: File[]) => {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      console.log(`📤 Processing file ${i + 1}/${files.length}: ${file.name}`);
+      
+      // Wait for previous upload to complete before starting next
+      await new Promise((resolve) => {
+        const originalOnUpload = onUpload;
+        
+        // Create a wrapper that resolves when upload is complete
+        const wrappedOnUpload = (docKey: string, uploadFile: File) => {
+          originalOnUpload(docKey, uploadFile);
+          
+          // Wait for the upload to be reflected in state before continuing
+          setTimeout(() => {
+            resolve(void 0);
+          }, 300); // Give time for state update
+        };
+        
+        // Temporarily replace onUpload with our wrapper
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+          alert(`${file.name}: ${validation.error}`);
+          resolve(void 0);
+          return;
+        }
+
+        // Check if multiple files are allowed
+        if (!allowMultiple && hasDocuments && i === 0) {
+          if (confirm('Já existe um documento. Deseja substituí-lo?')) {
+            onRemove(documentKey);
+          } else {
+            resolve(void 0);
+            return;
+          }
+        }
+
+        // Upload file using the wrapper
+        wrappedOnUpload(documentKey, file);
+      });
+    }
   };
 
   // Handle drag and drop
@@ -134,7 +168,7 @@ export default function UnifiedDocumentUpload({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -146,13 +180,13 @@ export default function UnifiedDocumentUpload({
       if (files.length === 1) {
         handleSingleFileUpload(files[0]);
       } else {
-        handleMultipleFiles(files);
+        await handleMultipleFiles(files);
       }
     }
   };
 
   // Handle file input change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isUploading) return; // Prevent uploads while already uploading
     
     const files = e.target.files;
@@ -161,7 +195,7 @@ export default function UnifiedDocumentUpload({
       if (fileArray.length === 1) {
         handleSingleFileUpload(fileArray[0]);
       } else {
-        handleMultipleFiles(fileArray);
+        await handleMultipleFiles(fileArray);
       }
     }
     // Reset input value
