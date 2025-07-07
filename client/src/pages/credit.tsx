@@ -237,6 +237,11 @@ export default function CreditPage() {
     queryKey: [getEndpoint()],
     enabled: !!user && mounted,
   });
+  
+  // Debug log para verificar credit scores
+  if (applications.length > 0 && applications[0].id === 69) {
+    console.log("🔍 Application 69 data:", applications[0]);
+  }
 
   // Prevent SSR/hydration issues in production
   if (!mounted || !user) {
