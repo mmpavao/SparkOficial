@@ -92,24 +92,35 @@ export default function UnifiedDocumentUpload({
     return { isValid: true };
   };
 
+  // Handle multiple files upload sequentially
+  const handleMultipleFiles = async (files: File[]) => {
+    for (const file of files) {
+      const validation = validateFile(file);
+      if (!validation.isValid) {
+        alert(`${file.name}: ${validation.error}`);
+        continue;
+      }
+
+      // Check if multiple files are allowed
+      if (!allowMultiple && hasDocuments) {
+        if (confirm('Já existe um documento. Deseja substituí-lo?')) {
+          onRemove(documentKey);
+        } else {
+          continue;
+        }
+      }
+
+      // Upload each file individually
+      onUpload(documentKey, file);
+      
+      // Small delay to ensure proper processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  };
+
   // Handle file upload
   const handleFileUpload = (file: File) => {
-    const validation = validateFile(file);
-    if (!validation.isValid) {
-      alert(validation.error);
-      return;
-    }
-
-    // Check if multiple files are allowed
-    if (!allowMultiple && hasDocuments) {
-      if (confirm('Já existe um documento. Deseja substituí-lo?')) {
-        onRemove(documentKey);
-      } else {
-        return;
-      }
-    }
-
-    onUpload(documentKey, file);
+    handleMultipleFiles([file]);
   };
 
   // Handle drag and drop
@@ -130,10 +141,7 @@ export default function UnifiedDocumentUpload({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      // Process all files like the file input does
-      files.forEach(file => {
-        handleFileUpload(file);
-      });
+      handleMultipleFiles(files);
     }
   };
 
@@ -141,10 +149,7 @@ export default function UnifiedDocumentUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Process multiple files sequentially like drag and drop
-      Array.from(files).forEach(file => {
-        handleFileUpload(file);
-      });
+      handleMultipleFiles(Array.from(files));
     }
     // Reset input value
     e.target.value = '';
