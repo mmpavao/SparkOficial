@@ -4092,6 +4092,237 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Document Request endpoints
+  app.post('/api/document-requests', requireAuth, async (req: any, res) => {
+    try {
+      const { creditApplicationId, requestedFrom, documentName, documentType, description } = req.body;
+      
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'financeira' && currentUser.role !== 'super_admin')) {
+        return res.status(403).json({ message: "Apenas administradores podem solicitar documentos" });
+      }
+
+      const documentRequest = await storage.createDocumentRequest({
+        creditApplicationId,
+        requestedBy: req.session.userId,
+        requestedFrom,
+        documentType,
+        documentName,
+        description,
+        status: 'pending'
+      });
+
+      // Create notification for the importer
+      await storage.notifyDocumentStatus(
+        requestedFrom,
+        creditApplicationId,
+        'requested',
+        `Novo documento solicitado: ${documentName}`
+      );
+
+      res.json(documentRequest);
+    } catch (error) {
+      console.error("Error creating document request:", error);
+      res.status(500).json({ message: "Erro ao solicitar documento" });
+    }
+  });
+
+  app.get('/api/credit/applications/:id/document-requests', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const documentRequests = await storage.getDocumentRequestsForApplication(parseInt(id));
+      res.json(documentRequests);
+    } catch (error) {
+      console.error("Error fetching document requests:", error);
+      res.status(500).json({ message: "Erro ao buscar documentos solicitados" });
+    }
+  });
+
+  app.post('/api/document-requests/:id/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Arquivo não enviado" });
+      }
+
+      const documentRequest = await storage.getDocumentRequestById(parseInt(id));
+      if (!documentRequest) {
+        return res.status(404).json({ message: "Solicitação de documento não encontrada" });
+      }
+
+      // Check if user is the one requested from
+      if (documentRequest.requestedFrom !== req.session.userId) {
+        return res.status(403).json({ message: "Você não tem permissão para enviar este documento" });
+      }
+
+      const fileUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      
+      await storage.uploadDocumentForRequest(parseInt(id), fileUrl);
+
+      // Notify admin/financeira
+      await storage.notifyDocumentStatus(
+        documentRequest.requestedBy,
+        documentRequest.creditApplicationId,
+        'uploaded',
+        `Documento enviado: ${documentRequest.documentName}`
+      );
+
+      res.json({ success: true, message: "Documento enviado com sucesso" });
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Erro ao enviar documento" });
+    }
+  });
+
+  // Support Ticket endpoints
+  app.post('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const { subject, category, priority, message, creditApplicationId } = req.body;
+      
+      const ticket = await storage.createSupportTicket({
+        createdBy: req.session.userId,
+        creditApplicationId,
+        subject,
+        category,
+        priority: priority || 'medium',
+        message
+      });
+
+      // Create notification for admins
+      const admins = await storage.getUsersByRole('admin');
+      for (const admin of admins) {
+        await storage.createNotification({
+          userId: admin.id,
+          type: 'ticket_created',
+          title: 'Novo Ticket de Suporte',
+          message: `Novo ticket criado: ${subject}`,
+          relatedId: ticket.id,
+          relatedType: 'ticket'
+        });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error creating support ticket:", error);
+      res.status(500).json({ message: "Erro ao criar ticket" });
+    }
+  });
+
+  app.get('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(403).json({ message: "Usuário não encontrado" });
+      }
+
+      const tickets = await storage.getSupportTicketsForUser(req.session.userId, currentUser.role);
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching support tickets:", error);
+      res.status(500).json({ message: "Erro ao buscar tickets" });
+    }
+  });
+
+  app.get('/api/support/tickets/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const ticket = await storage.getSupportTicket(parseInt(id));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira';
+      
+      if (!isAdmin && ticket.createdBy !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error fetching ticket:", error);
+      res.status(500).json({ message: "Erro ao buscar ticket" });
+    }
+  });
+
+  app.post('/api/support/tickets/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { message, isInternal } = req.body;
+
+      const ticket = await storage.getSupportTicket(parseInt(id));
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira';
+      
+      if (!isAdmin && ticket.createdBy !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const ticketMessage = await storage.createTicketMessage({
+        ticketId: parseInt(id),
+        senderId: req.session.userId,
+        message,
+        isInternal: isInternal || false
+      });
+
+      // Notify the other party
+      const recipientId = ticket.createdBy === req.session.userId ? ticket.assignedTo : ticket.createdBy;
+      if (recipientId && !isInternal) {
+        await storage.createNotification({
+          userId: recipientId,
+          type: 'ticket_message',
+          title: 'Nova Mensagem no Ticket',
+          message: `Nova mensagem no ticket: ${ticket.subject}`,
+          relatedId: ticket.id,
+          relatedType: 'ticket'
+        });
+      }
+
+      res.json(ticketMessage);
+    } catch (error) {
+      console.error("Error creating ticket message:", error);
+      res.status(500).json({ message: "Erro ao enviar mensagem" });
+    }
+  });
+
+  app.get('/api/support/tickets/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const ticket = await storage.getSupportTicket(parseInt(id));
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira';
+      
+      if (!isAdmin && ticket.createdBy !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const messages = await storage.getTicketMessages(parseInt(id));
+      
+      // Filter internal messages for non-admin users
+      const filteredMessages = isAdmin ? messages : messages.filter(m => !m.isInternal);
+      
+      res.json(filteredMessages);
+    } catch (error) {
+      console.error("Error fetching ticket messages:", error);
+      res.status(500).json({ message: "Erro ao buscar mensagens" });
+    }
+  });
+
   // Get supplier data for payment
   app.get('/api/payments/:id/supplier', requireAuth, async (req: any, res) => {
     try {

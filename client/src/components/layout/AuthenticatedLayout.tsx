@@ -44,7 +44,8 @@ import {
   UserCog,
   FileCheck,
   Truck,
-  Package
+  Package,
+  MessageSquare
 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -158,6 +159,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const adminOnlyNavigation = [
     { path: "/users", icon: Users, label: "Gerenciar Usuários" },
     { path: "/importers", icon: UserCog, label: "Importadores" },
+    { path: "/admin/support", icon: MessageSquare, label: "Suporte" },
   ];
 
   const isActiveRoute = (path: string) => {

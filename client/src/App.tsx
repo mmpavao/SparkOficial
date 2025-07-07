@@ -32,6 +32,9 @@ import SupplierNewPage from "@/pages/supplier-new";
 import PaymentsPage from "@/pages/payments";
 import PaymentDetailsPage from "@/pages/payment-details";
 import ImporterDetailsPage from "@/pages/importer-details";
+import AdminSupportPage from "@/pages/admin-support";
+import SupportNewPage from "@/pages/support-new";
+import SupportTicketPage from "@/pages/support-ticket";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -89,6 +92,9 @@ function Router() {
         <Route path="/importers/:id" component={() => <AdminRoute><ImporterDetailsPage /></AdminRoute>} />
         <Route path="/admin/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
+        <Route path="/admin/support" component={() => <AdminRoute><AdminSupportPage /></AdminRoute>} />
+        <Route path="/support/new" component={SupportNewPage} />
+        <Route path="/support/ticket/:id" component={SupportTicketPage} />
 
         <Route component={NotFound} />
       </Switch>

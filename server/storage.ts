@@ -10,6 +10,9 @@ import {
   importDocuments,
   notifications,
   creditScores,
+  documentRequests,
+  supportTickets,
+  ticketMessages,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -19,6 +22,9 @@ import {
   type Supplier,
   type InsertSupplier,
   type CreditScore,
+  type DocumentRequest,
+  type SupportTicket,
+  type TicketMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
@@ -1714,6 +1720,244 @@ export class DatabaseStorage {
         updatedAt: new Date()
       })))
       .returning();
+  }
+  
+  // ===== DOCUMENT REQUESTS =====
+  
+  async createDocumentRequest(data: {
+    creditApplicationId: number;
+    requestedBy: number;
+    requestedFrom: number;
+    documentType: string;
+    documentName: string;
+    description?: string;
+  }): Promise<number> {
+    const [request] = await db
+      .insert(documentRequests)
+      .values(data)
+      .returning();
+    
+    // Create notification for the importador
+    await this.createNotification({
+      userId: data.requestedFrom,
+      type: 'document_request',
+      title: 'Documento Solicitado',
+      message: `Foi solicitado o documento: ${data.documentName}`,
+      priority: 'high',
+      data: {
+        creditApplicationId: data.creditApplicationId,
+        documentRequestId: request.id
+      }
+    });
+    
+    return request.id;
+  }
+  
+  async getDocumentRequestsForUser(userId: number): Promise<DocumentRequest[]> {
+    return await db
+      .select()
+      .from(documentRequests)
+      .where(eq(documentRequests.requestedFrom, userId))
+      .orderBy(desc(documentRequests.createdAt));
+  }
+  
+  async getDocumentRequestsForApplication(creditApplicationId: number): Promise<DocumentRequest[]> {
+    return await db
+      .select()
+      .from(documentRequests)
+      .where(eq(documentRequests.creditApplicationId, creditApplicationId))
+      .orderBy(desc(documentRequests.createdAt));
+  }
+  
+  async getDocumentRequestById(id: number): Promise<DocumentRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(documentRequests)
+      .where(eq(documentRequests.id, id))
+      .limit(1);
+    return request;
+  }
+  
+  async updateDocumentRequest(id: number, data: Partial<DocumentRequest>): Promise<void> {
+    await db
+      .update(documentRequests)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(documentRequests.id, id));
+  }
+  
+  async uploadDocumentForRequest(requestId: number, fileUrl: string): Promise<void> {
+    const [request] = await db
+      .select()
+      .from(documentRequests)
+      .where(eq(documentRequests.id, requestId))
+      .limit(1);
+      
+    if (!request) throw new Error('Document request not found');
+    
+    await db
+      .update(documentRequests)
+      .set({
+        uploadedFileUrl: fileUrl,
+        uploadedAt: new Date(),
+        status: 'uploaded',
+        updatedAt: new Date()
+      })
+      .where(eq(documentRequests.id, requestId));
+      
+    // Notify admin/financeira about the upload
+    await this.createNotification({
+      userId: request.requestedBy,
+      type: 'document_uploaded',
+      title: 'Documento Enviado',
+      message: `O documento ${request.documentName} foi enviado`,
+      data: {
+        creditApplicationId: request.creditApplicationId,
+        documentRequestId: requestId
+      }
+    });
+  }
+  
+  // ===== SUPPORT TICKETS =====
+  
+  async createSupportTicket(data: {
+    createdBy: number;
+    creditApplicationId?: number;
+    subject: string;
+    category: string;
+    priority?: string;
+    message?: string;
+  }): Promise<SupportTicket> {
+    // Generate unique ticket number
+    const ticketNumber = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    
+    const [ticket] = await db
+      .insert(supportTickets)
+      .values({
+        ...data,
+        ticketNumber,
+        priority: data.priority || 'medium',
+        status: 'open'
+      })
+      .returning();
+      
+    // Notify admins about new ticket
+    const admins = await db
+      .select()
+      .from(users)
+      .where(or(eq(users.role, 'admin'), eq(users.role, 'super_admin')));
+      
+    for (const admin of admins) {
+      await this.createNotification({
+        userId: admin.id,
+        type: 'new_ticket',
+        title: 'Novo Ticket de Suporte',
+        message: `Novo ticket: ${data.subject}`,
+        priority: data.priority || 'medium',
+        data: {
+          ticketId: ticket.id,
+          ticketNumber: ticket.ticketNumber
+        }
+      });
+    }
+    
+    return ticket;
+  }
+  
+  async getSupportTicketsForUser(userId: number, role: string): Promise<SupportTicket[]> {
+    if (role === 'admin' || role === 'super_admin' || role === 'financeira') {
+      // Admin/Financeira see all tickets
+      return await db
+        .select()
+        .from(supportTickets)
+        .orderBy(desc(supportTickets.createdAt));
+    } else {
+      // Importers only see their own tickets
+      return await db
+        .select()
+        .from(supportTickets)
+        .where(eq(supportTickets.createdBy, userId))
+        .orderBy(desc(supportTickets.createdAt));
+    }
+  }
+  
+  async getSupportTicket(ticketId: number): Promise<SupportTicket | undefined> {
+    const [ticket] = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.id, ticketId))
+      .limit(1);
+    return ticket;
+  }
+  
+  async updateSupportTicket(ticketId: number, data: Partial<SupportTicket>): Promise<void> {
+    await db
+      .update(supportTickets)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(supportTickets.id, ticketId));
+  }
+  
+  // ===== TICKET MESSAGES =====
+  
+  async createTicketMessage(data: {
+    ticketId: number;
+    senderId: number;
+    message: string;
+    attachments?: string[];
+    isInternal?: boolean;
+  }): Promise<TicketMessage> {
+    const [message] = await db
+      .insert(ticketMessages)
+      .values(data)
+      .returning();
+      
+    // Update ticket status to waiting_response
+    const [ticket] = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.id, data.ticketId))
+      .limit(1);
+      
+    if (ticket) {
+      const sender = await this.getUser(data.senderId);
+      
+      // Update status based on sender role
+      if (sender?.role === 'importer' && ticket.status === 'in_progress') {
+        await this.updateSupportTicket(data.ticketId, { status: 'waiting_response' });
+      } else if ((sender?.role === 'admin' || sender?.role === 'financeira') && ticket.status === 'open') {
+        await this.updateSupportTicket(data.ticketId, { status: 'in_progress' });
+      }
+      
+      // Notify the other party
+      const notifyUserId = sender?.role === 'importer' ? ticket.assignedTo : ticket.createdBy;
+      if (notifyUserId) {
+        await this.createNotification({
+          userId: notifyUserId,
+          type: 'ticket_message',
+          title: 'Nova Mensagem no Ticket',
+          message: `Nova mensagem no ticket ${ticket.ticketNumber}`,
+          data: {
+            ticketId: ticket.id,
+            ticketNumber: ticket.ticketNumber
+          }
+        });
+      }
+    }
+    
+    return message;
+  }
+  
+  async getTicketMessages(ticketId: number): Promise<TicketMessage[]> {
+    return await db
+      .select()
+      .from(ticketMessages)
+      .where(eq(ticketMessages.ticketId, ticketId))
+      .orderBy(ticketMessages.createdAt);
   }
 }
 

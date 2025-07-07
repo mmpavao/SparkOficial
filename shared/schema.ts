@@ -584,6 +584,57 @@ export const notifications = pgTable("notifications", {
   readAt: timestamp("read_at"),
 });
 
+// Document Requests System
+export const documentRequests = pgTable('document_requests', {
+  id: serial('id').primaryKey(),
+  creditApplicationId: integer('credit_application_id').notNull().references(() => creditApplications.id),
+  requestedBy: integer('requested_by').notNull().references(() => users.id),
+  requestedFrom: integer('requested_from').notNull().references(() => users.id),
+  documentType: text('document_type').notNull(),
+  documentName: text('document_name').notNull(),
+  description: text('description'),
+  status: text('status').notNull().default('pending'), // pending, uploaded, approved, rejected
+  uploadedFileUrl: text('uploaded_file_url'),
+  uploadedAt: timestamp('uploaded_at'),
+  reviewedBy: integer('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewNotes: text('review_notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Support Tickets System
+export const supportTickets = pgTable('support_tickets', {
+  id: serial('id').primaryKey(),
+  ticketNumber: text('ticket_number').notNull().unique(),
+  createdBy: integer('created_by').notNull().references(() => users.id),
+  assignedTo: integer('assigned_to').references(() => users.id),
+  creditApplicationId: integer('credit_application_id').references(() => creditApplications.id),
+  subject: text('subject').notNull(),
+  category: text('category').notNull(), // document_issue, payment_question, technical_support, general_inquiry
+  priority: text('priority').notNull().default('medium'), // low, medium, high, urgent
+  status: text('status').notNull().default('open'), // open, in_progress, waiting_response, resolved, closed
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at'),
+});
+
+// Ticket Messages
+export const ticketMessages = pgTable('ticket_messages', {
+  id: serial('id').primaryKey(),
+  ticketId: integer('ticket_id').notNull().references(() => supportTickets.id),
+  senderId: integer('sender_id').notNull().references(() => users.id),
+  message: text('message').notNull(),
+  attachments: text('attachments').array(), // JSON array of attachment URLs
+  isInternal: boolean('is_internal').default(false), // For internal admin notes
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// Type exports for the new tables
+export type DocumentRequest = typeof documentRequests.$inferSelect;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type TicketMessage = typeof ticketMessages.$inferSelect;
+
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
 

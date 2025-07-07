@@ -652,47 +652,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 />
               </div>
 
-              {/* Request Documents Section */}
-              <div className="space-y-2">
-                <Label htmlFor="requestedDocuments">Solicitar Documentos</Label>
-                <Textarea
-                  id="requestedDocuments"
-                  placeholder="Especifique quais documentos adicionais são necessários..."
-                  value={analysisData.requestedDocuments}
-                  onChange={(e) => setAnalysisData(prev => ({ ...prev, requestedDocuments: e.target.value }))}
-                  rows={2}
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleRequestDocuments}
-                  disabled={updateStatusMutation.isPending || !analysisData.requestedDocuments.trim()}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Enviar Solicitação
-                </Button>
-              </div>
 
-              {/* Admin Observations */}
-              <div className="space-y-2">
-                <Label htmlFor="observations">Observações para o Importador</Label>
-                <Textarea
-                  id="observations"
-                  placeholder="Adicione observações ou solicitações de esclarecimento..."
-                  value={analysisData.observations}
-                  onChange={(e) => setAnalysisData(prev => ({ ...prev, observations: e.target.value }))}
-                  rows={2}
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleAddObservation}
-                  disabled={updateStatusMutation.isPending || !analysisData.observations.trim()}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Enviar Observação
-                </Button>
-              </div>
 
               {/* Action Buttons for Admin - Only show for pending applications */}
               <div className="pt-4">
