@@ -1971,10 +1971,12 @@ export class DatabaseStorage {
   }
 
   async createSupportTicket(data: {
-    userId: number;
-    title: string;
-    description: string;
+    createdBy: number;
+    subject: string;
+    message: string;
     priority: string;
+    category?: string;
+    creditApplicationId?: number;
   }): Promise<SupportTicket> {
     // Generate ticket number
     const ticketNumber = `TK-${Date.now()}`;
@@ -1985,13 +1987,26 @@ export class DatabaseStorage {
       .insert(supportTickets)
       .values({
         ticketNumber,
-        createdBy: data.userId,
-        subject: data.title,
-        category: 'general_inquiry',
-        priority: data.priority,
-        status: 'open'
+        createdBy: data.createdBy,
+        subject: data.subject,
+        category: data.category || 'general_inquiry',
+        priority: data.priority || 'medium',
+        status: 'open',
+        creditApplicationId: data.creditApplicationId || null
       })
       .returning();
+
+    // Create initial message for the ticket
+    if (data.message) {
+      await db
+        .insert(ticketMessages)
+        .values({
+          ticketId: ticket.id,
+          message: data.message,
+          sentBy: data.createdBy,
+          isFromAdmin: false
+        });
+    }
 
     return ticket;
   }
