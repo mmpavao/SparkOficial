@@ -113,48 +113,75 @@ export default function UnifiedDocumentUpload({
     onUpload(documentKey, file);
   };
 
-  // Handle multiple files with proper queue management
+  // Handle multiple files with robust sequential queue
   const handleMultipleFiles = async (files: File[]) => {
+    console.log(`🚀 Iniciando upload sequencial de ${files.length} arquivos para ${documentKey}`);
+    
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      console.log(`📤 Processing file ${i + 1}/${files.length}: ${file.name}`);
+      console.log(`📤 [${i + 1}/${files.length}] Processando: ${file.name}`);
       
-      // Wait for previous upload to complete before starting next
-      await new Promise((resolve) => {
-        const originalOnUpload = onUpload;
-        
-        // Create a wrapper that resolves when upload is complete
-        const wrappedOnUpload = (docKey: string, uploadFile: File) => {
-          originalOnUpload(docKey, uploadFile);
+      // Validate file before upload
+      const validation = validateFile(file);
+      if (!validation.isValid) {
+        console.error(`❌ Arquivo inválido: ${file.name} - ${validation.error}`);
+        alert(`${file.name}: ${validation.error}`);
+        continue;
+      }
+
+      // Check if replacement needed for non-multiple mode
+      if (!allowMultiple && hasDocuments && i === 0) {
+        if (!confirm('Já existe um documento. Deseja substituí-lo?')) {
+          console.log(`⏭️ Upload cancelado pelo usuário`);
+          continue;
+        }
+        onRemove(documentKey);
+        // Wait a bit after removal
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      try {
+        // Create a promise that waits for the upload to complete
+        await new Promise<void>((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(new Error(`Upload timeout para ${file.name}`));
+          }, 30000); // 30 second timeout
+
+          // Store original state
+          const currentDocCount = documentsArray.length;
           
-          // Wait for the upload to be reflected in state before continuing
-          setTimeout(() => {
-            resolve(void 0);
-          }, 300); // Give time for state update
-        };
+          // Start upload
+          console.log(`⬆️ Iniciando upload: ${file.name}`);
+          onUpload(documentKey, file);
+          
+          // Poll for completion
+          const checkCompletion = setInterval(() => {
+            const newDocCount = uploadedDocuments[documentKey] ? 
+              (Array.isArray(uploadedDocuments[documentKey]) ? 
+                uploadedDocuments[documentKey].length : 1) : 0;
+            
+            if (newDocCount > currentDocCount) {
+              console.log(`✅ Upload concluído: ${file.name}`);
+              clearTimeout(timeoutId);
+              clearInterval(checkCompletion);
+              resolve();
+            }
+          }, 500); // Check every 500ms
+        });
+
+        // Wait a bit between uploads to prevent race conditions
+        if (i < files.length - 1) {
+          console.log(`⏳ Aguardando antes do próximo upload...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
         
-        // Temporarily replace onUpload with our wrapper
-        const validation = validateFile(file);
-        if (!validation.isValid) {
-          alert(`${file.name}: ${validation.error}`);
-          resolve(void 0);
-          return;
-        }
-
-        // Check if multiple files are allowed
-        if (!allowMultiple && hasDocuments && i === 0) {
-          if (confirm('Já existe um documento. Deseja substituí-lo?')) {
-            onRemove(documentKey);
-          } else {
-            resolve(void 0);
-            return;
-          }
-        }
-
-        // Upload file using the wrapper
-        wrappedOnUpload(documentKey, file);
-      });
+      } catch (error) {
+        console.error(`❌ Erro no upload de ${file.name}:`, error);
+        alert(`Erro ao enviar ${file.name}: ${error.message}`);
+      }
     }
+    
+    console.log(`🎉 Upload sequencial concluído para ${documentKey}`);
   };
 
   // Handle drag and drop
