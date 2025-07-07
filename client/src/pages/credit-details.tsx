@@ -268,7 +268,17 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
-    deleteDocumentMutation.mutate({ documentId });
+    console.log(`Attempting to remove document: ${documentId} with index: ${index}`);
+    
+    // Se o documentId já contém o formato composto (documentKey_filename), usar diretamente
+    if (documentId.includes('_') && typeof index === 'number') {
+      console.log(`Removing specific document from array: ${documentId}`);
+      deleteDocumentMutation.mutate({ documentId });
+    } else {
+      // Para documento único ou quando não há índice específico
+      console.log(`Removing document: ${documentId}`);
+      deleteDocumentMutation.mutate({ documentId });
+    }
   };
 
   const initializeEditMode = () => {
