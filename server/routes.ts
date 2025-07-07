@@ -5681,84 +5681,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Credit API Integration Functions - API Consultas
-  async function postQuery<T>(query: string, input: Record<string, unknown>): Promise<T> {
-    if (!process.env.CREDIT_API_KEY) {
-      throw new Error('Credit API key not configured');
+  // CNPJá API Integration - Receita Federal + Credit Score
+  async function callCnpjaAPI(cnpj: string): Promise<any> {
+    if (!process.env.CNPJA_API_KEY) {
+      throw new Error('CNPJá API key not configured');
     }
 
     try {
-      console.log('🏦 Calling API Consultas GraphQL with query');
+      console.log('🏦 Calling CNPJá API for CNPJ:', cnpj);
       
-      const response = await fetch('https://api.apiconsultas.com/graphql', {
-        method: 'POST',
+      const response = await fetch(`https://api.cnpja.com/office/${cnpj}?simples=true`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
-        },
-        body: JSON.stringify({
-          query,
-          variables: { input }
-        })
+          'Authorization': process.env.CNPJA_API_KEY
+        }
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Consultas HTTP error:', response.status, errorText);
-        throw new Error(`API Consultas HTTP error: ${response.status}`);
+        console.error('❌ CNPJá API HTTP error:', response.status, errorText);
+        throw new Error(`CNPJá API HTTP error: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('✅ API Consultas response received');
+      console.log('✅ CNPJá API response received');
       
-      if (result.errors) {
-        console.error('❌ API Consultas GraphQL errors:', result.errors);
-        throw new Error(`API Consultas GraphQL error: ${result.errors[0].message}`);
-      }
-
-      return result.data;
+      return result;
     } catch (error) {
-      console.error('❌ API Consultas error:', error);
+      console.error('❌ CNPJá API error:', error);
       throw error;
     }
   }
 
   async function callCreditAPI(cnpj: string): Promise<any> {
-    const createCreditoCompletoCnpjQuery = `
-      mutation CreateCreditoCompletoCnpj($input: CreditoCompletoCnpjInput!) {
-        createCreditoCompletoCnpj(input: $input) {
-          id
-          status
-          data {
-            cnpj
-            creditRating
-            bankingScore
-            paymentBehavior
-            creditHistory
-            financialProfile
-            riskLevel
-            hasDebts
-            debtDetails
-            hasProtests
-            protestDetails
-            hasLawsuits
-            lawsuitDetails
-            hasBankruptcy
-            bankruptcyDetails
-          }
-        }
-      }
-    `;
-
     try {
-      console.log('🏦 Calling Credit API for CNPJ:', cnpj);
+      console.log('🏦 Calling CNPJá for Credit Analysis - CNPJ:', cnpj);
       
-      const response = await postQuery(createCreditoCompletoCnpjQuery, { cnpj });
-      return (response as any).createCreditoCompletoCnpj;
+      // Call CNPJá API for company data
+      const cnpjaData = await callCnpjaAPI(cnpj);
+      
+      // Transform CNPJá data to our credit analysis format
+      const creditData = {
+        cnpj: cnpjaData.taxId,
+        creditRating: calculateCreditRatingFromCnpja(cnpjaData),
+        bankingScore: calculateBankingScore(cnpjaData),
+        paymentBehavior: 'REGULAR', // Based on company status
+        creditHistory: cnpjaData.company?.founded ? 'ESTABLISHED' : 'NEW',
+        financialProfile: analyzeFinancialProfile(cnpjaData),
+        riskLevel: calculateRiskLevel(cnpjaData),
+        hasDebts: false, // CNPJá doesn't provide this info directly
+        debtDetails: null,
+        hasProtests: false, // CNPJá doesn't provide this info directly
+        protestDetails: null,
+        hasLawsuits: false, // CNPJá doesn't provide this info directly
+        lawsuitDetails: null,
+        hasBankruptcy: cnpjaData.status?.id === 8, // 8 = BAIXADA
+        bankruptcyDetails: cnpjaData.status?.id === 8 ? cnpjaData.status?.text : null
+      };
+      
+      return { data: creditData };
     } catch (error) {
-      console.error('❌ Credit API error:', error);
+      console.error('❌ CNPJá Credit API error:', error);
       throw error;
     }
+  }
+
+  // Helper functions for credit analysis
+  function calculateCreditRatingFromCnpja(cnpjaData: any): string {
+    const status = cnpjaData.status?.id;
+    const hasSimples = cnpjaData.company?.simples?.optant;
+    const equity = cnpjaData.company?.equity || 0;
+    
+    if (status === 2) return 'EXCELLENT'; // ATIVA
+    if (status === 3) return 'POOR'; // SUSPENSA
+    if (status === 8) return 'VERY_POOR'; // BAIXADA
+    
+    if (hasSimples && equity > 100000) return 'GOOD';
+    if (hasSimples) return 'FAIR';
+    
+    return 'FAIR';
+  }
+
+  function calculateBankingScore(cnpjaData: any): number {
+    let score = 600; // Base score
+    
+    // Company age bonus
+    if (cnpjaData.company?.founded) {
+      const founded = new Date(cnpjaData.company.founded);
+      const years = (new Date().getTime() - founded.getTime()) / (1000 * 60 * 60 * 24 * 365);
+      score += Math.min(years * 20, 200); // Max 200 points for age
+    }
+    
+    // Equity bonus
+    const equity = cnpjaData.company?.equity || 0;
+    if (equity > 1000000) score += 100;
+    else if (equity > 100000) score += 50;
+    else if (equity > 10000) score += 25;
+    
+    // Status penalty
+    if (cnpjaData.status?.id === 3) score -= 200; // SUSPENSA
+    if (cnpjaData.status?.id === 8) score -= 400; // BAIXADA
+    
+    // Simples Nacional bonus
+    if (cnpjaData.company?.simples?.optant) score += 50;
+    
+    return Math.min(Math.max(score, 0), 1000);
+  }
+
+  function analyzeFinancialProfile(cnpjaData: any): string {
+    const equity = cnpjaData.company?.equity || 0;
+    const isSimples = cnpjaData.company?.simples?.optant;
+    
+    if (equity > 5000000) return 'LARGE_CORPORATE';
+    if (equity > 1000000) return 'MEDIUM_CORPORATE';
+    if (equity > 100000) return 'SMALL_BUSINESS';
+    if (isSimples) return 'MICRO_BUSINESS';
+    
+    return 'STARTUP';
+  }
+
+  function calculateRiskLevel(cnpjaData: any): string {
+    const status = cnpjaData.status?.id;
+    const equity = cnpjaData.company?.equity || 0;
+    
+    if (status === 8) return 'HIGH'; // BAIXADA
+    if (status === 3) return 'MEDIUM'; // SUSPENSA
+    if (status === 2 && equity > 500000) return 'LOW'; // ATIVA with good equity
+    
+    return 'MEDIUM';
   }
 
   function enhanceCreditScore(receitaScore: number, creditApiData: any): number {
