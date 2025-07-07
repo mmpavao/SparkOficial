@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ export default function SupportPage() {
   });
   const { toast } = useToast();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Fetch user's support tickets
   const { data: tickets = [], isLoading } = useQuery({
@@ -272,7 +274,7 @@ export default function SupportPage() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => window.location.href = `/support/ticket/${ticket.id}`}
+                      onClick={() => setLocation(`/support/ticket/${ticket.id}`)}
                     >
                       Ver Detalhes
                     </Button>
