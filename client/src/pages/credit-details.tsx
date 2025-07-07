@@ -524,48 +524,55 @@ export default function CreditDetailsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => mounted && setLocation('/credit')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </Button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => mounted && setLocation('/credit')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+          
+          {/* Edit Button - Moved to top, right after back button */}
+          {(application.status === 'pending' || application.status === 'under_review') && !permissions.isAdmin && !permissions.isFinanceira && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => mounted && setLocation(`/credit/edit/${application.id}`)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Edit className="w-4 h-4" />
+              Editar Solicitação
+            </Button>
+          )}
+        </div>
+        
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">
             Solicitação de Crédito #{application.id}
           </h1>
           <p className="text-gray-600">Detalhes da solicitação de crédito</p>
         </div>
+        
         <div className="flex items-center gap-2">
           {getStatusBadge(application.status)}
 
-          {/* Action Buttons - Show only for pending/under_review status */}
+          {/* Cancel Button - Keep only cancel button on the right */}
           {(application.status === 'pending' || application.status === 'under_review') && !permissions.isAdmin && !permissions.isFinanceira && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => mounted && setLocation(`/credit/edit/${application.id}`)}
-                className="flex items-center gap-2"
-              >
-                <Edit className="w-4 h-4" />
-                Editar
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Cancelar
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Cancelar</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -586,7 +593,6 @@ export default function CreditDetailsPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </>
           )}
         </div>
       </div>
