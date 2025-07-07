@@ -119,15 +119,15 @@ export default function CommunicationTabs({ creditApplicationId, applicationUser
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="messages">Observações</TabsTrigger>
             <TabsTrigger value="documents">Documentos</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
           </TabsList>
 
           {/* Messages Tab */}
-          <TabsContent value="messages" className="space-y-4">
+          <TabsContent value="messages" className="space-y-4 mt-4">
             {permissions.isImporter ? (
               <div className="text-center py-8 text-gray-500">
                 <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -159,7 +159,7 @@ export default function CommunicationTabs({ creditApplicationId, applicationUser
           </TabsContent>
 
           {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-4">
+          <TabsContent value="documents" className="space-y-4 mt-4">
             {/* Document Requests List */}
             {documentRequests.length > 0 && (
               <div className="space-y-3">
@@ -240,7 +240,7 @@ export default function CommunicationTabs({ creditApplicationId, applicationUser
           </TabsContent>
 
           {/* Tickets Tab */}
-          <TabsContent value="tickets" className="space-y-4">
+          <TabsContent value="tickets" className="space-y-4 mt-4">
             {permissions.isImporter ? (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
