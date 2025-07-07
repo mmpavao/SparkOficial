@@ -6048,60 +6048,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // CNPJá Credit Analysis - Using your existing CREDIT_API_KEY
+  // CNPJá Credit Analysis - Using official estabelecimentos endpoint
   async function callCnpjaCreditAPI(cnpj: string): Promise<any> {
     try {
-      console.log('🏦 Calling CNPJá Credit Analysis API - CNPJ:', cnpj);
+      console.log('🏦 Calling CNPJá Estabelecimentos API - CNPJ:', cnpj);
       
-      // Use CNPJá company endpoint for complete credit data
-      const response = await fetch(`https://cnpja.com/companies/${cnpj}`, {
+      // Use official CNPJá estabelecimentos endpoint with tax data
+      const url = `https://api.cnpja.com/estabelecimentos/${cnpj}?simples=true&registrations=BR&ccc=true`;
+      console.log('🔗 Request URL:', url);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`,
+          'Authorization': process.env.CREDIT_API_KEY || '',
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'User-Agent': 'SparkComex/1.0'
         }
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ CNPJá Credit API response received with data:', JSON.stringify(result, null, 2));
+        console.log('✅ CNPJá API response received');
+        console.log('📊 Response structure:', Object.keys(result || {}));
         
-        // Log complete response structure for debugging
-        console.log('📊 Complete CNPJá response structure:', JSON.stringify(result, null, 2));
+        // Log specific tax-related fields for debugging
+        if (result.simples) {
+          console.log('💰 Simples Nacional data:', JSON.stringify(result.simples, null, 2));
+        }
+        if (result.registrations) {
+          console.log('📋 Registrations data:', JSON.stringify(result.registrations, null, 2));
+        }
+        if (result.status) {
+          console.log('🏢 Company status:', JSON.stringify(result.status, null, 2));
+        }
         
-        // Accept any valid company data - we'll analyze what's available
-        if (result && result.taxId) {
-          console.log('✅ Valid CNPJá company data received');
-          console.log('🔍 Available fields:', Object.keys(result));
+        // Accept any valid establishment data
+        if (result && (result.cnpj || result.taxId)) {
           return {
             success: true,
             data: result,
-            source: 'CNPJA_COMPANIES'
+            source: 'CNPJA_ESTABELECIMENTOS'
           };
         } else {
           console.log('⚠️ Invalid response structure:', Object.keys(result || {}));
           return {
             success: false,
-            error: 'Invalid company data',
+            error: 'Invalid establishment data',
             data: result
           };
         }
       } else {
         const errorText = await response.text();
-        console.log('❌ CNPJá Credit API failed with status:', response.status, 'Response:', errorText);
+        console.log('❌ CNPJá API failed with status:', response.status);
+        console.log('❌ Error response:', errorText);
+        
+        // If commercial API fails, try public API
+        return await fallbackToPublicAPI(cnpj);
+      }
+    } catch (error) {
+      console.error('❌ CNPJá API error:', error);
+      return await fallbackToPublicAPI(cnpj);
+    }
+  }
+
+  // Fallback to public API if commercial fails
+  async function fallbackToPublicAPI(cnpj: string): Promise<any> {
+    try {
+      console.log('🔄 Trying CNPJá public API as fallback...');
+      
+      const response = await fetch(`https://cnpja.com/api/open/cnpj/${cnpj}`, {
+        headers: { 
+          'Accept': 'application/json',
+          'User-Agent': 'SparkComex/1.0'
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Public API response received');
+        console.log('📊 Public response structure:', Object.keys(result || {}));
+        
+        return {
+          success: true,
+          data: result,
+          source: 'CNPJA_PUBLIC'
+        };
+      } else {
+        console.log('❌ Public API also failed with status:', response.status);
         return {
           success: false,
-          error: `API failed with status ${response.status}`,
-          details: errorText
+          error: 'Both CNPJá APIs failed',
+          details: `Commercial: failed, Public: ${response.status}`
         };
       }
     } catch (error) {
-      console.error('❌ CNPJá Credit API error:', error);
+      console.log('❌ Public API error:', error);
       return {
         success: false,
-        error: error.message,
-        details: error
+        error: 'All CNPJá APIs failed',
+        details: error.message
       };
     }
   }
@@ -6158,103 +6203,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function checkForDebtIndicators(cnpjaData: any): boolean {
-    console.log('🔍 Checking debt indicators in CNPJá data...');
+    console.log('🔍 Checking debt indicators in CNPJá estabelecimentos data...');
     
-    // Check for Simples Nacional debt issues (real data available in CNPJá)
-    if (cnpjaData.company?.simples?.status === false) {
-      const reason = cnpjaData.company?.simples?.reason || '';
-      if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA')) {
-        console.log('🚨 DÉBITO NO SIMPLES NACIONAL ENCONTRADO:', reason);
+    // Check for Simples Nacional debt issues (from estabelecimentos endpoint)
+    if (cnpjaData.simples) {
+      const simples = cnpjaData.simples;
+      console.log('💰 Simples Nacional analysis:', JSON.stringify(simples, null, 2));
+      
+      if (simples.optant === false && simples.reason) {
+        const reason = simples.reason;
+        if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA') || reason.includes('IRREGULAR')) {
+          console.log('🚨 DÉBITO NO SIMPLES NACIONAL ENCONTRADO:', reason);
+          return true;
+        }
+      }
+    }
+    
+    // Check company registration status for debt-related issues
+    if (cnpjaData.status) {
+      console.log('🏢 Company status analysis:', JSON.stringify(cnpjaData.status, null, 2));
+      
+      if (cnpjaData.status.id === 3) { // Suspensa
+        console.log('🚨 EMPRESA SUSPENSA - Forte indicador de débitos');
+        return true;
+      }
+      
+      if (cnpjaData.status.id === 4) { // Inapta
+        console.log('🚨 EMPRESA INAPTA - Indicador de problemas fiscais');
+        return true;
+      }
+      
+      if (cnpjaData.status.id === 8) { // Baixada
+        console.log('🚨 EMPRESA BAIXADA - Possível indicador de problemas graves');
         return true;
       }
     }
     
-    // Check company status for debt-related issues
-    if (cnpjaData.status?.id === 3) { // Suspensa
-      console.log('🚨 EMPRESA SUSPENSA - Possível indicador de débitos');
-      return true;
+    // Check state registrations for irregularities
+    if (cnpjaData.registrations && Array.isArray(cnpjaData.registrations)) {
+      console.log('📋 State registrations analysis:', cnpjaData.registrations.length, 'registrations');
+      
+      for (const registration of cnpjaData.registrations) {
+        if (registration.status && registration.status !== 'ATIVO') {
+          console.log('🚨 REGISTRO ESTADUAL IRREGULAR:', registration.state, '-', registration.status);
+          return true;
+        }
+      }
     }
-    
-    if (cnpjaData.status?.id === 4) { // Inapta
-      console.log('🚨 EMPRESA INAPTA - Possível indicador de problemas fiscais');
-      return true;
-    }
-    
-    // Check for MEI debt issues
-    if (cnpjaData.company?.mei?.status === false) {
-      console.log('🚨 PROBLEMAS NO MEI DETECTADOS');
-      return true;
-    }
-    
-    // For companies with detailed financial data, check specific debt fields
-    // Note: CNPJá public API may not have all debt details, but we check what's available
-    const company = cnpjaData.company || {};
     
     // Log what we're analyzing
-    console.log('📊 Analyzing company data:');
+    console.log('📊 Complete analysis results:');
     console.log('   - Status ID:', cnpjaData.status?.id);
     console.log('   - Status Text:', cnpjaData.status?.text);
-    console.log('   - Simples Status:', company.simples?.status);
-    console.log('   - Simples Reason:', company.simples?.reason);
-    console.log('   - MEI Status:', company.mei?.status);
+    console.log('   - Simples Optant:', cnpjaData.simples?.optant);
+    console.log('   - Simples Reason:', cnpjaData.simples?.reason);
+    console.log('   - Registrations Count:', cnpjaData.registrations?.length || 0);
     
     return false; // No debt indicators found in available data
   }
 
   function extractDebtDetails(cnpjaData: any): any[] | null {
     const debts = [];
-    const company = cnpjaData.company || {};
     
-    // Extract Simples Nacional debt details (real CNPJá data)
-    if (company.simples?.status === false && company.simples?.reason) {
-      const reason = company.simples.reason;
-      if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA')) {
+    // Extract Simples Nacional debt details (from estabelecimentos endpoint)
+    if (cnpjaData.simples && cnpjaData.simples.optant === false && cnpjaData.simples.reason) {
+      const reason = cnpjaData.simples.reason;
+      if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA') || reason.includes('IRREGULAR')) {
         debts.push({
           type: 'SIMPLES_NACIONAL',
           description: reason,
           status: 'PENDENTE',
           severity: 'ALTA',
-          source: 'Receita Federal via CNPJá'
+          date: cnpjaData.simples.since || 'Não informado',
+          source: 'Receita Federal via CNPJá Estabelecimentos'
         });
         console.log('📋 Débito Simples Nacional extraído:', reason);
       }
     }
     
     // Extract status-based debt indicators
-    if (cnpjaData.status?.id === 3) { // Suspensa
-      debts.push({
-        type: 'STATUS_EMPRESA',
-        description: 'Empresa com situação cadastral SUSPENSA',
-        status: 'ATIVO',
-        severity: 'ALTA',
-        details: cnpjaData.status.text,
-        source: 'Receita Federal via CNPJá'
-      });
-      console.log('📋 Status suspenso extraído');
+    if (cnpjaData.status) {
+      if (cnpjaData.status.id === 3) { // Suspensa
+        debts.push({
+          type: 'STATUS_EMPRESA',
+          description: 'Empresa com situação cadastral SUSPENSA',
+          status: 'ATIVO',
+          severity: 'ALTA',
+          details: cnpjaData.status.text,
+          since: cnpjaData.status.since || 'Não informado',
+          source: 'Receita Federal via CNPJá'
+        });
+        console.log('📋 Status suspenso extraído');
+      }
+      
+      if (cnpjaData.status.id === 4) { // Inapta
+        debts.push({
+          type: 'STATUS_EMPRESA',
+          description: 'Empresa com situação cadastral INAPTA',
+          status: 'ATIVO',
+          severity: 'MEDIA',
+          details: cnpjaData.status.text,
+          since: cnpjaData.status.since || 'Não informado',
+          source: 'Receita Federal via CNPJá'
+        });
+        console.log('📋 Status inapto extraído');
+      }
+      
+      if (cnpjaData.status.id === 8) { // Baixada
+        debts.push({
+          type: 'STATUS_EMPRESA',
+          description: 'Empresa com situação cadastral BAIXADA',
+          status: 'ATIVO',
+          severity: 'CRITICA',
+          details: cnpjaData.status.text,
+          since: cnpjaData.status.since || 'Não informado',
+          source: 'Receita Federal via CNPJá'
+        });
+        console.log('📋 Status baixado extraído');
+      }
     }
     
-    if (cnpjaData.status?.id === 4) { // Inapta
-      debts.push({
-        type: 'STATUS_EMPRESA',
-        description: 'Empresa com situação cadastral INAPTA',
-        status: 'ATIVO',
-        severity: 'MEDIA',
-        details: cnpjaData.status.text,
-        source: 'Receita Federal via CNPJá'
+    // Extract state registration irregularities
+    if (cnpjaData.registrations && Array.isArray(cnpjaData.registrations)) {
+      cnpjaData.registrations.forEach((registration: any) => {
+        if (registration.status && registration.status !== 'ATIVO') {
+          debts.push({
+            type: 'REGISTRO_ESTADUAL',
+            description: `Registro estadual irregular em ${registration.state}`,
+            status: registration.status,
+            severity: 'MEDIA',
+            state: registration.state,
+            number: registration.number,
+            source: 'SEFAZ via CNPJá'
+          });
+          console.log('📋 Registro estadual irregular extraído:', registration.state, registration.status);
+        }
       });
-      console.log('📋 Status inapto extraído');
-    }
-    
-    // MEI debt issues
-    if (company.mei?.status === false) {
-      debts.push({
-        type: 'MEI',
-        description: 'Problemas detectados no registro MEI',
-        status: 'PENDENTE',
-        severity: 'MEDIA',
-        source: 'Receita Federal via CNPJá'
-      });
-      console.log('📋 Problema MEI extraído');
     }
     
     console.log(`📋 Total de ${debts.length} indicadores de débito/problemas extraídos dos dados reais da CNPJá`);
