@@ -869,6 +869,13 @@ Changelog:
   * Integrated notification system for document requests and ticket updates
   * Established role-based permissions: importers can upload documents and create tickets, admins can request documents and manage all tickets
   * System allows bidirectional communication between importers and administrators without affecting existing functionality
+- July 07, 2025. UI/UX improvements and authentication fixes:
+  * Fixed layout issue in financeira module credit analysis with vertical button alignment (flex-col gap-2 w-full)
+  * Corrected confusing toast notification showing "Faça login" after successful login
+  * Updated login success message to "Login realizado com sucesso!" for intuitive user feedback
+  * Fixed registration success message to "Conta criada com sucesso!" for consistency
+  * Added basic click handlers for "Editar Termos" and "Bloquear Crédito" buttons without breaking existing functionality
+  * Maintained visual consistency between financeira and importer modules with identical layouts
 ```
 
 ## User Preferences

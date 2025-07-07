@@ -110,7 +110,7 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Sucesso!",
-        description: authTranslations.loginButton,
+        description: "Login realizado com sucesso!",
       });
     },
     onError: (error: any) => {
@@ -131,7 +131,7 @@ export default function AuthPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Sucesso!",
-        description: authTranslations.registerButton,
+        description: "Conta criada com sucesso!",
       });
     },
     onError: (error: any) => {
