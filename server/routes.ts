@@ -2937,58 +2937,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (response.ok) {
             const receitaData = await response.json();
-            console.log('✅ Receita WS API response received');
+            console.log('✅ Receita WS API response received:', JSON.stringify(receitaData, null, 2));
             
-            // Map Receita WS data to our credit score structure
+            // Use ONLY real data from Receita WS API - no fallback to application data
             creditScoreData = {
               creditApplicationId: applicationId,
               cnpj: application.cnpj,
-              creditScore: calculateCreditScore(receitaData), // Calculate based on company data
+              creditScore: calculateCreditScore(receitaData),
               scoreDate: new Date(),
-              legalName: receitaData.nome || application.legalCompanyName,
-              tradingName: receitaData.fantasia || receitaData.nome || application.legalCompanyName,
-              status: receitaData.situacao || 'ATIVA',
-              openingDate: receitaData.abertura ? new Date(receitaData.abertura) : new Date('2015-01-15'),
-              shareCapital: receitaData.capital_social ? `R$ ${receitaData.capital_social}` : 'R$ 0,00',
-              address: receitaData.logradouro || application.address,
-              city: receitaData.municipio || application.city,
-              state: receitaData.uf || application.state,
-              zipCode: receitaData.cep || application.zipCode,
-              phone: receitaData.telefone || application.phone,
-              email: receitaData.email || application.email,
+              // Only use data from API response
+              legalName: receitaData.nome || 'Não informado',
+              tradingName: receitaData.fantasia || receitaData.nome || 'Não informado',
+              status: receitaData.situacao || 'Não informado',
+              openingDate: receitaData.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
+              shareCapital: receitaData.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
+              // Use complete address from API
+              address: [
+                receitaData.logradouro,
+                receitaData.numero,
+                receitaData.complemento,
+                receitaData.bairro
+              ].filter(Boolean).join(', ') || 'Não informado',
+              city: receitaData.municipio || 'Não informado',
+              state: receitaData.uf || 'Não informado',
+              zipCode: formatCEP(receitaData.cep) || 'Não informado',
+              phone: formatPhone(receitaData.telefone) || 'Não informado',
+              email: receitaData.email || 'Não informado',
               mainActivity: receitaData.atividade_principal?.[0] ? {
-                code: receitaData.atividade_principal[0].code,
-                description: receitaData.atividade_principal[0].text
-              } : { code: '0000-0/00', description: 'Não informado' },
+                code: receitaData.atividade_principal[0].code || 'Não informado',
+                description: receitaData.atividade_principal[0].text || 'Não informado'
+              } : { code: 'Não informado', description: 'Não informado' },
               secondaryActivities: receitaData.atividades_secundarias?.map((act: any) => ({
-                code: act.code,
-                description: act.text
+                code: act.code || 'Não informado',
+                description: act.text || 'Não informado'
               })) || [],
               partners: receitaData.qsa?.map((partner: any) => ({
-                name: partner.nome,
-                qualification: partner.qual,
-                joinDate: partner.pais || null
-              })) || application.shareholders || [],
+                name: partner.nome || 'Não informado',
+                qualification: partner.qual || 'Não informado',
+                joinDate: partner.data_entrada || null
+              })) || [],
               companyData: receitaData, // Store full API response
-              hasDebts: false, // These would come from credit bureau integration
+              hasDebts: false, // Would need integration with Serasa/SPC
               hasProtests: false,
               hasBankruptcy: false,
               hasLawsuits: false,
               lastCheckedAt: new Date()
             };
           } else {
-            console.warn('⚠️ Receita WS API returned error:', response.status);
-            throw new Error('Receita WS API error');
+            const errorText = await response.text();
+            console.error('⚠️ Receita WS API error:', response.status, errorText);
+            return res.status(503).json({ 
+              message: "Serviço da Receita Federal temporariamente indisponível",
+              details: "Não foi possível consultar os dados da empresa no momento"
+            });
           }
         } catch (apiError) {
           console.error('❌ Receita WS API error:', apiError);
-          // Fall back to mock data
-          creditScoreData = generateMockCreditScore(application, applicationId);
+          return res.status(503).json({ 
+            message: "Erro ao consultar Receita Federal",
+            details: "Verifique a configuração da API key ou tente novamente mais tarde"
+          });
         }
       } else {
-        // No API key, use mock data
-        console.log('ℹ️ No Receita WS API key found, using mock data');
-        creditScoreData = generateMockCreditScore(application, applicationId);
+        // No API key configured
+        return res.status(503).json({ 
+          message: "Serviço de consulta não configurado",
+          details: "A API da Receita Federal não está configurada. Entre em contato com o administrador."
+        });
       }
       
       // Save credit score
@@ -3031,35 +3046,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return Math.min(Math.max(score, 0), 1000);
   }
   
-  // Helper function to generate mock credit score
-  function generateMockCreditScore(application: any, applicationId: number): any {
-    return {
-      creditApplicationId: applicationId,
-      cnpj: application.cnpj,
-      creditScore: Math.floor(Math.random() * 400) + 600, // 600-1000 range
-      scoreDate: new Date(),
-      legalName: application.legalCompanyName,
-      tradingName: application.legalCompanyName,
-      status: 'ATIVA',
-      openingDate: new Date('2015-01-15'),
-      shareCapital: 'R$ 500.000,00',
-      address: application.address,
-      city: application.city,
-      state: application.state,
-      zipCode: application.zipCode,
-      phone: application.phone,
-      email: application.email,
-      mainActivity: { code: '4711-3/02', description: 'Comércio varejista de mercadorias em geral' },
-      secondaryActivities: [
-        { code: '4712-1/00', description: 'Comércio varejista de mercadorias em geral' }
-      ],
-      partners: application.shareholders || [],
-      hasDebts: Math.random() > 0.8,
-      hasProtests: Math.random() > 0.9,
-      hasBankruptcy: false,
-      hasLawsuits: Math.random() > 0.85,
-      lastCheckedAt: new Date()
-    };
+  // Helper function to format currency
+  function formatCurrency(value: string | number): string {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(numValue);
+  }
+  
+  // Helper function to format CEP
+  function formatCEP(cep: string): string {
+    if (!cep) return '';
+    const cleaned = cep.replace(/\D/g, '');
+    return cleaned.replace(/(\d{5})(\d{3})/, '$1-$2');
+  }
+  
+  // Helper function to format phone
+  function formatPhone(phone: string): string {
+    if (!phone) return '';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 11) {
+      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (cleaned.length === 10) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return phone;
   }
 
   // Communication endpoints for credit applications

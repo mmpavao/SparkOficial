@@ -46,10 +46,14 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         title: "Análise concluída",
         description: "Credit Score calculado com sucesso",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Credit Score API error:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";
+      const errorDetails = error.response?.data?.details || "";
+      
       toast({
-        title: "Erro ao consultar",
-        description: "Não foi possível consultar o Credit Score",
+        title: errorMessage,
+        description: errorDetails,
         variant: "destructive",
       });
     } finally {
