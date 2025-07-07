@@ -523,42 +523,90 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </Card>
           )}
 
-          {/* API Status Card */}
+          {/* Data Source Information */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Activity className="w-5 h-5 flex-shrink-0" />
-                Status das Consultas
+                Fonte dos Dados
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Receita Federal</span>
-                  <Badge className={`${
-                    (creditScore as any).receitaWsStatus === 'success' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {(creditScore as any).receitaWsStatus === 'success' ? 'Sucesso' : 'Pendente'}
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <span className="text-sm font-medium">CNPJá API</span>
+                  <Badge className="bg-green-100 text-green-700">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    {(creditScore as any).dataSource === 'CNPJA_COMMERCIAL' ? 'Comercial' : 'Pública'}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Análise de Crédito</span>
-                  <Badge className={`${
-                    (creditScore as any).creditApiStatus === 'success' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {(creditScore as any).creditApiStatus === 'success' ? 'Sucesso' : 'Pendente'}
-                  </Badge>
+                
+                {(creditScore as any).apiLimitation && (
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-amber-800">Limitação da API</p>
+                        <p className="text-xs text-amber-700">{(creditScore as any).apiLimitation}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="text-sm font-medium">Última Atualização</span>
+                  <span className="text-xs text-blue-700">
+                    {new Date((creditScore as any).lastUpdate || creditScore.updatedAt).toLocaleString('pt-BR')}
+                  </span>
                 </div>
-                {(creditScore as any).lastReceitaWsCheck && (
-                  <div className="text-xs text-gray-500 pt-2 border-t">
-                    Última consulta Receita: {new Date((creditScore as any).lastReceitaWsCheck).toLocaleDateString('pt-BR')}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Enhanced Financial Risk Summary */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Shield className="w-5 h-5 flex-shrink-0" />
+                Resumo de Risco Financeiro
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="space-y-4">
+                {/* Risk Score Visualization */}
+                <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 border border-green-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Score de Risco Geral</span>
+                    <Badge className={`${
+                      creditScore.creditScore >= 800 ? 'bg-green-100 text-green-700' :
+                      creditScore.creditScore >= 600 ? 'bg-blue-100 text-blue-700' :
+                      creditScore.creditScore >= 400 ? 'bg-yellow-100 text-yellow-700' :
+                      creditScore.creditScore >= 200 ? 'bg-orange-100 text-orange-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {getScoreLabel(creditScore.creditScore)}
+                    </Badge>
                   </div>
-                )}
-                {(creditScore as any).lastCreditApiCheck && (
-                  <div className="text-xs text-gray-500">
-                    Última consulta Credit API: {new Date((creditScore as any).lastCreditApiCheck).toLocaleDateString('pt-BR')}
+                  <div className="text-2xl font-bold text-center py-2">
+                    {creditScore.creditScore}/1000
                   </div>
-                )}
+                </div>
+
+                {/* Credit Indicators Summary */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {[!creditScore.hasDebts, !creditScore.hasProtests, !creditScore.hasBankruptcy, !creditScore.hasLawsuits].filter(Boolean).length}
+                    </div>
+                    <div className="text-xs text-gray-600">Indicadores Positivos</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
+                      {[creditScore.hasDebts, creditScore.hasProtests, creditScore.hasBankruptcy, creditScore.hasLawsuits].filter(Boolean).length}
+                    </div>
+                    <div className="text-xs text-gray-600">Alertas de Risco</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
