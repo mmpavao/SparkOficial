@@ -100,6 +100,10 @@ export default function UnifiedDocumentUpload({
 
     console.log(`🚀 Iniciando upload sequencial de ${files.length} arquivo(s) para ${documentKey}`);
 
+    let successCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
+
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -111,7 +115,8 @@ export default function UnifiedDocumentUpload({
         const validation = validateFile(file);
         if (!validation.isValid) {
           console.error(`❌ Arquivo inválido: ${file.name} - ${validation.error}`);
-          alert(`${file.name}: ${validation.error}`);
+          errors.push(`${file.name}: ${validation.error}`);
+          errorCount++;
           continue;
         }
 
@@ -150,10 +155,12 @@ export default function UnifiedDocumentUpload({
           });
 
           console.log(`✅ Upload concluído: ${file.name}`);
+          successCount++;
           
         } catch (error) {
           console.error(`❌ Erro no upload de ${file.name}:`, error);
-          alert(`Erro ao enviar ${file.name}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          errorCount++;
         }
 
         // Intervalo entre uploads para evitar conflitos
@@ -163,13 +170,98 @@ export default function UnifiedDocumentUpload({
         }
       }
 
+      // Mostrar notificação única no final
+      if (successCount > 0 || errorCount > 0) {
+        let message = '';
+        
+        if (successCount > 0) {
+          message += `${successCount} arquivo${successCount > 1 ? 's' : ''} enviado${successCount > 1 ? 's' : ''} com sucesso`;
+        }
+        
+        if (errorCount > 0) {
+          if (successCount > 0) {
+            message += ` | ${errorCount} erro${errorCount > 1 ? 's' : ''}`;
+          } else {
+            message += `${errorCount} erro${errorCount > 1 ? 's' : ''} no upload`;
+          }
+        }
+
+        // Simular uma notificação toast personalizada
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+          <div style="
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${successCount > 0 && errorCount === 0 ? '#10b981' : errorCount > 0 ? '#f59e0b' : '#6b7280'};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+          ">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+              ">
+                ${successCount > 0 && errorCount === 0 ? '✓' : errorCount > 0 ? '!' : 'i'}
+              </div>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 2px;">
+                  ${successCount > 0 && errorCount === 0 ? 'Upload Concluído' : errorCount > 0 ? 'Upload com Avisos' : 'Upload Finalizado'}
+                </div>
+                <div style="opacity: 0.9; font-size: 13px;">
+                  ${message}
+                </div>
+              </div>
+            </div>
+          </div>
+          <style>
+            @keyframes slideIn {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          </style>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remover notificação após 5 segundos
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => {
+              document.body.removeChild(notification);
+            }, 300);
+          }
+        }, 5000);
+
+        // Mostrar erros detalhados se houver
+        if (errors.length > 0) {
+          setTimeout(() => {
+            alert(`Detalhes dos erros:\n${errors.join('\n')}`);
+          }, 1000);
+        }
+      }
+
     } catch (error) {
       console.error('❌ Erro no processo de upload:', error);
       alert('Erro durante o processo de upload');
     } finally {
       setCurrentlyUploading(false);
       setUploadProgress({ current: 0, total: 0 });
-      console.log(`🏁 Processo de upload finalizado para ${documentKey}`);
+      console.log(`🏁 Processo de upload finalizado para ${documentKey} - ${successCount} sucessos, ${errorCount} erros`);
     }
   };
 
