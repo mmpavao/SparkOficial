@@ -6053,52 +6053,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🏦 Calling CNPJá Credit Analysis API - CNPJ:', cnpj);
       
-      // Try CNPJá commercial API for credit analysis using CREDIT_API_KEY
-      const response = await fetch(`https://api.cnpja.com/${process.env.CREDIT_API_KEY}/${cnpj}`, {
+      // Use CNPJá company endpoint for complete credit data
+      const response = await fetch(`https://cnpja.com/companies/${cnpj}`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json'
+          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ CNPJá Credit API response received');
-        return {
-          success: true,
-          data: result,
-          source: 'CNPJA_COMMERCIAL'
-        };
-      } else {
-        console.log('⚠️ CNPJá Commercial API failed, trying public API...');
-        throw new Error('Commercial API failed');
-      }
-    } catch (error) {
-      console.log('⚠️ Trying CNPJá public API as fallback...');
-      
-      // Fallback to CNPJá public API
-      try {
-        const response = await fetch(`https://api.cnpja.com/open/${cnpj}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('✅ CNPJá Public API response received');
+        console.log('✅ CNPJá Credit API response received with data:', JSON.stringify(result, null, 2));
+        
+        // Validate that we have credit-related data
+        if (result && (result.taxes || result.lawsuits || result.debts || result.registrations)) {
           return {
             success: true,
             data: result,
-            source: 'CNPJA_PUBLIC',
-            limitation: 'Dados limitados - API pública'
+            source: 'CNPJA_COMPANIES'
+          };
+        } else {
+          console.log('⚠️ No credit data found in response, response structure:', Object.keys(result || {}));
+          return {
+            success: false,
+            error: 'No credit data available',
+            data: result
           };
         }
-      } catch (publicError) {
-        console.error('❌ Both CNPJá APIs failed:', publicError);
-        throw publicError;
+      } else {
+        const errorText = await response.text();
+        console.log('❌ CNPJá Credit API failed with status:', response.status, 'Response:', errorText);
+        return {
+          success: false,
+          error: `API failed with status ${response.status}`,
+          details: errorText
+        };
       }
+    } catch (error) {
+      console.error('❌ CNPJá Credit API error:', error);
+      return {
+        success: false,
+        error: error.message,
+        details: error
+      };
     }
   }
 
@@ -6154,27 +6153,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function checkForDebtIndicators(cnpjaData: any): boolean {
-    // Check for debt indicators in CNPJá data
+    // Check real debt data from CNPJá taxes field (authentic data)
+    const taxes = cnpjaData.taxes || [];
+    if (taxes && taxes.length > 0) {
+      console.log('🚨 DÉBITOS REAIS ENCONTRADOS:', taxes.length, 'registros de impostos pendentes');
+      return true;
+    }
+    
+    // Check for debt indicators in other CNPJá fields
     if (cnpjaData.status?.id === 3) return true; // Suspensa pode indicar problemas
     if (cnpjaData.simples?.status === false && cnpjaData.simples?.reason?.includes('DÉBITO')) return true;
+    
+    // Check registrations for debt-related entries
+    const registrations = cnpjaData.registrations || {};
+    if (registrations.debts && registrations.debts.length > 0) {
+      console.log('🚨 DÉBITOS REGISTRADOS ENCONTRADOS:', registrations.debts.length);
+      return true;
+    }
+    
     return false;
   }
 
   function extractDebtDetails(cnpjaData: any): any[] | null {
     const debts = [];
+    
+    // Extract real tax debts from CNPJá taxes field
+    const taxes = cnpjaData.taxes || [];
+    taxes.forEach((tax: any) => {
+      debts.push({
+        type: 'IMPOSTO_FEDERAL',
+        description: tax.description || 'Débito tributário pendente',
+        amount: tax.amount || 'Não informado',
+        dueDate: tax.dueDate || 'Não informado',
+        status: tax.status || 'PENDENTE',
+        source: 'CNPJá Real Data'
+      });
+    });
+    
+    // Extract debts from registrations if available
+    const registrations = cnpjaData.registrations || {};
+    if (registrations.debts) {
+      registrations.debts.forEach((debt: any) => {
+        debts.push({
+          type: 'REGISTRO_DIVIDA',
+          description: debt.description || 'Dívida registrada',
+          amount: debt.amount || 'Não informado',
+          status: debt.status || 'ATIVA',
+          source: 'CNPJá Real Data'
+        });
+      });
+    }
+    
+    // Legacy debt check for Simples Nacional
     if (cnpjaData.simples?.reason?.includes('DÉBITO')) {
       debts.push({
         type: 'SIMPLES_NACIONAL',
         description: cnpjaData.simples.reason,
-        status: 'PENDENTE'
+        status: 'PENDENTE',
+        source: 'CNPJá Real Data'
       });
     }
+    
+    console.log(`📋 Extraídos ${debts.length} registros de débitos reais da CNPJá`);
     return debts.length > 0 ? debts : null;
   }
 
   function checkForProtestIndicators(cnpjaData: any): boolean {
-    // CNPJá may have protest indicators in some plans
-    return false; // Basic check - would need commercial plan
+    // Check real protest data from CNPJá registrations field
+    const registrations = cnpjaData.registrations || {};
+    if (registrations.protests && registrations.protests.length > 0) {
+      console.log('🚨 PROTESTOS REAIS ENCONTRADOS:', registrations.protests.length, 'registros');
+      return true;
+    }
+    
+    // Legacy check for protests in status text
+    if (cnpjaData.status?.text?.includes('PROTEST')) return true;
+    return false;
   }
 
   function extractProtestDetails(cnpjaData: any): any[] | null {
@@ -6182,11 +6236,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function checkForLawsuitIndicators(cnpjaData: any): boolean {
-    return false; // Would need specialized legal data
+    // Check real lawsuit data from CNPJá lawsuits field
+    const lawsuits = cnpjaData.lawsuits || [];
+    if (lawsuits && lawsuits.length > 0) {
+      console.log('🚨 PROCESSOS JUDICIAIS REAIS ENCONTRADOS:', lawsuits.length, 'registros');
+      return true;
+    }
+    
+    // Check registrations for legal issues
+    const registrations = cnpjaData.registrations || {};
+    if (registrations.legal && registrations.legal.length > 0) {
+      console.log('🚨 QUESTÕES LEGAIS ENCONTRADAS:', registrations.legal.length, 'registros');
+      return true;
+    }
+    
+    return false;
   }
 
   function extractLawsuitDetails(cnpjaData: any): any[] | null {
-    return null; // Would need specialized legal data
+    const lawsuits = [];
+    
+    // Extract real lawsuit data from CNPJá lawsuits field
+    const lawsuitData = cnpjaData.lawsuits || [];
+    lawsuitData.forEach((lawsuit: any) => {
+      lawsuits.push({
+        type: 'PROCESSO_JUDICIAL',
+        description: lawsuit.description || 'Processo judicial em andamento',
+        court: lawsuit.court || 'Não informado',
+        status: lawsuit.status || 'ATIVO',
+        value: lawsuit.value || 'Não informado',
+        date: lawsuit.date || 'Não informado',
+        source: 'CNPJá Real Data'
+      });
+    });
+    
+    // Extract legal issues from registrations if available
+    const registrations = cnpjaData.registrations || {};
+    if (registrations.legal) {
+      registrations.legal.forEach((legal: any) => {
+        lawsuits.push({
+          type: 'QUESTAO_LEGAL',
+          description: legal.description || 'Questão legal registrada',
+          status: legal.status || 'ATIVA',
+          source: 'CNPJá Real Data'
+        });
+      });
+    }
+    
+    console.log(`📋 Extraídos ${lawsuits.length} registros de processos judiciais reais da CNPJá`);
+    return lawsuits.length > 0 ? lawsuits : null;
   }
 
 
