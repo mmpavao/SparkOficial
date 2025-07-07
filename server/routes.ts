@@ -5690,7 +5690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🏦 Calling API Consultas GraphQL with query');
       
-      const response = await fetch('https://apiconsultas.com/graphql', {
+      const response = await fetch('https://api.apiconsultas.com/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
