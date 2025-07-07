@@ -858,6 +858,17 @@ Changelog:
   * Score calculation ranges from 0-1000 with base score of 600 plus bonuses for positive attributes
   * API integration checks for RECEITA_WS_API_KEY environment variable and logs API calls
   * System ready for production use with real Receita Federal data when API key is configured
+- July 07, 2025. Enhanced modular communication system implementation:
+  * Created new database tables: document_requests, support_tickets, ticket_messages for communication tracking
+  * Built DocumentRequestCard component for document request management with file upload capabilities
+  * Implemented CommunicationTabs component with three sections: Observações, Documentos, Tickets
+  * Added document request functionality allowing admins to request specific documents from importers
+  * Created support ticket system with full messaging capabilities and internal notes for admin
+  * Built AdminSupportPage for centralized ticket management with filtering and metrics
+  * Added SupportNewPage and SupportTicketPage for ticket creation and conversation tracking
+  * Integrated notification system for document requests and ticket updates
+  * Established role-based permissions: importers can upload documents and create tickets, admins can request documents and manage all tickets
+  * System allows bidirectional communication between importers and administrators without affecting existing functionality
 ```
 
 ## User Preferences

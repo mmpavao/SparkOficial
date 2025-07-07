@@ -694,8 +694,7 @@ export default function CreditDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Communication System */}
-          <CreditCommunication application={application} />
+
 
           {/* Documents Section */}
           <Card>
