@@ -120,10 +120,10 @@ export default function CommunicationTabs({ creditApplicationId, applicationUser
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6">
-            <TabsTrigger value="messages">Observações</TabsTrigger>
-            <TabsTrigger value="documents">Documentos</TabsTrigger>
-            <TabsTrigger value="tickets">Tickets</TabsTrigger>
+          <TabsList className="flex flex-col sm:grid sm:grid-cols-3 w-full mb-6 h-auto sm:h-10">
+            <TabsTrigger value="messages" className="w-full justify-center data-[state=active]:bg-white data-[state=active]:text-gray-900">Observações</TabsTrigger>
+            <TabsTrigger value="documents" className="w-full justify-center data-[state=active]:bg-white data-[state=active]:text-gray-900">Documentos</TabsTrigger>
+            <TabsTrigger value="tickets" className="w-full justify-center data-[state=active]:bg-white data-[state=active]:text-gray-900">Tickets</TabsTrigger>
           </TabsList>
 
           {/* Messages Tab */}
