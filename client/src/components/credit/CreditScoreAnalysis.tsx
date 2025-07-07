@@ -22,7 +22,7 @@ import {
   Briefcase
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatCNPJ } from "@/lib/formatters";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import type { CreditApplication, CreditScore } from "@shared/schema";
@@ -46,6 +46,11 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         title: "Análise concluída",
         description: "Credit Score calculado com sucesso",
       });
+      
+      // Invalidate credit applications cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/credit/applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
     } catch (error: any) {
       console.error('Credit Score API error:', error);
       const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";

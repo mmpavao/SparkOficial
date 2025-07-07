@@ -239,8 +239,11 @@ export default function CreditPage() {
   });
   
   // Debug log para verificar credit scores
-  if (applications.length > 0 && applications[0].id === 69) {
-    console.log("🔍 Application 69 data:", applications[0]);
+  console.log("📊 All applications data:", applications);
+  const app69 = applications.find((app: any) => app.id === 69);
+  if (app69) {
+    console.log("🔍 Application 69 found:", app69);
+    console.log("🔍 Credit Score field:", app69.creditScore);
   }
 
   // Prevent SSR/hydration issues in production
