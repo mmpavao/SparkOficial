@@ -268,9 +268,14 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
+    // Obter documentos da aplicação atual
+    const requiredDocs = application?.requiredDocuments || {};
+    const optionalDocs = application?.optionalDocuments || {};
+    const allUploadedDocuments = { ...requiredDocs, ...optionalDocs };
+    
     // Se temos múltiplos documentos, incluir o índice na identificação
     if (typeof index === 'number' && index >= 0) {
-      const currentDocs = uploadedDocuments[documentId];
+      const currentDocs = allUploadedDocuments[documentId];
       const documentsArray = Array.isArray(currentDocs) ? currentDocs : [currentDocs];
       
       if (documentsArray.length > 1) {
