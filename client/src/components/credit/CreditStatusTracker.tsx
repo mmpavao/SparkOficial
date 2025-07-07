@@ -323,10 +323,11 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-lg border p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">
-        Status da Solicitação de Crédito
-      </h3>
+    <div className="w-full bg-white rounded-lg border">
+      <div className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">
+          Status da Solicitação de Crédito
+        </h3>
       
       <motion.div 
         className="relative"
@@ -366,9 +367,9 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
               </motion.div>
               
               {/* Step Content */}
-              <div className="ml-4 flex-1">
+              <div className="ml-3 sm:ml-4 flex-1">
                 <motion.h4 
-                  className="text-sm font-medium text-gray-900"
+                  className="text-sm font-medium text-gray-900 break-words"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.2 + 0.1 }}
@@ -376,7 +377,7 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
                   {step.title}
                 </motion.h4>
                 <motion.p 
-                  className="text-sm text-gray-500 mt-1"
+                  className="text-xs sm:text-sm text-gray-500 mt-1 break-words"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.2 + 0.2 }}
@@ -391,20 +392,20 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
       
       {/* Progress Summary */}
       <motion.div 
-        className="mt-6 p-4 bg-gray-50 rounded-lg"
+        className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-lg"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.8 }}
       >
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs sm:text-sm font-medium text-gray-700">
             Progresso da Solicitação
           </span>
-          <span className="text-sm font-medium text-gray-900">
+          <span className="text-xs sm:text-sm font-medium text-gray-900">
             {Math.round((steps.filter(s => s.status === 'completed').length / steps.length) * 100)}%
           </span>
         </div>
-        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-2">
           <motion.div 
             className="bg-blue-500 h-2 rounded-full"
             initial={{ width: 0 }}
@@ -415,6 +416,7 @@ const CreditStatusTracker: React.FC<CreditStatusTrackerProps> = ({
           />
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };

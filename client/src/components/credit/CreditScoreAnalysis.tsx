@@ -86,12 +86,12 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
     <div className="space-y-4">
       {/* Initial Card */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Análise Credit Score
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Shield className="w-5 h-5 flex-shrink-0" />
+            <span className="truncate">Análise Credit Score</span>
           </CardTitle>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1 break-all">
             CNPJ: {formatCNPJ(application.cnpj)}
           </p>
         </CardHeader>
@@ -121,7 +121,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </p>
             )
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-sm text-gray-600">
                 Última consulta: {new Date(creditScore.scoreDate).toLocaleDateString('pt-BR')}
               </span>
@@ -131,6 +131,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                   variant="outline"
                   onClick={handleConsultar}
                   disabled={isLoading}
+                  className="w-full sm:w-auto"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
                   Atualizar
@@ -167,7 +168,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             <div className={`h-2 bg-gradient-to-r ${getScoreGradient(creditScore.creditScore)}`} />
             <CardContent className="p-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <h3 className="text-lg font-semibold">Credit Score</h3>
                   <Badge className={`${getScoreColor(creditScore.creditScore)}`}>
                     {getScoreLabel(creditScore.creditScore)}
@@ -197,40 +198,37 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
 
           {/* Company Information */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Building2 className="w-5 h-5 flex-shrink-0" />
                 Dados da Empresa
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm text-gray-500">Razão Social</p>
-                  <p className="font-medium">{creditScore.legalName || application.legalCompanyName}</p>
+                  <p className="font-medium text-sm break-words">{creditScore.legalName || application.legalCompanyName}</p>
                 </div>
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm text-gray-500">Nome Fantasia</p>
-                  <p className="font-medium">{creditScore.tradingName || application.tradingName || '-'}</p>
+                  <p className="font-medium text-sm break-words">{creditScore.tradingName || application.tradingName || '-'}</p>
                 </div>
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm text-gray-500">Status</p>
                   <Badge className={creditScore.status === 'ATIVA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
                     {creditScore.status || 'ATIVA'}
                   </Badge>
                 </div>
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm text-gray-500">Capital Social</p>
-                  <p className="font-medium">
-                    {creditScore.shareCapital ? 
-                      `R$ ${Number(creditScore.shareCapital).toLocaleString('pt-BR')}` : 
-                      '-'
-                    }
+                  <p className="font-medium text-sm">
+                    {creditScore.shareCapital || '-'}
                   </p>
                 </div>
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm text-gray-500">Data de Abertura</p>
-                  <p className="font-medium">
+                  <p className="font-medium text-sm">
                     {creditScore.openingDate ? 
                       new Date(creditScore.openingDate).toLocaleDateString('pt-BR') : 
                       '-'
@@ -244,15 +242,15 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           {/* Contact and Address */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
                   Endereço
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-2">
                 <div className="space-y-2">
-                  <p className="text-sm">{creditScore.address || application.address}</p>
+                  <p className="text-sm break-words">{creditScore.address || application.address}</p>
                   <p className="text-sm">
                     {creditScore.city || application.city}, {creditScore.state || application.state}
                   </p>
@@ -262,21 +260,21 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="w-5 h-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Phone className="w-4 h-4 flex-shrink-0" />
                   Contato
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-2">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">{creditScore.phone || application.phone}</span>
+                  <div className="flex items-start gap-2">
+                    <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm break-all">{creditScore.phone || application.phone}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">{creditScore.email || application.email}</span>
+                  <div className="flex items-start gap-2">
+                    <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm break-all">{creditScore.email || application.email}</span>
                   </div>
                 </div>
               </CardContent>
@@ -286,18 +284,18 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           {/* Economic Activities */}
           {(creditScore.mainActivity || creditScore.secondaryActivities) && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Briefcase className="w-5 h-5 flex-shrink-0" />
                   Atividades Econômicas (CNAE)
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-2">
+                <div className="space-y-4">
                   {creditScore.mainActivity && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Atividade Principal</p>
-                      <p className="text-sm">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Atividade Principal</p>
+                      <p className="text-sm break-words">
                         {(creditScore.mainActivity as any).code} - {(creditScore.mainActivity as any).description}
                       </p>
                     </div>
@@ -305,9 +303,9 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                   {creditScore.secondaryActivities && (creditScore.secondaryActivities as any[]).length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-2">Atividades Secundárias</p>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {(creditScore.secondaryActivities as any[]).map((activity, index) => (
-                          <p key={index} className="text-sm">
+                          <p key={index} className="text-sm break-words">
                             {activity.code} - {activity.description}
                           </p>
                         ))}
@@ -322,18 +320,18 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           {/* Partners */}
           {creditScore.partners && (creditScore.partners as any[]).length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="w-5 h-5 flex-shrink-0" />
                   Sócios
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-2">
                 <div className="space-y-3">
                   {(creditScore.partners as any[]).map((partner, index) => (
                     <div key={index} className="border-b last:border-0 pb-3 last:pb-0">
-                      <p className="font-medium">{partner.name}</p>
-                      <p className="text-sm text-gray-600">{partner.qualification}</p>
+                      <p className="font-medium text-sm break-words">{partner.name}</p>
+                      <p className="text-sm text-gray-600 break-words">{partner.qualification}</p>
                       {partner.joinDate && (
                         <p className="text-xs text-gray-500">
                           Entrada: {new Date(partner.joinDate).toLocaleDateString('pt-BR')}
@@ -348,14 +346,14 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
 
           {/* Credit Analysis */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="w-5 h-5 flex-shrink-0" />
                 Análise de Crédito
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Débitos</span>
                   {creditScore.hasDebts ? (
