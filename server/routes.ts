@@ -5681,13 +5681,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Credit API Integration Functions
-  async function callCreditAPI(cnpj: string): Promise<any> {
+  // Credit API Integration Functions - API Consultas
+  async function postQuery<T>(query: string, input: Record<string, unknown>): Promise<T> {
     if (!process.env.CREDIT_API_KEY) {
       throw new Error('Credit API key not configured');
     }
 
-    const query = `
+    try {
+      console.log('🏦 Calling API Consultas GraphQL with query');
+      
+      const response = await fetch('https://apiconsultas.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+        },
+        body: JSON.stringify({
+          query,
+          variables: { input }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Consultas HTTP error:', response.status, errorText);
+        throw new Error(`API Consultas HTTP error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ API Consultas response received');
+      
+      if (result.errors) {
+        console.error('❌ API Consultas GraphQL errors:', result.errors);
+        throw new Error(`API Consultas GraphQL error: ${result.errors[0].message}`);
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('❌ API Consultas error:', error);
+      throw error;
+    }
+  }
+
+  async function callCreditAPI(cnpj: string): Promise<any> {
+    const createCreditoCompletoCnpjQuery = `
       mutation CreateCreditoCompletoCnpj($input: CreditoCompletoCnpjInput!) {
         createCreditoCompletoCnpj(input: $input) {
           id
@@ -5716,32 +5753,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🏦 Calling Credit API for CNPJ:', cnpj);
       
-      const response = await fetch('https://api.creditanalysis.com/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
-        },
-        body: JSON.stringify({
-          query,
-          variables: {
-            input: { cnpj }
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Credit API HTTP error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ Credit API response received');
-      
-      if (result.errors) {
-        throw new Error(`Credit API GraphQL error: ${result.errors[0].message}`);
-      }
-
-      return result.data.createCreditoCompletoCnpj;
+      const response = await postQuery(createCreditoCompletoCnpjQuery, { cnpj });
+      return (response as any).createCreditoCompletoCnpj;
     } catch (error) {
       console.error('❌ Credit API error:', error);
       throw error;
