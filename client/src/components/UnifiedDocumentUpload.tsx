@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,9 +62,21 @@ export default function UnifiedDocumentUpload({
   acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: UnifiedDocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [currentlyUploading, setCurrentlyUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [localUploadState, setLocalUploadState] = useState<{
+    isUploading: boolean;
+    currentFile: number;
+    totalFiles: number;
+    currentFileName: string;
+  }>({
+    isUploading: false,
+    currentFile: 0,
+    totalFiles: 0,
+    currentFileName: ''
+  });
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadQueueRef = useRef<File[]>([]);
+  const isProcessingRef = useRef(false);
 
   // Obter documentos atuais
   const currentDocuments = uploadedDocuments[documentKey];
@@ -87,209 +100,163 @@ export default function UnifiedDocumentUpload({
     return { isValid: true };
   };
 
-  // Nova função de upload sequencial
-  const processFilesSequentially = async (files: File[]) => {
-    if (currentlyUploading || isUploading) {
-      console.log('❌ Upload já em andamento, ignorando novos arquivos');
+  // Processar fila de uploads
+  const processUploadQueue = async () => {
+    if (isProcessingRef.current || uploadQueueRef.current.length === 0) {
       return;
     }
 
-    setCurrentlyUploading(true);
-    setUploadProgress({ current: 0, total: files.length });
+    isProcessingRef.current = true;
+    const filesToProcess = [...uploadQueueRef.current];
+    uploadQueueRef.current = [];
 
-    console.log(`🚀 Iniciando upload sequencial de ${files.length} arquivo(s) para ${documentKey}`);
+    setLocalUploadState({
+      isUploading: true,
+      currentFile: 0,
+      totalFiles: filesToProcess.length,
+      currentFileName: ''
+    });
+
+    console.log(`🚀 Iniciando upload de ${filesToProcess.length} arquivo(s)`);
 
     let successCount = 0;
     let errorCount = 0;
     const errors: string[] = [];
 
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (let i = 0; i < filesToProcess.length; i++) {
+        const file = filesToProcess[i];
+        
+        setLocalUploadState(prev => ({
+          ...prev,
+          currentFile: i + 1,
+          currentFileName: file.name
+        }));
 
-        console.log(`📄 [${i + 1}/${files.length}] Processando: ${file.name}`);
-        setUploadProgress({ current: i + 1, total: files.length });
-
-        // Validar arquivo
-        const validation = validateFile(file);
-        if (!validation.isValid) {
-          console.error(`❌ Arquivo inválido: ${file.name} - ${validation.error}`);
-          errors.push(`${file.name}: ${validation.error}`);
-          errorCount++;
-          continue;
-        }
-
-        // Para upload único, confirmar substituição apenas no primeiro arquivo
-        if (!allowMultiple && hasDocuments && i === 0) {
-          const shouldReplace = confirm('Já existe um documento. Deseja substituí-lo?');
-          if (!shouldReplace) {
-            console.log(`⏭️ Upload cancelado pelo usuário`);
-            continue;
-          }
-        }
+        console.log(`📄 [${i + 1}/${filesToProcess.length}] Enviando: ${file.name}`);
 
         try {
-            console.log(`⬆️ Iniciando upload do arquivo: ${file.name} (${file.size} bytes)`);
-
-            // Temporariamente suprimir possíveis notificações automáticas
-            const originalConsoleLog = console.log;
-            const suppressedMethods = ['toast', 'showNotification', 'alert'].map(method => {
-              const original = (window as any)[method];
-              if (original) {
-                (window as any)[method] = () => {}; // Suprimir temporariamente
-                return { method, original };
-              }
-              return null;
-            }).filter(Boolean);
+          // Criar uma Promise que aguarda o upload ser processado
+          await new Promise<void>((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+              reject(new Error('Timeout no upload'));
+            }, 30000);
 
             try {
-              // Criar uma Promise para aguardar o upload ser processado
-              await new Promise<void>((resolve, reject) => {
-                // Timeout de segurança de 30 segundos
-                const timeout = setTimeout(() => {
-                  reject(new Error('Timeout no upload do arquivo'));
-                }, 30000);
-
-                try {
-                  onUpload(documentKey, file);
-
-                  // Aguardar um tempo para o upload ser processado completamente
-                  setTimeout(() => {
-                    clearTimeout(timeout);
-                    console.log(`✅ Upload processado: ${file.name}`);
-                    resolve();
-                  }, 2000); // Aumentei para 2 segundos para garantir processamento
-
-                } catch (error) {
-                  clearTimeout(timeout);
-                  console.error(`❌ Erro durante upload: ${error}`);
-                  reject(error);
-                }
-              });
-            } finally {
-              // Restaurar métodos originais
-              suppressedMethods.forEach(item => {
-                if (item) {
-                  (window as any)[item.method] = item.original;
-                }
-              });
+              // Fazer o upload
+              onUpload(documentKey, file);
+              
+              // Aguardar um tempo para o upload ser processado
+              setTimeout(() => {
+                clearTimeout(timeoutId);
+                resolve();
+              }, 1500);
+            } catch (error) {
+              clearTimeout(timeoutId);
+              reject(error);
             }
+          });
 
-          console.log(`✅ Upload concluído: ${file.name}`);
           successCount++;
+          console.log(`✅ Upload concluído: ${file.name}`);
 
         } catch (error) {
-          console.error(`❌ Erro no upload de ${file.name}:`, error);
-          errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
           errorCount++;
+          console.error(`❌ Erro no upload: ${file.name}`, error);
+          errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
 
-        // Intervalo entre uploads para evitar conflitos
-        if (i < files.length - 1) {
-          console.log(`⏸️ Aguardando antes do próximo upload...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        // Pequena pausa entre uploads
+        if (i < filesToProcess.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
-      // Mostrar notificação única no final
-      if (successCount > 0 || errorCount > 0) {
-        let message = '';
-
-        if (successCount > 0) {
-          message += `${successCount} arquivo${successCount > 1 ? 's' : ''} enviado${successCount > 1 ? 's' : ''} com sucesso`;
-        }
-
-        if (errorCount > 0) {
-          if (successCount > 0) {
-            message += ` | ${errorCount} erro${errorCount > 1 ? 's' : ''}`;
-          } else {
-            message += `${errorCount} erro${errorCount > 1 ? 's' : ''} no upload`;
-          }
-        }
-
-        // Criar notificação customizada única e consolidada
+      // Mostrar resultado final
+      if (successCount > 0) {
+        console.log(`🎉 Upload finalizado: ${successCount} arquivo(s) enviado(s) com sucesso`);
+        
+        // Criar notificação de sucesso
         const notification = document.createElement('div');
-        notification.setAttribute('data-upload-notification', 'true');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #10b981;
+          color: white;
+          padding: 16px 24px;
+          border-radius: 8px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+          z-index: 1000;
+          font-size: 14px;
+          font-weight: 500;
+          max-width: 400px;
+          animation: slideInRight 0.3s ease-out;
+        `;
+        
         notification.innerHTML = `
-          <div style="
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: ${successCount > 0 && errorCount === 0 ? '#10b981' : errorCount > 0 ? '#f59e0b' : '#6b7280'};
-            color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            z-index: 1000;
-            font-size: 14px;
-            font-weight: 500;
-            max-width: 400px;
-            animation: slideIn 0.3s ease-out;
-          ">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12px;
-              ">
-                ${successCount > 0 && errorCount === 0 ? '✓' : errorCount > 0 ? '!' : 'i'}
-              </div>
-              <div>
-                <div style="font-weight: 600; margin-bottom: 2px;">
-                  ${successCount > 0 && errorCount === 0 ? 'Upload Concluído' : errorCount > 0 ? 'Upload com Avisos' : 'Upload Finalizado'}
-                </div>
-                <div style="opacity: 0.9; font-size: 13px;">
-                  ${message}
-                </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: rgba(255,255,255,0.2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+            ">✓</div>
+            <div>
+              <div style="font-weight: 600; margin-bottom: 2px;">Upload Concluído</div>
+              <div style="opacity: 0.9; font-size: 13px;">
+                ${successCount} arquivo${successCount > 1 ? 's' : ''} enviado${successCount > 1 ? 's' : ''} com sucesso
               </div>
             </div>
           </div>
-          <style>
-            @keyframes slideIn {
-              from { transform: translateX(100%); opacity: 0; }
-              to { transform: translateX(0); opacity: 1; }
-            }
-          </style>
         `;
 
-        // Remover qualquer notificação anterior do mesmo tipo
-        const existingNotifications = document.querySelectorAll('[data-upload-notification="true"]');
-        existingNotifications.forEach(notif => notif.remove());
+        // Adicionar animação CSS
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
 
         document.body.appendChild(notification);
 
-        // Remover notificação após 6 segundos
+        // Remover notificação após 5 segundos
         setTimeout(() => {
           if (notification.parentNode) {
-            notification.style.animation = 'slideIn 0.3s ease-out reverse';
+            notification.style.animation = 'slideInRight 0.3s ease-out reverse';
             setTimeout(() => {
               if (notification.parentNode) {
                 document.body.removeChild(notification);
               }
             }, 300);
           }
-        }, 6000);
+        }, 5000);
+      }
 
-        // Mostrar erros detalhados se houver
-        if (errors.length > 0) {
-          setTimeout(() => {
-            alert(`Detalhes dos erros:\n${errors.join('\n')}`);
-          }, 1000);
-        }
+      // Mostrar erros se houver
+      if (errorCount > 0) {
+        console.error(`❌ Erros no upload: ${errorCount} arquivo(s)`);
+        alert(`Erro em ${errorCount} arquivo(s):\n${errors.join('\n')}`);
       }
 
     } catch (error) {
       console.error('❌ Erro no processo de upload:', error);
       alert('Erro durante o processo de upload');
     } finally {
-      setCurrentlyUploading(false);
-      setUploadProgress({ current: 0, total: 0 });
-      console.log(`🏁 Processo de upload finalizado para ${documentKey} - ${successCount} sucessos, ${errorCount} erros`);
+      setLocalUploadState({
+        isUploading: false,
+        currentFile: 0,
+        totalFiles: 0,
+        currentFileName: ''
+      });
+      isProcessingRef.current = false;
     }
   };
 
@@ -299,15 +266,15 @@ export default function UnifiedDocumentUpload({
       return;
     }
 
-    if (currentlyUploading || isUploading) {
-      alert('Upload em andamento. Aguarde a conclusão antes de enviar novos arquivos.');
+    if (localUploadState.isUploading || isUploading) {
+      alert('Upload em andamento. Aguarde a conclusão.');
       return;
     }
 
     const fileArray = Array.from(files);
-    console.log(`📁 Selecionados ${fileArray.length} arquivo(s) para upload`);
+    console.log(`📁 Selecionados ${fileArray.length} arquivo(s)`);
 
-    // Validar todos os arquivos primeiro
+    // Validar arquivos
     const validFiles: File[] = [];
     const invalidFiles: string[] = [];
 
@@ -325,9 +292,18 @@ export default function UnifiedDocumentUpload({
       alert(`Arquivos inválidos:\n${invalidFiles.join('\n')}`);
     }
 
-    // Processar arquivos válidos
+    // Adicionar arquivos válidos à fila
     if (validFiles.length > 0) {
-      processFilesSequentially(validFiles);
+      // Para upload único, confirmar substituição
+      if (!allowMultiple && hasDocuments) {
+        const shouldReplace = confirm('Já existe um documento. Deseja substituí-lo?');
+        if (!shouldReplace) {
+          return;
+        }
+      }
+
+      uploadQueueRef.current = validFiles;
+      processUploadQueue();
     }
 
     // Limpar input
@@ -340,7 +316,7 @@ export default function UnifiedDocumentUpload({
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!currentlyUploading && !isUploading) {
+    if (!localUploadState.isUploading && !isUploading) {
       setDragActive(true);
     }
   };
@@ -361,8 +337,8 @@ export default function UnifiedDocumentUpload({
     e.stopPropagation();
     setDragActive(false);
 
-    if (currentlyUploading || isUploading) {
-      alert('Upload em andamento. Aguarde a conclusão antes de enviar novos arquivos.');
+    if (localUploadState.isUploading || isUploading) {
+      alert('Upload em andamento. Aguarde a conclusão.');
       return;
     }
 
@@ -401,8 +377,8 @@ export default function UnifiedDocumentUpload({
 
   // Remover documento
   const handleRemove = (index: number = 0) => {
-    if (currentlyUploading || isUploading) {
-      alert('Upload em andamento. Aguarde a conclusão antes de remover documentos.');
+    if (localUploadState.isUploading || isUploading) {
+      alert('Upload em andamento. Aguarde a conclusão.');
       return;
     }
 
@@ -415,7 +391,7 @@ export default function UnifiedDocumentUpload({
 
   // Obter informações de status
   const getStatusInfo = () => {
-    const isProcessing = isUploading || currentlyUploading;
+    const isProcessing = isUploading || localUploadState.isUploading;
 
     if (isProcessing) {
       return {
@@ -423,8 +399,8 @@ export default function UnifiedDocumentUpload({
         color: 'text-blue-600',
         bgColor: 'bg-blue-50',
         borderColor: 'border-blue-200',
-        label: currentlyUploading 
-          ? `Enviando ${uploadProgress.current}/${uploadProgress.total}...` 
+        label: localUploadState.isUploading 
+          ? `Enviando ${localUploadState.currentFile}/${localUploadState.totalFiles}...` 
           : 'Enviando...'
       };
     }
@@ -460,7 +436,7 @@ export default function UnifiedDocumentUpload({
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
-  const isProcessing = isUploading || currentlyUploading;
+  const isProcessing = isUploading || localUploadState.isUploading;
 
   return (
     <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
@@ -529,21 +505,21 @@ export default function UnifiedDocumentUpload({
           <div className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-6 text-center">
             <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-3 animate-spin" />
             <p className="text-sm text-blue-700 font-medium mb-2">
-              {currentlyUploading 
-                ? `Enviando arquivo ${uploadProgress.current} de ${uploadProgress.total}...`
+              {localUploadState.isUploading 
+                ? `Enviando arquivo ${localUploadState.currentFile} de ${localUploadState.totalFiles}`
                 : 'Enviando documento...'
               }
             </p>
-            {currentlyUploading && uploadProgress.total > 0 && (
-              <>
-                <Progress 
-                  value={(uploadProgress.current / uploadProgress.total) * 100} 
-                  className="w-full mt-3" 
-                />
-                <p className="text-xs text-blue-600 mt-2">
-                  Progresso: {uploadProgress.current}/{uploadProgress.total} arquivos
-                </p>
-              </>
+            {localUploadState.currentFileName && (
+              <p className="text-xs text-blue-600 mb-3">
+                {localUploadState.currentFileName}
+              </p>
+            )}
+            {localUploadState.isUploading && localUploadState.totalFiles > 0 && (
+              <Progress 
+                value={(localUploadState.currentFile / localUploadState.totalFiles) * 100} 
+                className="w-full" 
+              />
             )}
           </div>
         )}
