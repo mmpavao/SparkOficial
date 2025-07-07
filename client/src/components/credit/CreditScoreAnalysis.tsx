@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,29 +33,28 @@ interface CreditScoreAnalysisProps {
 
 export default function CreditScoreAnalysis({ application }: CreditScoreAnalysisProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [creditScore, setCreditScore] = useState<CreditScore | null>(
-    // Initialize with existing credit score if available
-    (application as any).creditScore ? {
-      id: 0,
-      creditApplicationId: application.id,
-      cnpj: application.cnpj,
-      companyName: application.legalCompanyName,
-      creditScore: (application as any).creditScore,
-      scoreDate: (application as any).scoreDate,
-      hasDebts: (application as any).hasDebts || false,
-      hasProtests: (application as any).hasProtests || false,
-      hasBankruptcy: (application as any).hasBankruptcy || false,
-      hasLawsuits: (application as any).hasLawsuits || false,
-      companyAge: 5,
-      socialCapital: 100000,
-      partners: 2,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    } : null
-  );
+  const [creditScore, setCreditScore] = useState<CreditScore | null>(null);
   const { toast } = useToast();
   const permissions = useUserPermissions();
+
+  // Fetch existing credit score on component mount
+  useEffect(() => {
+    const fetchExistingScore = async () => {
+      try {
+        const response = await apiRequest(`/api/credit/applications/${application.id}/credit-score`, 'GET');
+        if (response) {
+          setCreditScore(response);
+        }
+      } catch (error) {
+        // No existing score, that's ok
+        console.log('No existing credit score found');
+      }
+    };
+    
+    if (permissions.isAdmin) {
+      fetchExistingScore();
+    }
+  }, [application.id, permissions.isAdmin]);
 
   const handleConsultar = async () => {
     setIsLoading(true);

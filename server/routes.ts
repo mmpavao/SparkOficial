@@ -2903,6 +2903,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get existing credit score
+  app.get('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      
+      // Get the credit application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      // Check if user owns the application or is admin/financeira
+      const user = await storage.getUser(userId);
+      if (application.userId !== userId && user?.role !== 'admin' && user?.role !== 'super_admin' && user?.role !== 'financeira') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Get existing credit score
+      const existingScore = await storage.getCreditScore(applicationId);
+      if (existingScore) {
+        return res.json(existingScore);
+      } else {
+        return res.status(404).json({ message: "Credit score não encontrado" });
+      }
+    } catch (error) {
+      console.error("Error fetching credit score:", error);
+      res.status(500).json({ message: "Erro ao buscar credit score" });
+    }
+  });
+
   // Credit Score endpoint
   app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
