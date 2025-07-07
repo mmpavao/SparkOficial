@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +100,7 @@ export default function UnifiedDocumentUpload({
   };
 
   // Processar fila de uploads
-  const processUploadQueue = async () => {
+  const processUploadQueue = useCallback(async () => {
     if (isProcessingRef.current || uploadQueueRef.current.length === 0) {
       return;
     }
@@ -195,7 +195,7 @@ export default function UnifiedDocumentUpload({
       });
       isProcessingRef.current = false;
     }
-  };
+  }, [documentKey, onUpload]);
 
   // Lidar com seleção de arquivos
   const handleFileSelection = (files: FileList | null) => {
@@ -313,6 +313,20 @@ export default function UnifiedDocumentUpload({
   };
 
   // Remover documento
+  const handleRemoveDocument = async (index?: number) => {
+    try {
+      await onRemove(documentKey, index);
+      // Removido o toast de sucesso que estava aparecendo incorretamente
+    } catch (error) {
+      console.error('Erro ao remover documento:', error);
+      toast({
+        title: "Erro ao remover documento",
+        description: "Não foi possível remover o documento",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleRemove = (index: number = 0) => {
     if (localUploadState.isUploading || isUploading) {
       alert('Upload em andamento. Aguarde a conclusão.');
@@ -331,11 +345,11 @@ export default function UnifiedDocumentUpload({
       const filename = docToRemove.filename || docToRemove.originalName || `doc_${index}`;
       const compoundId = `${documentKey}_${filename}`;
       console.log(`Removendo documento específico: ${compoundId} (índice: ${index})`);
-      onRemove(compoundId, index);
+      handleRemoveDocument(index);
     } else {
       // Para documento único, usar chave simples
       console.log(`Removendo documento único: ${documentKey}`);
-      onRemove(documentKey, 0);
+      handleRemoveDocument(0);
     }
   };
 
