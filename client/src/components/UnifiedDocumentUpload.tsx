@@ -228,14 +228,15 @@ export default function UnifiedDocumentUpload({
   const StatusIcon = statusInfo.icon;
 
   return (
-    <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
+    <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor} ${isRequired && !hasDocuments ? 'border-red-300' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <StatusIcon className={`w-4 h-4 ${statusInfo.color} ${isUploading ? 'animate-spin' : ''}`} />
+              {isRequired && !hasDocuments && <span className="text-red-500 font-bold">⚠️</span>}
               {documentLabel}
-              {isRequired && <span className="text-red-500">*</span>}
+              {isRequired && <span className="text-red-500 font-bold text-base">*</span>}
             </CardTitle>
             {documentSubtitle && (
               <p className="text-xs text-gray-500 mt-1">{documentSubtitle}</p>
@@ -243,7 +244,13 @@ export default function UnifiedDocumentUpload({
           </div>
           <Badge 
             variant={hasDocuments ? "default" : isRequired ? "destructive" : "secondary"}
-            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-destructive hover:bg-destructive/80 ml-2 text-[#ffffff]"
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ml-2 ${
+              hasDocuments 
+                ? "bg-green-600 hover:bg-green-700 border-transparent text-white" 
+                : isRequired 
+                  ? "bg-red-600 hover:bg-red-700 border-transparent text-white" 
+                  : "bg-orange-600 hover:bg-orange-700 border-transparent text-white"
+            }`}
           >
             {statusInfo.label}
           </Badge>
