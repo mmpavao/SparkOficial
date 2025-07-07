@@ -596,12 +596,16 @@ export class DatabaseStorage {
   }
 
   async getAllCreditApplications(): Promise<CreditApplication[]> {
-    const applications = await db
-      .select()
+    const result = await db
+      .select({
+        ...getTableColumns(creditApplications),
+        creditScore: creditScores.creditScore
+      })
       .from(creditApplications)
+      .leftJoin(creditScores, eq(creditScores.creditApplicationId, creditApplications.id))
       .orderBy(desc(creditApplications.createdAt));
 
-    return applications;
+    return result as CreditApplication[];
   }
 
   async getAllCreditApplicationsOptimized(): Promise<CreditApplication[]> {
@@ -615,6 +619,7 @@ export class DatabaseStorage {
         status: creditApplications.status,
         preAnalysisStatus: creditApplications.preAnalysisStatus,
         financialStatus: creditApplications.financialStatus,
+        creditScore: creditScores.creditScore,
         adminStatus: creditApplications.adminStatus,
         createdAt: creditApplications.createdAt,
         updatedAt: creditApplications.updatedAt,
@@ -624,6 +629,7 @@ export class DatabaseStorage {
         finalApprovedTerms: creditApplications.finalApprovedTerms
       })
       .from(creditApplications)
+      .leftJoin(creditScores, eq(creditScores.creditApplicationId, creditApplications.id))
       .orderBy(desc(creditApplications.createdAt));
 
     return applications;
@@ -958,9 +964,13 @@ export class DatabaseStorage {
   }
 
   async getSubmittedCreditApplications(): Promise<CreditApplication[]> {
-    return await db
-      .select()
+    const result = await db
+      .select({
+        ...getTableColumns(creditApplications),
+        creditScore: creditScores.creditScore
+      })
       .from(creditApplications)
+      .leftJoin(creditScores, eq(creditScores.creditApplicationId, creditApplications.id))
       .where(
         or(
           eq(creditApplications.status, "submitted_to_financial"),
@@ -971,6 +981,8 @@ export class DatabaseStorage {
         )
       )
       .orderBy(desc(creditApplications.createdAt));
+      
+    return result as CreditApplication[];
   }
 
   async updateFinancialStatus(id: number, status: string, financialData?: any): Promise<CreditApplication> {
