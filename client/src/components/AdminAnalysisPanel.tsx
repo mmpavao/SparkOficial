@@ -511,17 +511,25 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex flex-col gap-2 pt-4">
                 <Button 
                   variant="outline"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50 w-full"
+                  onClick={() => {
+                    console.log("Editar Termos clicked for application", application.id);
+                    // TODO: Implement terms editing functionality
+                  }}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Editar Termos
                 </Button>
                 <Button 
                   variant="outline"
-                  className="border-red-300 text-red-700 hover:bg-red-50"
+                  className="border-red-300 text-red-700 hover:bg-red-50 w-full"
+                  onClick={() => {
+                    console.log("Bloquear Crédito clicked for application", application.id);
+                    // TODO: Implement credit blocking functionality
+                  }}
                 >
                   <Ban className="w-4 h-4 mr-2" />
                   Bloquear Crédito
