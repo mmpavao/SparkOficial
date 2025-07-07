@@ -130,7 +130,10 @@ export default function UnifiedDocumentUpload({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileUpload(files[0]);
+      // Process all files like the file input does
+      files.forEach(file => {
+        handleFileUpload(file);
+      });
     }
   };
 
