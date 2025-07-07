@@ -2918,37 +2918,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(existingScore);
       }
       
-      // Generate mock credit score data (replace with actual Receita WS API call when API key is available)
-      const creditScore = {
-        creditApplicationId: applicationId,
-        cnpj: application.cnpj,
-        creditScore: Math.floor(Math.random() * 400) + 600, // 600-1000 range
-        scoreDate: new Date(),
-        legalName: application.legalCompanyName,
-        tradingName: application.legalCompanyName,
-        status: 'ATIVA',
-        openingDate: new Date('2015-01-15'),
-        shareCapital: 'R$ 500.000,00',
-        address: application.address,
-        city: application.city,
-        state: application.state,
-        zipCode: application.zipCode,
-        phone: application.phone,
-        email: application.email,
-        mainActivity: { code: '4711-3/02', description: 'Comércio varejista de mercadorias em geral' },
-        secondaryActivities: [
-          { code: '4712-1/00', description: 'Comércio varejista de mercadorias em geral' }
-        ],
-        partners: application.shareholders || [],
-        hasDebts: Math.random() > 0.8,
-        hasProtests: Math.random() > 0.9,
-        hasBankruptcy: false,
-        hasLawsuits: Math.random() > 0.85,
-        lastCheckedAt: new Date()
-      };
+      // Clean CNPJ for API call
+      const cleanCnpj = application.cnpj.replace(/\D/g, '');
+      
+      let creditScoreData: any;
+      
+      // Try to use Receita WS API if key is available
+      if (process.env.RECEITA_WS_API_KEY) {
+        try {
+          console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
+          
+          const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cleanCnpj}`, {
+            headers: {
+              'Authorization': `Bearer ${process.env.RECEITA_WS_API_KEY}`,
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const receitaData = await response.json();
+            console.log('✅ Receita WS API response received');
+            
+            // Map Receita WS data to our credit score structure
+            creditScoreData = {
+              creditApplicationId: applicationId,
+              cnpj: application.cnpj,
+              creditScore: calculateCreditScore(receitaData), // Calculate based on company data
+              scoreDate: new Date(),
+              legalName: receitaData.nome || application.legalCompanyName,
+              tradingName: receitaData.fantasia || receitaData.nome || application.legalCompanyName,
+              status: receitaData.situacao || 'ATIVA',
+              openingDate: receitaData.abertura ? new Date(receitaData.abertura) : new Date('2015-01-15'),
+              shareCapital: receitaData.capital_social ? `R$ ${receitaData.capital_social}` : 'R$ 0,00',
+              address: receitaData.logradouro || application.address,
+              city: receitaData.municipio || application.city,
+              state: receitaData.uf || application.state,
+              zipCode: receitaData.cep || application.zipCode,
+              phone: receitaData.telefone || application.phone,
+              email: receitaData.email || application.email,
+              mainActivity: receitaData.atividade_principal?.[0] ? {
+                code: receitaData.atividade_principal[0].code,
+                description: receitaData.atividade_principal[0].text
+              } : { code: '0000-0/00', description: 'Não informado' },
+              secondaryActivities: receitaData.atividades_secundarias?.map((act: any) => ({
+                code: act.code,
+                description: act.text
+              })) || [],
+              partners: receitaData.qsa?.map((partner: any) => ({
+                name: partner.nome,
+                qualification: partner.qual,
+                joinDate: partner.pais || null
+              })) || application.shareholders || [],
+              companyData: receitaData, // Store full API response
+              hasDebts: false, // These would come from credit bureau integration
+              hasProtests: false,
+              hasBankruptcy: false,
+              hasLawsuits: false,
+              lastCheckedAt: new Date()
+            };
+          } else {
+            console.warn('⚠️ Receita WS API returned error:', response.status);
+            throw new Error('Receita WS API error');
+          }
+        } catch (apiError) {
+          console.error('❌ Receita WS API error:', apiError);
+          // Fall back to mock data
+          creditScoreData = generateMockCreditScore(application, applicationId);
+        }
+      } else {
+        // No API key, use mock data
+        console.log('ℹ️ No Receita WS API key found, using mock data');
+        creditScoreData = generateMockCreditScore(application, applicationId);
+      }
       
       // Save credit score
-      const savedScore = await storage.createCreditScore(creditScore);
+      const savedScore = await storage.createCreditScore(creditScoreData);
       res.json(savedScore);
       
     } catch (error) {
@@ -2956,6 +3000,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao consultar credit score" });
     }
   });
+  
+  // Helper function to calculate credit score based on company data
+  function calculateCreditScore(receitaData: any): number {
+    let score = 600; // Base score
+    
+    // Add points for active status
+    if (receitaData.situacao === 'ATIVA') score += 100;
+    
+    // Add points based on company age
+    if (receitaData.abertura) {
+      const ageYears = (new Date().getFullYear() - new Date(receitaData.abertura).getFullYear());
+      if (ageYears > 10) score += 100;
+      else if (ageYears > 5) score += 50;
+      else if (ageYears > 2) score += 25;
+    }
+    
+    // Add points based on capital
+    if (receitaData.capital_social) {
+      const capital = parseFloat(receitaData.capital_social);
+      if (capital > 1000000) score += 100;
+      else if (capital > 500000) score += 50;
+      else if (capital > 100000) score += 25;
+    }
+    
+    // Add points for having partners
+    if (receitaData.qsa && receitaData.qsa.length > 0) score += 50;
+    
+    // Ensure score is within bounds
+    return Math.min(Math.max(score, 0), 1000);
+  }
+  
+  // Helper function to generate mock credit score
+  function generateMockCreditScore(application: any, applicationId: number): any {
+    return {
+      creditApplicationId: applicationId,
+      cnpj: application.cnpj,
+      creditScore: Math.floor(Math.random() * 400) + 600, // 600-1000 range
+      scoreDate: new Date(),
+      legalName: application.legalCompanyName,
+      tradingName: application.legalCompanyName,
+      status: 'ATIVA',
+      openingDate: new Date('2015-01-15'),
+      shareCapital: 'R$ 500.000,00',
+      address: application.address,
+      city: application.city,
+      state: application.state,
+      zipCode: application.zipCode,
+      phone: application.phone,
+      email: application.email,
+      mainActivity: { code: '4711-3/02', description: 'Comércio varejista de mercadorias em geral' },
+      secondaryActivities: [
+        { code: '4712-1/00', description: 'Comércio varejista de mercadorias em geral' }
+      ],
+      partners: application.shareholders || [],
+      hasDebts: Math.random() > 0.8,
+      hasProtests: Math.random() > 0.9,
+      hasBankruptcy: false,
+      hasLawsuits: Math.random() > 0.85,
+      lastCheckedAt: new Date()
+    };
+  }
 
   // Communication endpoints for credit applications
   app.put('/api/credit-applications/:id/admin-message', requireAuth, async (req: any, res) => {

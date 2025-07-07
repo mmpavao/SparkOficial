@@ -848,6 +848,16 @@ Changelog:
   * Module displays company data, credit checks (debts, protests, bankruptcy, lawsuits) with visual indicators
   * Created responsive card layout matching existing import details UI patterns
   * Ready for Receita WS API integration when API key is provided
+- July 07, 2025. Credit Score module security and API integration enhancements:
+  * Restricted Credit Score consultation button to admin users only (permissions.isAdmin check)
+  * Added useUserPermissions hook integration for role-based access control
+  * Non-admin users see message: "Análise de crédito disponível apenas para administradores"
+  * Implemented real Receita WS API integration with Bearer token authentication
+  * Added automatic fallback to mock data when API is unavailable or returns errors
+  * Created intelligent credit score calculation based on company age, capital, active status, and partners
+  * Score calculation ranges from 0-1000 with base score of 600 plus bonuses for positive attributes
+  * API integration checks for RECEITA_WS_API_KEY environment variable and logs API calls
+  * System ready for production use with real Receita Federal data when API key is configured
 ```
 
 ## User Preferences

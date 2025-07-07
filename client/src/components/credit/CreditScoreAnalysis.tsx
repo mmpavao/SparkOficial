@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCNPJ } from "@/lib/formatters";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import type { CreditApplication, CreditScore } from "@shared/schema";
 
 interface CreditScoreAnalysisProps {
@@ -34,6 +35,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
   const [isLoading, setIsLoading] = useState(false);
   const [creditScore, setCreditScore] = useState<CreditScore | null>(null);
   const { toast } = useToast();
+  const permissions = useUserPermissions();
 
   const handleConsultar = async () => {
     setIsLoading(true);
@@ -91,37 +93,45 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         </CardHeader>
         <CardContent>
           {!creditScore ? (
-            <Button 
-              onClick={handleConsultar}
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-            >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Consultando...
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Consultar Credit Score
-                </>
-              )}
-            </Button>
+            permissions.isAdmin ? (
+              <Button 
+                onClick={handleConsultar}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Consultando...
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Consultar Credit Score
+                  </>
+                )}
+              </Button>
+            ) : (
+              <p className="text-sm text-gray-600 text-center">
+                Análise de crédito disponível apenas para administradores
+              </p>
+            )
           ) : (
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">
                 Última consulta: {new Date(creditScore.scoreDate).toLocaleDateString('pt-BR')}
               </span>
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={handleConsultar}
-                disabled={isLoading}
-              >
-                <RefreshCw className="w-3 h-3 mr-1" />
-                Atualizar
-              </Button>
+              {permissions.isAdmin && (
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={handleConsultar}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Atualizar
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
