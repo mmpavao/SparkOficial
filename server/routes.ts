@@ -6067,18 +6067,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const result = await response.json();
         console.log('✅ CNPJá Credit API response received with data:', JSON.stringify(result, null, 2));
         
-        // Validate that we have credit-related data
-        if (result && (result.taxes || result.lawsuits || result.debts || result.registrations)) {
+        // Log complete response structure for debugging
+        console.log('📊 Complete CNPJá response structure:', JSON.stringify(result, null, 2));
+        
+        // Accept any valid company data - we'll analyze what's available
+        if (result && result.taxId) {
+          console.log('✅ Valid CNPJá company data received');
+          console.log('🔍 Available fields:', Object.keys(result));
           return {
             success: true,
             data: result,
             source: 'CNPJA_COMPANIES'
           };
         } else {
-          console.log('⚠️ No credit data found in response, response structure:', Object.keys(result || {}));
+          console.log('⚠️ Invalid response structure:', Object.keys(result || {}));
           return {
             success: false,
-            error: 'No credit data available',
+            error: 'Invalid company data',
             data: result
           };
         }
@@ -6153,68 +6158,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function checkForDebtIndicators(cnpjaData: any): boolean {
-    // Check real debt data from CNPJá taxes field (authentic data)
-    const taxes = cnpjaData.taxes || [];
-    if (taxes && taxes.length > 0) {
-      console.log('🚨 DÉBITOS REAIS ENCONTRADOS:', taxes.length, 'registros de impostos pendentes');
+    console.log('🔍 Checking debt indicators in CNPJá data...');
+    
+    // Check for Simples Nacional debt issues (real data available in CNPJá)
+    if (cnpjaData.company?.simples?.status === false) {
+      const reason = cnpjaData.company?.simples?.reason || '';
+      if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA')) {
+        console.log('🚨 DÉBITO NO SIMPLES NACIONAL ENCONTRADO:', reason);
+        return true;
+      }
+    }
+    
+    // Check company status for debt-related issues
+    if (cnpjaData.status?.id === 3) { // Suspensa
+      console.log('🚨 EMPRESA SUSPENSA - Possível indicador de débitos');
       return true;
     }
     
-    // Check for debt indicators in other CNPJá fields
-    if (cnpjaData.status?.id === 3) return true; // Suspensa pode indicar problemas
-    if (cnpjaData.simples?.status === false && cnpjaData.simples?.reason?.includes('DÉBITO')) return true;
-    
-    // Check registrations for debt-related entries
-    const registrations = cnpjaData.registrations || {};
-    if (registrations.debts && registrations.debts.length > 0) {
-      console.log('🚨 DÉBITOS REGISTRADOS ENCONTRADOS:', registrations.debts.length);
+    if (cnpjaData.status?.id === 4) { // Inapta
+      console.log('🚨 EMPRESA INAPTA - Possível indicador de problemas fiscais');
       return true;
     }
     
-    return false;
+    // Check for MEI debt issues
+    if (cnpjaData.company?.mei?.status === false) {
+      console.log('🚨 PROBLEMAS NO MEI DETECTADOS');
+      return true;
+    }
+    
+    // For companies with detailed financial data, check specific debt fields
+    // Note: CNPJá public API may not have all debt details, but we check what's available
+    const company = cnpjaData.company || {};
+    
+    // Log what we're analyzing
+    console.log('📊 Analyzing company data:');
+    console.log('   - Status ID:', cnpjaData.status?.id);
+    console.log('   - Status Text:', cnpjaData.status?.text);
+    console.log('   - Simples Status:', company.simples?.status);
+    console.log('   - Simples Reason:', company.simples?.reason);
+    console.log('   - MEI Status:', company.mei?.status);
+    
+    return false; // No debt indicators found in available data
   }
 
   function extractDebtDetails(cnpjaData: any): any[] | null {
     const debts = [];
+    const company = cnpjaData.company || {};
     
-    // Extract real tax debts from CNPJá taxes field
-    const taxes = cnpjaData.taxes || [];
-    taxes.forEach((tax: any) => {
-      debts.push({
-        type: 'IMPOSTO_FEDERAL',
-        description: tax.description || 'Débito tributário pendente',
-        amount: tax.amount || 'Não informado',
-        dueDate: tax.dueDate || 'Não informado',
-        status: tax.status || 'PENDENTE',
-        source: 'CNPJá Real Data'
-      });
-    });
-    
-    // Extract debts from registrations if available
-    const registrations = cnpjaData.registrations || {};
-    if (registrations.debts) {
-      registrations.debts.forEach((debt: any) => {
+    // Extract Simples Nacional debt details (real CNPJá data)
+    if (company.simples?.status === false && company.simples?.reason) {
+      const reason = company.simples.reason;
+      if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA')) {
         debts.push({
-          type: 'REGISTRO_DIVIDA',
-          description: debt.description || 'Dívida registrada',
-          amount: debt.amount || 'Não informado',
-          status: debt.status || 'ATIVA',
-          source: 'CNPJá Real Data'
+          type: 'SIMPLES_NACIONAL',
+          description: reason,
+          status: 'PENDENTE',
+          severity: 'ALTA',
+          source: 'Receita Federal via CNPJá'
         });
-      });
+        console.log('📋 Débito Simples Nacional extraído:', reason);
+      }
     }
     
-    // Legacy debt check for Simples Nacional
-    if (cnpjaData.simples?.reason?.includes('DÉBITO')) {
+    // Extract status-based debt indicators
+    if (cnpjaData.status?.id === 3) { // Suspensa
       debts.push({
-        type: 'SIMPLES_NACIONAL',
-        description: cnpjaData.simples.reason,
-        status: 'PENDENTE',
-        source: 'CNPJá Real Data'
+        type: 'STATUS_EMPRESA',
+        description: 'Empresa com situação cadastral SUSPENSA',
+        status: 'ATIVO',
+        severity: 'ALTA',
+        details: cnpjaData.status.text,
+        source: 'Receita Federal via CNPJá'
       });
+      console.log('📋 Status suspenso extraído');
     }
     
-    console.log(`📋 Extraídos ${debts.length} registros de débitos reais da CNPJá`);
+    if (cnpjaData.status?.id === 4) { // Inapta
+      debts.push({
+        type: 'STATUS_EMPRESA',
+        description: 'Empresa com situação cadastral INAPTA',
+        status: 'ATIVO',
+        severity: 'MEDIA',
+        details: cnpjaData.status.text,
+        source: 'Receita Federal via CNPJá'
+      });
+      console.log('📋 Status inapto extraído');
+    }
+    
+    // MEI debt issues
+    if (company.mei?.status === false) {
+      debts.push({
+        type: 'MEI',
+        description: 'Problemas detectados no registro MEI',
+        status: 'PENDENTE',
+        severity: 'MEDIA',
+        source: 'Receita Federal via CNPJá'
+      });
+      console.log('📋 Problema MEI extraído');
+    }
+    
+    console.log(`📋 Total de ${debts.length} indicadores de débito/problemas extraídos dos dados reais da CNPJá`);
     return debts.length > 0 ? debts : null;
   }
 
