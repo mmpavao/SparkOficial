@@ -1715,9 +1715,25 @@ export class DatabaseStorage {
   }
 
   async createCreditScore(scoreData: any): Promise<CreditScore> {
+    // Ensure all JSONB fields are properly formatted
+    const formattedData = {
+      ...scoreData,
+      companyData: scoreData.companyData || {},
+      creditApiData: scoreData.creditApiData || {},
+      mainActivity: scoreData.mainActivity || {},
+      secondaryActivities: scoreData.secondaryActivities || [],
+      partners: scoreData.partners || [],
+      creditHistory: scoreData.creditHistory || {},
+      financialProfile: scoreData.financialProfile || {},
+      debtDetails: scoreData.debtDetails || {},
+      protestDetails: scoreData.protestDetails || {},
+      lawsuitDetails: scoreData.lawsuitDetails || {},
+      bankruptcyDetails: scoreData.bankruptcyDetails || {}
+    };
+
     const [score] = await db
       .insert(creditScores)
-      .values(scoreData)
+      .values(formattedData)
       .returning();
     return score;
   }

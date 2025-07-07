@@ -2990,8 +2990,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cleanCnpj = application.cnpj.replace(/\D/g, '');
       
       let creditScoreData: any;
+      let receitaData: any = null;
+      let creditApiData: any = null;
       
-      // Try to use Receita WS API if key is available
+      // Step 1: Get basic company data from Receita WS API
       if (process.env.RECEITA_WS_API_KEY) {
         try {
           console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
@@ -3004,73 +3006,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           if (response.ok) {
-            const receitaData = await response.json();
-            console.log('✅ Receita WS API response received:', JSON.stringify(receitaData, null, 2));
+            receitaData = await response.json();
+            console.log('✅ Receita WS API response received');
             
-            // Use ONLY real data from Receita WS API - no fallback to application data
-            creditScoreData = {
-              creditApplicationId: applicationId,
-              cnpj: application.cnpj,
-              creditScore: calculateCreditScore(receitaData),
-              scoreDate: new Date(),
-              // Only use data from API response
-              legalName: receitaData.nome || 'Não informado',
-              tradingName: receitaData.fantasia || receitaData.nome || 'Não informado',
-              status: receitaData.situacao || 'Não informado',
-              openingDate: receitaData.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
-              shareCapital: receitaData.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
-              // Use complete address from API
-              address: [
-                receitaData.logradouro,
-                receitaData.numero,
-                receitaData.complemento,
-                receitaData.bairro
-              ].filter(Boolean).join(', ') || 'Não informado',
-              city: receitaData.municipio || 'Não informado',
-              state: receitaData.uf || 'Não informado',
-              zipCode: formatCEP(receitaData.cep) || 'Não informado',
-              phone: formatPhone(receitaData.telefone) || 'Não informado',
-              email: receitaData.email || 'Não informado',
-              mainActivity: receitaData.atividade_principal?.[0] ? {
-                code: receitaData.atividade_principal[0].code || 'Não informado',
-                description: receitaData.atividade_principal[0].text || 'Não informado'
-              } : { code: 'Não informado', description: 'Não informado' },
-              secondaryActivities: receitaData.atividades_secundarias?.map((act: any) => ({
-                code: act.code || 'Não informado',
-                description: act.text || 'Não informado'
-              })) || [],
-              partners: receitaData.qsa?.map((partner: any) => ({
-                name: partner.nome || 'Não informado',
-                qualification: partner.qual || 'Não informado',
-                joinDate: partner.data_entrada || null
-              })) || [],
-              companyData: receitaData, // Store full API response
-              hasDebts: false, // Would need integration with Serasa/SPC
-              hasProtests: false,
-              hasBankruptcy: false,
-              hasLawsuits: false,
-              lastCheckedAt: new Date()
-            };
           } else {
-            const errorText = await response.text();
-            console.error('⚠️ Receita WS API error:', response.status, errorText);
-            return res.status(503).json({ 
-              message: "Serviço da Receita Federal temporariamente indisponível",
-              details: "Não foi possível consultar os dados da empresa no momento"
-            });
+            console.log('⚠️ Receita WS API call failed, status:', response.status);
           }
-        } catch (apiError) {
-          console.error('❌ Receita WS API error:', apiError);
-          return res.status(503).json({ 
-            message: "Erro ao consultar Receita Federal",
-            details: "Verifique a configuração da API key ou tente novamente mais tarde"
-          });
+        } catch (error) {
+          console.error('❌ Receita WS API error:', error);
         }
+      }
+
+      // Step 2: Get detailed credit analysis from Credit API
+      if (process.env.CREDIT_API_KEY) {
+        try {
+          creditApiData = await callCreditAPI(cleanCnpj);
+          console.log('✅ Credit API data received successfully');
+        } catch (error) {
+          console.error('❌ Credit API error:', error);
+        }
+      }
+
+      // Step 3: Calculate enhanced credit score and create response
+      if (receitaData || creditApiData) {
+        const baseScore = receitaData ? calculateCreditScore(receitaData) : 600;
+        const enhancedScore = creditApiData ? enhanceCreditScore(baseScore, creditApiData) : baseScore;
+        
+        creditScoreData = {
+          creditApplicationId: applicationId,
+          cnpj: application.cnpj,
+          creditScore: enhancedScore,
+          scoreDate: new Date(),
+          // Basic company data from Receita WS
+          legalName: receitaData?.nome || 'Não informado',
+          tradingName: receitaData?.fantasia || receitaData?.nome || 'Não informado',
+          status: receitaData?.situacao || 'Não informado',
+          openingDate: receitaData?.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
+          shareCapital: receitaData?.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
+          // Use complete address from API
+          address: [
+            receitaData?.logradouro,
+            receitaData?.numero,
+            receitaData?.complemento,
+            receitaData?.bairro
+          ].filter(Boolean).join(', ') || 'Não informado',
+          city: receitaData?.municipio || 'Não informado',
+          state: receitaData?.uf || 'Não informado',
+          zipCode: formatCEP(receitaData?.cep) || 'Não informado',
+          phone: formatPhone(receitaData?.telefone) || 'Não informado',
+          email: receitaData?.email || 'Não informado',
+          mainActivity: receitaData?.atividade_principal?.[0] ? {
+            code: receitaData.atividade_principal[0].code || 'Não informado',
+            description: receitaData.atividade_principal[0].text || 'Não informado'
+          } : { code: 'Não informado', description: 'Não informado' },
+          secondaryActivities: receitaData?.atividades_secundarias?.map((act: any) => ({
+            code: act.code || 'Não informado',
+            description: act.text || 'Não informado'
+          })) || [],
+          partners: receitaData?.qsa?.map((partner: any) => ({
+            name: partner.nome || 'Não informado',
+            qualification: partner.qual || 'Não informado',
+            joinDate: partner.data_entrada || null
+          })) || [],
+          companyData: receitaData, // Store full API response
+          // Credit API data integration
+          creditApiData: creditApiData,
+          creditRating: creditApiData?.data?.creditRating || 'Não informado',
+          bankingScore: creditApiData?.data?.bankingScore || null,
+          paymentBehavior: creditApiData?.data?.paymentBehavior || 'Não informado',
+          creditHistory: creditApiData?.data?.creditHistory || {},
+          financialProfile: creditApiData?.data?.financialProfile || {},
+          riskLevel: creditApiData?.data?.riskLevel || 'Não informado',
+          hasDebts: creditApiData?.data?.hasDebts || false,
+          debtDetails: creditApiData?.data?.debtDetails || {},
+          hasProtests: creditApiData?.data?.hasProtests || false,
+          protestDetails: creditApiData?.data?.protestDetails || {},
+          hasLawsuits: creditApiData?.data?.hasLawsuits || false,
+          lawsuitDetails: creditApiData?.data?.lawsuitDetails || {},
+          hasBankruptcy: creditApiData?.data?.hasBankruptcy || false,
+          bankruptcyDetails: creditApiData?.data?.bankruptcyDetails || {},
+          receitaWsStatus: receitaData ? 'success' : 'no_data',
+          creditApiStatus: creditApiData ? 'success' : 'no_data',
+          lastReceitaWsCheck: receitaData ? new Date() : null,
+          lastCreditApiCheck: creditApiData ? new Date() : null,
+          lastCheckedAt: new Date()
+        };
       } else {
-        // No API key configured
+        // No API data available - create minimal response
         return res.status(503).json({ 
           message: "Serviço de consulta não configurado",
-          details: "A API da Receita Federal não está configurada. Entre em contato com o administrador."
+          details: "As APIs de crédito não estão configuradas. Entre em contato com o administrador."
         });
       }
       
@@ -5655,6 +5680,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao atualizar status" });
     }
   });
+
+  // Credit API Integration Functions
+  async function callCreditAPI(cnpj: string): Promise<any> {
+    if (!process.env.CREDIT_API_KEY) {
+      throw new Error('Credit API key not configured');
+    }
+
+    const query = `
+      mutation CreateCreditoCompletoCnpj($input: CreditoCompletoCnpjInput!) {
+        createCreditoCompletoCnpj(input: $input) {
+          id
+          status
+          data {
+            cnpj
+            creditRating
+            bankingScore
+            paymentBehavior
+            creditHistory
+            financialProfile
+            riskLevel
+            hasDebts
+            debtDetails
+            hasProtests
+            protestDetails
+            hasLawsuits
+            lawsuitDetails
+            hasBankruptcy
+            bankruptcyDetails
+          }
+        }
+      }
+    `;
+
+    try {
+      console.log('🏦 Calling Credit API for CNPJ:', cnpj);
+      
+      const response = await fetch('https://api.creditanalysis.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+        },
+        body: JSON.stringify({
+          query,
+          variables: {
+            input: { cnpj }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Credit API HTTP error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Credit API response received');
+      
+      if (result.errors) {
+        throw new Error(`Credit API GraphQL error: ${result.errors[0].message}`);
+      }
+
+      return result.data.createCreditoCompletoCnpj;
+    } catch (error) {
+      console.error('❌ Credit API error:', error);
+      throw error;
+    }
+  }
+
+  function enhanceCreditScore(receitaScore: number, creditApiData: any): number {
+    let enhancedScore = receitaScore;
+    
+    if (creditApiData?.data) {
+      const data = creditApiData.data;
+      
+      // Adjust score based on credit API findings
+      if (data.hasDebts) enhancedScore -= 150;
+      if (data.hasProtests) enhancedScore -= 200;
+      if (data.hasBankruptcy) enhancedScore -= 300;
+      if (data.hasLawsuits) enhancedScore -= 100;
+      
+      // Bonus for good payment behavior
+      if (data.paymentBehavior === 'EXCELLENT') enhancedScore += 100;
+      else if (data.paymentBehavior === 'GOOD') enhancedScore += 50;
+      else if (data.paymentBehavior === 'POOR') enhancedScore -= 100;
+      
+      // Banking score influence
+      if (data.bankingScore) {
+        if (data.bankingScore >= 800) enhancedScore += 50;
+        else if (data.bankingScore <= 400) enhancedScore -= 50;
+      }
+    }
+    
+    // Ensure score stays within bounds
+    return Math.min(Math.max(enhancedScore, 0), 1000);
+  }
 
   // Register imports routes
   console.log('Registering imports routes...');

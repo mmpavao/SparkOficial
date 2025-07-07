@@ -675,12 +675,31 @@ export const creditScores = pgTable("credit_scores", {
   // Partners/Shareholders
   partners: jsonb("partners"), // [{name, qualification, joinDate}]
   
-  // Credit Analysis Results
+  // Credit Analysis Results (Receita WS + Credit API)
   creditAnalysis: jsonb("credit_analysis"), // Results from credit bureau checks
   hasDebts: boolean("has_debts").default(false),
   hasProtests: boolean("has_protests").default(false),
   hasBankruptcy: boolean("has_bankruptcy").default(false),
   hasLawsuits: boolean("has_lawsuits").default(false),
+  
+  // Advanced Credit API Data
+  creditApiData: jsonb("credit_api_data"), // Full response from Credit API
+  creditRating: text("credit_rating"), // Rating from banking analysis
+  bankingScore: integer("banking_score"), // Specific banking score
+  paymentBehavior: text("payment_behavior"), // Historical payment patterns
+  creditHistory: jsonb("credit_history"), // Detailed credit history
+  financialProfile: jsonb("financial_profile"), // Financial stability indicators
+  riskLevel: text("risk_level"), // LOW, MEDIUM, HIGH, VERY_HIGH
+  debtDetails: jsonb("debt_details"), // Detailed debt information
+  protestDetails: jsonb("protest_details"), // Detailed protest information
+  lawsuitDetails: jsonb("lawsuit_details"), // Detailed lawsuit information
+  bankruptcyDetails: jsonb("bankruptcy_details"), // Detailed bankruptcy information
+  
+  // API Integration Status
+  receitaWsStatus: text("receita_ws_status").default("pending"), // success, error, pending
+  creditApiStatus: text("credit_api_status").default("pending"), // success, error, pending
+  lastReceitaWsCheck: timestamp("last_receita_ws_check"),
+  lastCreditApiCheck: timestamp("last_credit_api_check"),
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),

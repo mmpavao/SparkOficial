@@ -19,7 +19,9 @@ import {
   RefreshCw,
   TrendingUp,
   Shield,
-  Briefcase
+  Briefcase,
+  BarChart3,
+  Activity
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -439,6 +441,115 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     </Badge>
                   )}
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Enhanced Credit Analysis from Credit API */}
+          {((creditScore as any).creditRating || (creditScore as any).bankingScore || (creditScore as any).paymentBehavior || (creditScore as any).riskLevel) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart3 className="w-5 h-5 flex-shrink-0" />
+                  Análise Avançada de Crédito
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="space-y-3">
+                  {(creditScore as any).creditRating && (creditScore as any).creditRating !== 'Não informado' && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium">Rating de Crédito</span>
+                      <Badge className="bg-blue-100 text-blue-700">
+                        {(creditScore as any).creditRating}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {(creditScore as any).bankingScore && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium">Score Bancário</span>
+                      <Badge className="bg-blue-100 text-blue-700">
+                        {(creditScore as any).bankingScore}/1000
+                      </Badge>
+                    </div>
+                  )}
+
+                  {(creditScore as any).paymentBehavior && (creditScore as any).paymentBehavior !== 'Não informado' && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium">Comportamento de Pagamento</span>
+                      <Badge className={`${
+                        (creditScore as any).paymentBehavior === 'EXCELLENT' ? 'bg-green-100 text-green-700' :
+                        (creditScore as any).paymentBehavior === 'GOOD' ? 'bg-blue-100 text-blue-700' :
+                        (creditScore as any).paymentBehavior === 'POOR' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {(creditScore as any).paymentBehavior === 'EXCELLENT' ? 'Excelente' :
+                         (creditScore as any).paymentBehavior === 'GOOD' ? 'Bom' :
+                         (creditScore as any).paymentBehavior === 'POOR' ? 'Ruim' :
+                         (creditScore as any).paymentBehavior}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {(creditScore as any).riskLevel && (creditScore as any).riskLevel !== 'Não informado' && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium">Nível de Risco</span>
+                      <Badge className={`${
+                        (creditScore as any).riskLevel === 'LOW' ? 'bg-green-100 text-green-700' :
+                        (creditScore as any).riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                        (creditScore as any).riskLevel === 'HIGH' ? 'bg-orange-100 text-orange-700' :
+                        (creditScore as any).riskLevel === 'VERY_HIGH' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {(creditScore as any).riskLevel === 'LOW' ? 'Baixo' :
+                         (creditScore as any).riskLevel === 'MEDIUM' ? 'Médio' :
+                         (creditScore as any).riskLevel === 'HIGH' ? 'Alto' :
+                         (creditScore as any).riskLevel === 'VERY_HIGH' ? 'Muito Alto' :
+                         (creditScore as any).riskLevel}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* API Status Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Activity className="w-5 h-5 flex-shrink-0" />
+                Status das Consultas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium">Receita Federal</span>
+                  <Badge className={`${
+                    (creditScore as any).receitaWsStatus === 'success' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {(creditScore as any).receitaWsStatus === 'success' ? 'Sucesso' : 'Pendente'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium">Análise de Crédito</span>
+                  <Badge className={`${
+                    (creditScore as any).creditApiStatus === 'success' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {(creditScore as any).creditApiStatus === 'success' ? 'Sucesso' : 'Pendente'}
+                  </Badge>
+                </div>
+                {(creditScore as any).lastReceitaWsCheck && (
+                  <div className="text-xs text-gray-500 pt-2 border-t">
+                    Última consulta Receita: {new Date((creditScore as any).lastReceitaWsCheck).toLocaleDateString('pt-BR')}
+                  </div>
+                )}
+                {(creditScore as any).lastCreditApiCheck && (
+                  <div className="text-xs text-gray-500">
+                    Última consulta Credit API: {new Date((creditScore as any).lastCreditApiCheck).toLocaleDateString('pt-BR')}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
