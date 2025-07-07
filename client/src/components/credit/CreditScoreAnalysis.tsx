@@ -353,7 +353,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Débitos</span>
                   {creditScore.hasDebts ? (
