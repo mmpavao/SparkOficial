@@ -877,6 +877,8 @@ Changelog:
   * Added basic click handlers for "Editar Termos" and "Bloquear Crédito" buttons without breaking existing functionality
   * Fixed Credit Score Analysis company data layout from messy two-column grid to organized single-column format
   * Replaced "grid grid-cols-1 md:grid-cols-2 gap-4" with "space-y-4" for better visual organization
+  * Fixed phone input formatting bug in registration form showing incomplete "(11" format
+  * Enhanced formatPhone function to handle empty inputs and show proper Brazilian phone format progression
   * Maintained visual consistency between financeira and importer modules with identical layouts
 ```
 
