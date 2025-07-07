@@ -3688,17 +3688,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Current required documents:', Object.keys(currentRequired));
       console.log('Current optional documents:', Object.keys(currentOptional));
 
+      // Check for compound document ID (e.g., "articles_of_association_filename.jpg")
+      let baseDocumentKey = documentId;
+      let isCompoundId = false;
+      
+      // If documentId contains underscores followed by a file extension, it might be a compound ID
+      if (documentId.includes('_') && (documentId.includes('.jpg') || documentId.includes('.pdf') || documentId.includes('.png') || documentId.includes('.doc'))) {
+        // Extract base key by finding the pattern: baseKey_filename.extension
+        const parts = documentId.split('_');
+        if (parts.length >= 2) {
+          // Try different combinations to find the base key
+          for (let i = parts.length - 1; i >= 1; i--) {
+            const potentialBaseKey = parts.slice(0, i).join('_');
+            if (currentRequired[potentialBaseKey] || currentOptional[potentialBaseKey]) {
+              baseDocumentKey = potentialBaseKey;
+              isCompoundId = true;
+              console.log(`Found compound document: base key = ${baseDocumentKey}`);
+              break;
+            }
+          }
+        }
+      }
+
       // First, try to find the document by exact key match in required documents
       if (currentRequired[documentId]) {
         const updatedRequired = { ...currentRequired };
         delete updatedRequired[documentId];
         updateData.requiredDocuments = updatedRequired;
         documentFound = true;
+        console.log(`Removed exact match from required documents: ${documentId}`);
+      }
+      // If compound ID, try to remove from array within base document key
+      else if (isCompoundId && currentRequired[baseDocumentKey]) {
+        const updatedRequired = { ...currentRequired };
+        const currentDoc = updatedRequired[baseDocumentKey];
         
-        console.log(`Removed from required documents: ${documentId}`);
+        if (Array.isArray(currentDoc)) {
+          // Remove specific file from array based on filename
+          const filename = documentId.replace(baseDocumentKey + '_', '');
+          updatedRequired[baseDocumentKey] = currentDoc.filter(doc => 
+            doc.filename !== filename && doc.originalName !== filename
+          );
+          
+          // If array becomes empty, remove the key entirely
+          if (updatedRequired[baseDocumentKey].length === 0) {
+            delete updatedRequired[baseDocumentKey];
+          }
+        } else {
+          // Single document, remove entirely
+          delete updatedRequired[baseDocumentKey];
+        }
+        
+        updateData.requiredDocuments = updatedRequired;
+        documentFound = true;
+        console.log(`Removed compound document from required: ${documentId}`);
+      }
 
-        // Update status based on remaining mandatory documents
-        const mandatoryDocKeys = ['articles_of_incorporation', 'business_license', 'legal_representative_id'];
+      // Check if document exists in optional documents (only if not found in required)
+      if (!documentFound && currentOptional[documentId]) {
+        const updatedOptional = { ...currentOptional };
+        delete updatedOptional[documentId];
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+        console.log(`Removed exact match from optional documents: ${documentId}`);
+      }
+      // If compound ID in optional documents
+      else if (!documentFound && isCompoundId && currentOptional[baseDocumentKey]) {
+        const updatedOptional = { ...currentOptional };
+        const currentDoc = updatedOptional[baseDocumentKey];
+        
+        if (Array.isArray(currentDoc)) {
+          // Remove specific file from array based on filename
+          const filename = documentId.replace(baseDocumentKey + '_', '');
+          updatedOptional[baseDocumentKey] = currentDoc.filter(doc => 
+            doc.filename !== filename && doc.originalName !== filename
+          );
+          
+          // If array becomes empty, remove the key entirely
+          if (updatedOptional[baseDocumentKey].length === 0) {
+            delete updatedOptional[baseDocumentKey];
+          }
+        } else {
+          // Single document, remove entirely
+          delete updatedOptional[baseDocumentKey];
+        }
+        
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+        console.log(`Removed compound document from optional: ${documentId}`);
+      }
+
+      // Update status based on remaining mandatory documents if we removed from required
+      if (documentFound && (currentRequired[documentId] || (isCompoundId && currentRequired[baseDocumentKey]))) {
+        const mandatoryDocKeys = ['articles_of_association', 'business_license', 'legal_representative_id'];
+        const updatedRequired = updateData.requiredDocuments || currentRequired;
         const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
         
         if (uploadedMandatory === 0) {
@@ -3709,16 +3792,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (uploadedMandatory < mandatoryDocKeys.length) {
           updateData.documentsStatus = 'partial';
         }
-      }
-
-      // Check if document exists in optional documents (only if not found in required)
-      if (!documentFound && currentOptional[documentId]) {
-        const updatedOptional = { ...currentOptional };
-        delete updatedOptional[documentId];
-        updateData.optionalDocuments = updatedOptional;
-        documentFound = true;
-        
-        console.log(`Removed from optional documents: ${documentId}`);
       }
 
       if (!documentFound) {

@@ -268,28 +268,19 @@ export default function CreditDetailsPage() {
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
-    // Obter documentos da aplicação atual
-    const requiredDocs = application?.requiredDocuments || {};
-    const optionalDocs = application?.optionalDocuments || {};
-    const allUploadedDocuments = { ...requiredDocs, ...optionalDocs };
+    console.log(`Attempting to remove document: ${documentId} with index: ${index}`);
     
-    // Se temos múltiplos documentos, incluir o índice na identificação
+    // Para múltiplos documentos, usar o padrão documentKey_filename.extension
     if (typeof index === 'number' && index >= 0) {
-      const currentDocs = allUploadedDocuments[documentId];
-      const documentsArray = Array.isArray(currentDocs) ? currentDocs : [currentDocs];
-      
-      if (documentsArray.length > 1) {
-        // Para múltiplos documentos, usar o filename específico do documento
-        const docToRemove = documentsArray[index];
-        if (docToRemove && docToRemove.filename) {
-          deleteDocumentMutation.mutate({ documentId: `${documentId}_${docToRemove.filename}` });
-          return;
-        }
-      }
+      // O documentId já deve conter o formato correto para múltiplos arquivos
+      // Como "articles_of_association_condominiospiracicaba.jpg"
+      console.log(`Removing indexed document: ${documentId}`);
+      deleteDocumentMutation.mutate({ documentId });
+    } else {
+      // Remoção padrão para documento único
+      console.log(`Removing single document: ${documentId}`);
+      deleteDocumentMutation.mutate({ documentId });
     }
-    
-    // Fallback para remoção padrão
-    deleteDocumentMutation.mutate({ documentId });
   };
 
   const initializeEditMode = () => {
