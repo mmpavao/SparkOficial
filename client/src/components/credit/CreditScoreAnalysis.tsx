@@ -266,46 +266,44 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           </Card>
 
           {/* Contact and Address */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  Endereço
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <div className="space-y-2">
-                  <p className="text-sm break-words">{creditScore.address || application.address}</p>
-                  <p className="text-sm">
-                    {creditScore.city || application.city}, {creditScore.state || application.state}
-                  </p>
-                  <p className="text-sm">CEP: {creditScore.zipCode || application.zipCode}</p>
-                </div>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                Endereço
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="space-y-2">
+                <p className="text-sm break-words">{creditScore.address || application.address}</p>
+                <p className="text-sm">
+                  {creditScore.city || application.city}, {creditScore.state || application.state}
+                </p>
+                <p className="text-sm">CEP: {creditScore.zipCode || application.zipCode}</p>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Phone className="w-4 h-4 flex-shrink-0" />
-                  Contato
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm break-all">{creditScore.phone || application.phone}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm break-all">{creditScore.email || application.email}</span>
-                  </div>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                Contato
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm break-all">{creditScore.phone || application.phone}</span>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div className="flex items-start gap-2">
+                  <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm break-all">{creditScore.email || application.email}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Economic Activities */}
           {(creditScore.mainActivity || creditScore.secondaryActivities) && (
