@@ -3691,10 +3691,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for compound document ID (e.g., "articles_of_association_filename.jpg")
       let baseDocumentKey = documentId;
       let isCompoundId = false;
+      let targetFilename = null;
       
-      // If documentId contains underscores followed by a file extension, it might be a compound ID
-      if (documentId.includes('_') && (documentId.includes('.jpg') || documentId.includes('.pdf') || documentId.includes('.png') || documentId.includes('.doc'))) {
-        // Extract base key by finding the pattern: baseKey_filename.extension
+      // If documentId contains underscores, it might be a compound ID
+      if (documentId.includes('_')) {
         const parts = documentId.split('_');
         if (parts.length >= 2) {
           // Try different combinations to find the base key
@@ -3702,8 +3702,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const potentialBaseKey = parts.slice(0, i).join('_');
             if (currentRequired[potentialBaseKey] || currentOptional[potentialBaseKey]) {
               baseDocumentKey = potentialBaseKey;
+              targetFilename = parts.slice(i).join('_'); // Remaining parts form the filename
               isCompoundId = true;
-              console.log(`Found compound document: base key = ${baseDocumentKey}`);
+              console.log(`Found compound document: base key = ${baseDocumentKey}, target file = ${targetFilename}`);
               break;
             }
           }
@@ -3724,19 +3725,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const currentDoc = updatedRequired[baseDocumentKey];
         
         if (Array.isArray(currentDoc)) {
-          // Remove specific file from array based on filename
-          const filename = documentId.replace(baseDocumentKey + '_', '');
-          updatedRequired[baseDocumentKey] = currentDoc.filter(doc => 
-            doc.filename !== filename && doc.originalName !== filename
-          );
+          // Remove specific file from array based on exact filename match
+          const initialLength = currentDoc.length;
+          updatedRequired[baseDocumentKey] = currentDoc.filter(doc => {
+            const docFilename = doc.filename || doc.originalName || '';
+            const matches = docFilename === targetFilename;
+            if (matches) {
+              console.log(`Removing file: ${docFilename} (matches target: ${targetFilename})`);
+            }
+            return !matches;
+          });
+          
+          const finalLength = updatedRequired[baseDocumentKey].length;
+          console.log(`Array length: ${initialLength} -> ${finalLength}`);
           
           // If array becomes empty, remove the key entirely
           if (updatedRequired[baseDocumentKey].length === 0) {
             delete updatedRequired[baseDocumentKey];
+            console.log(`Removed empty document key: ${baseDocumentKey}`);
           }
         } else {
           // Single document, remove entirely
           delete updatedRequired[baseDocumentKey];
+          console.log(`Removed single document: ${baseDocumentKey}`);
         }
         
         updateData.requiredDocuments = updatedRequired;
@@ -3758,19 +3769,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const currentDoc = updatedOptional[baseDocumentKey];
         
         if (Array.isArray(currentDoc)) {
-          // Remove specific file from array based on filename
-          const filename = documentId.replace(baseDocumentKey + '_', '');
-          updatedOptional[baseDocumentKey] = currentDoc.filter(doc => 
-            doc.filename !== filename && doc.originalName !== filename
-          );
+          // Remove specific file from array based on exact filename match
+          const initialLength = currentDoc.length;
+          updatedOptional[baseDocumentKey] = currentDoc.filter(doc => {
+            const docFilename = doc.filename || doc.originalName || '';
+            const matches = docFilename === targetFilename;
+            if (matches) {
+              console.log(`Removing optional file: ${docFilename} (matches target: ${targetFilename})`);
+            }
+            return !matches;
+          });
+          
+          const finalLength = updatedOptional[baseDocumentKey].length;
+          console.log(`Optional array length: ${initialLength} -> ${finalLength}`);
           
           // If array becomes empty, remove the key entirely
           if (updatedOptional[baseDocumentKey].length === 0) {
             delete updatedOptional[baseDocumentKey];
+            console.log(`Removed empty optional document key: ${baseDocumentKey}`);
           }
         } else {
           // Single document, remove entirely
           delete updatedOptional[baseDocumentKey];
+          console.log(`Removed single optional document: ${baseDocumentKey}`);
         }
         
         updateData.optionalDocuments = updatedOptional;

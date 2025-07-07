@@ -270,15 +270,13 @@ export default function CreditDetailsPage() {
   const handleDocumentRemove = (documentId: string, index?: number) => {
     console.log(`Attempting to remove document: ${documentId} with index: ${index}`);
     
-    // Para múltiplos documentos, usar o padrão documentKey_filename.extension
-    if (typeof index === 'number' && index >= 0) {
-      // O documentId já deve conter o formato correto para múltiplos arquivos
-      // Como "articles_of_association_condominiospiracicaba.jpg"
-      console.log(`Removing indexed document: ${documentId}`);
+    // Se o documentId já contém o formato composto (documentKey_filename), usar diretamente
+    if (documentId.includes('_') && typeof index === 'number') {
+      console.log(`Removing specific document from array: ${documentId}`);
       deleteDocumentMutation.mutate({ documentId });
     } else {
-      // Remoção padrão para documento único
-      console.log(`Removing single document: ${documentId}`);
+      // Para documento único ou quando não há índice específico
+      console.log(`Removing document: ${documentId}`);
       deleteDocumentMutation.mutate({ documentId });
     }
   };

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,7 +61,7 @@ export default function UnifiedDocumentUpload({
   acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: UnifiedDocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [localUploadState, setLocalUploadState] = useState<{
+  const [localUploadState, setLocalUploadState<{
     isUploading: boolean;
     currentFile: number;
     totalFiles: number;
@@ -73,7 +72,7 @@ export default function UnifiedDocumentUpload({
     totalFiles: 0,
     currentFileName: ''
   });
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadQueueRef = useRef<File[]>([]);
   const isProcessingRef = useRef(false);
@@ -126,7 +125,7 @@ export default function UnifiedDocumentUpload({
     try {
       for (let i = 0; i < filesToProcess.length; i++) {
         const file = filesToProcess[i];
-        
+
         setLocalUploadState(prev => ({
           ...prev,
           currentFile: i + 1,
@@ -145,7 +144,7 @@ export default function UnifiedDocumentUpload({
             try {
               // Fazer o upload
               onUpload(documentKey, file);
-              
+
               // Aguardar um tempo para o upload ser processado
               setTimeout(() => {
                 clearTimeout(timeoutId);
@@ -320,8 +319,24 @@ export default function UnifiedDocumentUpload({
       return;
     }
 
-    // Sempre passar o índice para remoção individual
-    onRemove(documentKey, index);
+    const docToRemove = documentsArray[index];
+    if (!docToRemove) {
+      console.error('Documento não encontrado no índice:', index);
+      return;
+    }
+
+    // Para múltiplos documentos, criar ID específico para o arquivo
+    if (documentsArray.length > 1) {
+      // Usar filename como identificador único para remoção individual
+      const filename = docToRemove.filename || docToRemove.originalName || `doc_${index}`;
+      const compoundId = `${documentKey}_${filename}`;
+      console.log(`Removendo documento específico: ${compoundId} (índice: ${index})`);
+      onRemove(compoundId, index);
+    } else {
+      // Para documento único, usar chave simples
+      console.log(`Removendo documento único: ${documentKey}`);
+      onRemove(documentKey, 0);
+    }
   };
 
   // Obter informações de status
