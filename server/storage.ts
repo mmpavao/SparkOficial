@@ -1979,6 +1979,8 @@ export class DatabaseStorage {
     // Generate ticket number
     const ticketNumber = `TK-${Date.now()}`;
     
+    console.log('Creating support ticket with data:', data);
+    
     const [ticket] = await db
       .insert(supportTickets)
       .values({
@@ -1987,9 +1989,7 @@ export class DatabaseStorage {
         subject: data.title,
         category: 'general_inquiry',
         priority: data.priority,
-        status: 'open',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        status: 'open'
       })
       .returning();
 

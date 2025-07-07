@@ -2934,7 +2934,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Credit Score endpoint
+  // Admin endpoint to get credit score for any application
+  app.get('/api/admin/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      
+      // Restrict to admin users only
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin' && user?.role !== 'super_admin') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Get existing credit score
+      const existingScore = await storage.getCreditScore(applicationId);
+      if (existingScore) {
+        return res.json(existingScore);
+      } else {
+        return res.status(404).json({ message: "Credit score não encontrado" });
+      }
+    } catch (error) {
+      console.error("Error fetching admin credit score:", error);
+      res.status(500).json({ message: "Erro ao buscar credit score" });
+    }
+  });
+
+  // Credit Score endpoint (POST - admin only)
   app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
@@ -2946,10 +2971,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Solicitação não encontrada" });
       }
       
-      // Check if user owns the application or is admin/financeira
+      // Restrict credit score consultation to admin users only
       const user = await storage.getUser(userId);
-      if (application.userId !== userId && user?.role !== 'admin' && user?.role !== 'super_admin' && user?.role !== 'financeira') {
-        return res.status(403).json({ message: "Acesso negado" });
+      if (user?.role !== 'admin' && user?.role !== 'super_admin') {
+        return res.status(403).json({ 
+          message: "Acesso negado",
+          details: "Consulta de credit score disponível apenas para administradores"
+        });
       }
       
       // Check if credit score already exists

@@ -37,7 +37,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
   const { toast } = useToast();
   const permissions = useUserPermissions();
 
-  // Fetch existing credit score on component mount
+  // Fetch existing credit score on component mount (for all users)
   useEffect(() => {
     const fetchExistingScore = async () => {
       try {
@@ -51,10 +51,9 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
       }
     };
     
-    if (permissions.isAdmin) {
-      fetchExistingScore();
-    }
-  }, [application.id, permissions.isAdmin]);
+    // All users can see existing scores, but only admins can create new ones
+    fetchExistingScore();
+  }, [application.id]);
 
   const handleConsultar = async () => {
     setIsLoading(true);
@@ -142,9 +141,12 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 )}
               </Button>
             ) : (
-              <p className="text-sm text-gray-600 text-center">
-                Análise de crédito disponível apenas para administradores
-              </p>
+              <div className="text-center text-gray-500">
+                <Shield className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">
+                  Análise de crédito disponível apenas para administradores
+                </p>
+              </div>
             )
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
