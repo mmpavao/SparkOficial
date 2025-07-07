@@ -280,136 +280,107 @@ export default function ImporterReportsPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Key Performance Indicators - Modern Design */}
+          {/* Key Performance Indicators */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Volume Total Importado */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-green-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-5 h-5 text-emerald-600" />
-                      <p className="text-sm font-medium text-emerald-800">Volume Total Importado</p>
-                    </div>
-                    <p className="text-2xl font-bold text-emerald-900 mb-1">
-                      {formatCompactCurrency(reportData.importMetrics.totalValue)}
+                  <div>
+                    <p className="text-sm text-gray-600">Volume Total Importado</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.importMetrics.totalValue)}
                     </p>
-                    <div className="flex items-center">
-                      <TrendingUp className="w-4 h-4 text-emerald-600 mr-1" />
-                      <span className="text-sm font-semibold text-emerald-700">+12.5% vs mês anterior</span>
+                    <div className="flex items-center mt-1">
+                      <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
+                      <span className="text-sm text-emerald-500">+12.5%</span>
                     </div>
                   </div>
-                </div>
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-emerald-600" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Crédito Utilizado */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CreditCard className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800">Crédito Utilizado</p>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-900 mb-1">
-                      {formatCompactCurrency(reportData.creditMetrics.creditUsed)}
+                  <div>
+                    <p className="text-sm text-gray-600">Crédito Utilizado</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCompactNumber(reportData.creditMetrics.creditUsed)}
                     </p>
-                    <div className="flex items-center">
-                      <div className="w-full bg-blue-200 rounded-full h-2 mr-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                          style={{ width: `${Math.min(reportData.creditMetrics.utilizationRate, 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-semibold text-blue-700">
-                        {reportData.creditMetrics.utilizationRate.toFixed(1)}%
+                    <div className="flex items-center mt-1">
+                      <span className="text-sm text-gray-500">
+                        {reportData.creditMetrics.utilizationRate.toFixed(1)}% do limite
                       </span>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Importações Ativas */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-orange-50 to-amber-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Package className="w-5 h-5 text-orange-600" />
-                      <p className="text-sm font-medium text-orange-800">Importações Ativas</p>
-                    </div>
-                    <p className="text-2xl font-bold text-orange-900 mb-1">
-                      {reportData.importMetrics.activeImports}
-                    </p>
-                    <div className="flex items-center">
-                      <Activity className="w-4 h-4 text-orange-600 mr-1" />
-                      <span className="text-sm font-semibold text-orange-700">Em andamento</span>
-                    </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Taxa de Entrega */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-50 to-violet-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-5 h-5 text-purple-600" />
-                      <p className="text-sm font-medium text-purple-800">Taxa de Entrega</p>
+                  <div>
+                    <p className="text-sm text-gray-600">Importações Ativas</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {reportData.importMetrics.activeImports}
+                    </p>
+                    <div className="flex items-center mt-1">
+                      <Activity className="w-4 h-4 text-orange-500 mr-1" />
+                      <span className="text-sm text-orange-500">Em andamento</span>
                     </div>
-                    <p className="text-2xl font-bold text-purple-900 mb-1">
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Package className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Taxa de Entrega</p>
+                    <p className="text-2xl font-bold text-gray-900">
                       {reportData.performanceMetrics.onTimeDeliveryRate}%
                     </p>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-4 h-4 text-purple-600 mr-1" />
-                      <span className="text-sm font-semibold text-purple-700">No prazo</span>
+                    <div className="flex items-center mt-1">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
+                      <span className="text-sm text-emerald-500">No prazo</span>
                     </div>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Charts Row - Modern Design */}
+          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Performance Mensal */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-gray-100/80">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-indigo-600" />
-                  Performance Mensal
-                </CardTitle>
+            {/* Monthly Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Mensal</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {reportData.importMetrics.monthlyVolume.map((month, index) => (
-                    <div key={month.month} className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200/50 hover:shadow-md transition-all duration-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
-                          <Calendar className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-indigo-900">{month.month}</p>
-                          <p className="text-sm text-indigo-600">{month.count} importações</p>
-                        </div>
+                <div className="space-y-4">
+                  {reportData.importMetrics.monthlyVolume.map((month) => (
+                    <div key={month.month} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{month.month}</p>
+                        <p className="text-sm text-gray-600">{month.count} importações</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-indigo-800">{formatCompactCurrency(month.value)}</p>
-                        <div className="flex items-center justify-end mt-1">
-                          <TrendingUp className="w-4 h-4 text-indigo-500 mr-1" />
-                          <span className="text-sm text-indigo-500">
-                            {index === 0 ? '+15%' : index === 1 ? '+8%' : '+5%'}
-                          </span>
-                        </div>
+                        <p className="font-semibold">{formatCompactCurrency(month.value)}</p>
                       </div>
                     </div>
                   ))}
@@ -417,53 +388,26 @@ export default function ImporterReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Status do Crédito */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-100/80">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-green-600" />
-                  Status do Crédito
-                </CardTitle>
+            {/* Credit Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Status do Crédito</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Limite Total */}
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                        <CreditCard className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="text-sm font-medium text-green-800">Limite Total</span>
-                    </div>
-                    <span className="font-bold text-green-900">{formatCompactCurrency(reportData.creditMetrics.totalCreditLimit)}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Limite Total</span>
+                    <span className="font-semibold">{formatCompactCurrency(reportData.creditMetrics.totalCreditLimit)}</span>
                   </div>
-
-                  {/* Barra de Progresso Modernizada */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Utilização de Crédito</span>
-                      <span className="text-sm font-semibold text-gray-900">{reportData.creditMetrics.utilizationRate.toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-gradient-to-r from-gray-200 to-gray-300 rounded-full h-4 relative overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-emerald-500 to-green-600 h-4 rounded-full transition-all duration-500 relative"
-                        style={{ width: `${reportData.creditMetrics.utilizationRate}%` }}
-                      >
-                        <div className="absolute inset-0 bg-white/30 rounded-full"></div>
-                      </div>
-                    </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-emerald-600 h-3 rounded-full"
+                      style={{ width: `${reportData.creditMetrics.utilizationRate}%` }}
+                    ></div>
                   </div>
-
-                  {/* Valores Detalhados */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200/50">
-                      <p className="text-xs text-orange-600 font-medium mb-1">Utilizado</p>
-                      <p className="font-bold text-orange-800">{formatCompactCurrency(reportData.creditMetrics.creditUsed)}</p>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200/50">
-                      <p className="text-xs text-emerald-600 font-medium mb-1">Disponível</p>
-                      <p className="font-bold text-emerald-800">{formatCompactCurrency(reportData.creditMetrics.creditAvailable)}</p>
-                    </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Utilizado: {formatCompactCurrency(reportData.creditMetrics.creditUsed)}</span>
+                    <span className="text-emerald-600">Disponível: {formatCompactCurrency(reportData.creditMetrics.creditAvailable)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -471,67 +415,52 @@ export default function ImporterReportsPage() {
           </div>
         </TabsContent>
 
-        {/* Credit Tab - Modern Design */}
+        {/* Credit Tab */}
         <TabsContent value="credit" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Limite Total */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CreditCard className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800">Limite Total</p>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-900 mb-1">
-                      {formatCompactCurrency(reportData.creditMetrics.totalCreditLimit)}
+                  <div>
+                    <p className="text-sm text-gray-600">Limite Total</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.creditMetrics.totalCreditLimit)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-blue-700">Aprovado</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Crédito Utilizado */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-orange-50 to-red-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-5 h-5 text-orange-600" />
-                      <p className="text-sm font-medium text-orange-800">Crédito Utilizado</p>
-                    </div>
-                    <p className="text-2xl font-bold text-orange-900 mb-1">
-                      {formatCompactCurrency(reportData.creditMetrics.creditUsed)}
+                  <div>
+                    <p className="text-sm text-gray-600">Crédito Utilizado</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.creditMetrics.creditUsed)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-orange-700">{reportData.creditMetrics.utilizationRate.toFixed(1)}% do limite</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-orange-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Crédito Disponível */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-green-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-5 h-5 text-emerald-600" />
-                      <p className="text-sm font-medium text-emerald-800">Crédito Disponível</p>
-                    </div>
-                    <p className="text-2xl font-bold text-emerald-900 mb-1">
-                      {formatCompactCurrency(reportData.creditMetrics.creditAvailable)}
+                  <div>
+                    <p className="text-sm text-gray-600">Crédito Disponível</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.creditMetrics.creditAvailable)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-emerald-700">Pronto para uso</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-emerald-600" />
                   </div>
                 </div>
               </CardContent>
@@ -601,72 +530,53 @@ export default function ImporterReportsPage() {
           </Card>
         </TabsContent>
 
-        {/* Imports Tab - Modern Design */}
+        {/* Imports Tab */}
         <TabsContent value="imports" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Total de Importações */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Package className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800">Total de Importações</p>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-900 mb-1">
+                  <div>
+                    <p className="text-sm text-gray-600">Total de Importações</p>
+                    <p className="text-2xl font-bold text-gray-900">
                       {reportData.importMetrics.totalImports}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-blue-700">Operações realizadas</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Package className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Valor Total */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-green-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-5 h-5 text-emerald-600" />
-                      <p className="text-sm font-medium text-emerald-800">Valor Total</p>
-                    </div>
-                    <p className="text-2xl font-bold text-emerald-900 mb-1">
-                      {formatCompactCurrency(reportData.importMetrics.totalValue)}
+                  <div>
+                    <p className="text-sm text-gray-600">Valor Total</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.importMetrics.totalValue)}
                     </p>
-                    <div className="flex items-center">
-                      <TrendingUp className="w-4 h-4 text-emerald-600 mr-1" />
-                      <span className="text-sm font-semibold text-emerald-700">Volume movimentado</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-emerald-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Valor Médio */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-50 to-violet-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BarChart3 className="w-5 h-5 text-purple-600" />
-                      <p className="text-sm font-medium text-purple-800">Valor Médio</p>
-                    </div>
-                    <p className="text-2xl font-bold text-purple-900 mb-1">
-                      {formatCompactCurrency(reportData.importMetrics.averageValue)}
+                  <div>
+                    <p className="text-sm text-gray-600">Valor Médio</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.importMetrics.averageValue)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-purple-700">Por operação</span>
-                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-purple-600" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -720,120 +630,96 @@ export default function ImporterReportsPage() {
           </Card>
         </TabsContent>
 
-        {/* Payments Tab - Modern Design */}
+        {/* Payments Tab */}
         <TabsContent value="payments" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Total Pago */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-green-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-5 h-5 text-emerald-600" />
-                      <p className="text-sm font-medium text-emerald-800">Total Pago</p>
-                    </div>
-                    <p className="text-2xl font-bold text-emerald-900 mb-1">
-                      {formatCompactCurrency(reportData.paymentMetrics.totalPaid)}
+                  <div>
+                    <p className="text-sm text-gray-600">Total Pago</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.paymentMetrics.totalPaid)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-emerald-700">Quitado com sucesso</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-emerald-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Pagamentos Pendentes */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-5 h-5 text-yellow-600" />
-                      <p className="text-sm font-medium text-yellow-800">Pagamentos Pendentes</p>
-                    </div>
-                    <p className="text-2xl font-bold text-yellow-900 mb-1">
-                      {formatCompactCurrency(reportData.paymentMetrics.pendingPayments)}
+                  <div>
+                    <p className="text-sm text-gray-600">Pagamentos Pendentes</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.paymentMetrics.pendingPayments)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-yellow-700">Aguardando pagamento</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-yellow-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Pagamentos em Atraso */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
-                      <p className="text-sm font-medium text-red-800">Pagamentos em Atraso</p>
-                    </div>
-                    <p className="text-2xl font-bold text-red-900 mb-1">
-                      {formatCompactCurrency(reportData.paymentMetrics.overduePayments)}
+                  <div>
+                    <p className="text-sm text-gray-600">Pagamentos em Atraso</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(reportData.paymentMetrics.overduePayments)}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-red-700">Requer atenção</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Tempo Médio de Pagamento */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800">Tempo Médio</p>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-900 mb-1">
+                  <div>
+                    <p className="text-sm text-gray-600">Tempo Médio de Pagamento</p>
+                    <p className="text-2xl font-bold text-gray-900">
                       {reportData.paymentMetrics.averagePaymentTime} dias
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-blue-700">Ciclo de pagamento</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Próximos Pagamentos - Modern Design */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-gray-100/80">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                Próximos Pagamentos
-              </CardTitle>
+          <Card>
+            <CardHeader>
+              <CardTitle>Próximos Pagamentos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {reportData.paymentMetrics.upcomingPayments.map((payment, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-200/50 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-                        <DollarSign className="w-5 h-5 text-white" />
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-orange-600" />
                       </div>
                       <div>
-                        <p className="font-semibold text-purple-900">{payment.supplier}</p>
-                        <p className="text-sm text-purple-600">
+                        <p className="font-medium">{payment.supplier}</p>
+                        <p className="text-sm text-gray-600">
                           Vencimento: {new Date(payment.dueDate).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-purple-800">{formatCompactCurrency(payment.amount)}</p>
-                      <Badge variant="outline" className="text-xs border-purple-300 text-purple-700">
+                      <p className="font-semibold text-lg">{formatCurrency(payment.amount)}</p>
+                      <Badge variant="outline" className="text-xs">
                         {Math.floor((new Date(payment.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias
                       </Badge>
                     </div>
@@ -844,121 +730,98 @@ export default function ImporterReportsPage() {
           </Card>
         </TabsContent>
 
-        {/* Suppliers Tab - Modern Design */}
+        {/* Suppliers Tab */}
         <TabsContent value="suppliers" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Total de Fornecedores */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Building className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800">Total de Fornecedores</p>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-900 mb-1">
+                  <div>
+                    <p className="text-sm text-gray-600">Total de Fornecedores</p>
+                    <p className="text-2xl font-bold text-gray-900">
                       {reportData.supplierMetrics.totalSuppliers}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-blue-700">Parceiros ativos</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Building className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Fornecedor Principal */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-green-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="w-5 h-5 text-emerald-600" />
-                      <p className="text-sm font-medium text-emerald-800">Fornecedor Principal</p>
-                    </div>
-                    <p className="text-lg font-bold text-emerald-900 mb-1 truncate">
+                  <div>
+                    <p className="text-sm text-gray-600">Fornecedor Principal</p>
+                    <p className="text-xl font-bold text-gray-900">
                       {reportData.supplierMetrics.topSuppliers[0]?.name || 'N/A'}
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-emerald-700">Top parceiro</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <User className="w-6 h-6 text-emerald-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Tempo Médio de Entrega */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-orange-50 to-amber-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Truck className="w-5 h-5 text-orange-600" />
-                      <p className="text-sm font-medium text-orange-800">Tempo de Entrega</p>
-                    </div>
-                    <p className="text-2xl font-bold text-orange-900 mb-1">
+                  <div>
+                    <p className="text-sm text-gray-600">Tempo Médio de Entrega</p>
+                    <p className="text-2xl font-bold text-gray-900">
                       {reportData.performanceMetrics.avgDeliveryTime} dias
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-orange-700">Tempo médio</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Truck className="w-6 h-6 text-orange-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Nota de Qualidade */}
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-50 to-violet-100/80 hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <CardContent className="relative p-6">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-5 h-5 text-purple-600" />
-                      <p className="text-sm font-medium text-purple-800">Nota de Qualidade</p>
-                    </div>
-                    <p className="text-2xl font-bold text-purple-900 mb-1">
+                  <div>
+                    <p className="text-sm text-gray-600">Nota de Qualidade</p>
+                    <p className="text-2xl font-bold text-gray-900">
                       {reportData.performanceMetrics.qualityScore}/5.0
                     </p>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-purple-700">Avaliação média</span>
-                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Principais Fornecedores - Modern Design */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-gray-100/80">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Building className="w-5 h-5 text-emerald-600" />
-                Principais Fornecedores
-              </CardTitle>
+          {/* Top Suppliers */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Principais Fornecedores</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {reportData.supplierMetrics.topSuppliers.map((supplier, index) => (
-                  <div key={supplier.name} className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200/50 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold">#{index + 1}</span>
+                  <div key={supplier.name} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold">#{index + 1}</span>
                       </div>
                       <div>
-                        <p className="font-semibold text-emerald-900">{supplier.name}</p>
-                        <p className="text-sm text-emerald-600">
+                        <p className="font-medium">{supplier.name}</p>
+                        <p className="text-sm text-gray-600">
                           {supplier.importCount} importações • {supplier.location}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-emerald-800">{formatCompactCurrency(supplier.totalValue)}</p>
-                      <p className="text-sm text-emerald-600">
-                        Média: {formatCompactCurrency(supplier.totalValue / supplier.importCount)}
+                      <p className="font-semibold text-lg">{formatCurrency(supplier.totalValue)}</p>
+                      <p className="text-sm text-gray-600">
+                        Média: {formatCurrency(supplier.totalValue / supplier.importCount)}
                       </p>
                     </div>
                   </div>
