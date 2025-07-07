@@ -2002,9 +2002,9 @@ export class DatabaseStorage {
         .insert(ticketMessages)
         .values({
           ticketId: ticket.id,
+          senderId: data.createdBy,
           message: data.message,
-          sentBy: data.createdBy,
-          isFromAdmin: false
+          isInternal: false
         });
     }
 
