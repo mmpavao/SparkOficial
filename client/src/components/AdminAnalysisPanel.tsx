@@ -28,6 +28,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useSoundEffects } from "@/utils/soundEffects";
 import { useAuth } from '../hooks/useAuth';
 import { useModuleGuard } from '../hooks/useModuleGuard';
+import { formatCompactCurrency } from '../lib/numberFormat';
 
 // Currency formatting function
 const formatCurrency = (value: string | number): string => {
@@ -487,7 +488,7 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Limite Aprovado:</span>
                         <span className="font-medium text-green-800">
-                          US$ {Number(application.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {formatCompactCurrency(Number(application.creditLimit || 0))}
                         </span>
                       </div>
                       {application.approvedTerms && (

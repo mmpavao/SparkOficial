@@ -19,6 +19,7 @@ import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import CreditScoreAnalysis from "@/components/credit/CreditScoreAnalysis";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
+import { formatCompactCurrency } from "@/lib/numberFormat";
 import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
 import { ValidationResult } from "@/lib/documentValidation";
 import { 

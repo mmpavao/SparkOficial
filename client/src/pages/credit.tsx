@@ -26,6 +26,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { UniversalCard } from "@/components/shared/UniversalCard";
 import { CreditScoreBar } from "@/components/credit/CreditScoreBar";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
+import { formatCompactCurrency } from "@/lib/numberFormat";
 import { 
   Plus, 
   CreditCard, 
@@ -112,7 +113,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
                 {permissions.canViewAllApplications ? "Aprovado" : "Crédito Aprovado"}
               </p>
               <p className="text-2xl font-bold text-green-600">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalApproved)}
+                {formatCompactCurrency(metrics.totalApproved)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 {approvedApplications.length} {approvedApplications.length === 1 ? 'aplicação' : 'aplicações'}
@@ -133,7 +134,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
                 {permissions.canViewAllApplications ? "Em Análise" : "Em Análise"}
               </p>
               <p className="text-2xl font-bold text-blue-600">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalUnderReview)}
+                {formatCompactCurrency(metrics.totalUnderReview)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 {underReviewApplications.length} {underReviewApplications.length === 1 ? 'aplicação' : 'aplicações'}
@@ -154,7 +155,7 @@ function CreditSummaryCards({ applications, permissions }: { applications: any[]
                 {permissions.canViewAllApplications ? "Pendentes" : "Solicitações Pendentes"}
               </p>
               <p className="text-2xl font-bold text-orange-600">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.totalPending)}
+                {formatCompactCurrency(metrics.totalPending)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 {pendingApplications.length} {pendingApplications.length === 1 ? 'aplicação' : 'aplicações'}

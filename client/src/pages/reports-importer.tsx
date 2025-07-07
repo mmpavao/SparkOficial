@@ -27,6 +27,7 @@ import {
   Activity
 } from "lucide-react";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
+import { formatCompactCurrency } from "@/lib/numberFormat";
 
 interface ImporterReportData {
   creditMetrics: {
@@ -379,7 +380,7 @@ export default function ImporterReportsPage() {
                         <p className="text-sm text-gray-600">{month.count} importações</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(month.value)}</p>
+                        <p className="font-semibold">{formatCompactCurrency(month.value)}</p>
                       </div>
                     </div>
                   ))}
@@ -396,7 +397,7 @@ export default function ImporterReportsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Limite Total</span>
-                    <span className="font-semibold">{formatCurrency(reportData.creditMetrics.totalCreditLimit)}</span>
+                    <span className="font-semibold">{formatCompactCurrency(reportData.creditMetrics.totalCreditLimit)}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
@@ -405,8 +406,8 @@ export default function ImporterReportsPage() {
                     ></div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Utilizado: {formatCurrency(reportData.creditMetrics.creditUsed)}</span>
-                    <span className="text-emerald-600">Disponível: {formatCurrency(reportData.creditMetrics.creditAvailable)}</span>
+                    <span className="text-gray-600">Utilizado: {formatCompactCurrency(reportData.creditMetrics.creditUsed)}</span>
+                    <span className="text-emerald-600">Disponível: {formatCompactCurrency(reportData.creditMetrics.creditAvailable)}</span>
                   </div>
                 </div>
               </CardContent>
