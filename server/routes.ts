@@ -3630,14 +3630,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           optional_documents = $2::jsonb,
           documents_status = $3,
           status = $4,
-          updated_at = $5
-        WHERE id = $6
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
       `, [
         JSON.stringify(updateData.requiredDocuments),
         JSON.stringify(updateData.optionalDocuments),
         updateData.documentsStatus,
         updateData.status,
-        new Date(),
         applicationId
       ]);
 
