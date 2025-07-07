@@ -1,9 +1,8 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
@@ -14,9 +13,8 @@ import {
   CheckCircle, 
   Clock, 
   AlertTriangle,
-  Eye,
-  X,
-  Loader2
+  Loader2,
+  Plus
 } from "lucide-react";
 
 interface DocumentInfo {
@@ -26,8 +24,8 @@ interface DocumentInfo {
   type: string;
   uploadedAt: string;
   uploadedBy: number | string;
-  data?: string; // Base64 data for temporary storage
-  file?: File; // Original file object for upload
+  data?: string;
+  file?: File;
 }
 
 interface UnifiedDocumentUploadProps {
@@ -36,14 +34,14 @@ interface UnifiedDocumentUploadProps {
   documentSubtitle?: string;
   documentObservation?: string;
   isRequired: boolean;
-  applicationId: number | null; // null for new applications
+  applicationId: number | null;
   uploadedDocuments: Record<string, DocumentInfo | DocumentInfo[]>;
   isUploading?: boolean;
   onUpload: (documentKey: string, file: File) => void;
   onRemove: (documentKey: string, index?: number) => void;
   onDownload?: (documentKey: string, index?: number) => void;
   allowMultiple?: boolean;
-  maxFileSize?: number; // in MB
+  maxFileSize?: number;
   acceptedTypes?: string[];
 }
 
@@ -64,26 +62,24 @@ export default function UnifiedDocumentUpload({
   acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 }: UnifiedDocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<File[]>([]);
+  const [processingFiles, setProcessingFiles] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Get documents for this key
+  // Obter documentos atuais
   const currentDocuments = uploadedDocuments[documentKey];
   const documentsArray = currentDocuments 
     ? (Array.isArray(currentDocuments) ? currentDocuments : [currentDocuments])
     : [];
 
   const hasDocuments = documentsArray.length > 0;
-  const isComplete = hasDocuments && isRequired;
 
-  // Handle file validation
+  // Validar arquivo
   const validateFile = (file: File): { isValid: boolean; error?: string } => {
-    // Check file size
     if (file.size > maxFileSize * 1024 * 1024) {
       return { isValid: false, error: `Arquivo muito grande (máximo ${maxFileSize}MB)` };
     }
 
-    // Check file type
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!acceptedTypes.includes(fileExtension)) {
       return { isValid: false, error: `Formato não suportado. Use: ${acceptedTypes.join(', ')}` };
@@ -92,36 +88,17 @@ export default function UnifiedDocumentUpload({
     return { isValid: true };
   };
 
-  // Handle single file upload with proper validation
-  const handleSingleFileUpload = (file: File) => {
-    const validation = validateFile(file);
-    if (!validation.isValid) {
-      alert(`${file.name}: ${validation.error}`);
-      return;
-    }
-
-    // Check if multiple files are allowed
-    if (!allowMultiple && hasDocuments) {
-      if (confirm('Já existe um documento. Deseja substituí-lo?')) {
-        onRemove(documentKey);
-      } else {
-        return;
-      }
-    }
-
-    // Upload file
-    onUpload(documentKey, file);
-  };
-
-  // Handle multiple files with robust sequential queue
-  const handleMultipleFiles = async (files: File[]) => {
-    console.log(`🚀 Iniciando upload sequencial de ${files.length} arquivos para ${documentKey}`);
+  // Processar fila de upload
+  const processUploadQueue = async (files: File[]) => {
+    if (processingFiles) return;
     
+    setProcessingFiles(true);
+    console.log(`📤 Processando ${files.length} arquivo(s) para ${documentKey}`);
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      console.log(`📤 [${i + 1}/${files.length}] Processando: ${file.name}`);
-      
-      // Validate file before upload
+      console.log(`📄 [${i + 1}/${files.length}] Processando: ${file.name}`);
+
       const validation = validateFile(file);
       if (!validation.isValid) {
         console.error(`❌ Arquivo inválido: ${file.name} - ${validation.error}`);
@@ -129,50 +106,28 @@ export default function UnifiedDocumentUpload({
         continue;
       }
 
-      // Check if replacement needed for non-multiple mode
+      // Se não permite múltiplos e já tem documentos, perguntar se quer substituir
       if (!allowMultiple && hasDocuments && i === 0) {
-        if (!confirm('Já existe um documento. Deseja substituí-lo?')) {
+        const shouldReplace = confirm('Já existe um documento. Deseja substituí-lo?');
+        if (!shouldReplace) {
           console.log(`⏭️ Upload cancelado pelo usuário`);
           continue;
         }
+        // Remover documento existente
         onRemove(documentKey);
-        // Wait a bit after removal
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Aguardar um pouco para garantir que a remoção foi processada
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
       try {
-        // Create a promise that waits for the upload to complete
-        await new Promise<void>((resolve, reject) => {
-          const timeoutId = setTimeout(() => {
-            reject(new Error(`Upload timeout para ${file.name}`));
-          }, 30000); // 30 second timeout
-
-          // Store original state
-          const currentDocCount = documentsArray.length;
-          
-          // Start upload
-          console.log(`⬆️ Iniciando upload: ${file.name}`);
-          onUpload(documentKey, file);
-          
-          // Poll for completion
-          const checkCompletion = setInterval(() => {
-            const newDocCount = uploadedDocuments[documentKey] ? 
-              (Array.isArray(uploadedDocuments[documentKey]) ? 
-                uploadedDocuments[documentKey].length : 1) : 0;
-            
-            if (newDocCount > currentDocCount) {
-              console.log(`✅ Upload concluído: ${file.name}`);
-              clearTimeout(timeoutId);
-              clearInterval(checkCompletion);
-              resolve();
-            }
-          }, 500); // Check every 500ms
-        });
-
-        // Wait a bit between uploads to prevent race conditions
+        console.log(`⬆️ Enviando: ${file.name}`);
+        
+        // Chamar função de upload
+        onUpload(documentKey, file);
+        
+        // Aguardar um tempo entre uploads para evitar conflitos
         if (i < files.length - 1) {
-          console.log(`⏳ Aguardando antes do próximo upload...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 800));
         }
         
       } catch (error) {
@@ -180,56 +135,79 @@ export default function UnifiedDocumentUpload({
         alert(`Erro ao enviar ${file.name}: ${error.message}`);
       }
     }
-    
-    console.log(`🎉 Upload sequencial concluído para ${documentKey}`);
+
+    setProcessingFiles(false);
+    setUploadQueue([]);
+    console.log(`✅ Processamento concluído para ${documentKey}`);
   };
 
-  // Handle drag and drop
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  // Lidar com seleção de arquivos
+  const handleFileSelection = (files: FileList | null) => {
+    if (!files || files.length === 0 || isUploading || processingFiles) {
+      return;
+    }
+
+    const fileArray = Array.from(files);
+    console.log(`📁 Selecionados ${fileArray.length} arquivo(s)`);
+
+    // Validar todos os arquivos primeiro
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    fileArray.forEach(file => {
+      const validation = validateFile(file);
+      if (validation.isValid) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(`${file.name}: ${validation.error}`);
+      }
+    });
+
+    // Mostrar erros de validação
+    if (invalidFiles.length > 0) {
+      alert(`Arquivos inválidos:\n${invalidFiles.join('\n')}`);
+    }
+
+    // Processar arquivos válidos
+    if (validFiles.length > 0) {
+      setUploadQueue(validFiles);
+      processUploadQueue(validFiles);
+    }
+
+    // Limpar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  // Eventos de drag & drop
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
-    if (isUploading) return; // Prevent uploads while already uploading
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      if (files.length === 1) {
-        handleSingleFileUpload(files[0]);
-      } else {
-        await handleMultipleFiles(files);
-      }
-    }
   };
 
-  // Handle file input change
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isUploading) return; // Prevent uploads while already uploading
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
     
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const fileArray = Array.from(files);
-      if (fileArray.length === 1) {
-        handleSingleFileUpload(fileArray[0]);
-      } else {
-        await handleMultipleFiles(fileArray);
-      }
-    }
-    // Reset input value
-    e.target.value = '';
+    const files = e.dataTransfer.files;
+    handleFileSelection(files);
   };
 
-  // Format file size
+  // Formatar tamanho do arquivo
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -238,12 +216,11 @@ export default function UnifiedDocumentUpload({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Handle document download
+  // Download de documento
   const handleDownload = (index: number = 0) => {
     if (applicationId && onDownload) {
       onDownload(documentKey, index);
     } else if (documentsArray[index]?.data) {
-      // For new applications, download from local data
       const doc = documentsArray[index];
       const blob = new Blob([Uint8Array.from(atob(doc.data!), c => c.charCodeAt(0))], {
         type: doc.type
@@ -259,7 +236,7 @@ export default function UnifiedDocumentUpload({
     }
   };
 
-  // Handle document removal
+  // Remover documento
   const handleRemove = (index: number = 0) => {
     if (documentsArray.length === 1) {
       onRemove(documentKey);
@@ -268,9 +245,11 @@ export default function UnifiedDocumentUpload({
     }
   };
 
-  // Get status info
+  // Obter informações de status
   const getStatusInfo = () => {
-    if (isUploading) {
+    const isProcessing = isUploading || processingFiles;
+    
+    if (isProcessing) {
       return {
         icon: Loader2,
         color: 'text-blue-600',
@@ -293,10 +272,10 @@ export default function UnifiedDocumentUpload({
     if (isRequired) {
       return {
         icon: AlertTriangle,
-        color: 'text-orange-600',
-        bgColor: 'bg-orange-50',
-        borderColor: 'border-orange-200',
-        label: 'Pendente'
+        color: 'text-red-600',
+        bgColor: 'bg-red-50',
+        borderColor: 'border-red-200',
+        label: 'Obrigatório'
       };
     }
 
@@ -311,17 +290,17 @@ export default function UnifiedDocumentUpload({
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
+  const isProcessing = isUploading || processingFiles;
 
   return (
-    <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor} ${isRequired && !hasDocuments ? 'border-red-300' : ''}`}>
+    <Card className={`transition-all duration-200 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <StatusIcon className={`w-4 h-4 ${statusInfo.color} ${isUploading ? 'animate-spin' : ''}`} />
-              {isRequired && !hasDocuments && <span className="text-red-500 font-bold">⚠️</span>}
+              <StatusIcon className={`w-4 h-4 ${statusInfo.color} ${isProcessing ? 'animate-spin' : ''}`} />
               {documentLabel}
-              {isRequired && <span className="text-red-500 font-bold text-base">*</span>}
+              {isRequired && <span className="text-red-500 font-bold">*</span>}
             </CardTitle>
             {documentSubtitle && (
               <p className="text-xs text-gray-500 mt-1">{documentSubtitle}</p>
@@ -329,13 +308,7 @@ export default function UnifiedDocumentUpload({
           </div>
           <Badge 
             variant={hasDocuments ? "default" : isRequired ? "destructive" : "secondary"}
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ml-2 ${
-              hasDocuments 
-                ? "bg-green-600 hover:bg-green-700 border-transparent text-white" 
-                : isRequired 
-                  ? "bg-red-600 hover:bg-red-700 border-transparent text-white" 
-                  : "bg-orange-600 hover:bg-orange-700 border-transparent text-white"
-            }`}
+            className="ml-2"
           >
             {statusInfo.label}
           </Badge>
@@ -347,59 +320,63 @@ export default function UnifiedDocumentUpload({
           </div>
         )}
       </CardHeader>
+
       <CardContent className="pt-0">
-        {/* Upload Area */}
-        {!isUploading && (allowMultiple || !hasDocuments) && (
+        {/* Área de Upload */}
+        {!isProcessing && (allowMultiple || !hasDocuments) && (
           <div
-            className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer ${
               dragActive 
                 ? 'border-blue-400 bg-blue-50' 
-                : hasDocuments 
-                  ? 'border-gray-300 bg-gray-50' 
-                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
             }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
             onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 mb-2">
-              Arraste e solte {allowMultiple ? 'arquivos' : 'arquivo'} ou{' '}
-              <label className="text-blue-600 hover:text-blue-700 cursor-pointer underline">
-                clique para enviar {allowMultiple ? 'múltiplos arquivos' : ''}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept={acceptedTypes.join(',')}
-                  onChange={handleFileChange}
-                  disabled={isUploading}
-                  multiple={allowMultiple}
-                />
-              </label>
+            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+            <p className="text-sm text-gray-700 mb-2 font-medium">
+              {allowMultiple ? 'Selecione ou arraste múltiplos arquivos' : 'Selecione ou arraste um arquivo'}
             </p>
-            <p className="text-xs text-gray-400">
-              Máximo {maxFileSize}MB • {acceptedTypes.join(', ')}
+            <p className="text-xs text-gray-500">
+              Máximo {maxFileSize}MB • Formatos: {acceptedTypes.join(', ')}
             </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept={acceptedTypes.join(',')}
+              multiple={allowMultiple}
+              onChange={(e) => handleFileSelection(e.target.files)}
+            />
           </div>
         )}
 
-        {/* Loading State */}
-        {isUploading && (
-          <div className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-4 text-center">
-            <Loader2 className="w-6 h-6 text-blue-600 mx-auto mb-2 animate-spin" />
-            <p className="text-sm text-blue-600">Enviando documento...</p>
-            <Progress value={undefined} className="w-full mt-2" />
+        {/* Estado de carregamento */}
+        {isProcessing && (
+          <div className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-6 text-center">
+            <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-3 animate-spin" />
+            <p className="text-sm text-blue-700 font-medium mb-2">
+              Enviando documento{uploadQueue.length > 1 ? 's' : ''}...
+            </p>
+            {uploadQueue.length > 0 && (
+              <p className="text-xs text-blue-600">
+                {uploadQueue.length} arquivo{uploadQueue.length > 1 ? 's' : ''} na fila
+              </p>
+            )}
+            <Progress value={undefined} className="w-full mt-3" />
           </div>
         )}
 
-        {/* Documents List */}
+        {/* Lista de Documentos */}
         {hasDocuments && (
-          <div className="space-y-2 mt-3">
+          <div className="space-y-2 mt-4">
             {documentsArray.map((doc, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {doc.originalName || doc.filename}
@@ -411,7 +388,6 @@ export default function UnifiedDocumentUpload({
                 </div>
 
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Download Button */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -422,7 +398,6 @@ export default function UnifiedDocumentUpload({
                     <Download className="w-4 h-4" />
                   </Button>
 
-                  {/* Remove Button */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -458,20 +433,18 @@ export default function UnifiedDocumentUpload({
           </div>
         )}
 
-        {/* Add More Button for Multiple Documents */}
-        {allowMultiple && hasDocuments && !isUploading && (
-          <div className="mt-3">
-            <label className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors">
-              <Upload className="w-4 h-4" />
-              Adicionar {allowMultiple ? 'mais documentos' : 'outro documento'}
-              <input
-                type="file"
-                className="hidden"
-                accept={acceptedTypes.join(',')}
-                onChange={handleFileChange}
-                multiple={allowMultiple}
-              />
-            </label>
+        {/* Botão para adicionar mais documentos */}
+        {allowMultiple && hasDocuments && !isProcessing && (
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar mais documentos
+            </Button>
           </div>
         )}
       </CardContent>
