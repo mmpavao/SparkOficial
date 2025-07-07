@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,7 +106,7 @@ export default function UnifiedDocumentUpload({
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
+
         console.log(`📄 [${i + 1}/${files.length}] Processando: ${file.name}`);
         setUploadProgress({ current: i + 1, total: files.length });
 
@@ -130,49 +129,55 @@ export default function UnifiedDocumentUpload({
         }
 
         try {
-          console.log(`⬆️ Enviando arquivo: ${file.name}`);
-          
-          // Temporariamente suprimir notificações de sucesso automáticas
-          const originalToast = window.toast;
-          const suppressNotifications = () => {};
-          
-          // Interceptar possíveis notificações
-          if (typeof window !== 'undefined') {
-            window.toast = suppressNotifications;
-          }
+            console.log(`⬆️ Iniciando upload do arquivo: ${file.name} (${file.size} bytes)`);
 
-          try {
-            // Criar uma Promise para aguardar o upload ser processado
-            await new Promise<void>((resolve, reject) => {
-              // Timeout de segurança
-              const timeout = setTimeout(() => {
-                reject(new Error('Timeout no upload'));
-              }, 30000);
-
-              try {
-                onUpload(documentKey, file);
-                
-                // Aguardar um tempo para o upload ser processado
-                setTimeout(() => {
-                  clearTimeout(timeout);
-                  resolve();
-                }, 1500);
-                
-              } catch (error) {
-                clearTimeout(timeout);
-                reject(error);
+            // Temporariamente suprimir possíveis notificações automáticas
+            const originalConsoleLog = console.log;
+            const suppressedMethods = ['toast', 'showNotification', 'alert'].map(method => {
+              const original = (window as any)[method];
+              if (original) {
+                (window as any)[method] = () => {}; // Suprimir temporariamente
+                return { method, original };
               }
-            });
-          } finally {
-            // Restaurar função de toast original
-            if (originalToast) {
-              window.toast = originalToast;
+              return null;
+            }).filter(Boolean);
+
+            try {
+              // Criar uma Promise para aguardar o upload ser processado
+              await new Promise<void>((resolve, reject) => {
+                // Timeout de segurança de 30 segundos
+                const timeout = setTimeout(() => {
+                  reject(new Error('Timeout no upload do arquivo'));
+                }, 30000);
+
+                try {
+                  onUpload(documentKey, file);
+
+                  // Aguardar um tempo para o upload ser processado completamente
+                  setTimeout(() => {
+                    clearTimeout(timeout);
+                    console.log(`✅ Upload processado: ${file.name}`);
+                    resolve();
+                  }, 2000); // Aumentei para 2 segundos para garantir processamento
+
+                } catch (error) {
+                  clearTimeout(timeout);
+                  console.error(`❌ Erro durante upload: ${error}`);
+                  reject(error);
+                }
+              });
+            } finally {
+              // Restaurar métodos originais
+              suppressedMethods.forEach(item => {
+                if (item) {
+                  (window as any)[item.method] = item.original;
+                }
+              });
             }
-          }
 
           console.log(`✅ Upload concluído: ${file.name}`);
           successCount++;
-          
+
         } catch (error) {
           console.error(`❌ Erro no upload de ${file.name}:`, error);
           errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
@@ -189,11 +194,11 @@ export default function UnifiedDocumentUpload({
       // Mostrar notificação única no final
       if (successCount > 0 || errorCount > 0) {
         let message = '';
-        
+
         if (successCount > 0) {
           message += `${successCount} arquivo${successCount > 1 ? 's' : ''} enviado${successCount > 1 ? 's' : ''} com sucesso`;
         }
-        
+
         if (errorCount > 0) {
           if (successCount > 0) {
             message += ` | ${errorCount} erro${errorCount > 1 ? 's' : ''}`;
@@ -251,13 +256,13 @@ export default function UnifiedDocumentUpload({
             }
           </style>
         `;
-        
+
         // Remover qualquer notificação anterior do mesmo tipo
         const existingNotifications = document.querySelectorAll('[data-upload-notification="true"]');
         existingNotifications.forEach(notif => notif.remove());
-        
+
         document.body.appendChild(notification);
-        
+
         // Remover notificação após 6 segundos
         setTimeout(() => {
           if (notification.parentNode) {
@@ -355,12 +360,12 @@ export default function UnifiedDocumentUpload({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (currentlyUploading || isUploading) {
       alert('Upload em andamento. Aguarde a conclusão antes de enviar novos arquivos.');
       return;
     }
-    
+
     const files = e.dataTransfer.files;
     handleFileSelection(files);
   };
@@ -411,7 +416,7 @@ export default function UnifiedDocumentUpload({
   // Obter informações de status
   const getStatusInfo = () => {
     const isProcessing = isUploading || currentlyUploading;
-    
+
     if (isProcessing) {
       return {
         icon: Loader2,
@@ -478,7 +483,7 @@ export default function UnifiedDocumentUpload({
             {statusInfo.label}
           </Badge>
         </div>
-        
+
         {documentObservation && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
             <p className="text-xs text-blue-700">{documentObservation}</p>
