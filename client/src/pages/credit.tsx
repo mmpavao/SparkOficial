@@ -24,6 +24,7 @@ import { useTranslation } from "@/contexts/I18nContext";
 import AdminFilters from "@/components/AdminFilters";
 import { apiRequest } from "@/lib/queryClient";
 import { UniversalCard } from "@/components/shared/UniversalCard";
+import { CreditScoreBar } from "@/components/credit/CreditScoreBar";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";
 import { 
   Plus, 
@@ -393,6 +394,7 @@ export default function CreditPage() {
                     subtitle={`ID da solicitação: #${application.id}`}
                     companyBadge={permissions.canViewAllApplications ? application.legalCompanyName : undefined}
                     status={statusInfo}
+                    creditScore={application.creditScore}
                     miniCards={[
                       {
                         icon: <DollarSign className="w-4 h-4 text-blue-600" />,

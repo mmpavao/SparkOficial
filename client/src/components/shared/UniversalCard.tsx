@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
 import { ReactNode } from "react";
+import { CreditScoreBar } from "@/components/credit/CreditScoreBar";
 
 interface MiniCard {
   icon: ReactNode;
@@ -48,6 +49,9 @@ interface UniversalCardProps {
   // Footer section (optional)
   footer?: ReactNode;
   
+  // Credit score (optional)
+  creditScore?: number;
+  
   // Card behavior
   onClick?: () => void;
   className?: string;
@@ -64,6 +68,7 @@ export function UniversalCard({
   actions,
   customActions,
   footer,
+  creditScore,
   onClick,
   className = ""
 }: UniversalCardProps) {
@@ -101,10 +106,23 @@ export function UniversalCard({
                 <p className="text-sm text-gray-600 mb-2">{subtitle}</p>
               )}
               
-              {/* Status Badge */}
-              <Badge variant="outline" className={`${status.color} border text-xs`}>
-                {status.label}
-              </Badge>
+              <div className="flex items-center gap-3">
+                {/* Status Badge */}
+                <Badge variant="outline" className={`${status.color} border text-xs`}>
+                  {status.label}
+                </Badge>
+                
+                {/* Credit Score Bar */}
+                {creditScore !== undefined && creditScore > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Score:</span>
+                    <div className="w-32">
+                      <CreditScoreBar score={creditScore} height="h-1.5" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{creditScore}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           

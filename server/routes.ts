@@ -2063,15 +2063,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Fetching fresh credit applications");
       
-      // Use raw SQL query for production compatibility
+      // Use raw SQL query for production compatibility with credit scores
       const applications = await db.execute(`
         SELECT 
-          id, user_id, legal_company_name, requested_amount, status,
-          pre_analysis_status, financial_status, admin_status,
-          created_at, updated_at, final_credit_limit, credit_limit,
-          approved_terms, final_approved_terms
-        FROM credit_applications 
-        ORDER BY created_at DESC
+          ca.id, ca.user_id, ca.legal_company_name, ca.requested_amount, ca.status,
+          ca.pre_analysis_status, ca.financial_status, ca.admin_status,
+          ca.created_at, ca.updated_at, ca.final_credit_limit, ca.credit_limit,
+          ca.approved_terms, ca.final_approved_terms, ca.cnpj,
+          cs.credit_score, cs.score_date, cs.has_debts, cs.has_protests, cs.has_bankruptcy, cs.has_lawsuits
+        FROM credit_applications ca
+        LEFT JOIN credit_scores cs ON cs.credit_application_id = ca.id
+        ORDER BY ca.created_at DESC
       `);
 
       const formattedApplications = applications.rows.map((row: any) => ({
@@ -2088,7 +2090,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         finalCreditLimit: row.final_credit_limit,
         creditLimit: row.credit_limit,
         approvedTerms: row.approved_terms,
-        finalApprovedTerms: row.final_approved_terms
+        finalApprovedTerms: row.final_approved_terms,
+        cnpj: row.cnpj,
+        creditScore: row.credit_score,
+        scoreDate: row.score_date,
+        hasDebts: row.has_debts,
+        hasProtests: row.has_protests,
+        hasBankruptcy: row.has_bankruptcy,
+        hasLawsuits: row.has_lawsuits
       }));
 
       console.log(`Found ${formattedApplications.length} credit applications`);

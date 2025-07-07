@@ -152,15 +152,29 @@ export class DatabaseStorage {
   }
 
   async getCreditApplicationsByUser(userId: number): Promise<CreditApplication[]> {
-    const applications = await db
-      .select()
+    const applicationsWithScores = await db
+      .select({
+        creditApp: creditApplications,
+        creditScore: creditScores
+      })
       .from(creditApplications)
+      .leftJoin(creditScores, eq(creditScores.creditApplicationId, creditApplications.id))
       .where(eq(creditApplications.userId, userId))
       .orderBy(desc(creditApplications.createdAt));
     
     // Parse JSON documents back to objects for each application
-    return applications.map(application => {
-      const app = { ...application };
+    return applicationsWithScores.map(({ creditApp, creditScore }) => {
+      const app = { ...creditApp };
+      
+      // Add credit score data if available
+      if (creditScore) {
+        (app as any).creditScore = creditScore.creditScore;
+        (app as any).scoreDate = creditScore.scoreDate;
+        (app as any).hasDebts = creditScore.hasDebts;
+        (app as any).hasProtests = creditScore.hasProtests;
+        (app as any).hasBankruptcy = creditScore.hasBankruptcy;
+        (app as any).hasLawsuits = creditScore.hasLawsuits;
+      }
       
       if (app.requiredDocuments && typeof app.requiredDocuments === 'string') {
         try {
