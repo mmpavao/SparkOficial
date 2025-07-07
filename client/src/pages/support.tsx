@@ -61,7 +61,14 @@ export default function SupportPage() {
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: async (data: { title: string; description: string; priority: string }) => {
-      return await apiRequest('/api/support/tickets', 'POST', data);
+      // Transform frontend data to match backend expectations
+      const payload = {
+        subject: data.title,
+        message: data.description,
+        priority: data.priority,
+        category: 'general_inquiry' // Default category
+      };
+      return await apiRequest('/api/support/tickets', 'POST', payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/support/tickets'] });
