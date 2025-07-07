@@ -9,6 +9,7 @@ import {
   payments,
   importDocuments,
   notifications,
+  creditScores,
   type User, 
   type InsertUser,
   type CreditApplication,
@@ -17,6 +18,7 @@ import {
   type InsertImport,
   type Supplier,
   type InsertSupplier,
+  type CreditScore,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
@@ -1653,6 +1655,24 @@ export class DatabaseStorage {
       })
       .where(eq(paymentSchedules.id, scheduleId))
       .returning();
+  }
+
+  // Credit Score operations
+  async getCreditScore(creditApplicationId: number): Promise<CreditScore | undefined> {
+    const [score] = await db
+      .select()
+      .from(creditScores)
+      .where(eq(creditScores.creditApplicationId, creditApplicationId))
+      .limit(1);
+    return score;
+  }
+
+  async createCreditScore(scoreData: any): Promise<CreditScore> {
+    const [score] = await db
+      .insert(creditScores)
+      .values(scoreData)
+      .returning();
+    return score;
   }
 
   // Create multiple payment schedules

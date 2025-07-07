@@ -2894,6 +2894,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Credit Score endpoint
+  app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      
+      // Get the credit application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      // Check if user owns the application or is admin/financeira
+      const user = await storage.getUser(userId);
+      if (application.userId !== userId && user?.role !== 'admin' && user?.role !== 'super_admin' && user?.role !== 'financeira') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Check if credit score already exists
+      const existingScore = await storage.getCreditScore(applicationId);
+      if (existingScore) {
+        return res.json(existingScore);
+      }
+      
+      // Generate mock credit score data (replace with actual Receita WS API call when API key is available)
+      const creditScore = {
+        creditApplicationId: applicationId,
+        cnpj: application.cnpj,
+        creditScore: Math.floor(Math.random() * 400) + 600, // 600-1000 range
+        scoreDate: new Date(),
+        legalName: application.legalCompanyName,
+        tradingName: application.legalCompanyName,
+        status: 'ATIVA',
+        openingDate: new Date('2015-01-15'),
+        shareCapital: 'R$ 500.000,00',
+        address: application.address,
+        city: application.city,
+        state: application.state,
+        zipCode: application.zipCode,
+        phone: application.phone,
+        email: application.email,
+        mainActivity: { code: '4711-3/02', description: 'Comércio varejista de mercadorias em geral' },
+        secondaryActivities: [
+          { code: '4712-1/00', description: 'Comércio varejista de mercadorias em geral' }
+        ],
+        partners: application.shareholders || [],
+        hasDebts: Math.random() > 0.8,
+        hasProtests: Math.random() > 0.9,
+        hasBankruptcy: false,
+        hasLawsuits: Math.random() > 0.85,
+        lastCheckedAt: new Date()
+      };
+      
+      // Save credit score
+      const savedScore = await storage.createCreditScore(creditScore);
+      res.json(savedScore);
+      
+    } catch (error) {
+      console.error("Error fetching credit score:", error);
+      res.status(500).json({ message: "Erro ao consultar credit score" });
+    }
+  });
+
   // Communication endpoints for credit applications
   app.put('/api/credit-applications/:id/admin-message', requireAuth, async (req: any, res) => {
     try {

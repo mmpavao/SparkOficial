@@ -39,6 +39,24 @@ export function formatPercentage(value: number): string {
 }
 
 /**
+ * Format CNPJ (Brazilian company tax ID)
+ */
+export function formatCNPJ(cnpj: string): string {
+  // Remove non-numeric characters
+  const cleaned = cnpj.replace(/\D/g, '');
+  
+  // Apply CNPJ mask: XX.XXX.XXX/XXXX-XX
+  if (cleaned.length === 14) {
+    return cleaned.replace(
+      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+      '$1.$2.$3/$4-$5'
+    );
+  }
+  
+  return cnpj;
+}
+
+/**
  * Format date values
  */
 export function formatDate(date: string | Date): string {

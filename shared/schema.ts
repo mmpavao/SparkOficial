@@ -587,5 +587,57 @@ export const notifications = pgTable("notifications", {
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
 
+// Credit Score table for Receita WS integration
+export const creditScores = pgTable("credit_scores", {
+  id: serial("id").primaryKey(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
+  cnpj: text("cnpj").notNull(),
+  
+  // Score Information
+  creditScore: integer("credit_score").notNull(), // 0-1000
+  scoreDate: timestamp("score_date").defaultNow(),
+  
+  // Company Data from Receita WS
+  companyData: jsonb("company_data"), // Full response from Receita WS
+  
+  // Parsed fields for quick access
+  legalName: text("legal_name"),
+  tradingName: text("trading_name"),
+  status: text("status"), // ATIVA, BAIXADA, etc
+  openingDate: timestamp("opening_date"),
+  shareCapital: text("share_capital"),
+  
+  // Address
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  
+  // Contact
+  phone: text("phone"),
+  email: text("email"),
+  
+  // CNAE - Economic Activities
+  mainActivity: jsonb("main_activity"), // {code, description}
+  secondaryActivities: jsonb("secondary_activities"), // [{code, description}]
+  
+  // Partners/Shareholders
+  partners: jsonb("partners"), // [{name, qualification, joinDate}]
+  
+  // Credit Analysis Results
+  creditAnalysis: jsonb("credit_analysis"), // Results from credit bureau checks
+  hasDebts: boolean("has_debts").default(false),
+  hasProtests: boolean("has_protests").default(false),
+  hasBankruptcy: boolean("has_bankruptcy").default(false),
+  hasLawsuits: boolean("has_lawsuits").default(false),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  lastCheckedAt: timestamp("last_checked_at").defaultNow(),
+});
+
+export type CreditScore = typeof creditScores.$inferSelect;
+
 // Import all imports-related tables and schemas
 export * from './imports-schema';

@@ -16,6 +16,7 @@ import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 import CreditCommunication from "@/components/CreditCommunication";
+import CreditScoreAnalysis from "@/components/credit/CreditScoreAnalysis";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
@@ -853,6 +854,9 @@ export default function CreditDetailsPage() {
             financialStatus={application.financialStatus}
             adminStatus={application.adminStatus}
           />
+          
+          {/* Credit Score Analysis */}
+          <CreditScoreAnalysis application={application} />
 
           {/* Credit Limit Display for Approved Applications */}{application.financialStatus === 'approved' && application.creditLimit && (
             <Card>
