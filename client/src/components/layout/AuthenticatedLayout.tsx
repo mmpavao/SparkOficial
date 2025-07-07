@@ -418,7 +418,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     </div>
                   </div>
                   <div className="mt-1 text-gray-400">
-                    7 de julho às 4h42 am
+                    07/07/2025 - 4:42 AM
                   </div>
                   <div className="mt-1 text-gray-400">
                     Sistema Estável

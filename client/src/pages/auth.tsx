@@ -512,7 +512,7 @@ export default function AuthPage() {
           <span className="font-medium">v1.0.2</span>
         </div>
         <div className="text-xs text-gray-400 mt-1">
-          7 de julho às 4h42 am
+          07/07/2025 - 4:42 AM
         </div>
       </div>
     </div>

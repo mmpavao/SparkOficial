@@ -879,7 +879,7 @@ Changelog:
   * Replaced "grid grid-cols-1 md:grid-cols-2 gap-4" with "space-y-4" for better visual organization
   * Fixed phone input formatting bug in registration form showing incomplete "(11" format
   * Enhanced formatPhone function to handle empty inputs and show proper Brazilian phone format progression
-  * Updated system version to v1.0.2 with current date (7 de julho às 4h42 am) in sidebar dropdown
+  * Updated system version to v1.0.2 with standard date format (07/07/2025 - 4:42 AM) in sidebar dropdown
   * Added version tag to login/register page in bottom right corner with semi-transparent design
   * Maintained visual consistency between financeira and importer modules with identical layouts
 ```
