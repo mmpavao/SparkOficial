@@ -658,6 +658,9 @@ export const creditScores = pgTable("credit_scores", {
   openingDate: timestamp("opening_date"),
   shareCapital: text("share_capital"),
   
+  // Location photo from CNPJá API
+  locationPhoto: text("location_photo"), // Base64 encoded image
+  
   // Address
   address: text("address"),
   city: text("city"),

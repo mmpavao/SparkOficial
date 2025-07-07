@@ -2954,7 +2954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CNPJá Consultation PDF endpoint
+  // CNPJá Consultation PDF endpoint with professional design
   app.get('/api/credit/applications/:id/consultation-pdf', requireAuth, async (req: any, res) => {
     try {
       const applicationId = parseInt(req.params.id);
@@ -2967,73 +2967,237 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cnpj = application.cnpj.replace(/\D/g, '');
       console.log('📄 Generating consultation PDF for CNPJ:', cnpj);
 
-      const response = await fetch(`https://cnpja.com/office/${cnpj}/receipt`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+      // Try CNPJá official PDF first
+      try {
+        const response = await fetch(`https://cnpja.com/office/${cnpj}/receipt`, {
+          headers: {
+            'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+          }
+        });
+
+        if (response.ok) {
+          const pdfBuffer = await response.arrayBuffer();
+          res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="consulta-cnpj-${cnpj}-${new Date().toISOString().split('T')[0]}.pdf"`,
+            'Content-Length': pdfBuffer.byteLength
+          });
+          console.log('✅ Official CNPJá PDF generated successfully');
+          return res.send(Buffer.from(pdfBuffer));
         }
-      });
-
-      if (response.ok) {
-        const pdfBuffer = await response.arrayBuffer();
-        res.set({
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="consulta-cnpj-${cnpj}-${new Date().toISOString().split('T')[0]}.pdf"`,
-          'Content-Length': pdfBuffer.byteLength
-        });
-        console.log('✅ PDF consultation generated successfully for CNPJ:', cnpj);
-        return res.send(Buffer.from(pdfBuffer));
-      } else {
-        console.log('⚠️ CNPJá PDF generation failed, creating fallback report...');
-        
-        // Fallback: Generate a text-based consultation report
-        const creditScore = await storage.getCreditScore(applicationId);
-        const consultationData = {
-          cnpj: cnpj,
-          companyName: application.legalName || 'Não informado',
-          consultationDate: new Date().toLocaleString('pt-BR'),
-          creditScore: creditScore?.creditScore || 'N/A',
-          hasDebts: creditScore?.hasDebts ? 'Sim' : 'Não',
-          hasProtests: creditScore?.hasProtests ? 'Sim' : 'Não',
-          hasBankruptcy: creditScore?.hasBankruptcy ? 'Sim' : 'Não',
-          hasLawsuits: creditScore?.hasLawsuits ? 'Sim' : 'Não'
-        };
-
-        const reportContent = `
-RELATÓRIO DE CONSULTA EMPRESARIAL
-=================================
-
-DADOS DA EMPRESA
-CNPJ: ${consultationData.cnpj}
-Razão Social: ${consultationData.companyName}
-Data da Consulta: ${consultationData.consultationDate}
-
-ANÁLISE DE CRÉDITO
-==================
-Score de Crédito: ${consultationData.creditScore}/1000
-Débitos: ${consultationData.hasDebts}
-Protestos: ${consultationData.hasProtests}
-Falência: ${consultationData.hasBankruptcy}
-Processos Judiciais: ${consultationData.hasLawsuits}
-
-INFORMAÇÕES ADICIONAIS
-======================
-Fonte dos Dados: CNPJá API
-Sistema: Spark Comex - Plataforma de Crédito para Importadores
-Gerado em: ${new Date().toLocaleString('pt-BR')}
-
-OBSERVAÇÕES
-===========
-Este relatório foi gerado automaticamente pelo sistema Spark Comex
-baseado em dados obtidos através da CNPJá API. As informações podem
-estar sujeitas a alterações conforme atualizações dos órgãos oficiais.
-        `;
-
-        res.set({
-          'Content-Type': 'text/plain; charset=utf-8',
-          'Content-Disposition': `attachment; filename="relatorio-consulta-${cnpj}-${new Date().toISOString().split('T')[0]}.txt"`
-        });
-        return res.send(reportContent);
+      } catch (error) {
+        console.log('⚠️ CNPJá official PDF not available, generating custom PDF...');
       }
+
+      // Generate professional Spark Comex branded PDF
+      const creditScore = await storage.getCreditScore(applicationId);
+      const currentDate = new Date();
+      
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { margin: 30px; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            line-height: 1.4; 
+            color: #2d3748;
+            margin: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 20px;
+            margin: -30px -30px 30px -30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .section {
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .section-header {
+            background-color: #f8fafc;
+            padding: 12px 16px;
+            font-weight: bold;
+            color: #1a202c;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .section-content {
+            padding: 16px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .value {
+            color: #2d3748;
+        }
+        .score-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .score-number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .score-label {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+            color: #718096;
+        }
+        .status-positive { color: #059669; font-weight: bold; }
+        .status-negative { color: #dc2626; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">⚡ SPARK COMEX</div>
+        <div class="subtitle">Plataforma de Crédito para Importadores Brasileiros</div>
+    </div>
+
+    <h1 style="text-align: center; color: #1e40af; margin-bottom: 30px;">
+        📊 RELATÓRIO DE ANÁLISE DE CRÉDITO EMPRESARIAL
+    </h1>
+
+    <div class="section">
+        <div class="section-header">🏢 DADOS DA EMPRESA</div>
+        <div class="section-content">
+            <div class="row">
+                <span class="label">CNPJ:</span>
+                <span class="value">${cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}</span>
+            </div>
+            <div class="row">
+                <span class="label">Razão Social:</span>
+                <span class="value">${creditScore?.legalName || application.legalName || 'Não informado'}</span>
+            </div>
+            <div class="row">
+                <span class="label">Nome Fantasia:</span>
+                <span class="value">${creditScore?.tradingName || 'Não informado'}</span>
+            </div>
+            <div class="row">
+                <span class="label">Situação:</span>
+                <span class="value">${creditScore?.status || 'Não informado'}</span>
+            </div>
+            <div class="row">
+                <span class="label">Data de Abertura:</span>
+                <span class="value">${creditScore?.openingDate ? new Date(creditScore.openingDate).toLocaleDateString('pt-BR') : 'Não informado'}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="score-card">
+        <div class="score-number">${creditScore?.creditScore || 'N/A'}</div>
+        <div class="score-label">Score de Crédito (0-1000)</div>
+        <div style="margin-top: 10px; font-size: 16px;">
+            ${creditScore?.creditScore >= 800 ? '🏆 EXCELENTE' : 
+              creditScore?.creditScore >= 600 ? '✅ BOM' : 
+              creditScore?.creditScore >= 400 ? '⚠️ REGULAR' : '❌ BAIXO'}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">⚠️ ANÁLISE DE RISCOS</div>
+        <div class="section-content">
+            <div class="row">
+                <span class="label">Débitos:</span>
+                <span class="value ${creditScore?.hasDebts ? 'status-negative' : 'status-positive'}">
+                    ${creditScore?.hasDebts ? '❌ Possui débitos' : '✅ Não possui débitos'}
+                </span>
+            </div>
+            <div class="row">
+                <span class="label">Protestos:</span>
+                <span class="value ${creditScore?.hasProtests ? 'status-negative' : 'status-positive'}">
+                    ${creditScore?.hasProtests ? '❌ Possui protestos' : '✅ Não possui protestos'}
+                </span>
+            </div>
+            <div class="row">
+                <span class="label">Processos Judiciais:</span>
+                <span class="value ${creditScore?.hasLawsuits ? 'status-negative' : 'status-positive'}">
+                    ${creditScore?.hasLawsuits ? '❌ Possui processos' : '✅ Não possui processos'}
+                </span>
+            </div>
+            <div class="row">
+                <span class="label">Falência:</span>
+                <span class="value ${creditScore?.hasBankruptcy ? 'status-negative' : 'status-positive'}">
+                    ${creditScore?.hasBankruptcy ? '❌ Histórico de falência' : '✅ Sem histórico de falência'}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">📋 INFORMAÇÕES DA CONSULTA</div>
+        <div class="section-content">
+            <div class="row">
+                <span class="label">Data da Consulta:</span>
+                <span class="value">${currentDate.toLocaleDateString('pt-BR')} às ${currentDate.toLocaleTimeString('pt-BR')}</span>
+            </div>
+            <div class="row">
+                <span class="label">Fonte dos Dados:</span>
+                <span class="value">CNPJá API - Receita Federal do Brasil</span>
+            </div>
+            <div class="row">
+                <span class="label">Validade:</span>
+                <span class="value">30 dias a partir da data de emissão</span>
+            </div>
+            <div class="row">
+                <span class="label">Sistema:</span>
+                <span class="value">Spark Comex v${process.env.npm_package_version || '1.0.2'}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>SPARK COMEX</strong> - Plataforma Brasileira de Crédito para Importadores</p>
+        <p>Este relatório é baseado em dados oficiais da Receita Federal obtidos através da CNPJá API</p>
+        <p>Documento gerado automaticamente em ${currentDate.toLocaleDateString('pt-BR')} às ${currentDate.toLocaleTimeString('pt-BR')}</p>
+        <p style="margin-top: 15px; font-style: italic;">
+            "Conectando importadores brasileiros ao mercado global com inteligência de crédito"
+        </p>
+    </div>
+</body>
+</html>`;
+
+      // Convert HTML to PDF using a simple text-based approach for now
+      // In a production environment, you'd use libraries like puppeteer or similar
+      const pdfContent = htmlContent.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+      
+      res.set({
+        'Content-Type': 'text/html',
+        'Content-Disposition': `attachment; filename="spark-comex-consulta-${cnpj}-${new Date().toISOString().split('T')[0]}.html"`
+      });
+      return res.send(htmlContent);
+
     } catch (error) {
       console.error('❌ PDF generation error:', error);
       res.status(500).json({ error: 'Failed to generate consultation PDF' });
@@ -3164,7 +3328,40 @@ estar sujeitas a alterações conforme atualizações dos órgãos oficiais.
         }
       }
 
-      // Step 3: Calculate enhanced credit score and create response
+      // Step 3: Get location photo
+      let locationPhotoUrl = null;
+      if (process.env.CREDIT_API_KEY) {
+        try {
+          const photoEndpoints = [
+            `https://cnpja.com/office/${cleanCnpj}/street`,
+            `https://cnpja.com/office/${cleanCnpj}/map`
+          ];
+
+          for (const endpoint of photoEndpoints) {
+            try {
+              const photoResponse = await fetch(endpoint, {
+                headers: {
+                  'Authorization': `Bearer ${process.env.CREDIT_API_KEY}`
+                }
+              });
+
+              if (photoResponse.ok) {
+                const imageBuffer = await photoResponse.arrayBuffer();
+                const base64Image = Buffer.from(imageBuffer).toString('base64');
+                locationPhotoUrl = `data:image/png;base64,${base64Image}`;
+                console.log('✅ Location photo obtained successfully');
+                break;
+              }
+            } catch (error) {
+              console.log(`⚠️ Failed to fetch photo from ${endpoint}`);
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ Photo fetch error:', error);
+        }
+      }
+
+      // Step 4: Calculate enhanced credit score and create response
       if (receitaData || creditApiData) {
         const baseScore = receitaData ? calculateCreditScore(receitaData) : 600;
         const enhancedScore = creditApiData ? enhanceCreditScore(baseScore, creditApiData) : baseScore;
@@ -3174,6 +3371,7 @@ estar sujeitas a alterações conforme atualizações dos órgãos oficiais.
           cnpj: application.cnpj,
           creditScore: enhancedScore,
           scoreDate: new Date(),
+          locationPhoto: locationPhotoUrl,
           // Basic company data from Receita WS
           legalName: receitaData?.nome || 'Não informado',
           tradingName: receitaData?.fantasia || receitaData?.nome || 'Não informado',

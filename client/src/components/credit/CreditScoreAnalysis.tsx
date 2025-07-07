@@ -40,7 +40,6 @@ interface CreditScoreAnalysisProps {
 export default function CreditScoreAnalysis({ application }: CreditScoreAnalysisProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [creditScore, setCreditScore] = useState<CreditScore | null>(null);
-  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const { toast } = useToast();
   const permissions = useUserPermissions();
@@ -102,47 +101,6 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
     }
   };
 
-  const handleDownloadPhoto = async () => {
-    setIsLoadingPhoto(true);
-    try {
-      console.log('📸 Requesting location photo for application:', application.id);
-      const response = await fetch(`/api/credit/applications/${application.id}/location-photo`);
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `foto-local-${application.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.png`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast({
-          title: "Foto baixada",
-          description: "Foto do local da empresa baixada com sucesso",
-        });
-      } else {
-        toast({
-          title: "Foto não disponível",
-          description: "Não foi possível obter a foto do local para esta empresa",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('❌ Photo download error:', error);
-      toast({
-        title: "Erro no download",
-        description: "Erro ao baixar foto do local",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingPhoto(false);
-    }
-  };
-
   const handleDownloadPDF = async () => {
     setIsLoadingPdf(true);
     try {
@@ -158,7 +116,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         
         // Get filename from response headers or use default
         const contentDisposition = response.headers.get('content-disposition');
-        let filename = `consulta-${application.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.pdf`;
+        let filename = `spark-comex-consulta-${application.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.html`;
         if (contentDisposition && contentDisposition.includes('filename=')) {
           filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
         }
@@ -170,8 +128,8 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         document.body.removeChild(a);
         
         toast({
-          title: "PDF gerado",
-          description: "Comprovante de consulta baixado com sucesso",
+          title: "Relatório gerado",
+          description: "Relatório de análise de crédito baixado com sucesso",
         });
       } else {
         toast({
@@ -275,21 +233,6 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                   <Button 
                     size="sm"
                     variant="outline"
-                    onClick={handleDownloadPhoto}
-                    disabled={isLoadingPhoto}
-                    className="w-full sm:w-auto"
-                  >
-                    {isLoadingPhoto ? (
-                      <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-                    ) : (
-                      <Camera className="w-3 h-3 mr-1" />
-                    )}
-                    Foto Local
-                  </Button>
-                  
-                  <Button 
-                    size="sm"
-                    variant="outline"
                     onClick={handleDownloadPDF}
                     disabled={isLoadingPdf}
                     className="w-full sm:w-auto"
@@ -299,7 +242,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     ) : (
                       <Download className="w-3 h-3 mr-1" />
                     )}
-                    PDF
+                    Relatório
                   </Button>
                 </div>
               )}
@@ -737,6 +680,38 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </div>
             </CardContent>
           </Card>
+
+          {/* Location Photo */}
+          {creditScore?.locationPhoto && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MapPin className="w-5 h-5 flex-shrink-0" />
+                  Localização da Empresa
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                  <img 
+                    src={creditScore.locationPhoto} 
+                    alt="Localização da empresa"
+                    className="w-full h-64 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="text-white text-sm font-medium">
+                      📍 {creditScore.address || 'Localização da empresa'}
+                    </p>
+                    <p className="text-white/80 text-xs">
+                      Fonte: CNPJá Street View
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>
