@@ -172,72 +172,10 @@ export default function UnifiedDocumentUpload({
         }
       }
 
-      // Mostrar resultado final
+      // Mostrar resultado final apenas se houver uploads bem-sucedidos
       if (successCount > 0) {
         console.log(`🎉 Upload finalizado: ${successCount} arquivo(s) enviado(s) com sucesso`);
-        
-        // Criar notificação de sucesso
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          background: #10b981;
-          color: white;
-          padding: 16px 24px;
-          border-radius: 8px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-          z-index: 1000;
-          font-size: 14px;
-          font-weight: 500;
-          max-width: 400px;
-          animation: slideInRight 0.3s ease-out;
-        `;
-        
-        notification.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              background: rgba(255,255,255,0.2);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-            ">✓</div>
-            <div>
-              <div style="font-weight: 600; margin-bottom: 2px;">Upload Concluído</div>
-              <div style="opacity: 0.9; font-size: 13px;">
-                ${successCount} arquivo${successCount > 1 ? 's' : ''} enviado${successCount > 1 ? 's' : ''} com sucesso
-              </div>
-            </div>
-          </div>
-        `;
-
-        // Adicionar animação CSS
-        const style = document.createElement('style');
-        style.textContent = `
-          @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-        `;
-        document.head.appendChild(style);
-
-        document.body.appendChild(notification);
-
-        // Remover notificação após 5 segundos
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.style.animation = 'slideInRight 0.3s ease-out reverse';
-            setTimeout(() => {
-              if (notification.parentNode) {
-                document.body.removeChild(notification);
-              }
-            }, 300);
-          }
-        }, 5000);
+        // Não mostrar notificação customizada - usar apenas logs
       }
 
       // Mostrar erros se houver
