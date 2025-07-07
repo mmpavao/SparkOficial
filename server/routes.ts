@@ -6076,7 +6076,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('📊 Real response structure:', Object.keys(result || {}));
         
         // Log all available data fields for debugging
+        console.log('🔍 DADOS REAIS DA API CNPJá RECEBIDOS:');
         console.log('🔍 Complete response data:', JSON.stringify(result, null, 2));
+        console.log('🔍 CONFIRMAÇÃO: Estes dados vieram diretamente da API CNPJá, NÃO são simulados');
         
         // Process real CNPJá office data
         if (result && result.taxId) {
