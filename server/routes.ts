@@ -6190,35 +6190,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('🔍 Starting comprehensive credit analysis for CNPJ:', cnpj);
         console.log('📊 Raw CNPJá data structure received:', Object.keys(cnpjaData || {}));
         
-        // Enhanced credit analysis using CNPJá data with real debt detection
+        // DADOS REAIS da CNPJá - SEM INVENTAR INFORMAÇÕES DE CRÉDITO
+        console.log('⚠️ IMPORTANTE: CNPJá Office API NÃO fornece dados de crédito, débitos ou score bancário');
+        console.log('📊 Dados disponíveis na CNPJá: apenas informações básicas da empresa');
+        
         const creditData = {
-          cnpj: cnpjaData.taxId || cnpjaData.cnpj || cnpj,
-          creditRating: calculateCreditRatingFromCnpja(cnpjaData),
-          bankingScore: calculateBankingScore(cnpjaData),
-          paymentBehavior: analyzeCreditBehavior(cnpjaData),
-          creditHistory: cnpjaData.company?.founded || cnpjaData.founded ? 'ESTABLISHED' : 'NEW',
-          financialProfile: analyzeFinancialProfile(cnpjaData),
-          riskLevel: calculateRiskLevel(cnpjaData),
+          cnpj: cnpjaData.taxId || cnpj,
           
-          // Real debt detection (this was the missing piece!)
-          hasDebts: checkForDebtIndicators(cnpjaData),
-          debtDetails: extractDebtDetails(cnpjaData),
-          hasProtests: checkForProtestIndicators(cnpjaData),
-          protestDetails: extractProtestDetails(cnpjaData),
-          hasLawsuits: checkForLawsuitIndicators(cnpjaData),
-          lawsuitDetails: extractLawsuitDetails(cnpjaData),
-          hasBankruptcy: cnpjaData.status?.id === 8 || cnpjaData.status?.text?.includes('BAIXADA'),
-          bankruptcyDetails: cnpjaData.status?.text,
-          
-          // Enhanced analysis results
-          companyName: cnpjaData.name || cnpjaData.company?.name || 'Nome não disponível',
+          // Dados reais disponíveis na CNPJá
+          companyName: cnpjaData.company?.name || cnpjaData.alias || 'Nome não disponível',
           companyStatus: cnpjaData.status?.text || 'Status não disponível',
-          foundedDate: cnpjaData.company?.founded || cnpjaData.founded || null,
-          equity: cnpjaData.company?.equity || cnpjaData.equity || 0,
+          foundedDate: cnpjaData.founded || cnpjaData.company?.founded || null,
+          equity: cnpjaData.company?.equity || 0,
+          companySize: cnpjaData.company?.size?.text || 'Não informado',
+          companyNature: cnpjaData.company?.nature?.text || 'Não informado',
+          mainActivity: cnpjaData.mainActivity?.text || 'Não informado',
+          address: cnpjaData.address || null,
           
+          // DADOS DE CRÉDITO NÃO DISPONÍVEIS NA CNPJá Office API
+          creditRating: 'NÃO_DISPONÍVEL',
+          bankingScore: null,
+          paymentBehavior: 'NÃO_DISPONÍVEL',
+          creditHistory: 'NÃO_DISPONÍVEL',
+          financialProfile: 'NÃO_DISPONÍVEL',
+          riskLevel: 'NÃO_DISPONÍVEL',
+          
+          // Informações de crédito requerem APIs especializadas (não CNPJá)
+          hasDebts: null,
+          debtDetails: [],
+          hasProtests: null,
+          protestDetails: null,
+          hasLawsuits: null,
+          lawsuitDetails: null,
+          hasBankruptcy: null,
+          bankruptcyDetails: null,
+          
+          // Metadados
           dataSource: cnpjaResponse.source,
           lastUpdate: new Date().toISOString(),
-          apiLimitation: cnpjaResponse.limitation || null
+          limitacao: 'CNPJá Office API fornece apenas dados básicos da empresa - não inclui informações de crédito'
         };
         
         console.log('🎯 Final analysis results:');

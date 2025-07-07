@@ -524,8 +524,8 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardContent>
           </Card>
 
-          {/* Enhanced Credit Analysis from Credit API */}
-          {((creditScore as any).creditRating || (creditScore as any).bankingScore || (creditScore as any).paymentBehavior || (creditScore as any).riskLevel) && (
+          {/* CNPJá API Limitations */}
+          {creditScore && (creditScore as any).limitacao && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
