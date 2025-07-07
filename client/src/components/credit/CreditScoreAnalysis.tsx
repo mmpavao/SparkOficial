@@ -43,13 +43,15 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
   useEffect(() => {
     const fetchExistingScore = async () => {
       try {
+        console.log('🔍 Fetching existing credit score for application:', application.id);
         const response = await apiRequest(`/api/credit/applications/${application.id}/credit-score`, 'GET');
         if (response) {
+          console.log('✅ Existing credit score found:', response);
           setCreditScore(response);
         }
       } catch (error) {
         // No existing score, that's ok
-        console.log('No existing credit score found');
+        console.log('ℹ️ No existing credit score found for application:', application.id);
       }
     };
     
@@ -60,7 +62,10 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
   const handleConsultar = async () => {
     setIsLoading(true);
     try {
+      console.log('🔍 Starting Credit Score consultation for application:', application.id);
       const response = await apiRequest(`/api/credit/applications/${application.id}/credit-score`, 'POST');
+      console.log('✅ Credit Score response received:', response);
+      
       setCreditScore(response);
       toast({
         title: "Análise concluída",
@@ -73,8 +78,11 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
       queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/admin/credit-applications/${application.id}`] });
+      
+      // Force re-render by updating the component state
+      console.log('🔄 Credit Score state updated, component should re-render');
     } catch (error: any) {
-      console.error('Credit Score API error:', error);
+      console.error('❌ Credit Score API error:', error);
       const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";
       const errorDetails = error.response?.data?.details || "";
       

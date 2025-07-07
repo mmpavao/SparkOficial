@@ -869,6 +869,14 @@ Changelog:
   * Integrated notification system for document requests and ticket updates
   * Established role-based permissions: importers can upload documents and create tickets, admins can request documents and manage all tickets
   * System allows bidirectional communication between importers and administrators without affecting existing functionality
+- July 07, 2025. CNPJá API integration successfully implemented:
+  * Replaced problematic apiconsultas.com GraphQL API with CNPJá REST API
+  * Updated Credit Score module to use CNPJA_API_KEY environment variable for authentication
+  * Integrated real Receita Federal data including company status, equity, Simples Nacional information
+  * Enhanced credit score calculation using authentic Brazilian business data from official sources
+  * Tested successful API calls with real company data (P1LED COMERCIO E IMPORTACAO)
+  * Improved credit analysis accuracy with official government data integration
+  * System now provides authentic credit scoring based on Receita Federal business information
 - July 07, 2025. UI/UX improvements and authentication fixes:
   * Fixed layout issue in financeira module credit analysis with vertical button alignment (flex-col gap-2 w-full)
   * Corrected confusing toast notification showing "Faça login" after successful login
