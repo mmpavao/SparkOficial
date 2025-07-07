@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix for toast font rendering to properly display letter O vs number 0 */
+[data-radix-toast-viewport] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Ensure proper rendering of toast text */
+[data-radix-toast-viewport] [data-radix-toast-description] {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
