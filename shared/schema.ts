@@ -693,6 +693,15 @@ export const creditScores = pgTable("credit_scores", {
   quodConsultDate: timestamp("quod_consult_date"), // Data da consulta QUOD
   quodRawData: jsonb("quod_raw_data"), // Full response from QUOD API
   
+  // Detalhamento Negativo API Data Integration
+  negativePendencies: jsonb("negative_pendencies"), // Full negative details response
+  protestDetails: jsonb("protest_details"), // Detalhes dos protestos
+  judicialActions: jsonb("judicial_actions"), // Ações judiciais detalhadas
+  bankruptcyRecovery: jsonb("bankruptcy_recovery"), // Recuperações e falências
+  bouncedChecks: jsonb("bounced_checks"), // Cheques sem fundo
+  negativeConsultDate: timestamp("negative_consult_date"), // Data da consulta negativo
+  negativeRawData: jsonb("negative_raw_data"), // Full response from Detalhamento Negativo API
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

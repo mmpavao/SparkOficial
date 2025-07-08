@@ -3093,16 +3093,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // 3. Create credit score data combining both APIs
-      if (!receitaData && !quodData) {
+      // 3. Detalhamento Negativo API Call for detailed negative information
+      let negativeData = null;
+      if (process.env.QUOD_API_TOKEN) {
+        try {
+          console.log('📊 Calling Detalhamento Negativo API for CNPJ:', cleanCnpj);
+          
+          const negativeResponse = await fetch(`https://apiv3.directd.com.br/api/DetalhamentoNegativo?CNPJ=${cleanCnpj}&TOKEN=${process.env.QUOD_API_TOKEN}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (negativeResponse.ok) {
+            negativeData = await negativeResponse.json();
+            console.log('✅ Detalhamento Negativo API response received:', JSON.stringify(negativeData, null, 2));
+          } else {
+            const errorText = await negativeResponse.text();
+            console.error('⚠️ Detalhamento Negativo API error:', negativeResponse.status, errorText);
+          }
+        } catch (negativeError) {
+          console.error('❌ Detalhamento Negativo API error:', negativeError);
+        }
+      }
+      
+      // 4. Create credit score data combining all APIs
+      if (!receitaData && !quodData && !negativeData) {
         return res.status(503).json({ 
           message: "Serviços de consulta não configurados",
-          details: "As APIs da Receita Federal e QUOD não estão configuradas. Entre em contato com o administrador."
+          details: "As APIs da Receita Federal, QUOD e Detalhamento Negativo não estão configuradas. Entre em contato com o administrador."
         });
       }
       
-      // Build credit score data with both APIs
-      creditScoreData = buildCreditScoreData(applicationId, application, receitaData, quodData);
+      // Build credit score data with all APIs
+      creditScoreData = buildCreditScoreData(applicationId, application, receitaData, quodData, negativeData);
       
       // Save credit score
       const savedScore = await storage.createCreditScore(creditScoreData);
@@ -3114,8 +3139,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Helper function to build credit score data combining both APIs
-  function buildCreditScoreData(applicationId: number, application: any, receitaData: any, quodData: any): any {
+  // Helper function to build credit score data combining all APIs
+  function buildCreditScoreData(applicationId: number, application: any, receitaData: any, quodData: any, negativeData: any): any {
     const baseData = {
       creditApplicationId: applicationId,
       cnpj: application.cnpj,
@@ -3178,11 +3203,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       quodConsultDate: quodData?.retorno?.dataConsulta ? new Date(quodData.retorno.dataConsulta) : null,
       quodRawData: quodData || null,
       
-      // Credit risk flags (enhanced with QUOD data)
-      hasDebts: extractRiskFromQuod(quodData, 'debts') || false,
-      hasProtests: extractRiskFromQuod(quodData, 'protests') || false,
-      hasBankruptcy: extractRiskFromQuod(quodData, 'bankruptcy') || false,
-      hasLawsuits: extractRiskFromQuod(quodData, 'lawsuits') || false,
+      // Credit risk flags (enhanced with QUOD and Negative data)
+      hasDebts: extractRiskFromQuod(quodData, 'debts') || extractRiskFromNegative(negativeData, 'debts') || false,
+      hasProtests: extractRiskFromQuod(quodData, 'protests') || extractRiskFromNegative(negativeData, 'protests') || false,
+      hasBankruptcy: extractRiskFromQuod(quodData, 'bankruptcy') || extractRiskFromNegative(negativeData, 'bankruptcy') || false,
+      hasLawsuits: extractRiskFromQuod(quodData, 'lawsuits') || extractRiskFromNegative(negativeData, 'lawsuits') || false,
+      
+      // Detalhamento Negativo API Data
+      negativePendencies: negativeData?.retorno || null,
+      protestDetails: negativeData?.retorno?.pessoaJuridica?.pendenciaFinanceira?.protestos || negativeData?.retorno?.pessoaFisica?.pendenciaFinanceira?.protestos || null,
+      judicialActions: negativeData?.retorno?.pessoaJuridica?.pendenciaFinanceira?.acoesJudiciais || negativeData?.retorno?.pessoaFisica?.pendenciaFinanceira?.acoesJudiciais || null,
+      bankruptcyRecovery: negativeData?.retorno?.pessoaJuridica?.pendenciaFinanceira?.recuperacaoJudicial || negativeData?.retorno?.pessoaJuridica?.pendenciaFinanceira?.falencia || null,
+      bouncedChecks: negativeData?.retorno?.pessoaJuridica?.pendenciaFinanceira?.chequesSemFundo || negativeData?.retorno?.pessoaFisica?.pendenciaFinanceira?.chequesSemFundo || null,
+      negativeConsultDate: negativeData?.retorno?.dataConsulta ? new Date(negativeData.retorno.dataConsulta) : null,
+      negativeRawData: negativeData || null,
     };
   }
   
@@ -3203,6 +3237,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return riskKeywords[riskType]?.some(keyword => indicatorText.includes(keyword)) && 
              indicator.risco !== 'BAIXO';
     });
+  }
+  
+  // Helper function to extract risk indicators from Detalhamento Negativo data
+  function extractRiskFromNegative(negativeData: any, riskType: string): boolean {
+    if (!negativeData?.retorno) return false;
+    
+    const pendencia = negativeData.retorno.pessoaJuridica?.pendenciaFinanceira || negativeData.retorno.pessoaFisica?.pendenciaFinanceira;
+    if (!pendencia) return false;
+    
+    switch (riskType) {
+      case 'protests':
+        return pendencia.protestos && pendencia.protestos.length > 0;
+      case 'lawsuits':
+        return pendencia.acoesJudiciais && pendencia.acoesJudiciais.length > 0;
+      case 'bankruptcy':
+        return (pendencia.recuperacaoJudicial && pendencia.recuperacaoJudicial.length > 0) ||
+               (pendencia.falencia && pendencia.falencia.length > 0);
+      case 'debts':
+        return pendencia.chequesSemFundo && pendencia.chequesSemFundo.length > 0;
+      default:
+        return false;
+    }
   }
 
   // Helper function to calculate credit score based on company data (fallback)
