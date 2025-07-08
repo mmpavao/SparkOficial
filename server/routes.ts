@@ -3384,8 +3384,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let hasLawsuits = false;
         let creditIndicators: any[] = [];
 
-        if (scoreApiData?.retorno?.pessoaJuridica) {
-          const pjData = scoreApiData.retorno.pessoaJuridica;
+        if (scoreApiData?.status === 'SUCCESS' && scoreApiData?.data?.pessoaJuridica) {
+          const pjData = scoreApiData.data.pessoaJuridica;
           calculatedScore = pjData.score || 750;
           
           // Map score to risk level
@@ -3425,10 +3425,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Use Cadastro API data as primary source, fallback to Receita WS
-        const primaryData = cadastroApiData?.retorno || receitaData;
-        const addressData = cadastroApiData?.retorno?.enderecos?.[0] || receitaData;
-        const phoneData = cadastroApiData?.retorno?.telefones?.[0];
-        const emailData = cadastroApiData?.retorno?.emails?.[0];
+        const primaryData = (cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data : null) || receitaData;
+        const addressData = (cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data?.enderecos?.[0] : null) || receitaData;
+        const phoneData = cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data?.telefones?.[0] : null;
+        const emailData = cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data?.emails?.[0] : null;
 
         creditScoreData = {
           creditApplicationId: applicationId,
@@ -6117,7 +6117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🏦 Calling DirectD Score API for CNPJ:', cnpj);
       
       const cleanCnpj = cnpj.replace(/[^\d]/g, '');
-      const response = await fetch(`https://app.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_SCORE_TOKEN}`, {
+      const response = await fetch(`https://apiv3.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_SCORE_TOKEN}`, {
         method: 'GET',
         headers: {
           'Accept': '*/*',
@@ -6125,14 +6125,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ DirectD Score API HTTP error:', response.status, errorText);
-        throw new Error(`DirectD Score API HTTP error: ${response.status}`);
-      }
-
       const result = await response.json();
       console.log('✅ DirectD Score API response received');
+      
+      // Check if API returned error in metaDados
+      if (result.metaDados && result.metaDados.resultadoId !== 1) {
+        console.log('⚠️ DirectD Score API returned error:', result.metaDados.mensagem);
+        return {
+          status: 'ERROR',
+          message: result.metaDados.mensagem || 'API Error',
+          resultadoId: result.metaDados.resultadoId
+        };
+      }
+
+      // If successful, return the structured data
+      if (result.retorno) {
+        return {
+          status: 'SUCCESS',
+          data: result.retorno,
+          metaDados: result.metaDados
+        };
+      }
       
       return result;
     } catch (error) {

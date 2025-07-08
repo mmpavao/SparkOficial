@@ -940,6 +940,13 @@ Changelog:
   * Added structured response handling for SUCCESS/ERROR status with proper data formatting
   * Tested successfully with valid CNPJ returning authentic Brazilian company data
   * CNPJ Plus API integration completed and functional - ready for production use
+- July 08, 2025. DirectD Score API (QUOD) successfully integrated:
+  * Fixed API URL from app.directd.com.br to apiv3.directd.com.br matching CNPJ Plus API pattern
+  * Implemented identical error handling structure with metaDados.resultadoId validation
+  * API returns authentic credit score data with pessoaJuridica score (0-1000), risk classification, and business indicators
+  * Added structured response processing for score analysis and risk assessment
+  * Updated system integration to process new SUCCESS/ERROR response format from both APIs
+  * Both DirectD APIs now fully functional and returning authentic Brazilian business and credit data
 ```
 
 ## User Preferences
