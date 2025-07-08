@@ -63,6 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     rolling: true,
   }));
 
+  // Cache for user credit applications
+  const userCreditCache: { [userId: number]: any } = {};
+
   // Session debugging middleware
   app.use((req: any, res, next) => {
     if (req.path.startsWith('/api/')) {
