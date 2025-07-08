@@ -3373,30 +3373,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Step 4: Process DirectD APIs data and create comprehensive credit analysis
-      if (scoreApiData || cadastroApiData || receitaData) {
-        // Process QUOD Score data
-        let calculatedScore = 750; // Default score
-        let riskLevel = 'MEDIUM';
-        let hasDebts = false;
-        let hasProtests = false;
-        let hasBankruptcy = false;
-        let hasLawsuits = false;
+      // Step 4: Process real DirectD Score API data - fallback to Receita WS only if no score
+      if (scoreApiData?.status === 'SUCCESS' || receitaData || cadastroApiData?.status === 'SUCCESS') {
+        if (scoreApiData?.status === 'SUCCESS') {
+          console.log('Processing real DirectD Score API data:', JSON.stringify(scoreApiData.data, null, 2));
+        } else {
+          console.log('No DirectD Score API data - using Receita WS or Cadastro API only');
+        }
+        
+        // Extract real credit score from DirectD QUOD API
+        let calculatedScore = null;
+        let riskLevel = 'PENDING_ANALYSIS';
+        let hasDebts = null;
+        let hasProtests = null;
+        let hasBankruptcy = null;
+        let hasLawsuits = null;
         let creditIndicators: any[] = [];
 
-        if (scoreApiData?.status === 'SUCCESS' && scoreApiData?.data?.pessoaJuridica) {
-          const pjData = scoreApiData.data.pessoaJuridica;
-          calculatedScore = pjData.score || 750;
+        // Process ONLY real API data - no defaults
+        if (scoreApiData.data) {
+          const apiData = scoreApiData.data;
           
-          // Map score to risk level
-          if (calculatedScore >= 800) riskLevel = 'LOW';
-          else if (calculatedScore >= 600) riskLevel = 'MEDIUM';
-          else if (calculatedScore >= 400) riskLevel = 'HIGH';
-          else riskLevel = 'CRITICAL';
+          // Extract score from real API response
+          if (apiData.score !== undefined) {
+            calculatedScore = apiData.score;
+          } else if (apiData.pessoaJuridica?.score !== undefined) {
+            calculatedScore = apiData.pessoaJuridica.score;
+          }
+          
+          // Map real score to risk level if score exists
+          if (calculatedScore !== null) {
+            if (calculatedScore >= 800) riskLevel = 'LOW';
+            else if (calculatedScore >= 600) riskLevel = 'MEDIUM';
+            else if (calculatedScore >= 400) riskLevel = 'HIGH';
+            else riskLevel = 'CRITICAL';
+          }
 
-          // Process business indicators
-          if (pjData.indicadoresNegocio && Array.isArray(pjData.indicadoresNegocio)) {
-            creditIndicators = pjData.indicadoresNegocio.map((ind: any) => ({
+          // Process real business indicators if they exist
+          if (apiData.indicadoresNegocio && Array.isArray(apiData.indicadoresNegocio)) {
+            creditIndicators = apiData.indicadoresNegocio.map((ind: any) => ({
               indicator: ind.indicador,
               status: ind.status,
               risk: ind.risco,
@@ -3404,7 +3419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }));
 
             // Analyze indicators for debt/protest detection
-            pjData.indicadoresNegocio.forEach((ind: any) => {
+            apiData.indicadoresNegocio.forEach((ind: any) => {
               const indicator = ind.indicador?.toLowerCase() || '';
               const risco = ind.risco?.toLowerCase() || '';
               
@@ -6148,22 +6163,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      console.log('🏦 Calling DirectD Score API for CNPJ:', cnpj);
+      console.log('🏦 Calling DirectD QUOD Score API for CNPJ:', cnpj);
       
       const cleanCnpj = cnpj.replace(/[^\d]/g, '');
-      const response = await fetch(`https://apiv3.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_SCORE_TOKEN}`, {
+      const response = await fetch(`https://apiv3.directd.com.br/api/quod-score/${cleanCnpj}`, {
         method: 'GET',
         headers: {
+          'Authorization': `Bearer ${process.env.DIRECTD_SCORE_TOKEN}`,
           'Accept': '*/*',
-          'User-Agent': 'curl/8.11.1'
+          'Content-Type': 'application/json'
         }
       });
 
+      console.log('DirectD Score API Response Status:', response.status);
+      
+      if (!response.ok) {
+        console.log('⚠️ DirectD Score API call failed, status:', response.status);
+        throw new Error(`DirectD Score API failed with status ${response.status}`);
+      }
+
       const result = await response.json();
       console.log('✅ DirectD Score API response received');
+      console.log('Raw API response:', JSON.stringify(result, null, 2));
       
       // Check if API returned error in metaDados
-      if (result.metaDados && result.metaDados.resultadoId !== 1) {
+      if (result.metaDados && result.metaDados.resultadoId !== 'SUCCESS') {
         console.log('⚠️ DirectD Score API returned error:', result.metaDados.mensagem);
         return {
           status: 'ERROR',
@@ -6173,15 +6197,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // If successful, return the structured data
-      if (result.retorno) {
-        return {
-          status: 'SUCCESS',
-          data: result.retorno,
-          metaDados: result.metaDados
-        };
-      }
+      return {
+        status: 'SUCCESS',
+        data: result.data || result.retorno || result,
+        metaDados: result.metaDados
+      };
       
-      return result;
     } catch (error) {
       console.error('❌ DirectD Score API error:', error);
       throw error;
