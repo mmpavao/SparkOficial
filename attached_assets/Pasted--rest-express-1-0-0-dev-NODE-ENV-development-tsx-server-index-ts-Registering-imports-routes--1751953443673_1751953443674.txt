@@ -1,0 +1,192 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Registering imports routes...
+Imports routes registered successfully
+5:33:44 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:33:57 AM [express] GET /api/auth/user 304 in 382ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+Auth check - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:33:58 AM [express] GET /api/notifications 200 in 124ms
+Authentication successful for user: 22 Role: admin
+5:33:58 AM [express] GET /api/notifications/unread-count 200 in 122ms
+Fetching fresh admin metrics
+5:34:00 AM [express] GET /api/admin/dashboard/metrics 304 in 1935ms :: {"totalImporters":10,"totalAp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:34:13 AM [express] GET /api/notifications/unread-count 200 in 495ms
+[Session Debug] GET /api/auth/user - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:34:23 AM [express] GET /api/auth/user 304 in 362ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+Auth check - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:34:23 AM [express] GET /api/notifications 200 in 122ms
+Authentication successful for user: 22 Role: admin
+5:34:23 AM [express] GET /api/notifications/unread-count 200 in 127ms
+Serving admin metrics from cache
+5:34:23 AM [express] GET /api/admin/dashboard/metrics 304 in 239ms :: {"totalImporters":10,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:34:39 AM [express] GET /api/notifications/unread-count 200 in 483ms
+[Session Debug] GET /api/notifications - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:34:54 AM [express] GET /api/notifications 200 in 474ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:34:54 AM [express] GET /api/notifications/unread-count 200 in 126ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:35:10 AM [express] GET /api/notifications/unread-count 200 in 495ms
+[Session Debug] GET /api/notifications - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:35:24 AM [express] GET /api/notifications 200 in 479ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:35:25 AM [express] GET /api/notifications/unread-count 200 in 126ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:35:40 AM [express] GET /api/notifications/unread-count 200 in 481ms
+[Session Debug] GET /api/notifications - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:35:55 AM [express] GET /api/notifications 200 in 472ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: RZer2eSoESKaGlhhl-QnjYZNDWz4QE4v, User ID: 22
+5:35:55 AM [express] GET /api/notifications/unread-count 200 in 122ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: CT4aAzu7e54j_SIU0Fp7ILOr1xmcG-uB, User ID: undefined
+5:36:11 AM [express] GET /api/notifications/unread-count 200 in 473ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:36:25 AM [express] GET /api/notifications 200 in 465ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:36:26 AM [express] GET /api/notifications/unread-count 200 in 116ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:36:42 AM [express] GET /api/notifications/unread-count 200 in 501ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:36:56 AM [express] GET /api/notifications 200 in 498ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:36:57 AM [express] GET /api/notifications/unread-count 200 in 124ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:37:12 AM [express] GET /api/notifications/unread-count 200 in 484ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:37:26 AM [express] GET /api/notifications 200 in 469ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:37:27 AM [express] GET /api/notifications/unread-count 200 in 121ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:37:43 AM [express] GET /api/notifications/unread-count 200 in 476ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:37:57 AM [express] GET /api/notifications 200 in 478ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:37:58 AM [express] GET /api/notifications/unread-count 200 in 117ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:38:14 AM [express] GET /api/notifications/unread-count 200 in 491ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:38:27 AM [express] GET /api/notifications 200 in 479ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:38:29 AM [express] GET /api/notifications/unread-count 200 in 119ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:38:44 AM [express] GET /api/notifications/unread-count 200 in 495ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:38:58 AM [express] GET /api/notifications 200 in 488ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:38:59 AM [express] GET /api/notifications/unread-count 200 in 122ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:39:15 AM [express] GET /api/notifications/unread-count 200 in 476ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:39:29 AM [express] GET /api/notifications 200 in 473ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:39:30 AM [express] GET /api/notifications/unread-count 200 in 118ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:39:46 AM [express] GET /api/notifications/unread-count 200 in 461ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:39:59 AM [express] GET /api/notifications 200 in 466ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:40:01 AM [express] GET /api/notifications/unread-count 200 in 129ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:40:16 AM [express] GET /api/notifications/unread-count 200 in 472ms
+[Session Debug] GET /api/auth/user - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+5:40:28 AM [express] GET /api/auth/user 200 in 476ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/admin/credit-applications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: undefined
+Authentication failed - no session or user ID
+5:40:29 AM [express] GET /api/admin/credit-applications 401 in 483ms :: {"message":"Não autorizado"}
+[Session Debug] POST /api/auth/login - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: undefined
+Login attempt for: admin@sparkcomex.com
+Searching for user with email: admin@sparkcomex.com
+User found - ID: 22 Email: admin@sparkcomex.com Status: active
+Password hash exists: true
+Password comparison result: true
+Session created for user ID: 22 Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N
+Session saved successfully for user: admin@sparkcomex.com
+5:40:32 AM [express] POST /api/auth/login 200 in 477ms :: {"id":22,"companyName":"Spark Comex Admin"…
+[Session Debug] GET /api/auth/user - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:40:33 AM [express] GET /api/auth/user 200 in 203ms :: {"user":{"id":22,"companyName":"Spark Comex …
+5:41:27 AM [vite] hmr update /src/pages/credit.tsx, /src/index.css?v=6xGa3EyE1WiLk8zo4eFzb
+[Session Debug] GET /api/auth/user - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:41:33 AM [express] GET /api/auth/user 304 in 363ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/admin/credit-applications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+5:41:33 AM [express] GET /api/notifications 200 in 125ms
+5:41:33 AM [express] GET /api/notifications/unread-count 200 in 127ms
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+5:41:33 AM [express] GET /api/admin/credit-applications 200 in 302ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/admin/credit-applications/62 - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+🔍 Fetching financial settings for user: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/62
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+5:41:38 AM [express] GET /api/user/financial-settings 304 in 355ms :: {"adminFeePercentage":10,"down…
+5:41:40 AM [express] GET /api/admin/credit-applications/62 200 in 1909ms :: {"id":62,"userId":33,"le…
+[Session Debug] GET /api/credit/applications/62/credit-score - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+5:41:44 AM [express] GET /api/credit/applications/62/credit-score 404 in 1357ms :: {"message":"Credi…
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:41:48 AM [express] GET /api/notifications/unread-count 200 in 120ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:42:04 AM [express] GET /api/notifications 200 in 485ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:42:04 AM [express] GET /api/notifications/unread-count 200 in 465ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:42:19 AM [express] GET /api/notifications/unread-count 200 in 480ms
+[Session Debug] POST /api/credit/applications/62/credit-score - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+5:42:24 AM [express] POST /api/credit/applications/62/credit-score 503 in 3434ms :: {"message":"Serv…
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:42:34 AM [express] GET /api/notifications 200 in 122ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:42:35 AM [express] GET /api/notifications/unread-count 200 in 119ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:42:50 AM [express] GET /api/notifications/unread-count 200 in 474ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:43:04 AM [express] GET /api/notifications 200 in 479ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:43:05 AM [express] GET /api/notifications/unread-count 200 in 121ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:43:21 AM [express] GET /api/notifications/unread-count 200 in 528ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:43:35 AM [express] GET /api/notifications 200 in 123ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:43:36 AM [express] GET /api/notifications/unread-count 200 in 131ms
+[Session Debug] POST /api/credit/applications/62/credit-score - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+5:43:43 AM [express] POST /api/credit/applications/62/credit-score 503 in 1469ms :: {"message":"Serv…
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:43:51 AM [express] GET /api/notifications/unread-count 200 in 125ms
