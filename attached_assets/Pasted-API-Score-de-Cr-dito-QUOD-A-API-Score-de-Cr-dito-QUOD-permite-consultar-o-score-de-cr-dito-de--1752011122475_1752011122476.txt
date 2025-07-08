@@ -1,0 +1,134 @@
+API - Score de Crédito - QUOD
+A API Score de Crédito - QUOD permite consultar o score de crédito de Pessoas Físicas e Jurídicas, realizando uma análise do risco de crédito.
+
+
+
+💡A API Score de Crédito - QUOD é responsável por retornar o Score de uma Pessoa Física ou Jurídica e realiza uma análise do risco de crédito.
+
+
+Introdução
+A API Score de Crédito - QUOD fornece:
+
+Score de crédito para Pessoas Físicas e Jurídicas
+Análise de risco de crédito
+Indicadores de negócio
+Capacidade de pagamento
+Perfil de crédito
+Fonte: QUOD
+
+URL Base
+A API está hospedada no seguinte endereço:
+
+https://apiv3.directd.com.br
+Endpoint
+Score de Crédito - QUOD
+GET /api/Score
+Descrição: Endpoint para realizar a consulta Score de Crédito - QUOD. Obs: esta consulta não possui comprovante.
+
+Importante: Informe apenas um único documento por requisição.
+
+Autenticação
+Para acessar esta API, é necessário fornecer um token de autenticação.
+
+Regras de Autenticação:
+
+O token deve ser enviado como parâmetro na URL da requisição.
+O token é obrigatório para realizar consultas.
+Em caso de dúvidas sobre o token, entre em contato com: suporte@directd.com.br
+Campos da API
+Dados Gerais
+Data da Consulta: Data em que a consulta foi realizada
+Documento Consultado: CPF ou CNPJ consultado
+Observação: Informações adicionais relevantes
+Pessoa Física
+Score: Pontuação numérica
+Faixa do Score: Classificação do score
+Capacidade de Pagamento: Análise da capacidade de pagamento
+Perfil: Perfil de crédito do consultado
+Pessoa Jurídica
+Score: Pontuação numérica
+Faixa do Score: Classificação do score
+Lista de Motivos: Razões que influenciaram o score
+Lista de Indicadores de Negócio:
+Indicador: Nome do indicador
+Status: Situação atual
+Risco: Nível de risco
+Observação: Detalhes adicionais
+Parâmetros
+Nome	Tipo	Obrigatório	Descrição
+CPF	string	Não*	CPF do indivíduo. Pode ser enviado com ou sem formatação.
+CNPJ	string	Não*	CNPJ da empresa. Pode ser enviado com ou sem formatação.
+TOKEN	string	Sim	Token de autenticação necessário para a consulta.
+*É necessário informar CPF ou CNPJ (apenas um por requisição).
+
+Exemplos de Requisição
+Usando cURL - Consulta PF
+
+curl 'https://apiv3.directd.com.br/api/Score?CPF=12345678900&TOKEN=seu_token_aqui'
+Usando cURL - Consulta PJ
+
+curl 'https://apiv3.directd.com.br/api/Score?CNPJ=12345678000199&TOKEN=seu_token_aqui'
+Respostas
+Sucesso (200)
+Exemplo de Resposta
+
+{
+  "metaDados": {
+    "consultaNome": "string",
+    "consultaUid": "string",
+    "chave": "string",
+    "usuario": "string",
+    "mensagem": "string",
+    "ip": "string",
+    "resultadoId": 0,
+    "resultado": "string",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": "string",
+    "assincrono": true,
+    "data": "dd/MM/yyyy HH:mm:ss",
+    "tempoExecucaoMs": 0
+  },
+  "retorno": {
+    "dataConsulta": "string",
+    "documentoConsultado": "string",
+    "pessoaFisica": {
+      "score": 0,
+      "faixaScore": "string",
+      "capacidadePagamento": "string",
+      "perfil": "string"
+    },
+    "pessoaJuridica": {
+      "score": 0,
+      "faixaScore": "string",
+      "motivos": [
+        "string"
+      ],
+      "indicadoresNegocio": [
+        {
+          "indicador": "string",
+          "status": "string",
+          "risco": "string",
+          "observacao": "string"
+        }
+      ]
+    },
+    "observacao": "string"
+  }
+}
+Outros Códigos de Resposta
+Código	Descrição
+201	Sucesso: a requisição async foi criada com sucesso e está em processamento.
+202	Em Processamento: a requisição async ainda está em processamento.
+400	Requisição Inválida: a requisição está incorreta ou os parâmetros são inválidos.
+401	Não Autenticado: o usuário não forneceu as credenciais corretas para acessar o recurso.
+403	Não Autorizado: o servidor recebeu a requisição, mas se negou a autorizá-la por conta de saldo indisponível.
+404	Não Encontrado: o servidor não encontrou uma representação atual do recurso solicitado.
+408	Tempo Esgotado: o servidor não conseguiu retornar a requisição no prazo estabelecido.
+500	Falha ao Realizar Consulta: o servidor não conseguiu processar a requisição com sucesso. Por favor, entre em contato com o nosso suporte.
+503	Consulta em Manutenção: a consulta requisitada está em manutenção. Por favor, entre em contato com o nosso suporte.
+Aplicações
+Prevenção de Autuações Fiscais
+Onboarding de Clientes e Fornecedores
+Prevenção de Lavagem de Dinheiro
+Análise de Risco/Crédito
