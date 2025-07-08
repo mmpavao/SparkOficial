@@ -3082,9 +3082,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               hasLawsuits: false, // Will be determined by indicators
               creditAnalysis: scoreData, // Complete Score response for detailed analysis
               
-              // Score QUOD specific fields
-              capacidadePagamento: pessoaJuridica.motivos?.join('; ') || 'Não informado',
-              indicadoresNegocio: pessoaJuridica.indicadoresNegocio || [],
+              // Score QUOD specific fields - Removed per user request for young companies
+              capacidadePagamento: 'Não informado', // Removed detailed reasons
+              indicadoresNegocio: [], // Removed business indicators
               consultasAnteriores: {},
               protestosDetalhes: [],
               acoesJudiciaisDetalhes: [],
@@ -3092,9 +3092,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               recuperacoesJudiciais: [],
               falenciasDetalhes: [],
               
-              // Additional fields from Score QUOD
-              faixaScore: pessoaJuridica.faixaScore || 'Não informado',
-              scoreMotivos: pessoaJuridica.motivos || [],
+              // Additional fields from Score QUOD - Removed per user request
+              faixaScore: null, // Removed score range details
+              scoreMotivos: [], // Removed score reasons
               
               lastCheckedAt: new Date()
             };

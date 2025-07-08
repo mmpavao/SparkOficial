@@ -916,6 +916,16 @@ Changelog:
   * Fixed progress bar colors in DocumentManager and button colors across all platform components
   * Platform now uses consistent green color scheme throughout with zero blue elements remaining
   * Resolved authentication session issues causing applications data to be null in credit page
+- July 08, 2025. Credit Score interface simplification for young companies:
+  * Confirmed system returns 100% authentic API data from Score QUOD + Cadastro PJ Plus (score 576 matches direct API consultation)
+  * Removed sensitive data elements per user request for young companies (6 months old) without credit history
+  * Eliminated "Faixa do Score" section showing score range details
+  * Removed "Fatores do Cálculo do Score" section with payment delay reasons
+  * Removed "Indicadores de Restrição" section showing business indicators (all showing "Não informado")
+  * Removed "Comportamento Comercial" section with payment behavior details
+  * Updated backend API to not store sensitive fields (faixaScore, scoreMotivos, indicadoresNegocio)
+  * Maintained core functionality: credit score value, company data, address, contacts, activities, and partners
+  * Interface now shows simplified credit analysis appropriate for young companies with limited credit history
 ```
 
 ## User Preferences
