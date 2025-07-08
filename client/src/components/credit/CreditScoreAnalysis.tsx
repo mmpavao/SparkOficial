@@ -110,10 +110,19 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
   };
 
   const handleDownloadPDF = async () => {
+    if (!creditScore) {
+      toast({
+        title: "Consulta necessária",
+        description: "Execute a consulta de Credit Score antes de baixar o relatório",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoadingPdf(true);
     try {
-      console.log('📄 Requesting consultation PDF for application:', application.id);
-      const response = await fetch(`/api/credit/applications/${application.id}/consultation-pdf`);
+      console.log('📄 Generating DirectD-style PDF report for application:', application.id);
+      const response = await fetch(`/api/credit/applications/${application.id}/pdf-report`);
       
       if (response.ok) {
         const blob = await response.blob();
@@ -124,7 +133,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         
         // Get filename from response headers or use default
         const contentDisposition = response.headers.get('content-disposition');
-        let filename = `spark-comex-consulta-${application.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.html`;
+        let filename = `analise-credito-${creditScore.cnpj.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.pdf`;
         if (contentDisposition && contentDisposition.includes('filename=')) {
           filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
         }
@@ -136,8 +145,8 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         document.body.removeChild(a);
         
         toast({
-          title: "Relatório gerado",
-          description: "Relatório de análise de crédito baixado com sucesso",
+          title: "Relatório PDF baixado",
+          description: "Relatório de análise de crédito gerado no estilo DirectD",
         });
       } else {
         toast({

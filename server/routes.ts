@@ -3588,9 +3588,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao consultar credit score" });
     }
   });
-  
 
-  
+  // PDF Report Generation Endpoint
+  app.get('/api/credit/applications/:id/pdf-report', requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.userId;
+
+      console.log(`🔍 Generating PDF report for application: ${id}`);
+
+      // Get credit application data
+      const application = await db.get(`
+        SELECT ca.*, u.companyName, u.cnpj as userCnpj, u.role
+        FROM creditApplications ca
+        JOIN users u ON ca.userId = u.id
+        WHERE ca.id = ? AND (ca.userId = ? OR u.role IN ('admin', 'financeira', 'super_admin'))
+      `, [id, userId]);
+
+      if (!application) {
+        return res.status(404).json({ message: "Aplicação não encontrada" });
+      }
+
+      // Get credit score data
+      const creditScore = await db.get(`
+        SELECT * FROM creditScores 
+        WHERE creditApplicationId = ? 
+        ORDER BY scoreDate DESC 
+        LIMIT 1
+      `, [id]);
+
+      if (!creditScore) {
+        return res.status(404).json({ message: "Análise de crédito não encontrada. Execute a consulta primeiro." });
+      }
+
+      // Import PDF generator
+      const { SparkComexPDFGenerator } = await import('./pdfGenerator');
+
+      // Prepare data for PDF generation
+      const pdfData = {
+        ...creditScore,
+        legalName: application.legalCompanyName,
+        companyName: application.companyName
+      };
+
+      const pdfOptions = {
+        type: 'cnpj' as const,
+        data: pdfData,
+        companyName: application.legalCompanyName,
+        documentNumber: creditScore.cnpj
+      };
+
+      // Generate PDF
+      const pdfBuffer = await SparkComexPDFGenerator.generateCreditAnalysisPDF(pdfOptions);
+
+      // Set response headers for PDF download
+      const fileName = `analise-credito-${creditScore.cnpj.replace(/[^\d]/g, '')}-${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      console.log(`✅ PDF report generated successfully for application: ${id}`);
+      
+      // Send PDF buffer
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error('❌ Error generating PDF report:', error);
+      res.status(500).json({ 
+        message: "Erro ao gerar relatório PDF",
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
+  // CPF Analysis PDF Generation Endpoint
+  app.post('/api/cpf/pdf-report', requireAuth, async (req, res) => {
+    try {
+      const cpfData = req.body;
+
+      console.log(`🔍 Generating CPF PDF report for: ${cpfData.cpf}`);
+
+      // Import PDF generator
+      const { SparkComexPDFGenerator } = await import('./pdfGenerator');
+
+      const pdfOptions = {
+        type: 'cpf' as const,
+        data: cpfData,
+        documentNumber: cpfData.cpf
+      };
+
+      // Generate PDF
+      const pdfBuffer = await SparkComexPDFGenerator.generateCreditAnalysisPDF(pdfOptions);
+
+      // Set response headers for PDF download
+      const fileName = `analise-cpf-${cpfData.cpf.replace(/\D/g, '')}-${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      console.log(`✅ CPF PDF report generated successfully for: ${cpfData.cpf}`);
+      
+      // Send PDF buffer
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error('❌ Error generating CPF PDF report:', error);
+      res.status(500).json({ 
+        message: "Erro ao gerar relatório PDF de CPF",
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
   // Helper function to format currency
   function formatCurrency(value: string | number): string {
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
