@@ -2070,7 +2070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ca.pre_analysis_status, ca.financial_status, ca.admin_status,
           ca.created_at, ca.updated_at, ca.final_credit_limit, ca.credit_limit,
           ca.approved_terms, ca.final_approved_terms, ca.cnpj,
-          cs.credit_score, cs.score_date, cs.has_debts, cs.has_protests, cs.has_bankruptcy, cs.has_lawsuits
+          cs.score, cs.consulted_at, cs.status_pendencia_financeira, cs.total_pendencia
         FROM credit_applications ca
         LEFT JOIN credit_scores cs ON cs.credit_application_id = ca.id
         ORDER BY ca.created_at DESC
@@ -2092,12 +2092,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedTerms: row.approved_terms,
         finalApprovedTerms: row.final_approved_terms,
         cnpj: row.cnpj,
-        creditScore: row.credit_score,
-        scoreDate: row.score_date,
-        hasDebts: row.has_debts,
-        hasProtests: row.has_protests,
-        hasBankruptcy: row.has_bankruptcy,
-        hasLawsuits: row.has_lawsuits
+        creditScore: row.score,
+        scoreDate: row.consulted_at,
+        pendencyStatus: row.status_pendencia_financeira,
+        totalPendency: row.total_pendencia
       }));
 
       console.log(`Found ${formattedApplications.length} credit applications`);
