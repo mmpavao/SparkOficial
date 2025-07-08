@@ -3052,6 +3052,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Extract data from Cadastro PJ Plus API
             const cadastroRetorno = cadastroData.retorno || {};
             
+            // Debug logs for data analysis
+            console.log('📊 DADOS PRINCIPAIS DO CADASTRO:');
+            console.log('  - capitalSocial:', cadastroRetorno.capitalSocial);
+            console.log('  - faturamentoPresumido:', cadastroRetorno.faturamentoPresumido);
+            console.log('  - dataInicioAtividade:', cadastroRetorno.dataInicioAtividade);
+            console.log('  - dataFundacao:', cadastroRetorno.dataFundacao);
+            console.log('  - dataAbertura:', cadastroRetorno.dataAbertura);
+            console.log('  - socios:', JSON.stringify(cadastroRetorno.socios || [], null, 2));
+            
             // Use new API data structure
             creditScoreData = {
               creditApplicationId: applicationId,
@@ -3062,11 +3071,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               legalName: cadastroRetorno.razaoSocial || 'Não informado',
               tradingName: cadastroRetorno.nomeFantasia || cadastroRetorno.razaoSocial || 'Não informado',
               status: cadastroRetorno.situacaoCadastral || 'ATIVA',
-              openingDate: cadastroRetorno.dataFundacao ? (() => {
-                const date = new Date(cadastroRetorno.dataFundacao);
-                return isNaN(date.getTime()) ? null : date;
-              })() : null,
-              shareCapital: cadastroRetorno.faturamentoPresumido ? `Faturamento Presumido: ${cadastroRetorno.faturamentoPresumido}` : 'Não informado',
+              openingDate: cadastroRetorno.dataInicioAtividade || cadastroRetorno.dataFundacao || cadastroRetorno.dataAbertura || null,
+              shareCapital: cadastroRetorno.capitalSocial || cadastroRetorno.faturamentoPresumido || 'Não informado',
               // Address from Cadastro
               address: cadastroRetorno.enderecos?.[0] ? 
                 `${cadastroRetorno.enderecos[0].logradouro}, ${cadastroRetorno.enderecos[0].numero}${cadastroRetorno.enderecos[0].complemento ? ', ' + cadastroRetorno.enderecos[0].complemento : ''}, ${cadastroRetorno.enderecos[0].bairro}` : 
@@ -3088,8 +3094,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Partners data from Cadastro
               partners: cadastroRetorno.socios?.map((socio: any) => ({
                 name: socio.nome || 'Não informado',
-                qualification: socio.cargo || 'Não informado',
-                joinDate: socio.dataEntrada || null
+                qualification: socio.cargo || 'Sócio Administrador',
+                joinDate: socio.dataEntrada || socio.dataEntradaSociedade || null,
+                participationPercentage: socio.percentualParticipacao || socio.participacao || null
               })) || [],
               // Score QUOD specific data
               companyData: { score: scoreData, cadastro: cadastroData }, // Store both API responses

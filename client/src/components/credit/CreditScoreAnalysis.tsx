@@ -364,6 +364,11 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     <div key={index} className="border-b last:border-0 pb-3 last:pb-0">
                       <p className="font-medium text-sm break-words">{partner.name}</p>
                       <p className="text-sm text-gray-600 break-words">{partner.qualification}</p>
+                      {partner.participationPercentage && (
+                        <p className="text-xs text-gray-500">
+                          Participação: {partner.participationPercentage}%
+                        </p>
+                      )}
                       {partner.joinDate && (
                         <p className="text-xs text-gray-500">
                           Entrada: {new Date(partner.joinDate).toLocaleDateString('pt-BR')}
