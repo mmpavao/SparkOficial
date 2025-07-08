@@ -869,16 +869,6 @@ Changelog:
   * Integrated notification system for document requests and ticket updates
   * Established role-based permissions: importers can upload documents and create tickets, admins can request documents and manage all tickets
   * System allows bidirectional communication between importers and administrators without affecting existing functionality
-- July 08, 2025. Complete Credit Score detailed negative information display implementation:
-  * Added comprehensive "Detalhamento de Pendências" section to CreditScoreAnalysis component
-  * Integrated detailed display of protestos with cartório information, values, and contact details
-  * Implemented judicial actions display with process numbers, comarcas, types, and monetary values
-  * Added bounced checks section showing bank details, agencies, and occurrence counts
-  * Included bankruptcy/recovery processes with company names, documents, and causes
-  * Created visual red/pink themed design for negative information with proper badges and status indicators
-  * Confirmed single QUOD_API_TOKEN works for all DirectD APIs (Receita WS, QUOD Score, Detalhamento Negativo)
-  * Successfully tested with real data showing authentic pendency information when available
-  * System now provides complete credit risk analysis with detailed negative information beyond boolean flags
 - July 07, 2025. UI/UX improvements and authentication fixes:
   * Fixed layout issue in financeira module credit analysis with vertical button alignment (flex-col gap-2 w-full)
   * Corrected confusing toast notification showing "Faça login" after successful login

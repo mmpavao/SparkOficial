@@ -16,10 +16,6 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  AlertCircle,
-  Scale,
-  CreditCard,
-  Building,
   RefreshCw,
   TrendingUp,
   Shield,
@@ -386,372 +382,66 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Débitos</span>
-                  <div className="text-right">
-                    {creditScore.hasDebts ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
-                      </Badge>
-                    )}
-                    {creditScore.bouncedChecks && creditScore.bouncedChecks.length > 0 && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        {creditScore.bouncedChecks.length} cheque(s) sem fundo
-                      </div>
-                    )}
-                  </div>
+                  {creditScore.hasDebts ? (
+                    <Badge className="bg-red-100 text-red-700">
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Possui
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Não possui
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Protestos</span>
-                  <div className="text-right">
-                    {creditScore.hasProtests ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
-                      </Badge>
-                    )}
-                    {creditScore.protestDetails && creditScore.protestDetails.length > 0 && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        {creditScore.protestDetails.length} protesto(s) encontrado(s)
-                      </div>
-                    )}
-                  </div>
+                  {creditScore.hasProtests ? (
+                    <Badge className="bg-red-100 text-red-700">
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Possui
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Não possui
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Falência</span>
-                  <div className="text-right">
-                    {creditScore.hasBankruptcy ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
-                      </Badge>
-                    )}
-                    {creditScore.bankruptcyRecovery && creditScore.bankruptcyRecovery.length > 0 && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        {creditScore.bankruptcyRecovery.length} processo(s) de recuperação/falência
-                      </div>
-                    )}
-                  </div>
+                  {creditScore.hasBankruptcy ? (
+                    <Badge className="bg-red-100 text-red-700">
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Possui
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Não possui
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Processos Judiciais</span>
-                  <div className="text-right">
-                    {creditScore.hasLawsuits ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
-                      </Badge>
-                    )}
-                    {creditScore.judicialActions && creditScore.judicialActions.length > 0 && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        {creditScore.judicialActions.length} ação(ões) judicial(is)
-                      </div>
-                    )}
-                  </div>
+                  {creditScore.hasLawsuits ? (
+                    <Badge className="bg-red-100 text-red-700">
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Possui
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Não possui
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* QUOD Credit Score Analysis */}
-          {(creditScore.quodScore || creditScore.quodBusinessIndicators) && (
-            <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <TrendingUp className="w-5 h-5 flex-shrink-0 text-blue-600" />
-                  <span className="text-blue-800">Análise QUOD Score</span>
-                  <Badge className="bg-blue-100 text-blue-700 text-xs">Fonte Autêntica</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <div className="space-y-4">
-                  {creditScore.quodScore && (
-                    <div className="p-4 bg-white rounded-lg border">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Score QUOD</span>
-                        <Badge className={getScoreColor(creditScore.quodScore)}>
-                          {creditScore.quodScore}
-                        </Badge>
-                      </div>
-                      {creditScore.quodScoreRange && (
-                        <p className="text-sm text-gray-600">Faixa: {creditScore.quodScoreRange}</p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {creditScore.quodPaymentCapacity && (
-                    <div className="p-4 bg-white rounded-lg border">
-                      <span className="text-sm font-medium text-gray-700">Capacidade de Pagamento</span>
-                      <p className="text-sm text-gray-600 mt-1">{creditScore.quodPaymentCapacity}</p>
-                    </div>
-                  )}
-                  
-                  {creditScore.quodProfile && (
-                    <div className="p-4 bg-white rounded-lg border">
-                      <span className="text-sm font-medium text-gray-700">Perfil de Crédito</span>
-                      <p className="text-sm text-gray-600 mt-1">{creditScore.quodProfile}</p>
-                    </div>
-                  )}
-                  
-                  {creditScore.quodMotives && (creditScore.quodMotives as string[]).length > 0 && (
-                    <div className="p-4 bg-white rounded-lg border">
-                      <span className="text-sm font-medium text-gray-700 mb-2 block">Motivos do Score</span>
-                      <div className="space-y-1">
-                        {(creditScore.quodMotives as string[]).map((motivo, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0" />
-                            <span className="text-sm text-gray-600">{motivo}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {creditScore.quodBusinessIndicators && (creditScore.quodBusinessIndicators as any[]).length > 0 && (
-                    <div className="p-4 bg-white rounded-lg border">
-                      <span className="text-sm font-medium text-gray-700 mb-3 block">Indicadores de Negócio</span>
-                      <div className="space-y-3">
-                        {(creditScore.quodBusinessIndicators as any[]).map((indicator, index) => (
-                          <div key={index} className="border-l-4 border-gray-200 pl-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium text-gray-800">{indicator.indicador}</span>
-                              <Badge className={
-                                indicator.risco === 'BAIXO' ? 'bg-green-100 text-green-700' :
-                                indicator.risco === 'MÉDIO' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
-                              }>
-                                {indicator.risco}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-600">Status: {indicator.status}</p>
-                            {indicator.observacao && (
-                              <p className="text-xs text-gray-500 mt-1">{indicator.observacao}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {creditScore.quodConsultDate && (
-                    <div className="text-center pt-2">
-                      <p className="text-xs text-gray-500">
-                        Consulta QUOD realizada em: {new Date(creditScore.quodConsultDate).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Detailed Negative Information */}
-          {(creditScore.protestDetails || creditScore.judicialActions || creditScore.bankruptcyRecovery || creditScore.bouncedChecks) && (
-            <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-pink-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-600" />
-                  <span className="text-red-800">Detalhamento de Pendências</span>
-                  <Badge className="bg-red-100 text-red-700 text-xs">Dados Detalhados</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <div className="space-y-4">
-                  
-                  {/* Protestos Detalhados */}
-                  {creditScore.protestDetails && creditScore.protestDetails.length > 0 && (
-                    <div className="p-4 bg-white rounded-lg border border-red-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertCircle className="w-4 h-4 text-red-600" />
-                        <span className="font-medium text-red-800">Protestos Encontrados ({creditScore.protestDetails.length})</span>
-                      </div>
-                      {creditScore.protestDetails.map((protesto: any, index: number) => (
-                        <div key={index} className="border-b last:border-0 pb-3 last:pb-0 mb-3 last:mb-0">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-start">
-                              <span className="text-sm font-medium text-gray-700">Situação:</span>
-                              <Badge className="bg-orange-100 text-orange-700 text-xs">
-                                {protesto.situacao || 'Pendente'}
-                              </Badge>
-                            </div>
-                            {protesto.valorTotal && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Valor Total:</span>
-                                <span className="text-sm font-medium">R$ {protesto.valorTotal.toLocaleString('pt-BR')}</span>
-                              </div>
-                            )}
-                            {protesto.cartorios && protesto.cartorios.length > 0 && (
-                              <div className="mt-2">
-                                <span className="text-sm font-medium text-gray-700">Cartórios:</span>
-                                {protesto.cartorios.map((cartorio: any, cIndex: number) => (
-                                  <div key={cIndex} className="ml-2 mt-1 p-2 bg-gray-50 rounded text-xs">
-                                    <p className="font-medium">{cartorio.nome}</p>
-                                    <p>{cartorio.endereco} - {cartorio.cidade}</p>
-                                    <p>Tel: {cartorio.telefone}</p>
-                                    <p>Protestos: {cartorio.quantidadeProtestos} | Valor: R$ {cartorio.valorProtestado?.toLocaleString('pt-BR')}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Ações Judiciais Detalhadas */}
-                  {creditScore.judicialActions && creditScore.judicialActions.length > 0 && (
-                    <div className="p-4 bg-white rounded-lg border border-red-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Scale className="w-4 h-4 text-red-600" />
-                        <span className="font-medium text-red-800">Ações Judiciais ({creditScore.judicialActions.length})</span>
-                      </div>
-                      {creditScore.judicialActions.map((acao: any, index: number) => (
-                        <div key={index} className="border-b last:border-0 pb-3 last:pb-0 mb-3 last:mb-0">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-start">
-                              <span className="text-sm font-medium text-gray-700">Processo:</span>
-                              <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-                                {acao.numeroProcessoPrincipal || acao.numeroProcesso}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>
-                                <span className="text-gray-600">Comarca:</span>
-                                <p className="font-medium">{acao.comarca}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Tipo:</span>
-                                <p className="font-medium">{acao.tipoProcesso}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Parte Acusada:</span>
-                                <p className="font-medium">{acao.parteAcusada}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Valor:</span>
-                                <p className="font-medium">R$ {acao.valor?.toLocaleString('pt-BR') || 'N/I'}</p>
-                              </div>
-                            </div>
-                            {acao.status && (
-                              <div className="mt-2">
-                                <Badge className="bg-blue-100 text-blue-700 text-xs">
-                                  {acao.status}
-                                </Badge>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Cheques Sem Fundo */}
-                  {creditScore.bouncedChecks && creditScore.bouncedChecks.length > 0 && (
-                    <div className="p-4 bg-white rounded-lg border border-red-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <CreditCard className="w-4 h-4 text-red-600" />
-                        <span className="font-medium text-red-800">Cheques Sem Fundo ({creditScore.bouncedChecks.length})</span>
-                      </div>
-                      {creditScore.bouncedChecks.map((cheque: any, index: number) => (
-                        <div key={index} className="border-b last:border-0 pb-3 last:pb-0 mb-3 last:mb-0">
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-gray-600">Banco:</span>
-                              <p className="font-medium">{cheque.codigoBanco}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Agência:</span>
-                              <p className="font-medium">{cheque.nomeAgencia} ({cheque.numeroAgencia})</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Ocorrências:</span>
-                              <p className="font-medium">{cheque.quantidadeOcorrencia}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Última Ocorrência:</span>
-                              <p className="font-medium">
-                                {cheque.dataUltimaOcorrencia ? 
-                                  new Date(cheque.dataUltimaOcorrencia).toLocaleDateString('pt-BR') : 
-                                  'N/I'
-                                }
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Recuperações e Falências */}
-                  {creditScore.bankruptcyRecovery && creditScore.bankruptcyRecovery.length > 0 && (
-                    <div className="p-4 bg-white rounded-lg border border-red-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Building className="w-4 h-4 text-red-600" />
-                        <span className="font-medium text-red-800">Recuperações/Falências ({creditScore.bankruptcyRecovery.length})</span>
-                      </div>
-                      {creditScore.bankruptcyRecovery.map((processo: any, index: number) => (
-                        <div key={index} className="border-b last:border-0 pb-3 last:pb-0 mb-3 last:mb-0">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-start">
-                              <span className="text-sm font-medium text-gray-700">Empresa:</span>
-                              <span className="text-sm font-medium">{processo.nomeEmpresa}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>
-                                <span className="text-gray-600">Documento:</span>
-                                <p className="font-medium">{processo.documento}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Valor:</span>
-                                <p className="font-medium">R$ {processo.valor?.toLocaleString('pt-BR') || 'N/I'}</p>
-                              </div>
-                            </div>
-                            {processo.motivo && (
-                              <div>
-                                <span className="text-gray-600 text-sm">Motivo:</span>
-                                <p className="text-sm">{processo.motivo}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {creditScore.negativeConsultDate && (
-                    <div className="text-center pt-2">
-                      <p className="text-xs text-gray-500">
-                        Consulta de Pendências realizada em: {new Date(creditScore.negativeConsultDate).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </>
       )}
     </div>
