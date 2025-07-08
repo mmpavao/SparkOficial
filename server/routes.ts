@@ -3429,6 +3429,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const addressData = (cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data?.enderecos?.[0] : null) || receitaData;
         const phoneData = cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data?.telefones?.[0] : null;
         const emailData = cadastroApiData?.status === 'SUCCESS' ? cadastroApiData.data?.emails?.[0] : null;
+        
+        console.log('🔍 Primary data keys:', Object.keys(primaryData || {}));
+        console.log('🔍 Date fields:', {
+          dataFundacao: primaryData?.dataFundacao,
+          abertura: primaryData?.abertura,
+          dataAbertura: primaryData?.dataAbertura
+        });
 
         creditScoreData = {
           creditApplicationId: applicationId,
@@ -3440,8 +3447,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           legalName: primaryData?.razaoSocial || primaryData?.nome || 'Não informado',
           tradingName: primaryData?.nomeFantasia || primaryData?.fantasia || primaryData?.nome || 'Não informado',
           status: primaryData?.situacaoCadastral || primaryData?.situacao || 'Não informado',
-          openingDate: primaryData?.dataFundacao ? new Date(primaryData.dataFundacao) : 
-                      (primaryData?.abertura ? new Date(primaryData.abertura.split('/').reverse().join('-')) : null),
+          openingDate: (() => {
+            try {
+              if (primaryData?.dataFundacao) {
+                return new Date(primaryData.dataFundacao);
+              }
+              if (primaryData?.abertura) {
+                // Handle DD/MM/YYYY format
+                const [day, month, year] = primaryData.abertura.split('/');
+                return new Date(`${year}-${month}-${day}`);
+              }
+              return null;
+            } catch (error) {
+              console.log('⚠️ Invalid date format:', primaryData?.dataFundacao || primaryData?.abertura);
+              return null;
+            }
+          })(),
           shareCapital: primaryData?.capital_social ? formatCurrency(primaryData.capital_social) : 'Não informado',
           // Address information
           address: addressData ? [
