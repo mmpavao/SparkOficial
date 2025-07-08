@@ -2919,6 +2919,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Photo endpoints temporarily disabled
       console.log('📋 Photo endpoints temporarily disabled - no external photo fetching');
       return res.status(503).json({ message: 'Photo service temporarily unavailable' });
+
+          if (response.ok) {
+            const imageBuffer = await response.arrayBuffer();
+            res.set({
+              'Content-Type': 'image/png',
+              'Content-Length': imageBuffer.byteLength,
+              'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+            });
+            console.log('✅ Location photo retrieved successfully from:', endpoint);
+            return res.send(Buffer.from(imageBuffer));
+          }
+        } catch (error) {
+          console.log(`⚠️ Failed to fetch from ${endpoint}:`, error);
+        }
+      }
+
+      // If both fail, return error
+      console.log('❌ No location photo available for CNPJ:', cnpj);
+      return res.status(404).json({ error: 'Location photo not available' });
     } catch (error) {
       console.error('❌ Location photo error:', error);
       res.status(500).json({ error: 'Failed to fetch location photo' });
@@ -2941,6 +2960,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PDF generation temporarily disabled
       console.log('📋 PDF generation endpoints temporarily disabled - no external PDF fetching');
       return res.status(503).json({ message: 'PDF service temporarily unavailable' });
+          console.log('✅ Official CNPJá PDF generated successfully');
+          return res.send(Buffer.from(pdfBuffer));
+        }
+      } catch (error) {
+        console.log('⚠️ CNPJá official PDF not available, generating custom PDF...');
+      }
 
       // Generate professional Spark Comex branded PDF
       const creditScore = await storage.getCreditScore(applicationId);
