@@ -193,13 +193,17 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           </CardHeader>
           <CardContent className="pt-2">
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200">
-                <span className="text-sm text-gray-700">CNPJá API</span>
-                <span className="text-xs text-green-600 font-medium">✓ Pública</span>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-200">
+                <span className="text-sm text-gray-700">DirectD Score API (QUOD)</span>
+                <span className="text-xs text-blue-600 font-medium">✓ Comercial</span>
               </div>
-              <div className="text-center p-3 bg-blue-50 rounded-md border border-blue-200">
-                <div className="text-sm text-blue-700 font-medium">Última Atualização</div>
-                <div className="text-xs text-blue-600">{new Date(creditScore.scoreDate).toLocaleDateString('pt-BR')} às {new Date(creditScore.scoreDate).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-200">
+                <span className="text-sm text-gray-700">DirectD Cadastro Plus API</span>
+                <span className="text-xs text-blue-600 font-medium">✓ Empresarial</span>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-md border border-green-200">
+                <div className="text-sm text-green-700 font-medium">Última Consulta</div>
+                <div className="text-xs text-green-600">{new Date(creditScore.scoreDate).toLocaleDateString('pt-BR')} às {new Date(creditScore.scoreDate).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>
               </div>
             </div>
           </CardContent>
@@ -338,7 +342,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardContent>
           </Card>
 
-          {/* Resumo de Risco Financeiro */}
+          {/* Resumo de Risco Financeiro - DADOS REAIS DirectD */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -347,39 +351,237 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">4</div>
-                  <div className="text-sm text-green-700">Indicadores Positivos</div>
-                </div>
-                <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                  <div className="text-2xl font-bold text-red-600">1</div>
-                  <div className="text-sm text-red-700">Alertas de Risco</div>
-                </div>
-              </div>
+              {creditScore?.companyData?.retorno ? (
+                <>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="text-2xl font-bold text-green-600">
+                        {(() => {
+                          let positives = 0;
+                          if (creditScore.companyData.retorno.situacao === 'ATIVA') positives++;
+                          if (!creditScore.hasProtests) positives++;
+                          if (!creditScore.hasLawsuits) positives++;
+                          if (!creditScore.hasBankruptcy) positives++;
+                          return positives;
+                        })()}
+                      </div>
+                      <div className="text-sm text-green-700">Indicadores Positivos</div>
+                    </div>
+                    <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                      <div className="text-2xl font-bold text-red-600">
+                        {(() => {
+                          let risks = 0;
+                          if (creditScore.hasDebts) risks++;
+                          if (creditScore.hasProtests) risks++;
+                          if (creditScore.hasLawsuits) risks++;
+                          if (creditScore.hasBankruptcy) risks++;
+                          return risks;
+                        })()}
+                      </div>
+                      <div className="text-sm text-red-700">Alertas de Risco</div>
+                    </div>
+                  </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200">
-                  <span className="text-sm text-gray-700">✅ Empresa Ativa (34 anos)</span>
-                  <span className="text-xs text-green-600 font-medium">POSITIVO</span>
+                  <div className="space-y-3">
+                    {/* Status da Empresa */}
+                    <div className={`flex items-center justify-between p-3 rounded-md border ${
+                      creditScore.companyData.retorno.situacao === 'ATIVA' 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <span className="text-sm text-gray-700">
+                        {creditScore.companyData.retorno.situacao === 'ATIVA' ? '✅' : '❌'} 
+                        Empresa {creditScore.companyData.retorno.situacao} 
+                        ({creditScore.companyData.retorno.dataInicioAtividade ? 
+                          Math.floor((new Date().getTime() - new Date(creditScore.companyData.retorno.dataInicioAtividade).getTime()) / (1000 * 60 * 60 * 24 * 365)) 
+                          : '?'} anos)
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        creditScore.companyData.retorno.situacao === 'ATIVA' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {creditScore.companyData.retorno.situacao === 'ATIVA' ? 'POSITIVO' : 'RISCO'}
+                      </span>
+                    </div>
+
+                    {/* Protestos */}
+                    <div className={`flex items-center justify-between p-3 rounded-md border ${
+                      !creditScore.hasProtests 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <span className="text-sm text-gray-700">
+                        {!creditScore.hasProtests ? '✅ Sem Protestos' : '⚠️ Possui Protestos'}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        !creditScore.hasProtests ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {!creditScore.hasProtests ? 'POSITIVO' : 'RISCO'}
+                      </span>
+                    </div>
+
+                    {/* Processos Judiciais */}
+                    <div className={`flex items-center justify-between p-3 rounded-md border ${
+                      !creditScore.hasLawsuits 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <span className="text-sm text-gray-700">
+                        {!creditScore.hasLawsuits ? '✅ Sem Processos Judiciais' : '⚠️ Possui Processos Judiciais'}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        !creditScore.hasLawsuits ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {!creditScore.hasLawsuits ? 'POSITIVO' : 'RISCO'}
+                      </span>
+                    </div>
+
+                    {/* Falência */}
+                    <div className={`flex items-center justify-between p-3 rounded-md border ${
+                      !creditScore.hasBankruptcy 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <span className="text-sm text-gray-700">
+                        {!creditScore.hasBankruptcy ? '✅ Sem Falência' : '⚠️ Possui Falência'}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        !creditScore.hasBankruptcy ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {!creditScore.hasBankruptcy ? 'POSITIVO' : 'RISCO'}
+                      </span>
+                    </div>
+
+                    {/* Dívidas */}
+                    <div className={`flex items-center justify-between p-3 rounded-md border ${
+                      !creditScore.hasDebts 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <span className="text-sm text-gray-700">
+                        {!creditScore.hasDebts ? '✅ Sem Dívidas Registradas' : '⚠️ Possui Dívidas Registradas'}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        !creditScore.hasDebts ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {!creditScore.hasDebts ? 'POSITIVO' : 'RISCO'}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p>Dados de análise não disponíveis</p>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200">
-                  <span className="text-sm text-gray-700">✅ Sem Protestos</span>
-                  <span className="text-xs text-green-600 font-medium">POSITIVO</span>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Análise Avançada de Crédito - DADOS REAIS DirectD */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BarChart3 className="w-5 h-5 flex-shrink-0" />
+                Análise Avançada de Crédito
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              {creditScore?.companyData?.retorno ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Análise de Débitos */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Débitos
+                    </h4>
+                    <div className={`p-3 rounded-md border ${
+                      !creditScore.hasDebts 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          {!creditScore.hasDebts ? '✅ Não possui' : '❌ Possui'}
+                        </span>
+                        <Badge variant={!creditScore.hasDebts ? 'default' : 'destructive'}>
+                          {!creditScore.hasDebts ? 'Limpo' : 'Pendente'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Análise de Protestos */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Protestos
+                    </h4>
+                    <div className={`p-3 rounded-md border ${
+                      !creditScore.hasProtests 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          {!creditScore.hasProtests ? '✅ Não possui' : '❌ Possui'}
+                        </span>
+                        <Badge variant={!creditScore.hasProtests ? 'default' : 'destructive'}>
+                          {!creditScore.hasProtests ? 'Limpo' : 'Pendente'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Análise de Falência */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <XCircle className="w-4 h-4" />
+                      Falência
+                    </h4>
+                    <div className={`p-3 rounded-md border ${
+                      !creditScore.hasBankruptcy 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          {!creditScore.hasBankruptcy ? '✅ Não possui' : '❌ Possui'}
+                        </span>
+                        <Badge variant={!creditScore.hasBankruptcy ? 'default' : 'destructive'}>
+                          {!creditScore.hasBankruptcy ? 'Limpo' : 'Pendente'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Análise de Processos Judiciais */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Processos Judiciais
+                    </h4>
+                    <div className={`p-3 rounded-md border ${
+                      !creditScore.hasLawsuits 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          {!creditScore.hasLawsuits ? '✅ Não possui' : '❌ Possui'}
+                        </span>
+                        <Badge variant={!creditScore.hasLawsuits ? 'default' : 'destructive'}>
+                          {!creditScore.hasLawsuits ? 'Limpo' : 'Pendente'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200">
-                  <span className="text-sm text-gray-700">✅ Sem Processos Judiciais</span>
-                  <span className="text-xs text-green-600 font-medium">POSITIVO</span>
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p>Dados de análise não disponíveis</p>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200">
-                  <span className="text-sm text-gray-700">✅ Sem Falência</span>
-                  <span className="text-xs text-green-600 font-medium">POSITIVO</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-md border border-red-200">
-                  <span className="text-sm text-gray-700">⚠️ Possui Dívidas Registradas</span>
-                  <span className="text-xs text-red-600 font-medium">RISCO</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
