@@ -682,15 +682,19 @@ export const creditScores = pgTable("credit_scores", {
   hasBankruptcy: boolean("has_bankruptcy").default(false),
   hasLawsuits: boolean("has_lawsuits").default(false),
   
-  // DirectD Specific Fields
+  // Score QUOD Specific Fields
   capacidadePagamento: text("capacidade_pagamento"), // Payment capacity indicator
-  indicadoresNegocio: jsonb("indicadores_negocio"), // Business indicators array
+  indicadoresNegocio: jsonb("indicadores_negocio"), // Business indicators array from Score QUOD
   consultasAnteriores: jsonb("consultas_anteriores"), // Previous queries data
   protestosDetalhes: jsonb("protestos_detalhes"), // Detailed protests information
   acoesJudiciaisDetalhes: jsonb("acoes_judiciais_detalhes"), // Detailed lawsuits information
   chequesSemdFundo: jsonb("cheques_sem_fundo"), // Bounced checks information
   recuperacoesJudiciais: jsonb("recuperacoes_judiciais"), // Judicial recovery data
   falenciasDetalhes: jsonb("falencias_detalhes"), // Bankruptcy details
+  
+  // New Score QUOD fields
+  faixaScore: text("faixa_score"), // Score range description from QUOD
+  scoreMotivos: jsonb("score_motivos"), // Array of reasons for score calculation
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),

@@ -2997,9 +2997,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to use DirectD API if token is available
       if (process.env.DIRECTD_API_TOKEN) {
         try {
-          console.log('📊 Calling DirectD API for CNPJ:', cleanCnpj);
+          console.log('📊 Calling DirectD APIs for CNPJ:', cleanCnpj);
           
-          const response = await fetch(`https://apiv3.directd.com.br/api/DossieCreditoCompleto?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+          // First call Score QUOD API for credit score
+          const scoreResponse = await fetch(`https://apiv3.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
@@ -3007,71 +3008,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
           
-          if (response.ok) {
-            const directdData = await response.json();
-            console.log('✅ DirectD API response received:', JSON.stringify(directdData, null, 2));
+          // Then call Cadastro PJ Plus API for company data
+          const cadastroResponse = await fetch(`https://apiv3.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (scoreResponse.ok && cadastroResponse.ok) {
+            const scoreData = await scoreResponse.json();
+            const cadastroData = await cadastroResponse.json();
+            console.log('✅ DirectD Score API response received:', JSON.stringify(scoreData, null, 2));
+            console.log('✅ DirectD Cadastro API response received:', JSON.stringify(cadastroData, null, 2));
             
-            const retorno = directdData.retorno || {};
-            const entidadeJuridica = retorno.entidadeJuridica || {};
-            const dadosCadastrais = entidadeJuridica.dadosCadastrais || {};
-            const scoreEntidades = entidadeJuridica.scoreEntidades || {};
-            const scoreInfo = scoreEntidades.entidadeJuridica || {};
-            const pendenciaFinanceira = entidadeJuridica.pendenciaFinanceira || {};
+            // Extract data from Score QUOD API
+            const scoreRetorno = scoreData.retorno || {};
+            const pessoaJuridica = scoreRetorno.pessoaJuridica || {};
             
-            // Use DirectD API data with correct structure
+            // Extract data from Cadastro PJ Plus API
+            const cadastroRetorno = cadastroData.retorno || {};
+            
+            // Use new API data structure
             creditScoreData = {
               creditApplicationId: applicationId,
               cnpj: application.cnpj,
-              creditScore: scoreInfo.score || calculateDefaultScore(dadosCadastrais),
+              creditScore: pessoaJuridica.score || 0, // Real score from QUOD API
               scoreDate: new Date(),
-              // Company data from DirectD
-              legalName: dadosCadastrais.razaoSocial || 'Não informado',
-              tradingName: dadosCadastrais.nomeFantasia || dadosCadastrais.razaoSocial || 'Não informado',
-              status: dadosCadastrais.situacaoCadastral || 'ATIVA',
-              openingDate: dadosCadastrais.dataFundacao ? (() => {
-                const date = new Date(dadosCadastrais.dataFundacao);
+              // Company data from Cadastro PJ Plus
+              legalName: cadastroRetorno.razaoSocial || 'Não informado',
+              tradingName: cadastroRetorno.nomeFantasia || cadastroRetorno.razaoSocial || 'Não informado',
+              status: cadastroRetorno.situacaoCadastral || 'ATIVA',
+              openingDate: cadastroRetorno.dataFundacao ? (() => {
+                const date = new Date(cadastroRetorno.dataFundacao);
                 return isNaN(date.getTime()) ? null : date;
               })() : null,
-              shareCapital: entidadeJuridica.quadroSocietario?.capitalSocial ? formatCurrency(entidadeJuridica.quadroSocietario.capitalSocial) : 'Não informado',
-              // Address from DirectD
-              address: formatAddress(dadosCadastrais.endereco),
-              city: dadosCadastrais.endereco?.cidade || 'Não informado',
-              state: dadosCadastrais.endereco?.uf || 'Não informado',
-              zipCode: formatCEP(dadosCadastrais.endereco?.cep) || 'Não informado',
-              phone: formatPhone(dadosCadastrais.telefone) || 'Não informado',
-              email: dadosCadastrais.email || 'Não informado',
+              shareCapital: cadastroRetorno.faturamentoPresumido ? `Faturamento Presumido: ${cadastroRetorno.faturamentoPresumido}` : 'Não informado',
+              // Address from Cadastro
+              address: cadastroRetorno.enderecos?.[0] ? 
+                `${cadastroRetorno.enderecos[0].logradouro}, ${cadastroRetorno.enderecos[0].numero}${cadastroRetorno.enderecos[0].complemento ? ', ' + cadastroRetorno.enderecos[0].complemento : ''}, ${cadastroRetorno.enderecos[0].bairro}` : 
+                'Não informado',
+              city: cadastroRetorno.enderecos?.[0]?.cidade || 'Não informado',
+              state: cadastroRetorno.enderecos?.[0]?.uf || 'Não informado',
+              zipCode: formatCEP(cadastroRetorno.enderecos?.[0]?.cep) || 'Não informado',
+              phone: formatPhone(cadastroRetorno.telefones?.[0]?.telefoneComDDD) || 'Não informado',
+              email: cadastroRetorno.emails?.[0]?.enderecoEmail || 'Não informado',
               // CNAE data
               mainActivity: {
-                code: dadosCadastrais.codigoAtividadePrincipal || 'Não informado',
-                description: dadosCadastrais.descricaoAtividadePrincipal || 'Não informado'
+                code: cadastroRetorno.cnaeCodigo || 'Não informado',
+                description: cadastroRetorno.cnaeDescricao || 'Não informado'
               },
-              secondaryActivities: dadosCadastrais.codigoAtividadeSecundaria ? [{
-                code: dadosCadastrais.codigoAtividadeSecundaria || 'Não informado',
-                description: dadosCadastrais.descricaoAtividadeSecundaria || 'Não informado'
-              }] : [],
-              // Partners data from quadroSocietario
-              partners: entidadeJuridica.quadroSocietario?.informacoes?.map((partner: any) => ({
-                name: partner.nomeEmpresa || 'Não informado',
-                qualification: partner.funcaoSocio || 'Não informado',
-                joinDate: partner.dataInicioSociedade || null
+              secondaryActivities: cadastroRetorno.cnaEsSecundarios?.map((cnae: any) => ({
+                code: cnae.cnaeCodigoSecundario || 'Não informado',
+                description: cnae.cnaeDescricaoSecundario || 'Não informado'
               })) || [],
-              // DirectD specific credit analysis
-              companyData: directdData, // Store full API response
-              hasDebts: pendenciaFinanceira.totalPendencia > 0,
-              hasProtests: pendenciaFinanceira.protestos?.length > 0,
-              hasBankruptcy: pendenciaFinanceira.recuperacoesJudiciaisFalencia?.some((item: any) => item.tipo?.includes('FALENCIA')),
-              hasLawsuits: pendenciaFinanceira.acoesJudiciais?.length > 0,
-              creditAnalysis: directdData, // Complete DirectD response for detailed analysis
+              // Partners data from Cadastro
+              partners: cadastroRetorno.socios?.map((socio: any) => ({
+                name: socio.nome || 'Não informado',
+                qualification: socio.cargo || 'Não informado',
+                joinDate: socio.dataEntrada || null
+              })) || [],
+              // Score QUOD specific data
+              companyData: { score: scoreData, cadastro: cadastroData }, // Store both API responses
+              hasDebts: false, // Will be determined by indicators
+              hasProtests: false, // Will be determined by indicators
+              hasBankruptcy: false, // Will be determined by indicators
+              hasLawsuits: false, // Will be determined by indicators
+              creditAnalysis: scoreData, // Complete Score response for detailed analysis
               
-              // DirectD specific fields for detailed analysis
-              capacidadePagamento: scoreInfo.motivos?.join('; ') || 'Não informado',
-              indicadoresNegocio: scoreInfo.indicadoresNegocio || [],
-              consultasAnteriores: entidadeJuridica.consulta || {},
-              protestosDetalhes: pendenciaFinanceira.protestos || [],
-              acoesJudiciaisDetalhes: pendenciaFinanceira.acoesJudiciais || [],
-              chequesSemdFundo: pendenciaFinanceira.chequesSemFundo || [],
-              recuperacoesJudiciais: pendenciaFinanceira.recuperacoesJudiciaisFalencia || [],
-              falenciasDetalhes: pendenciaFinanceira.recuperacoesJudiciaisFalencia?.filter((item: any) => item.tipo?.includes('FALENCIA')) || [],
+              // Score QUOD specific fields
+              capacidadePagamento: pessoaJuridica.motivos?.join('; ') || 'Não informado',
+              indicadoresNegocio: pessoaJuridica.indicadoresNegocio || [],
+              consultasAnteriores: {},
+              protestosDetalhes: [],
+              acoesJudiciaisDetalhes: [],
+              chequesSemdFundo: [],
+              recuperacoesJudiciais: [],
+              falenciasDetalhes: [],
+              
+              // Additional fields from Score QUOD
+              faixaScore: pessoaJuridica.faixaScore || 'Não informado',
+              scoreMotivos: pessoaJuridica.motivos || [],
               
               lastCheckedAt: new Date()
             };

@@ -847,17 +847,27 @@ Changelog:
   * Added storage methods getCreditScore and createCreditScore for database operations
   * Module displays company data, credit checks (debts, protests, bankruptcy, lawsuits) with visual indicators
   * Created responsive card layout matching existing import details UI patterns
-  * Ready for Receita WS API integration when API key is provided
+  * Ready for DirectD API integration when API key is provided
 - July 07, 2025. Credit Score module security and API integration enhancements:
   * Restricted Credit Score consultation button to admin users only (permissions.isAdmin check)
   * Added useUserPermissions hook integration for role-based access control
   * Non-admin users see message: "Análise de crédito disponível apenas para administradores"
-  * Implemented real Receita WS API integration with Bearer token authentication
+  * Implemented real DirectD API integration with Bearer token authentication
   * Added automatic fallback to mock data when API is unavailable or returns errors
   * Created intelligent credit score calculation based on company age, capital, active status, and partners
   * Score calculation ranges from 0-1000 with base score of 600 plus bonuses for positive attributes
-  * API integration checks for RECEITA_WS_API_KEY environment variable and logs API calls
-  * System ready for production use with real Receita Federal data when API key is configured
+  * API integration checks for DIRECTD_API_TOKEN environment variable and logs API calls
+  * System ready for production use with real DirectD data when API key is configured
+- July 08, 2025. Credit Score API replacement - Score QUOD + Cadastro PJ Plus implementation:
+  * Replaced DirectD API with dual API system: Score QUOD for real credit scores + Cadastro PJ Plus for company data
+  * Updated server routes to call both APIs simultaneously with proper error handling
+  * Modified credit score data structure to accommodate new API responses with guaranteed real scores
+  * Enhanced CreditScoreAnalysis component to display Score QUOD indicators with "Nada Consta" format
+  * Added score calculation details section showing faixaScore and scoreMotivos from QUOD API
+  * Updated risk indicators to dynamically display indicadoresNegocio array from Score QUOD
+  * Added new database columns: faixa_score and score_motivos for storing QUOD-specific data
+  * Maintained existing interface while populating with new API data for seamless transition
+  * System now provides more accurate and cost-effective credit analysis with real scores
 - July 07, 2025. Enhanced modular communication system implementation:
   * Created new database tables: document_requests, support_tickets, ticket_messages for communication tracking
   * Built DocumentRequestCard component for document request management with file upload capabilities

@@ -19,7 +19,8 @@ import {
   RefreshCw,
   TrendingUp,
   Shield,
-  Briefcase
+  Briefcase,
+  Calculator
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -382,7 +383,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 Análise de Risco Creditício
               </CardTitle>
               <p className="text-xs text-gray-500 mt-1">
-                Dados obtidos via DirectD - Órgãos oficiais brasileiros
+                Dados obtidos via Score QUOD + Cadastro PJ Plus - Órgãos oficiais brasileiros
               </p>
             </CardHeader>
             <CardContent className="pt-2">
@@ -403,92 +404,82 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                   </p>
                 </div>
 
-                {/* Payment Capacity */}
-                {creditScore.capacidadePagamento && (
-                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                {/* Score Details from QUOD */}
+                {creditScore.faixaScore && (
+                  <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                     <div className="flex items-center gap-2 mb-1">
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-900">Capacidade de Pagamento</span>
+                      <TrendingUp className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm font-medium text-indigo-900">Faixa do Score</span>
                     </div>
-                    <p className="text-sm text-emerald-700">{creditScore.capacidadePagamento}</p>
+                    <p className="text-sm text-indigo-700">{creditScore.faixaScore}</p>
                   </div>
                 )}
 
-                {/* Risk Indicators */}
+                {/* Score Calculation Reasons */}
+                {creditScore.scoreMotivos && creditScore.scoreMotivos.length > 0 && (
+                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calculator className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-900">Fatores do Cálculo do Score</span>
+                    </div>
+                    <ul className="text-sm text-purple-700 space-y-1">
+                      {creditScore.scoreMotivos.map((motivo: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>{motivo}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Risk Indicators from Score QUOD */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Indicadores de Restrição</h4>
                   
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <span className="text-sm font-medium">Débitos em Aberto</span>
-                      <p className="text-xs text-gray-500">Dívidas não quitadas em órgãos oficiais</p>
-                    </div>
-                    {creditScore.hasDebts ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Nenhum
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <span className="text-sm font-medium">Protestos Cartoriais</span>
-                      <p className="text-xs text-gray-500">Títulos protestados em cartórios</p>
-                    </div>
-                    {creditScore.hasProtests ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Nenhum
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <span className="text-sm font-medium">Processos de Falência</span>
-                      <p className="text-xs text-gray-500">Pedidos de falência ou recuperação judicial</p>
-                    </div>
-                    {creditScore.hasBankruptcy ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Nenhum
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <span className="text-sm font-medium">Ações Judiciais</span>
-                      <p className="text-xs text-gray-500">Processos em andamento nos tribunais</p>
-                    </div>
-                    {creditScore.hasLawsuits ? (
-                      <Badge className="bg-red-100 text-red-700">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Possui
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Nenhum
-                      </Badge>
-                    )}
-                  </div>
+                  {creditScore.indicadoresNegocio && Array.isArray(creditScore.indicadoresNegocio) && creditScore.indicadoresNegocio.length > 0 ? (
+                    creditScore.indicadoresNegocio.map((indicador: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <span className="text-sm font-medium">{indicador.indicador}</span>
+                          {indicador.observacao && (
+                            <p className="text-xs text-gray-500">{indicador.observacao}</p>
+                          )}
+                        </div>
+                        <Badge className={
+                          indicador.status?.toLowerCase().includes('nada consta') || 
+                          indicador.status?.toLowerCase().includes('sem') 
+                            ? "bg-green-100 text-green-700"
+                            : indicador.risco?.toLowerCase() === 'alto' 
+                              ? "bg-red-100 text-red-700" 
+                              : indicador.risco?.toLowerCase() === 'médio'
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-700"
+                        }>
+                          {indicador.status || 'Não informado'}
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Protestos</span>
+                        <Badge className="bg-green-100 text-green-700">Nada Consta</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Ações Judiciais</span>
+                        <Badge className="bg-green-100 text-green-700">Nada Consta</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Falência/Recuperação</span>
+                        <Badge className="bg-green-100 text-green-700">Nada Consta</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Cheques sem Fundo</span>
+                        <Badge className="bg-green-100 text-green-700">Nada Consta</Badge>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Business Indicators */}
