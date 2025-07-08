@@ -675,12 +675,22 @@ export const creditScores = pgTable("credit_scores", {
   // Partners/Shareholders
   partners: jsonb("partners"), // [{name, qualification, joinDate}]
   
-  // Credit Analysis Results
-  creditAnalysis: jsonb("credit_analysis"), // Results from credit bureau checks
+  // Credit Analysis Results (DirectD API Integration)
+  creditAnalysis: jsonb("credit_analysis"), // Complete DirectD response with detailed analysis
   hasDebts: boolean("has_debts").default(false),
   hasProtests: boolean("has_protests").default(false),
   hasBankruptcy: boolean("has_bankruptcy").default(false),
   hasLawsuits: boolean("has_lawsuits").default(false),
+  
+  // DirectD Specific Fields
+  capacidadePagamento: text("capacidade_pagamento"), // Payment capacity indicator
+  indicadoresNegocio: jsonb("indicadores_negocio"), // Business indicators array
+  consultasAnteriores: jsonb("consultas_anteriores"), // Previous queries data
+  protestosDetalhes: jsonb("protestos_detalhes"), // Detailed protests information
+  acoesJudiciaisDetalhes: jsonb("acoes_judiciais_detalhes"), // Detailed lawsuits information
+  chequesSemdFundo: jsonb("cheques_sem_fundo"), // Bounced checks information
+  recuperacoesJudiciais: jsonb("recuperacoes_judiciais"), // Judicial recovery data
+  falenciasDetalhes: jsonb("falencias_detalhes"), // Bankruptcy details
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
@@ -688,7 +698,34 @@ export const creditScores = pgTable("credit_scores", {
   lastCheckedAt: timestamp("last_checked_at").defaultNow(),
 });
 
-export type CreditScore = typeof creditScores.$inferSelect;
+export type CreditScore = typeof creditScores.$inferSelect & {
+  // Extended types for DirectD fields (since JSONB fields need explicit typing)
+  indicadoresNegocio?: string[];
+  consultasAnteriores?: {
+    ultimos30Dias?: number;
+    ultimos60Dias?: number;  
+    ultimos90Dias?: number;
+    segmento?: string;
+  };
+  protestosDetalhes?: Array<{
+    cartorio?: string;
+    valorTotal?: number;
+    cidade?: string;
+    quantidade?: number;
+  }>;
+  acoesJudiciaisDetalhes?: Array<{
+    numeroProcesso?: string;
+    valor?: number;
+    autor?: string;
+    status?: string;
+  }>;
+  chequesSemdFundo?: Array<{
+    banco?: string;
+    agencia?: string;
+    quantidade?: number;
+    valor?: number;
+  }>;
+};
 
 // Import all imports-related tables and schemas
 export * from './imports-schema';

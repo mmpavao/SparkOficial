@@ -2959,7 +2959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Credit Score endpoint (POST - admin only)
+  // Credit Score endpoint (POST - admin only) - DirectD Integration
   app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
@@ -2991,86 +2991,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let creditScoreData: any;
       
-      // Try to use Receita WS API if key is available
-      if (process.env.RECEITA_WS_API_KEY) {
+      // Try to use DirectD API if token is available
+      if (process.env.DIRECTD_API_TOKEN) {
         try {
-          console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
+          console.log('📊 Calling DirectD API for CNPJ:', cleanCnpj);
           
-          const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cleanCnpj}`, {
+          const response = await fetch(`https://apiv3.directd.com.br/api/DossieCreditoCompleto?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+            method: 'GET',
             headers: {
-              'Authorization': `Bearer ${process.env.RECEITA_WS_API_KEY}`,
-              'Accept': 'application/json'
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
             }
           });
           
           if (response.ok) {
-            const receitaData = await response.json();
-            console.log('✅ Receita WS API response received:', JSON.stringify(receitaData, null, 2));
+            const directdData = await response.json();
+            console.log('✅ DirectD API response received:', JSON.stringify(directdData, null, 2));
             
-            // Use ONLY real data from Receita WS API - no fallback to application data
+            const retorno = directdData.retorno || {};
+            const dadosCadastrais = retorno.dadosCadastrais || {};
+            
+            // Use DirectD API data
             creditScoreData = {
               creditApplicationId: applicationId,
               cnpj: application.cnpj,
-              creditScore: calculateCreditScore(receitaData),
+              creditScore: retorno.score || calculateDefaultScore(dadosCadastrais),
               scoreDate: new Date(),
-              // Only use data from API response
-              legalName: receitaData.nome || 'Não informado',
-              tradingName: receitaData.fantasia || receitaData.nome || 'Não informado',
-              status: receitaData.situacao || 'Não informado',
-              openingDate: receitaData.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
-              shareCapital: receitaData.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
-              // Use complete address from API
-              address: [
-                receitaData.logradouro,
-                receitaData.numero,
-                receitaData.complemento,
-                receitaData.bairro
-              ].filter(Boolean).join(', ') || 'Não informado',
-              city: receitaData.municipio || 'Não informado',
-              state: receitaData.uf || 'Não informado',
-              zipCode: formatCEP(receitaData.cep) || 'Não informado',
-              phone: formatPhone(receitaData.telefone) || 'Não informado',
-              email: receitaData.email || 'Não informado',
-              mainActivity: receitaData.atividade_principal?.[0] ? {
-                code: receitaData.atividade_principal[0].code || 'Não informado',
-                description: receitaData.atividade_principal[0].text || 'Não informado'
+              // Company data from DirectD
+              legalName: dadosCadastrais.razaoSocial || retorno.razaoSocial || 'Não informado',
+              tradingName: dadosCadastrais.nomeFantasia || retorno.nomeFantasia || dadosCadastrais.razaoSocial || 'Não informado',
+              status: dadosCadastrais.situacao || retorno.situacao || 'ATIVA',
+              openingDate: dadosCadastrais.dataAbertura ? new Date(dadosCadastrais.dataAbertura) : null,
+              shareCapital: dadosCadastrais.capitalSocial ? formatCurrency(dadosCadastrais.capitalSocial) : 'Não informado',
+              // Address from DirectD
+              address: formatAddress(dadosCadastrais),
+              city: dadosCadastrais.municipio || dadosCadastrais.cidade || 'Não informado',
+              state: dadosCadastrais.uf || dadosCadastrais.estado || 'Não informado',
+              zipCode: formatCEP(dadosCadastrais.cep) || 'Não informado',
+              phone: formatPhone(dadosCadastrais.telefone) || 'Não informado',
+              email: dadosCadastrais.email || 'Não informado',
+              // CNAE data
+              mainActivity: dadosCadastrais.cnaePrincipal ? {
+                code: dadosCadastrais.cnaePrincipal.codigo || 'Não informado',
+                description: dadosCadastrais.cnaePrincipal.descricao || 'Não informado'
               } : { code: 'Não informado', description: 'Não informado' },
-              secondaryActivities: receitaData.atividades_secundarias?.map((act: any) => ({
-                code: act.code || 'Não informado',
-                description: act.text || 'Não informado'
+              secondaryActivities: dadosCadastrais.cnaeSecundarias?.map((act: any) => ({
+                code: act.codigo || 'Não informado',
+                description: act.descricao || 'Não informado'
               })) || [],
-              partners: receitaData.qsa?.map((partner: any) => ({
+              // Partners data
+              partners: dadosCadastrais.socios?.map((partner: any) => ({
                 name: partner.nome || 'Não informado',
-                qualification: partner.qual || 'Não informado',
-                joinDate: partner.data_entrada || null
+                qualification: partner.qualificacao || 'Não informado',
+                joinDate: partner.dataEntrada || null
               })) || [],
-              companyData: receitaData, // Store full API response
-              hasDebts: false, // Would need integration with Serasa/SPC
-              hasProtests: false,
-              hasBankruptcy: false,
-              hasLawsuits: false,
+              // DirectD specific credit analysis
+              companyData: directdData, // Store full API response
+              hasDebts: analyzeDebts(retorno),
+              hasProtests: analyzeProtests(retorno),
+              hasBankruptcy: analyzeBankruptcy(retorno),
+              hasLawsuits: analyzeLawsuits(retorno),
+              creditAnalysis: directdData, // Complete DirectD response for detailed analysis
+              
+              // DirectD specific fields for detailed analysis
+              capacidadePagamento: retorno.capacidadePagamento || 'Não informado',
+              indicadoresNegocio: retorno.indicadoresNegocio || [],
+              consultasAnteriores: retorno.consultasAnteriores || {},
+              protestosDetalhes: retorno.protestos || [],
+              acoesJudiciaisDetalhes: retorno.acoesJudiciais || [],
+              chequesSemdFundo: retorno.chequesSemdFundo || [],
+              recuperacoesJudiciais: retorno.recuperacoesJudiciais || [],
+              falenciasDetalhes: retorno.falencias || [],
+              
               lastCheckedAt: new Date()
             };
           } else {
             const errorText = await response.text();
-            console.error('⚠️ Receita WS API error:', response.status, errorText);
-            return res.status(503).json({ 
-              message: "Serviço da Receita Federal temporariamente indisponível",
-              details: "Não foi possível consultar os dados da empresa no momento"
-            });
+            console.error('⚠️ DirectD API error:', response.status, errorText);
+            
+            // Handle specific DirectD error codes
+            if (response.status === 401) {
+              return res.status(503).json({ 
+                message: "Token de autenticação inválido",
+                details: "Verifique a configuração do token DirectD"
+              });
+            } else if (response.status === 403) {
+              return res.status(503).json({ 
+                message: "Saldo insuficiente para consulta",
+                details: "Entre em contato com o administrador para verificar créditos"
+              });
+            } else if (response.status === 404) {
+              return res.status(404).json({ 
+                message: "CNPJ não encontrado",
+                details: "O CNPJ consultado não foi localizado na base de dados"
+              });
+            } else {
+              return res.status(503).json({ 
+                message: "Serviço DirectD temporariamente indisponível",
+                details: "Não foi possível consultar os dados da empresa no momento"
+              });
+            }
           }
         } catch (apiError) {
-          console.error('❌ Receita WS API error:', apiError);
+          console.error('❌ DirectD API error:', apiError);
           return res.status(503).json({ 
-            message: "Erro ao consultar Receita Federal",
-            details: "Verifique a configuração da API key ou tente novamente mais tarde"
+            message: "Erro ao consultar DirectD",
+            details: "Verifique a configuração da API token ou tente novamente mais tarde"
           });
         }
       } else {
-        // No API key configured
+        // No API token configured
         return res.status(503).json({ 
           message: "Serviço de consulta não configurado",
-          details: "A API da Receita Federal não está configurada. Entre em contato com o administrador."
+          details: "A API DirectD não está configurada. Entre em contato com o administrador."
         });
       }
       
@@ -3084,34 +3117,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Helper function to calculate credit score based on company data
-  function calculateCreditScore(receitaData: any): number {
+  // Helper function to calculate default score when DirectD doesn't provide one
+  function calculateDefaultScore(dadosCadastrais: any): number {
     let score = 600; // Base score
     
     // Add points for active status
-    if (receitaData.situacao === 'ATIVA') score += 100;
+    if (dadosCadastrais.situacao === 'ATIVA') score += 100;
     
     // Add points based on company age
-    if (receitaData.abertura) {
-      const ageYears = (new Date().getFullYear() - new Date(receitaData.abertura).getFullYear());
+    if (dadosCadastrais.dataAbertura) {
+      const ageYears = (new Date().getFullYear() - new Date(dadosCadastrais.dataAbertura).getFullYear());
       if (ageYears > 10) score += 100;
       else if (ageYears > 5) score += 50;
       else if (ageYears > 2) score += 25;
     }
     
     // Add points based on capital
-    if (receitaData.capital_social) {
-      const capital = parseFloat(receitaData.capital_social);
+    if (dadosCadastrais.capitalSocial) {
+      const capital = parseFloat(dadosCadastrais.capitalSocial);
       if (capital > 1000000) score += 100;
       else if (capital > 500000) score += 50;
       else if (capital > 100000) score += 25;
     }
     
     // Add points for having partners
-    if (receitaData.qsa && receitaData.qsa.length > 0) score += 50;
+    if (dadosCadastrais.socios && dadosCadastrais.socios.length > 0) score += 50;
     
     // Ensure score is within bounds
     return Math.min(Math.max(score, 0), 1000);
+  }
+
+  // Helper function to format address from DirectD data
+  function formatAddress(dadosCadastrais: any): string {
+    const addressParts = [
+      dadosCadastrais.logradouro,
+      dadosCadastrais.numero,
+      dadosCadastrais.complemento,
+      dadosCadastrais.bairro
+    ].filter(Boolean);
+    
+    return addressParts.length > 0 ? addressParts.join(', ') : 'Não informado';
+  }
+
+  // Helper function to analyze debts from DirectD response
+  function analyzeDebts(retorno: any): boolean {
+    return (retorno.protestos && retorno.protestos.length > 0) ||
+           (retorno.chequesSemdFundo && retorno.chequesSemdFundo.length > 0) ||
+           (retorno.acoesJudiciais && retorno.acoesJudiciais.length > 0);
+  }
+
+  // Helper function to analyze protests from DirectD response
+  function analyzeProtests(retorno: any): boolean {
+    return retorno.protestos && retorno.protestos.length > 0;
+  }
+
+  // Helper function to analyze bankruptcy from DirectD response
+  function analyzeBankruptcy(retorno: any): boolean {
+    return retorno.falencias && retorno.falencias.length > 0;
+  }
+
+  // Helper function to analyze lawsuits from DirectD response
+  function analyzeLawsuits(retorno: any): boolean {
+    return retorno.acoesJudiciais && retorno.acoesJudiciais.length > 0;
   }
   
   // Helper function to format currency

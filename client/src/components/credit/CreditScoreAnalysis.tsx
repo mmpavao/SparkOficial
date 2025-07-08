@@ -379,69 +379,212 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Débitos</span>
-                  {creditScore.hasDebts ? (
-                    <Badge className="bg-red-100 text-red-700">
-                      <XCircle className="w-3 h-3 mr-1" />
-                      Possui
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Não possui
-                    </Badge>
-                  )}
+              <div className="space-y-4">
+                {/* Payment Capacity */}
+                {creditScore.capacidadePagamento && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <DollarSign className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-900">Capacidade de Pagamento</span>
+                    </div>
+                    <p className="text-sm text-blue-700">{creditScore.capacidadePagamento}</p>
+                  </div>
+                )}
+
+                {/* Risk Indicators */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium">Débitos</span>
+                    {creditScore.hasDebts ? (
+                      <Badge className="bg-red-100 text-red-700">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Possui
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-700">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Não possui
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium">Protestos</span>
+                    {creditScore.hasProtests ? (
+                      <Badge className="bg-red-100 text-red-700">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Possui
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-700">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Não possui
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium">Falência</span>
+                    {creditScore.hasBankruptcy ? (
+                      <Badge className="bg-red-100 text-red-700">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Possui
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-700">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Não possui
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium">Processos Judiciais</span>
+                    {creditScore.hasLawsuits ? (
+                      <Badge className="bg-red-100 text-red-700">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Possui
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-700">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Não possui
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Protestos</span>
-                  {creditScore.hasProtests ? (
-                    <Badge className="bg-red-100 text-red-700">
-                      <XCircle className="w-3 h-3 mr-1" />
-                      Possui
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Não possui
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Falência</span>
-                  {creditScore.hasBankruptcy ? (
-                    <Badge className="bg-red-100 text-red-700">
-                      <XCircle className="w-3 h-3 mr-1" />
-                      Possui
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Não possui
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Processos Judiciais</span>
-                  {creditScore.hasLawsuits ? (
-                    <Badge className="bg-red-100 text-red-700">
-                      <XCircle className="w-3 h-3 mr-1" />
-                      Possui
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Não possui
-                    </Badge>
-                  )}
-                </div>
+                {/* Business Indicators */}
+                {creditScore.indicadoresNegocio && Array.isArray(creditScore.indicadoresNegocio) && creditScore.indicadoresNegocio.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Indicadores de Negócio</h4>
+                    <div className="space-y-2">
+                      {creditScore.indicadoresNegocio.map((indicator, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                          <TrendingUp className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">{indicator}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Detailed Credit Information (DirectD) */}
+          {(creditScore.protestosDetalhes?.length > 0 || 
+            creditScore.acoesJudiciaisDetalhes?.length > 0 || 
+            creditScore.chequesSemdFundo?.length > 0) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+                  Detalhes de Restrições
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="space-y-4">
+                  {/* Protests Details */}
+                  {creditScore.protestosDetalhes?.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-red-700 mb-2">Protestos</h4>
+                      <div className="space-y-2">
+                        {creditScore.protestosDetalhes.map((protesto, index) => (
+                          <div key={index} className="p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div className="text-sm">
+                              <p><strong>Cartório:</strong> {protesto.cartorio}</p>
+                              <p><strong>Valor:</strong> R$ {protesto.valorTotal?.toLocaleString('pt-BR')}</p>
+                              <p><strong>Cidade:</strong> {protesto.cidade}</p>
+                              {protesto.quantidade && <p><strong>Quantidade:</strong> {protesto.quantidade}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lawsuits Details */}
+                  {creditScore.acoesJudiciaisDetalhes?.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-red-700 mb-2">Ações Judiciais</h4>
+                      <div className="space-y-2">
+                        {creditScore.acoesJudiciaisDetalhes.map((acao, index) => (
+                          <div key={index} className="p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div className="text-sm">
+                              <p><strong>Processo:</strong> {acao.numeroProcesso}</p>
+                              <p><strong>Valor:</strong> R$ {acao.valor?.toLocaleString('pt-BR')}</p>
+                              <p><strong>Autor:</strong> {acao.autor}</p>
+                              <p><strong>Status:</strong> {acao.status}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bounced Checks */}
+                  {creditScore.chequesSemdFundo?.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-red-700 mb-2">Cheques sem Fundo</h4>
+                      <div className="space-y-2">
+                        {creditScore.chequesSemdFundo.map((cheque, index) => (
+                          <div key={index} className="p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div className="text-sm">
+                              <p><strong>Banco:</strong> {cheque.banco}</p>
+                              <p><strong>Agência:</strong> {cheque.agencia}</p>
+                              <p><strong>Quantidade:</strong> {cheque.quantidade}</p>
+                              {cheque.valor && <p><strong>Valor Total:</strong> R$ {cheque.valor.toLocaleString('pt-BR')}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Previous Queries Information */}
+          {creditScore.consultasAnteriores && Object.keys(creditScore.consultasAnteriores).length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Calendar className="w-5 h-5 flex-shrink-0" />
+                  Consultas Anteriores
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="space-y-3">
+                  {creditScore.consultasAnteriores.ultimos30Dias !== undefined && (
+                    <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Últimos 30 dias</span>
+                      <span className="text-sm font-bold">{creditScore.consultasAnteriores.ultimos30Dias}</span>
+                    </div>
+                  )}
+                  {creditScore.consultasAnteriores.ultimos60Dias !== undefined && (
+                    <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Últimos 60 dias</span>
+                      <span className="text-sm font-bold">{creditScore.consultasAnteriores.ultimos60Dias}</span>
+                    </div>
+                  )}
+                  {creditScore.consultasAnteriores.ultimos90Dias !== undefined && (
+                    <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Últimos 90 dias</span>
+                      <span className="text-sm font-bold">{creditScore.consultasAnteriores.ultimos90Dias}</span>
+                    </div>
+                  )}
+                  {creditScore.consultasAnteriores.segmento && (
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium text-blue-900">Segmento de Interesse: </span>
+                      <span className="text-sm text-blue-700">{creditScore.consultasAnteriores.segmento}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

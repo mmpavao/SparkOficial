@@ -1,0 +1,115 @@
+API - Dossiê de Crédito - Completo
+A API Dossiê de Crédito - Completo fornece um relatório detalhado sobre a situação financeira de uma Pessoa Física ou Jurídica, incluindo dados cadastrais, score de risco de crédito, indicadores de risco, e pendências como protestos, ações judiciais, recuperações judiciais, falências e cheques sem fundo.
+
+
+
+💡A API Dossiê de Crédito - Completo fornece um relatório detalhado sobre a situação financeira de uma Pessoa Física ou Jurídica, incluindo dados cadastrais, score de risco de crédito, indicadores de risco, e pendências como protestos, ações judiciais, recuperações judiciais, falências e cheques sem fundo.
+
+
+Introdução
+A API Dossiê de Crédito - Completo é ideal para análise detalhada de crédito, onboarding de clientes e fornecedores, compliance e prevenção de fraudes. Com dados extensivos, é possível obter um panorama completo sobre a situação financeira da entidade consultada.
+
+URL Base
+A API está hospedada no seguinte endereço:
+
+https://apiv3.directd.com.br
+Endpoint
+GET /api/DossieCreditoCompleto
+Descrição: Endpoint para gerar o relatório completo de crédito de uma entidade.
+
+Nota: Esta consulta não oferece opção de gerar comprovantes.
+
+Autenticação
+Para acessar esta API, é necessário fornecer um token de autenticação.
+
+Regras de Autenticação:
+
+O token deve ser enviado como parâmetro na URL da requisição.
+O token é obrigatório para realizar consultas.
+Campos da API
+Informações Gerais
+Data da Consulta: Data em que a análise foi realizada.
+Documento Consultado: CPF ou CNPJ associado à consulta.
+Tipo de Pessoa: Pessoa Física ou Jurídica.
+Informações Cadastrais
+Pessoa Física
+Nome: Nome completo.
+Data de Nascimento: Data de nascimento.
+Sexo: Masculino ou Feminino.
+Idade: Idade da pessoa.
+Dados Atualizados: Endereço, e-mails, e telefones atuais.
+Pessoa Jurídica
+Razão Social: Nome oficial da empresa.
+Nome Fantasia: Nome comercial.
+CNAE Principal: Código e descrição da atividade principal.
+Capital Social: Valor registrado no capital da empresa.
+Pendências Financeiras
+Protestos:
+Total de protestos registrados.
+Valores e cartórios relacionados.
+Ações Judiciais:
+Processos judiciais registrados, incluindo valores e status.
+Cheques Sem Fundo:
+Quantidade de cheques sem fundos e agências envolvidas.
+Recuperações Judiciais e Falências:
+Dados de empresas em situação de falência ou recuperação judicial.
+Score de Risco de Crédito
+Score: Pontuação de crédito para análise de risco.
+Capacidade de Pagamento: Indicativo da saúde financeira.
+Indicadores de Negócio: Lista de fatores que afetam o score.
+Consultas Anteriores
+Últimos 30, 60 e 90 Dias: Quantidade de consultas ao documento nos períodos especificados.
+Segmento: Áreas de interesse das consultas anteriores.
+Parâmetros
+Nome	Tipo	Obrigatório	Descrição
+CPF	string	Não	CPF da pessoa a ser consultada. Pode ser enviado com ou sem formatação.
+CNPJ	string	Não	CNPJ da empresa a ser consultada. Pode ser enviado com ou sem formatação.
+TOKEN	string	Sim	Token de autenticação necessário para a consulta.
+Exemplos de Requisição
+Usando cURL
+
+curl 'https://apiv3.directd.com.br/api/DossieCreditoCompleto?CPF=12345678909&TOKEN=seu_token_aqui'
+Respostas
+Sucesso (200)
+Exemplo de Resposta
+
+{
+  "metaDados": {
+    "consultaNome": "Dossiê de Crédito Completo",
+    "consultaUid": "credito-123456",
+    "usuario": "Marcos",
+    "mensagem": "Sucesso",
+    "apiVersao": "v3",
+    "tempoExecucaoMs": 1500
+  },
+  "retorno": {
+    "documentoConsultado": "123.456.789-09",
+    "score": 750,
+    "capacidadePagamento": "Boa",
+    "protestos": [
+      {
+        "cartorio": "Cartório Exemplo",
+        "valorTotal": 5000,
+        "cidade": "São Paulo",
+        "quantidade": 2
+      }
+    ],
+    "acoesJudiciais": [
+      {
+        "numeroProcesso": "12345-67.2024.8.26.0000",
+        "valor": 10000,
+        "autor": "Banco XYZ",
+        "status": "Em Andamento"
+      }
+    ]
+  }
+}
+9. Erros Comuns
+Código	Descrição
+400	Requisição inválida: parâmetros incorretos.
+401	Não autenticado: token inválido ou ausente.
+403	Não autorizado: saldo insuficiente para realizar a consulta.
+404	Não encontrado: registro não localizado.
+408	Tempo esgotado: consulta não foi concluída no prazo.
+500	Erro interno: falha no processamento da consulta.
+503	Serviço em manutenção: indisponível temporariamente.
