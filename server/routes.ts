@@ -3009,59 +3009,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('✅ DirectD API response received:', JSON.stringify(directdData, null, 2));
             
             const retorno = directdData.retorno || {};
-            const dadosCadastrais = retorno.dadosCadastrais || {};
+            const entidadeJuridica = retorno.entidadeJuridica || {};
+            const dadosCadastrais = entidadeJuridica.dadosCadastrais || {};
+            const scoreEntidades = entidadeJuridica.scoreEntidades || {};
+            const scoreInfo = scoreEntidades.entidadeJuridica || {};
+            const pendenciaFinanceira = entidadeJuridica.pendenciaFinanceira || {};
             
-            // Use DirectD API data
+            // Use DirectD API data with correct structure
             creditScoreData = {
               creditApplicationId: applicationId,
               cnpj: application.cnpj,
-              creditScore: retorno.score || calculateDefaultScore(dadosCadastrais),
+              creditScore: scoreInfo.score || calculateDefaultScore(dadosCadastrais),
               scoreDate: new Date(),
               // Company data from DirectD
-              legalName: dadosCadastrais.razaoSocial || retorno.razaoSocial || 'Não informado',
-              tradingName: dadosCadastrais.nomeFantasia || retorno.nomeFantasia || dadosCadastrais.razaoSocial || 'Não informado',
-              status: dadosCadastrais.situacao || retorno.situacao || 'ATIVA',
-              openingDate: dadosCadastrais.dataAbertura ? new Date(dadosCadastrais.dataAbertura) : null,
-              shareCapital: dadosCadastrais.capitalSocial ? formatCurrency(dadosCadastrais.capitalSocial) : 'Não informado',
+              legalName: dadosCadastrais.razaoSocial || 'Não informado',
+              tradingName: dadosCadastrais.nomeFantasia || dadosCadastrais.razaoSocial || 'Não informado',
+              status: dadosCadastrais.situacaoCadastral || 'ATIVA',
+              openingDate: dadosCadastrais.dataFundacao ? new Date(dadosCadastrais.dataFundacao) : null,
+              shareCapital: entidadeJuridica.quadroSocietario?.capitalSocial ? formatCurrency(entidadeJuridica.quadroSocietario.capitalSocial) : 'Não informado',
               // Address from DirectD
-              address: formatAddress(dadosCadastrais),
-              city: dadosCadastrais.municipio || dadosCadastrais.cidade || 'Não informado',
-              state: dadosCadastrais.uf || dadosCadastrais.estado || 'Não informado',
-              zipCode: formatCEP(dadosCadastrais.cep) || 'Não informado',
+              address: formatAddress(dadosCadastrais.endereco),
+              city: dadosCadastrais.endereco?.cidade || 'Não informado',
+              state: dadosCadastrais.endereco?.uf || 'Não informado',
+              zipCode: formatCEP(dadosCadastrais.endereco?.cep) || 'Não informado',
               phone: formatPhone(dadosCadastrais.telefone) || 'Não informado',
               email: dadosCadastrais.email || 'Não informado',
               // CNAE data
-              mainActivity: dadosCadastrais.cnaePrincipal ? {
-                code: dadosCadastrais.cnaePrincipal.codigo || 'Não informado',
-                description: dadosCadastrais.cnaePrincipal.descricao || 'Não informado'
-              } : { code: 'Não informado', description: 'Não informado' },
-              secondaryActivities: dadosCadastrais.cnaeSecundarias?.map((act: any) => ({
-                code: act.codigo || 'Não informado',
-                description: act.descricao || 'Não informado'
-              })) || [],
-              // Partners data
-              partners: dadosCadastrais.socios?.map((partner: any) => ({
-                name: partner.nome || 'Não informado',
-                qualification: partner.qualificacao || 'Não informado',
-                joinDate: partner.dataEntrada || null
+              mainActivity: {
+                code: dadosCadastrais.codigoAtividadePrincipal || 'Não informado',
+                description: dadosCadastrais.descricaoAtividadePrincipal || 'Não informado'
+              },
+              secondaryActivities: dadosCadastrais.codigoAtividadeSecundaria ? [{
+                code: dadosCadastrais.codigoAtividadeSecundaria || 'Não informado',
+                description: dadosCadastrais.descricaoAtividadeSecundaria || 'Não informado'
+              }] : [],
+              // Partners data from quadroSocietario
+              partners: entidadeJuridica.quadroSocietario?.informacoes?.map((partner: any) => ({
+                name: partner.nomeEmpresa || 'Não informado',
+                qualification: partner.funcaoSocio || 'Não informado',
+                joinDate: partner.dataInicioSociedade || null
               })) || [],
               // DirectD specific credit analysis
               companyData: directdData, // Store full API response
-              hasDebts: analyzeDebts(retorno),
-              hasProtests: analyzeProtests(retorno),
-              hasBankruptcy: analyzeBankruptcy(retorno),
-              hasLawsuits: analyzeLawsuits(retorno),
+              hasDebts: pendenciaFinanceira.totalPendencia > 0,
+              hasProtests: pendenciaFinanceira.protestos?.length > 0,
+              hasBankruptcy: pendenciaFinanceira.recuperacoesJudiciaisFalencia?.some((item: any) => item.tipo?.includes('FALENCIA')),
+              hasLawsuits: pendenciaFinanceira.acoesJudiciais?.length > 0,
               creditAnalysis: directdData, // Complete DirectD response for detailed analysis
               
               // DirectD specific fields for detailed analysis
-              capacidadePagamento: retorno.capacidadePagamento || 'Não informado',
-              indicadoresNegocio: retorno.indicadoresNegocio || [],
-              consultasAnteriores: retorno.consultasAnteriores || {},
-              protestosDetalhes: retorno.protestos || [],
-              acoesJudiciaisDetalhes: retorno.acoesJudiciais || [],
-              chequesSemdFundo: retorno.chequesSemdFundo || [],
-              recuperacoesJudiciais: retorno.recuperacoesJudiciais || [],
-              falenciasDetalhes: retorno.falencias || [],
+              capacidadePagamento: scoreInfo.motivos?.join('; ') || 'Não informado',
+              indicadoresNegocio: scoreInfo.indicadoresNegocio || [],
+              consultasAnteriores: entidadeJuridica.consulta || {},
+              protestosDetalhes: pendenciaFinanceira.protestos || [],
+              acoesJudiciaisDetalhes: pendenciaFinanceira.acoesJudiciais || [],
+              chequesSemdFundo: pendenciaFinanceira.chequesSemFundo || [],
+              recuperacoesJudiciais: pendenciaFinanceira.recuperacoesJudiciaisFalencia || [],
+              falenciasDetalhes: pendenciaFinanceira.recuperacoesJudiciaisFalencia?.filter((item: any) => item.tipo?.includes('FALENCIA')) || [],
               
               lastCheckedAt: new Date()
             };
