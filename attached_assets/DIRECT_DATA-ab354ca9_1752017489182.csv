@@ -1,0 +1,24 @@
+ID;API;CHAVE;MENSAGEM;RESULTADO;DURAÇÃO(ms);CUSTO;PDF;DATA;USUÁRIO
+db570dc8-96c2-4fe0-ae61-51153598bda1;Cadastro - Pessoa Jurídica - Plus;CNPJ=65484271000105&;Sucesso;Sucesso;690;0.36;Não;07/07/2025 23:44:57;Marcio Pavao
+37a36ac0-b722-4978-89c9-c8515735d375;Score de Crédito - QUOD;CNPJ=65484271000105&;Sucesso;Sucesso;594;1.44;Não;07/07/2025 23:44:57;Marcio Pavao
+a27101a2-9f78-4f24-bf01-6588a2b08dff;Cadastro - Pessoa Jurídica - Plus;CNPJ=65484271000105&;Sucesso;Sucesso;713;0.36;Não;07/07/2025 23:34:48;Marcio Pavao
+a63a40b2-ee54-4d56-9116-1fcbe8fd7017;Score de Crédito - QUOD;CNPJ=65484271000105&;Sucesso;Sucesso;737;1.44;Não;07/07/2025 23:34:47;Marcio Pavao
+8333ef85-fddf-49c4-9f06-6582db1c69ff;Cadastro - Pessoa Jurídica - Plus;CNPJ=65484271000105&;Sucesso;Sucesso;180;0.36;Não;07/07/2025 23:32:19;Marcio Pavao
+c303294c-8a1d-4ba8-991a-924a65bcbb8b;Score de Crédito - QUOD;CNPJ=65484271000105&;Sucesso;Sucesso;497;1.44;Não;07/07/2025 23:32:18;Marcio Pavao
+7577b501-c730-41db-9eec-1b7d76f19d05;Score de Crédito - QUOD;CNPJ=65484271000105&;Sucesso;Sucesso;390;1.44;Não;07/07/2025 23:29:17;Marcio Pavao
+d255ba84-18ab-4122-8830-e5203259022d;Score de Crédito - QUOD;CNPJ=65484271000105&;Sucesso;Sucesso;210;1.44;Não;07/07/2025 23:29:10;Marcio Pavao
+f570893a-4205-479c-ada9-41c0e27ac86d;Score de Crédito - QUOD;CNPJ=65484271000105&;Sucesso;Sucesso;2160;1.44;Não;07/07/2025 23:29:01;Marcio Pavao
+90e95042-af9a-4e07-b579-fbac9c03006a;Cadastro - Pessoa Jurídica - Plus;CNPJ=65484271000105&;Sucesso;Sucesso;280;0.36;Não;07/07/2025 23:27:04;Marcio Pavao
+ccbbbc86-fd26-446f-a19c-89ed8704f1b8;Cadastro - Pessoa Jurídica - Plus;CNPJ=30216646000171&;Sucesso;Sucesso;636;0.36;Não;07/07/2025 23:12:53;Marcio Pavao
+a9b0cfa9-18fb-45bf-a786-f360f6f16fb8;Score de Crédito - QUOD;CNPJ=30216646000171&;Sucesso;Sucesso;537;1.44;Não;07/07/2025 23:12:53;Marcio Pavao
+4bc59123-9b83-4720-8997-03bde78b6900;Cadastro - Pessoa Jurídica - Plus;CNPJ=30216646000171&;Sucesso;Sucesso;2547;0.36;Não;07/07/2025 23:10:25;Marcio Pavao
+c62b1c10-8a8d-480c-a58e-13a7cf497362;Score de Crédito - QUOD;CNPJ=30216646000171&;Sucesso;Sucesso;2167;1.44;Não;07/07/2025 23:10:23;Marcio Pavao
+a1a7af4b-d6f5-4d4b-8ded-fae3227371f1;Cadastro - Pessoa Jurídica - Plus;CNPJ=35364825000170&;Sucesso;Sucesso;653;0.36;Não;07/07/2025 23:05:12;Marcio Pavao
+4559988d-0e65-4e5e-8a8a-d55720bc025f;Score de Crédito - QUOD;CNPJ=35364825000170&;Sucesso;Sucesso;447;1.44;Não;07/07/2025 23:05:12;Marcio Pavao
+a31798b2-8e93-47b3-90d9-0b2a4d17cbd5;Cadastro - Pessoa Jurídica - Plus;CNPJ=35364825000170&;Sucesso;Sucesso;2720;0.36;Não;07/07/2025 23:04:39;Marcio Pavao
+550f96b9-a3ad-4646-bfb6-7e6cec2543ee;Score de Crédito - QUOD;CNPJ=35364825000170&;Sucesso;Sucesso;2820;1.44;Não;07/07/2025 23:04:36;Marcio Pavao
+b72ba7fa-a170-4d2e-bf0d-26559ff6b152;Score de Crédito - QUOD;CNPJ=11222333000181&;Sucesso;Sucesso;10;1.44;Não;07/07/2025 23:02:42;Marcio Pavao
+28244ff8-d223-4b6b-87f0-df40651939d0;Score de Crédito - QUOD;CNPJ=11222333000181&;Sucesso;Sucesso;2264;1.44;Não;07/07/2025 23:02:31;Marcio Pavao
+f12a5244-a321-4dfb-bda0-395b3e4411ee;Cadastro - Pessoa Jurídica - Plus;CNPJ=11222333000181&;Sucesso;Sucesso;2486;0.36;Não;07/07/2025 22:55:10;Marcio Pavao
+0777ed35-eb96-4592-a350-33863833b5f9;Cadastro - Pessoa Jurídica - Plus;CNPJ=65484271000105&;Sucesso;Sucesso;2150;0.36;Não;07/07/2025 22:51:15;Marcio Pavao
+ba03ba90-4deb-4a0e-8496-85fcdbe209b5;Cadastro - Pessoa Física - Plus;CPF=27554704885&;Sucesso;Sucesso;1473;0.36;Não;07/07/2025 21:17:22;Marcio Pavao

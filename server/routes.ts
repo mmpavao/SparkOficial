@@ -2999,13 +2999,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return indicadores.some(indicator => {
           const indicadorText = (indicator.indicador || '').toUpperCase();
           const statusText = (indicator.status || '').toUpperCase();
-          const observacaoText = (indicator.observacao || '').toUpperCase();
+          const riscoText = (indicator.risco || '').toUpperCase();
           
-          return keywords.some(keyword => 
-            indicadorText.includes(keyword) || 
-            statusText.includes(keyword) || 
-            observacaoText.includes(keyword)
-          );
+          // Check if indicator matches keywords
+          const matchesKeyword = keywords.some(keyword => indicadorText.includes(keyword));
+          
+          if (!matchesKeyword) return false;
+          
+          // If indicator matches keyword, check if status indicates a problem
+          // Status like "A empresa não apresenta..." = NO problem
+          // Status like "A empresa apresenta..." = HAS problem
+          const hasProblematicStatus = statusText && 
+            !statusText.includes('NÃO APRESENTA') && 
+            !statusText.includes('NÃO POSSUI') &&
+            statusText.includes('APRESENTA');
+          
+          // High/medium risk indicates problem
+          const hasProblematicRisk = riscoText && 
+            (riscoText.includes('ALTO') || riscoText.includes('MÉDIO') || riscoText.includes('MEDIO'));
+          
+          return hasProblematicStatus || hasProblematicRisk;
         });
       };
       
@@ -3123,7 +3136,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })) || [],
               // Score QUOD specific data
               companyData: { score: scoreData, cadastro: cadastroData }, // Store both API responses
-              hasDebts: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['DEBITO', 'DIVIDA', 'INADIMPLENCIA']),
+              hasDebts: (() => {
+                const result = analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['DEBITO', 'DIVIDA', 'INADIMPLENCIA']);
+                console.log('🔍 DEBT ANALYSIS:', result);
+                console.log('📊 INDICADORES NEGOCIO:', JSON.stringify(pessoaJuridica.indicadoresNegocio, null, 2));
+                return result;
+              })(),
               hasProtests: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['PROTESTO', 'PROTESTOS']),
               hasBankruptcy: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['FALENCIA', 'CONCORDATA', 'RECUPERACAO']),
               hasLawsuits: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['JUDICIAL', 'PROCESSO', 'ACAO']),
