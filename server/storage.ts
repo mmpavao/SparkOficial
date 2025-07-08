@@ -114,13 +114,6 @@ export class DatabaseStorage {
     return user;
   }
 
-  async updateUserPassword(id: number, hashedPassword: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ password: hashedPassword, updatedAt: new Date() })
-      .where(eq(users.id, id));
-  }
-
   // ===== CREDIT APPLICATION OPERATIONS =====
 
   async createCreditApplication(application: InsertCreditApplication): Promise<CreditApplication> {
@@ -1722,11 +1715,10 @@ export class DatabaseStorage {
   }
 
   async createCreditScore(scoreData: any): Promise<CreditScore> {
-    // Ensure all JSONB fields are properly formatted and required fields exist
+    // Ensure all JSONB fields are properly formatted
     const formattedData = {
       ...scoreData,
-      creditScore: scoreData.creditScore || 750, // Ensure required field exists
-      companyData: scoreData.analysisData || scoreData.companyData || {},
+      companyData: scoreData.companyData || {},
       creditApiData: scoreData.creditApiData || {},
       mainActivity: scoreData.mainActivity || {},
       secondaryActivities: scoreData.secondaryActivities || [],
