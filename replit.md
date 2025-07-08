@@ -916,16 +916,14 @@ Changelog:
   * Enhanced dashboard sections: Pipeline de Importações, Detalhes do Crédito, Importações Recentes, Aplicações de Crédito
   * Maintained all existing platform functionality and authentic data while upgrading visual presentation
 - July 07, 2025. CRITICAL CNPJá API integration correction - Real credit data analysis implemented:
-  * Fixed CNPJá integration to use official office endpoint (https://api.cnpja.com/office/{cnpj})
+  * Fixed CNPJá integration to use official estabelecimentos endpoint (https://api.cnpja.com/estabelecimentos/{cnpj})
   * Implemented comprehensive debt detection using real CNPJá data structure (Simples Nacional, company status, state registrations)
   * Added detailed logging system showing exact data analysis for debugging debt detection
   * Enhanced credit analysis to detect: Simples Nacional irregularities, SUSPENSA/INAPTA status, state registration problems
-  * Created intelligent fallback system: office API → companies API → error handling
+  * Created intelligent fallback system: commercial API → public API → error handling
   * System now analyzes authentic Brazilian business data from Federal Revenue via CNPJá API
   * Established proper debt extraction with severity levels (ALTA, MEDIA, CRITICA) and authentic source attribution
   * Credit Score analysis now uses real company data structure instead of mock debt indicators
-  * Removed all simulated data fallbacks - system requires authentic API data for real credit analysis
-  * Enhanced banking score calculation to prioritize debt detection from real CNPJá responses
 ```
 
 ## User Preferences
