@@ -1,0 +1,273 @@
+
+> rest-express@1.0.0 dev
+Registering imports routes...rver/index.ts
+Imports routes registered successfully
+6:10:52 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: upVT66FP-0Tzzo-vDVf2FGnhS1pm42UM, User ID: undefined
+6:11:00 AM [express] GET /api/auth/user 304 in 119ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+6:11:02 AM [express] GET /api/auth/user 304 in 376ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+6:11:03 AM [express] GET /api/notifications/unread-count 200 in 128ms
+Authentication successful for user: 22 Role: admin
+6:11:03 AM [express] GET /api/notifications 200 in 156ms
+Fetching fresh admin metrics
+6:11:04 AM [express] GET /api/admin/dashboard/metrics 304 in 1764ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+6:11:18 AM [express] GET /api/notifications/unread-count 200 in 484ms
+[Session Debug] GET /api/admin/credit-applications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+6:11:22 AM [express] GET /api/admin/credit-applications 304 in 483ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+Error fetching admin credit application: error: column credit_scores.recuperacoes_judiciais does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getCreditApplication (/home/runner/workspace/server/storage.ts:206:21)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3564:27) {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '3399',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+6:11:24 AM [express] GET /api/admin/credit-applications/63 500 in 283ms :: {"message":"Erro interno …
+[Session Debug] GET /api/user/financial-settings - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+🔍 Fetching financial settings for user: 22
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+6:11:25 AM [express] GET /api/user/financial-settings 304 in 752ms :: {"adminFeePercentage":10,"down…
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+Error fetching admin credit application: error: column credit_scores.recuperacoes_judiciais does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getCreditApplication (/home/runner/workspace/server/storage.ts:206:21)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3564:27) {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '3399',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+6:11:25 AM [express] GET /api/admin/credit-applications/63 500 in 236ms :: {"message":"Erro interno …
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+Error fetching admin credit application: error: column credit_scores.recuperacoes_judiciais does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getCreditApplication (/home/runner/workspace/server/storage.ts:206:21)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3564:27) {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '3399',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+6:11:28 AM [express] GET /api/admin/credit-applications/63 500 in 433ms :: {"message":"Erro interno …
+[Session Debug] POST /api/auth/logout - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+User logged out, session destroyed: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N
+6:11:32 AM [express] POST /api/auth/logout 200 in 159ms :: {"message":"Logout realizado com sucesso"}
+[Session Debug] GET /api/notifications - Session ID: TPAwRForRHC8JCQGAeP3QY0eRgYKQioc, User ID: undefined
+[Session Debug] GET /api/auth/user - Session ID: kl3AbbRYP3Tr4bUyQwu3xfmXR8TJ5WCa, User ID: undefined
+[Session Debug] GET /api/notifications/unread-count - Session ID: OLyWl4A_2IDDIiq7nnoSkMs4o4TL64Cs, User ID: undefined
+6:11:32 AM [express] GET /api/auth/user 200 in 64ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: undefined
+6:11:37 AM [express] GET /api/auth/user 200 in 114ms :: {"user":null,"authenticated":false}
+[Session Debug] POST /api/auth/login - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: undefined
+Login attempt for: admin@sparkcomex.com
+Searching for user with email: admin@sparkcomex.com
+User found - ID: 22 Email: admin@sparkcomex.com Status: active
+Password hash exists: true
+Password comparison result: true
+Session created for user ID: 22 Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp
+Session saved successfully for user: admin@sparkcomex.com
+6:11:41 AM [express] POST /api/auth/login 200 in 485ms :: {"id":22,"companyName":"Spark Comex Admin"…
+[Session Debug] GET /api/auth/user - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+6:11:42 AM [express] GET /api/auth/user 200 in 181ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications/unread-count - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+[Session Debug] GET /api/notifications - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+Auth check - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp User ID: 22
+Authentication successful for user: 22 Role: admin
+6:11:42 AM [express] GET /api/notifications/unread-count 200 in 133ms
+6:11:42 AM [express] GET /api/notifications 200 in 157ms
+Serving admin metrics from cache
+6:11:42 AM [express] GET /api/admin/dashboard/metrics 304 in 236ms :: {"totalImporters":6,"totalAppl…
+[Session Debug] GET /api/admin/credit-applications - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+Auth check - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Serving credit applications from cache
+6:11:44 AM [express] GET /api/admin/credit-applications 304 in 238ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+Auth check - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+🔍 Fetching financial settings for user: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+Error fetching admin credit application: error: column credit_scores.recuperacoes_judiciais does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getCreditApplication (/home/runner/workspace/server/storage.ts:206:21)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3564:27) {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '3399',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+6:11:45 AM [express] GET /api/admin/credit-applications/63 500 in 247ms :: {"message":"Erro interno …
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+6:11:45 AM [express] GET /api/user/financial-settings 304 in 380ms :: {"adminFeePercentage":10,"down…
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+Auth check - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+Error fetching admin credit application: error: column credit_scores.recuperacoes_judiciais does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getCreditApplication (/home/runner/workspace/server/storage.ts:206:21)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3564:27) {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '3399',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+6:11:46 AM [express] GET /api/admin/credit-applications/63 500 in 268ms :: {"message":"Erro interno …
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+Auth check - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+Error fetching admin credit application: error: column credit_scores.recuperacoes_judiciais does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getCreditApplication (/home/runner/workspace/server/storage.ts:206:21)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3564:27) {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '3399',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+6:11:49 AM [express] GET /api/admin/credit-applications/63 500 in 430ms :: {"message":"Erro interno …
+[Session Debug] GET /api/notifications/unread-count - Session ID: 1VT8nadqrFn6e2HQG6xCHkoUBSWmDSlp, User ID: 22
+6:11:57 AM [express] GET /api/notifications/unread-count 200 in 120ms
