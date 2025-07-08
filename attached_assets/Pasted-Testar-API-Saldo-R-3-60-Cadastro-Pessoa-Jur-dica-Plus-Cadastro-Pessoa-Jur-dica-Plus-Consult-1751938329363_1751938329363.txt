@@ -1,0 +1,172 @@
+Testar API
+Saldo
+R$ 3,60
+Cadastro - Pessoa Jurídica - Plus
+Cadastro - Pessoa Jurídica - Plus
+Consulta responsável por retornar dados de cadastro de um CNPJ recuperadas de fontes oficiais e combinadas com inferências e outros dados relacionados.
+
+Estimativa de Faturamento Presumido das Empresas no Brasil
+
+Este estudo tem como objetivo estimar o faturamento presumido das empresas brasileiras com base em múltiplas variáveis estruturais e operacionais. A metodologia utilizada permite uma análise abrangente considerando fatores determinantes para a geração de receita empresarial.
+
+Metodologi...
+Voltar
+
+Seu token na plataforma
+
+••••••••••••••••••••••••••••••••••••
+Cadastro - Pessoa Jurídica - Plus
+
+
+GET
+/api/CadastroPessoaJuridicaPlus
+Endpoint para realizar a consulta Cadastro - Pessoa Jurídica - Plus. Obs: esta consulta não possui comprovante.
+Parameters
+Name	Description
+CNPJ
+string
+(query)
+O parâmetro CNPJ pode ser enviado com ou sem formatação.
+
+CNPJ
+TOKEN *
+string
+(query)
+O parâmetro TOKEN é essencial para efetuar esta consulta. Em caso de dúvidas, por favor, entre em contato com: suporte@directd.com.br
+
+TOKEN
+Responses
+Code	Description	Links
+200	
+Sucesso: retorna um JSON com os dados da consulta.
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "metaDados": {
+    "consultaNome": "string",
+    "consultaUid": "string",
+    "chave": "string",
+    "usuario": "string",
+    "mensagem": "string",
+    "ip": "string",
+    "resultadoId": 0,
+    "resultado": "string",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": "string",
+    "assincrono": true,
+    "data": "dd/MM/yyyy HH:mm:ss",
+    "tempoExecucaoMs": 0
+  },
+  "retorno": {
+    "cnpj": "string",
+    "razaoSocial": "string",
+    "nomeFantasia": "string",
+    "dataFundacao": "string",
+    "cnaeCodigo": 0,
+    "cnaeDescricao": "string",
+    "cnaEsSecundarios": [
+      {
+        "cnaeCodigoSecundario": 0,
+        "cnaeDescricaoSecundario": "string"
+      }
+    ],
+    "situacaoCadastral": "string",
+    "situacaoEspecial": "string",
+    "naturezaJuridicaCodigo": 0,
+    "naturezaJuridicaDescricao": "string",
+    "naturezaJuridicaTipo": "string",
+    "porte": "string",
+    "faixaFuncionarios": "string",
+    "quantidadeFuncionarios": 0,
+    "faixaFaturamento": "string",
+    "faturamentoMedioCNAE": "string",
+    "faturamentoPresumido": "string",
+    "matriz": true,
+    "orgaoPublico": "string",
+    "ramo": "string",
+    "tipoEmpresa": "string",
+    "tributacao": "string",
+    "opcaoMEI": "string",
+    "opcaoSimples": "string",
+    "quantidadeFiliais": "string",
+    "telefones": [
+      {
+        "telefoneComDDD": "string",
+        "telemarketingBloqueado": true,
+        "operadora": "string",
+        "tipoTelefone": "string",
+        "whatsApp": true
+      }
+    ],
+    "enderecos": [
+      {
+        "logradouro": "string",
+        "numero": "string",
+        "complemento": "string",
+        "bairro": "string",
+        "cidade": "string",
+        "uf": "string",
+        "cep": "string"
+      }
+    ],
+    "emails": [
+      {
+        "enderecoEmail": "string"
+      }
+    ],
+    "ultimaAtualizacaoPJ": "string",
+    "socios": [
+      {
+        "documento": "string",
+        "nome": "string",
+        "percentualParticipacao": "string",
+        "dataEntrada": "string",
+        "cargo": "string"
+      }
+    ]
+  }
+}
+No links
+201	
+Sucesso: a requisição async foi criada com sucesso e está em processamento.
+
+No links
+202	
+Em Processamento: a requisição async ainda está em processamento.
+
+No links
+400	
+Requisição Inválida: a requisição está incorreta ou os parâmetros são inválidos.
+
+No links
+401	
+Não Autenticado: o usuário não forneceu as credenciais corretas para acessar o recurso.
+
+No links
+403	
+Não Autorizado: o servidor recebeu a requisição, mas se negou a autorizá-la por conta de saldo indisponível.
+
+No links
+404	
+Não Encontrado: o servidor não encontrou uma representação atual do recurso solicitado.
+
+No links
+408	
+Tempo Esgotado: o servidor não conseguiu retornar a requisição no prazo estabelecido.
+
+No links
+500	
+Falha ao Realizar Consulta: o servidor não conseguiu processar a requisição com sucesso. Por favor, entre em contato com o nosso suporte.
+
+No links
+503	
+Consulta em Manutenção: a consulta requisitada está em manutenção. Por favor, entre em contato com o nosso suporte.
+
+No links
+2025©Direct Data

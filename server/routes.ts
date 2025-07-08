@@ -3318,9 +3318,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Step 2: Credit analysis temporarily disabled
-      console.log('📋 Credit API analysis temporarily disabled - skipping credit API call');
-      creditApiData = null;
+      // Step 2: Get credit score from DirectD QUOD API
+      let scoreApiData = null;
+      if (process.env.DIRECTD_SCORE_TOKEN) {
+        try {
+          scoreApiData = await callDirectDScoreAPI(cleanCnpj);
+          console.log('✅ DirectD Score API data received successfully');
+        } catch (error) {
+          console.error('❌ DirectD Score API error:', error);
+        }
+      }
+
+      // Step 3: Get company data from DirectD Cadastro API
+      let cadastroApiData = null;
+      if (process.env.DIRECTD_CADASTRO_TOKEN) {
+        try {
+          cadastroApiData = await callDirectDCadastroAPI(cleanCnpj);
+          console.log('✅ DirectD Cadastro API data received successfully');
+        } catch (error) {
+          console.error('❌ DirectD Cadastro API error:', error);
+        }
+      }
 
       // Step 3: Get location photo
       let locationPhotoUrl = null;
@@ -3355,69 +3373,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Step 4: Calculate enhanced credit score and create response
-      if (receitaData || creditApiData) {
-        const baseScore = receitaData ? calculateCreditScore(receitaData) : 600;
-        const enhancedScore = creditApiData ? enhanceCreditScore(baseScore, creditApiData) : baseScore;
-        
+      // Step 4: Process DirectD APIs data and create comprehensive credit analysis
+      if (scoreApiData || cadastroApiData || receitaData) {
+        // Process QUOD Score data
+        let calculatedScore = 750; // Default score
+        let riskLevel = 'MEDIUM';
+        let hasDebts = false;
+        let hasProtests = false;
+        let hasBankruptcy = false;
+        let hasLawsuits = false;
+        let creditIndicators: any[] = [];
+
+        if (scoreApiData?.retorno?.pessoaJuridica) {
+          const pjData = scoreApiData.retorno.pessoaJuridica;
+          calculatedScore = pjData.score || 750;
+          
+          // Map score to risk level
+          if (calculatedScore >= 800) riskLevel = 'LOW';
+          else if (calculatedScore >= 600) riskLevel = 'MEDIUM';
+          else if (calculatedScore >= 400) riskLevel = 'HIGH';
+          else riskLevel = 'CRITICAL';
+
+          // Process business indicators
+          if (pjData.indicadoresNegocio && Array.isArray(pjData.indicadoresNegocio)) {
+            creditIndicators = pjData.indicadoresNegocio.map((ind: any) => ({
+              indicator: ind.indicador,
+              status: ind.status,
+              risk: ind.risco,
+              observation: ind.observacao
+            }));
+
+            // Analyze indicators for debt/protest detection
+            pjData.indicadoresNegocio.forEach((ind: any) => {
+              const indicator = ind.indicador?.toLowerCase() || '';
+              const risco = ind.risco?.toLowerCase() || '';
+              
+              if (indicator.includes('protesto') || indicator.includes('cartorio')) {
+                hasProtests = true;
+              }
+              if (indicator.includes('divida') || indicator.includes('debito') || indicator.includes('pendencia')) {
+                hasDebts = true;
+              }
+              if (indicator.includes('falencia') || indicator.includes('recuperacao')) {
+                hasBankruptcy = true;
+              }
+              if (indicator.includes('acao') || indicator.includes('processo')) {
+                hasLawsuits = true;
+              }
+            });
+          }
+        }
+
+        // Use Cadastro API data as primary source, fallback to Receita WS
+        const primaryData = cadastroApiData?.retorno || receitaData;
+        const addressData = cadastroApiData?.retorno?.enderecos?.[0] || receitaData;
+        const phoneData = cadastroApiData?.retorno?.telefones?.[0];
+        const emailData = cadastroApiData?.retorno?.emails?.[0];
+
         creditScoreData = {
           creditApplicationId: applicationId,
           cnpj: application.cnpj,
-          creditScore: enhancedScore,
+          creditScore: calculatedScore,
           scoreDate: new Date(),
           locationPhoto: locationPhotoUrl,
-          // Basic company data from Receita WS
-          legalName: receitaData?.nome || 'Não informado',
-          tradingName: receitaData?.fantasia || receitaData?.nome || 'Não informado',
-          status: receitaData?.situacao || 'Não informado',
-          openingDate: receitaData?.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
-          shareCapital: receitaData?.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
-          // Use complete address from API
-          address: [
-            receitaData?.logradouro,
-            receitaData?.numero,
-            receitaData?.complemento,
-            receitaData?.bairro
-          ].filter(Boolean).join(', ') || 'Não informado',
-          city: receitaData?.municipio || 'Não informado',
-          state: receitaData?.uf || 'Não informado',
-          zipCode: formatCEP(receitaData?.cep) || 'Não informado',
-          phone: formatPhone(receitaData?.telefone) || 'Não informado',
-          email: receitaData?.email || 'Não informado',
-          mainActivity: receitaData?.atividade_principal?.[0] ? {
+          // Company data from DirectD Cadastro API or Receita WS fallback
+          legalName: primaryData?.razaoSocial || primaryData?.nome || 'Não informado',
+          tradingName: primaryData?.nomeFantasia || primaryData?.fantasia || primaryData?.nome || 'Não informado',
+          status: primaryData?.situacaoCadastral || primaryData?.situacao || 'Não informado',
+          openingDate: primaryData?.dataFundacao ? new Date(primaryData.dataFundacao) : 
+                      (primaryData?.abertura ? new Date(primaryData.abertura.split('/').reverse().join('-')) : null),
+          shareCapital: primaryData?.capital_social ? formatCurrency(primaryData.capital_social) : 'Não informado',
+          // Address information
+          address: addressData ? [
+            addressData.logradouro,
+            addressData.numero,
+            addressData.complemento,
+            addressData.bairro
+          ].filter(Boolean).join(', ') : 'Não informado',
+          city: addressData?.cidade || addressData?.municipio || 'Não informado',
+          state: addressData?.uf || 'Não informado',
+          zipCode: formatCEP(addressData?.cep) || 'Não informado',
+          phone: phoneData?.telefoneComDDD || formatPhone(receitaData?.telefone) || 'Não informado',
+          email: emailData?.enderecoEmail || receitaData?.email || 'Não informado',
+          // Business information
+          mainActivity: primaryData?.cnaeDescricao ? {
+            code: primaryData.cnaeCodigo?.toString() || 'Não informado',
+            description: primaryData.cnaeDescricao || 'Não informado'
+          } : (receitaData?.atividade_principal?.[0] ? {
             code: receitaData.atividade_principal[0].code || 'Não informado',
             description: receitaData.atividade_principal[0].text || 'Não informado'
-          } : { code: 'Não informado', description: 'Não informado' },
-          secondaryActivities: receitaData?.atividades_secundarias?.map((act: any) => ({
+          } : { code: 'Não informado', description: 'Não informado' }),
+          secondaryActivities: primaryData?.cnaEsSecundarios?.map((act: any) => ({
+            code: act.cnaeCodigoSecundario?.toString() || 'Não informado',
+            description: act.cnaeDescricaoSecundario || 'Não informado'
+          })) || receitaData?.atividades_secundarias?.map((act: any) => ({
             code: act.code || 'Não informado',
             description: act.text || 'Não informado'
           })) || [],
-          partners: receitaData?.qsa?.map((partner: any) => ({
+          partners: primaryData?.socios?.map((partner: any) => ({
+            name: partner.nome || 'Não informado',
+            qualification: partner.cargo || 'Não informado',
+            joinDate: partner.dataEntrada || null,
+            document: partner.documento || null,
+            participation: partner.percentualParticipacao || null
+          })) || receitaData?.qsa?.map((partner: any) => ({
             name: partner.nome || 'Não informado',
             qualification: partner.qual || 'Não informado',
             joinDate: partner.data_entrada || null
           })) || [],
-          companyData: receitaData, // Store full API response
-          // Credit API data integration
-          creditApiData: creditApiData,
-          creditRating: creditApiData?.data?.creditRating || 'Não informado',
-          bankingScore: creditApiData?.data?.bankingScore || null,
-          paymentBehavior: creditApiData?.data?.paymentBehavior || 'Não informado',
-          creditHistory: creditApiData?.data?.creditHistory || {},
-          financialProfile: creditApiData?.data?.financialProfile || {},
-          riskLevel: creditApiData?.data?.riskLevel || 'Não informado',
-          hasDebts: creditApiData?.data?.hasDebts || false,
-          debtDetails: creditApiData?.data?.debtDetails || {},
-          hasProtests: creditApiData?.data?.hasProtests || false,
-          protestDetails: creditApiData?.data?.protestDetails || {},
-          hasLawsuits: creditApiData?.data?.hasLawsuits || false,
-          lawsuitDetails: creditApiData?.data?.lawsuitDetails || {},
-          hasBankruptcy: creditApiData?.data?.hasBankruptcy || false,
-          bankruptcyDetails: creditApiData?.data?.bankruptcyDetails || {},
+          // DirectD Enhanced Data
+          companySize: primaryData?.porte || 'Não informado',
+          employeeRange: primaryData?.faixaFuncionarios || 'Não informado',
+          employeeCount: primaryData?.quantidadeFuncionarios || null,
+          revenueRange: primaryData?.faixaFaturamento || 'Não informado',
+          estimatedRevenue: primaryData?.faturamentoPresumido || 'Não informado',
+          taxation: primaryData?.tributacao || 'Não informado',
+          simplesOption: primaryData?.opcaoSimples || 'Não informado',
+          meiOption: primaryData?.opcaoMEI || 'Não informado',
+          branchCount: primaryData?.quantidadeFiliais || 'Não informado',
+          isMatrix: primaryData?.matriz !== undefined ? primaryData.matriz : true,
+          isPublicOrgan: primaryData?.orgaoPublico || 'Não',
+          businessSector: primaryData?.ramo || 'Não informado',
+          companyType: primaryData?.tipoEmpresa || 'Não informado',
+          // Store raw API responses
+          companyData: primaryData,
+          scoreApiData: scoreApiData,
+          cadastroApiData: cadastroApiData,
+          // Credit risk analysis from DirectD QUOD
+          riskLevel: riskLevel,
+          hasDebts: hasDebts,
+          hasProtests: hasProtests,
+          hasLawsuits: hasLawsuits,
+          hasBankruptcy: hasBankruptcy,
+          creditIndicators: creditIndicators,
+          scoreRange: scoreApiData?.retorno?.pessoaJuridica?.faixaScore || 'Não informado',
+          scoreMotives: scoreApiData?.retorno?.pessoaJuridica?.motivos || [],
+          // API status tracking
+          scoreApiStatus: scoreApiData ? 'success' : 'no_data',
+          cadastroApiStatus: cadastroApiData ? 'success' : 'no_data',
           receitaWsStatus: receitaData ? 'success' : 'no_data',
-          creditApiStatus: creditApiData ? 'success' : 'no_data',
+          lastScoreApiCheck: scoreApiData ? new Date() : null,
+          lastCadastroApiCheck: cadastroApiData ? new Date() : null,
           lastReceitaWsCheck: receitaData ? new Date() : null,
-          lastCreditApiCheck: creditApiData ? new Date() : null,
           lastCheckedAt: new Date()
         };
       } else {
@@ -6010,10 +6107,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CNPJá API Integration temporarily disabled
-  async function callCnpjaAPI(cnpj: string): Promise<any> {
-    console.log('📋 CNPJá API calls temporarily disabled for CNPJ:', cnpj);
-    throw new Error('CNPJá API temporarily disabled - awaiting new backend integration');
+  // DirectD.com.br API Integration - QUOD Score Credit
+  async function callDirectDScoreAPI(cnpj: string): Promise<any> {
+    if (!process.env.DIRECTD_SCORE_TOKEN) {
+      throw new Error('DirectD Score API token not configured');
+    }
+
+    try {
+      console.log('🏦 Calling DirectD Score API for CNPJ:', cnpj);
+      
+      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
+      const response = await fetch(`https://app.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_SCORE_TOKEN}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ DirectD Score API HTTP error:', response.status, errorText);
+        throw new Error(`DirectD Score API HTTP error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ DirectD Score API response received');
+      
+      return result;
+    } catch (error) {
+      console.error('❌ DirectD Score API error:', error);
+      throw error;
+    }
+  }
+
+  // DirectD.com.br API Integration - Pessoa Jurídica Plus
+  async function callDirectDCadastroAPI(cnpj: string): Promise<any> {
+    if (!process.env.DIRECTD_CADASTRO_TOKEN) {
+      throw new Error('DirectD Cadastro API token not configured');
+    }
+
+    try {
+      console.log('🏢 Calling DirectD Cadastro API for CNPJ:', cnpj);
+      
+      const cleanCnpj = cnpj.replace(/[^\d]/g, '');
+      const response = await fetch(`https://app.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_CADASTRO_TOKEN}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ DirectD Cadastro API HTTP error:', response.status, errorText);
+        throw new Error(`DirectD Cadastro API HTTP error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ DirectD Cadastro API response received');
+      
+      return result;
+    } catch (error) {
+      console.error('❌ DirectD Cadastro API error:', error);
+      throw error;
+    }
   }
 
   // Credit API calls temporarily disabled - interface preserved for future integration

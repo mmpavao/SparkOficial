@@ -74,11 +74,39 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
       return;
     }
 
-    toast({
-      title: "Análise temporariamente indisponível",
-      description: "Sistema de análise de crédito em manutenção. Aguarde nova integração.",
-      variant: "destructive"
-    });
+    setIsLoading(true);
+    try {
+      console.log('🔍 Starting DirectD Credit Score consultation for application:', application.id);
+      const response = await apiRequest(`/api/credit/applications/${application.id}/credit-score`, 'POST');
+      console.log('✅ DirectD Credit Score response received:', response);
+      
+      setCreditScore(response);
+      toast({
+        title: "Análise concluída",
+        description: "Credit Score atualizado com dados do DirectD",
+      });
+      
+      // Invalidate credit applications cache to refresh the list and details
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/credit/applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/credit-applications/${application.id}`] });
+      
+      console.log('🔄 Credit Score state updated with DirectD data');
+    } catch (error: any) {
+      console.error('❌ DirectD Credit Score API error:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";
+      const errorDetails = error.response?.data?.details || "";
+      
+      toast({
+        title: errorMessage,
+        description: errorDetails,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDownloadPDF = async () => {
@@ -166,19 +194,32 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         </CardHeader>
         <CardContent>
           {!creditScore ? (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-blue-800">
-                    Sistema de Análise de Crédito Temporariamente Indisponível
-                  </p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Aguarde nova integração com fornecedores de dados de crédito
-                  </p>
-                </div>
+            permissions.isAdmin ? (
+              <Button 
+                onClick={handleConsultar}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Consultando DirectD APIs...
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Consultar Credit Score (DirectD)
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="text-center text-gray-500">
+                <Shield className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">
+                  Análise de crédito disponível apenas para administradores
+                </p>
               </div>
-            </div>
+            )
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-sm text-gray-600">
@@ -302,6 +343,45 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     {creditScore.shareCapital || '-'}
                   </p>
                 </div>
+                {/* DirectD Enhanced Data */}
+                {creditScore.companySize && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Porte da Empresa</p>
+                    <p className="font-medium text-sm">{creditScore.companySize}</p>
+                  </div>
+                )}
+                {creditScore.employeeRange && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Faixa de Funcionários</p>
+                    <p className="font-medium text-sm">{creditScore.employeeRange}</p>
+                  </div>
+                )}
+                {creditScore.revenueRange && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Faixa de Faturamento</p>
+                    <p className="font-medium text-sm">{creditScore.revenueRange}</p>
+                  </div>
+                )}
+                {creditScore.estimatedRevenue && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Faturamento Presumido</p>
+                    <p className="font-medium text-sm">{creditScore.estimatedRevenue}</p>
+                  </div>
+                )}
+                {creditScore.taxation && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Tributação</p>
+                    <p className="font-medium text-sm">{creditScore.taxation}</p>
+                  </div>
+                )}
+                {creditScore.simplesOption && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">Opção Simples Nacional</p>
+                    <Badge className={creditScore.simplesOption === 'SIM' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
+                      {creditScore.simplesOption}
+                    </Badge>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Data de Abertura</p>
                   <p className="font-medium text-sm">
