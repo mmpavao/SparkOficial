@@ -460,9 +460,27 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Indicadores de Negócio</h4>
                     <div className="space-y-2">
                       {creditScore.indicadoresNegocio.map((indicator, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                          <TrendingUp className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm">{indicator}</span>
+                        <div key={index} className="flex flex-col gap-1 p-3 bg-gray-50 rounded">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium">
+                              {typeof indicator === 'object' ? indicator.indicador : indicator}
+                            </span>
+                          </div>
+                          {typeof indicator === 'object' && indicator.status && (
+                            <p className="text-xs text-gray-600 ml-6">{indicator.status}</p>
+                          )}
+                          {typeof indicator === 'object' && indicator.risco && (
+                            <Badge 
+                              className={`ml-6 text-xs ${
+                                indicator.risco === 'Baixo' ? 'bg-green-100 text-green-700' :
+                                indicator.risco === 'Médio' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}
+                            >
+                              Risco: {indicator.risco}
+                            </Badge>
+                          )}
                         </div>
                       ))}
                     </div>
