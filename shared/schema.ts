@@ -658,9 +658,6 @@ export const creditScores = pgTable("credit_scores", {
   openingDate: timestamp("opening_date"),
   shareCapital: text("share_capital"),
   
-  // Location photo from CNPJá API
-  locationPhoto: text("location_photo"), // Base64 encoded image
-  
   // Address
   address: text("address"),
   city: text("city"),
@@ -678,31 +675,12 @@ export const creditScores = pgTable("credit_scores", {
   // Partners/Shareholders
   partners: jsonb("partners"), // [{name, qualification, joinDate}]
   
-  // Credit Analysis Results (Receita WS + Credit API)
+  // Credit Analysis Results
   creditAnalysis: jsonb("credit_analysis"), // Results from credit bureau checks
   hasDebts: boolean("has_debts").default(false),
   hasProtests: boolean("has_protests").default(false),
   hasBankruptcy: boolean("has_bankruptcy").default(false),
   hasLawsuits: boolean("has_lawsuits").default(false),
-  
-  // Advanced Credit API Data
-  creditApiData: jsonb("credit_api_data"), // Full response from Credit API
-  creditRating: text("credit_rating"), // Rating from banking analysis
-  bankingScore: integer("banking_score"), // Specific banking score
-  paymentBehavior: text("payment_behavior"), // Historical payment patterns
-  creditHistory: jsonb("credit_history"), // Detailed credit history
-  financialProfile: jsonb("financial_profile"), // Financial stability indicators
-  riskLevel: text("risk_level"), // LOW, MEDIUM, HIGH, VERY_HIGH
-  debtDetails: jsonb("debt_details"), // Detailed debt information
-  protestDetails: jsonb("protest_details"), // Detailed protest information
-  lawsuitDetails: jsonb("lawsuit_details"), // Detailed lawsuit information
-  bankruptcyDetails: jsonb("bankruptcy_details"), // Detailed bankruptcy information
-  
-  // API Integration Status
-  receitaWsStatus: text("receita_ws_status").default("pending"), // success, error, pending
-  creditApiStatus: text("credit_api_status").default("pending"), // success, error, pending
-  lastReceitaWsCheck: timestamp("last_receita_ws_check"),
-  lastCreditApiCheck: timestamp("last_credit_api_check"),
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
@@ -711,72 +689,6 @@ export const creditScores = pgTable("credit_scores", {
 });
 
 export type CreditScore = typeof creditScores.$inferSelect;
-
-// Directd.com.br API data storage - Cadastro Pessoa Jurídica Plus
-export const directdCompanyData = pgTable("directd_company_data", {
-  id: serial("id").primaryKey(),
-  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
-  cnpj: text("cnpj").notNull(),
-  
-  // Metadata from Directd API
-  consultaUid: text("consulta_uid"),
-  consultaNome: text("consulta_nome"),
-  apiVersao: text("api_versao"),
-  tempoExecucaoMs: integer("tempo_execucao_ms"),
-  
-  // Company Basic Data
-  razaoSocial: text("razao_social"),
-  nomeFantasia: text("nome_fantasia"),
-  dataFundacao: text("data_fundacao"),
-  situacaoCadastral: text("situacao_cadastral"),
-  
-  // Legal Structure
-  naturezaJuridicaCodigo: integer("natureza_juridica_codigo"),
-  naturezaJuridicaDescricao: text("natureza_juridica_descricao"),
-  naturezaJuridicaTipo: text("natureza_juridica_tipo"),
-  porte: text("porte"),
-  
-  // Business Activities
-  cnaeCodigo: integer("cnae_codigo"),
-  cnaeDescricao: text("cnae_descricao"),
-  cnaesSecundarios: jsonb("cnaes_secundarios"), // Array of secondary CNAE codes
-  
-  // Operational Data
-  quantidadeFuncionarios: integer("quantidade_funcionarios"),
-  faixaFuncionarios: text("faixa_funcionarios"),
-  quantidadeFiliais: text("quantidade_filiais"),
-  matriz: boolean("matriz"),
-  orgaoPublico: text("orgao_publico"),
-  ramo: text("ramo"),
-  tipoEmpresa: text("tipo_empresa"),
-  
-  // Tax and Financial
-  tributacao: text("tributacao"),
-  opcaoMEI: text("opcao_mei"),
-  opcaoSimples: text("opcao_simples"),
-  faixaFaturamento: text("faixa_faturamento"),
-  faturamentoMedioCNAE: text("faturamento_medio_cnae"),
-  faturamentoPresumido: text("faturamento_presumido"),
-  
-  // Contact Information
-  telefones: jsonb("telefones"), // Array of phone objects
-  enderecos: jsonb("enderecos"), // Array of address objects
-  emails: jsonb("emails"), // Array of email objects
-  
-  // Partners/Shareholders
-  socios: jsonb("socios"), // Array of partner objects
-  
-  // Last Update Info
-  ultimaAtualizacaoPJ: text("ultima_atualizacao_pj"),
-  
-  // System tracking
-  dataConsulta: timestamp("data_consulta").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export type DirectdCompanyData = typeof directdCompanyData.$inferSelect;
-export type InsertDirectdCompanyData = typeof directdCompanyData.$inferInsert;
 
 // Import all imports-related tables and schemas
 export * from './imports-schema';

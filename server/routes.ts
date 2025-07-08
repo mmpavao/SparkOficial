@@ -63,9 +63,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     rolling: true,
   }));
 
-  // Cache for user credit applications
-  const userCreditCache: { [userId: number]: any } = {};
-
   // Session debugging middleware
   app.use((req: any, res, next) => {
     if (req.path.startsWith('/api/')) {
@@ -2906,219 +2903,2756 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CNPJá Location Photo endpoint
-  app.get('/api/credit/applications/:id/location-photo', requireAuth, async (req: any, res) => {
+  // Get existing credit score
+  app.get('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
+      const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
-      const application = await storage.getCreditApplication(applicationId);
       
+      // Get the credit application
+      const application = await storage.getCreditApplication(applicationId);
       if (!application) {
-        return res.status(404).json({ error: 'Application not found' });
+        return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-
-      const cnpj = application.cnpj.replace(/\D/g, '');
-      console.log('📸 Fetching location photo for CNPJ:', cnpj);
-
-      // Photo endpoints temporarily disabled
-      console.log('📋 Photo endpoints temporarily disabled - no external photo fetching');
-      return res.status(503).json({ message: 'Photo service temporarily unavailable' });
+      
+      // Check if user owns the application or is admin/financeira
+      const user = await storage.getUser(userId);
+      if (application.userId !== userId && user?.role !== 'admin' && user?.role !== 'super_admin' && user?.role !== 'financeira') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Get existing credit score
+      const existingScore = await storage.getCreditScore(applicationId);
+      if (existingScore) {
+        return res.json(existingScore);
+      } else {
+        return res.status(404).json({ message: "Credit score não encontrado" });
+      }
     } catch (error) {
-      console.error('❌ Location photo error:', error);
-      res.status(500).json({ error: 'Failed to fetch location photo' });
+      console.error("Error fetching credit score:", error);
+      res.status(500).json({ message: "Erro ao buscar credit score" });
     }
   });
 
-  // CNPJá Consultation PDF endpoint with professional design
-  app.get('/api/credit/applications/:id/consultation-pdf', requireAuth, async (req: any, res) => {
+  // Admin endpoint to get credit score for any application
+  app.get('/api/admin/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
+      const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
-      const application = await storage.getCreditApplication(applicationId);
       
-      if (!application) {
-        return res.status(404).json({ error: 'Application not found' });
+      // Restrict to admin users only
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin' && user?.role !== 'super_admin') {
+        return res.status(403).json({ message: "Acesso negado" });
       }
-
-      const cnpj = application.cnpj.replace(/\D/g, '');
-      console.log('📄 Generating consultation PDF for CNPJ:', cnpj);
-
-      // PDF generation temporarily disabled
-      console.log('📋 PDF generation endpoints temporarily disabled - no external PDF fetching');
-      return res.status(503).json({ message: 'PDF service temporarily unavailable' });
+      
+      // Get existing credit score
+      const existingScore = await storage.getCreditScore(applicationId);
+      if (existingScore) {
+        return res.json(existingScore);
+      } else {
+        return res.status(404).json({ message: "Credit score não encontrado" });
+      }
     } catch (error) {
-      console.error('Error in PDF endpoint:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error("Error fetching admin credit score:", error);
+      res.status(500).json({ message: "Erro ao buscar credit score" });
     }
   });
 
-  // Directd.com.br API Integration - Cadastro Pessoa Jurídica Plus
-  app.get('/api/credit/applications/:id/directd-company-data', requireAuth, async (req: any, res) => {
+  // Credit Score endpoint (POST - admin only)
+  app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
+      const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
+      
+      // Get the credit application
       const application = await storage.getCreditApplication(applicationId);
-      
       if (!application) {
-        return res.status(404).json({ error: 'Application not found' });
+        return res.status(404).json({ message: "Solicitação não encontrada" });
       }
-
-      // Check if user has permission to view this application
-      const userPermissions = getUserPermissions(req.session.userRole);
-      if (!userPermissions.canViewAllApplications && application.userId !== req.session.userId) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-
-      const cnpj = application.cnpj.replace(/\D/g, '');
-      console.log('🔍 Fetching Directd company data for CNPJ:', cnpj);
-
-      // Check for existing data first
-      let existingData = await storage.getDirectdCompanyData(applicationId);
-      if (existingData) {
-        console.log('✅ Found existing Directd data, returning cached version');
-        return res.json({
-          success: true,
-          data: existingData,
-          source: 'cached'
-        });
-      }
-
-      // Check if we have DIRECTD_API_TOKEN
-      if (!process.env.DIRECTD_API_TOKEN) {
-        console.log('⚠️ DIRECTD_API_TOKEN not configured, returning mock data');
-        
-        // Generate realistic mock data based on the application
-        const mockData = {
-          creditApplicationId: applicationId,
-          cnpj: cnpj,
-          consultaUid: `mock-${Date.now()}`,
-          consultaNome: "Cadastro Pessoa Jurídica Plus",
-          apiVersao: "v3",
-          tempoExecucaoMs: 1500,
-          razaoSocial: application.legalCompanyName,
-          nomeFantasia: application.legalCompanyName.split(' ')[0] + ' Comércio',
-          dataFundacao: "2015-03-15",
-          situacaoCadastral: "ATIVA",
-          naturezaJuridicaCodigo: 2062,
-          naturezaJuridicaDescricao: "SOCIEDADE EMPRESÁRIA LIMITADA",
-          naturezaJuridicaTipo: "EMPRESARIAL",
-          porte: "PEQUENO PORTE",
-          cnaeCodigo: 4644301,
-          cnaeDescricao: "Comércio atacadista de medicamentos e drogas de uso humano",
-          cnaesSecundarios: [
-            { cnaeCodigoSecundario: 4644302, cnaeDescricaoSecundario: "Comércio atacadista de cosméticos" }
-          ],
-          quantidadeFuncionarios: 25,
-          faixaFuncionarios: "DE 11 A 50",
-          quantidadeFiliais: "2",
-          matriz: true,
-          orgaoPublico: "NÃO",
-          ramo: "Comércio",
-          tipoEmpresa: "MATRIZ",
-          tributacao: "LUCRO PRESUMIDO",
-          opcaoMEI: "NÃO",
-          opcaoSimples: "NÃO",
-          faixaFaturamento: "DE R$ 360.000,01 A R$ 3.600.000,00",
-          faturamentoMedioCNAE: "R$ 2.500.000",
-          faturamentoPresumido: "R$ 1.800.000",
-          telefones: [
-            { telefoneComDDD: "(11) 3456-7890", telemarketingBloqueado: false, operadora: "VIVO", tipoTelefone: "FIXO", whatsApp: false }
-          ],
-          enderecos: [
-            { logradouro: "RUA EXEMPLO", numero: "123", bairro: "CENTRO", cidade: "SAO PAULO", uf: "SP", cep: "01234-567" }
-          ],
-          emails: [
-            { enderecoEmail: "contato@exemplo.com.br" }
-          ],
-          socios: [
-            { documento: "123.456.789-01", nome: "JOÃO DA SILVA", percentualParticipacao: "50,00", dataEntrada: "15/03/2015", cargo: "ADMINISTRADOR" },
-            { documento: "987.654.321-02", nome: "MARIA SANTOS", percentualParticipacao: "50,00", dataEntrada: "15/03/2015", cargo: "SÓCIO" }
-          ],
-          ultimaAtualizacaoPJ: "2025-01-15"
-        };
-
-        // Save mock data to database
-        const savedData = await storage.createDirectdCompanyData(mockData);
-        
-        return res.json({
-          success: true,
-          data: savedData,
-          source: 'mock',
-          message: 'Dados de demonstração - Configure DIRECTD_API_TOKEN para dados reais'
-        });
-      }
-
-      // Make API call to Directd
-      const apiUrl = `https://apiv3.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`;
       
-      console.log('🌐 Calling Directd API...');
-      const response = await fetch(apiUrl);
+      // Restrict credit score consultation to admin users only
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin' && user?.role !== 'super_admin') {
+        return res.status(403).json({ 
+          message: "Acesso negado",
+          details: "Consulta de credit score disponível apenas para administradores"
+        });
+      }
       
-      if (!response.ok) {
-        console.error('❌ Directd API error:', response.status, response.statusText);
-        return res.status(response.status).json({ 
-          error: 'Failed to fetch company data from Directd API',
-          status: response.status 
+      // Check if credit score already exists
+      const existingScore = await storage.getCreditScore(applicationId);
+      if (existingScore) {
+        return res.json(existingScore);
+      }
+      
+      // Clean CNPJ for API call
+      const cleanCnpj = application.cnpj.replace(/\D/g, '');
+      
+      let creditScoreData: any;
+      
+      // Try to use Receita WS API if key is available
+      if (process.env.RECEITA_WS_API_KEY) {
+        try {
+          console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
+          
+          const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cleanCnpj}`, {
+            headers: {
+              'Authorization': `Bearer ${process.env.RECEITA_WS_API_KEY}`,
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const receitaData = await response.json();
+            console.log('✅ Receita WS API response received:', JSON.stringify(receitaData, null, 2));
+            
+            // Use ONLY real data from Receita WS API - no fallback to application data
+            creditScoreData = {
+              creditApplicationId: applicationId,
+              cnpj: application.cnpj,
+              creditScore: calculateCreditScore(receitaData),
+              scoreDate: new Date(),
+              // Only use data from API response
+              legalName: receitaData.nome || 'Não informado',
+              tradingName: receitaData.fantasia || receitaData.nome || 'Não informado',
+              status: receitaData.situacao || 'Não informado',
+              openingDate: receitaData.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
+              shareCapital: receitaData.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
+              // Use complete address from API
+              address: [
+                receitaData.logradouro,
+                receitaData.numero,
+                receitaData.complemento,
+                receitaData.bairro
+              ].filter(Boolean).join(', ') || 'Não informado',
+              city: receitaData.municipio || 'Não informado',
+              state: receitaData.uf || 'Não informado',
+              zipCode: formatCEP(receitaData.cep) || 'Não informado',
+              phone: formatPhone(receitaData.telefone) || 'Não informado',
+              email: receitaData.email || 'Não informado',
+              mainActivity: receitaData.atividade_principal?.[0] ? {
+                code: receitaData.atividade_principal[0].code || 'Não informado',
+                description: receitaData.atividade_principal[0].text || 'Não informado'
+              } : { code: 'Não informado', description: 'Não informado' },
+              secondaryActivities: receitaData.atividades_secundarias?.map((act: any) => ({
+                code: act.code || 'Não informado',
+                description: act.text || 'Não informado'
+              })) || [],
+              partners: receitaData.qsa?.map((partner: any) => ({
+                name: partner.nome || 'Não informado',
+                qualification: partner.qual || 'Não informado',
+                joinDate: partner.data_entrada || null
+              })) || [],
+              companyData: receitaData, // Store full API response
+              hasDebts: false, // Would need integration with Serasa/SPC
+              hasProtests: false,
+              hasBankruptcy: false,
+              hasLawsuits: false,
+              lastCheckedAt: new Date()
+            };
+          } else {
+            const errorText = await response.text();
+            console.error('⚠️ Receita WS API error:', response.status, errorText);
+            return res.status(503).json({ 
+              message: "Serviço da Receita Federal temporariamente indisponível",
+              details: "Não foi possível consultar os dados da empresa no momento"
+            });
+          }
+        } catch (apiError) {
+          console.error('❌ Receita WS API error:', apiError);
+          return res.status(503).json({ 
+            message: "Erro ao consultar Receita Federal",
+            details: "Verifique a configuração da API key ou tente novamente mais tarde"
+          });
+        }
+      } else {
+        // No API key configured
+        return res.status(503).json({ 
+          message: "Serviço de consulta não configurado",
+          details: "A API da Receita Federal não está configurada. Entre em contato com o administrador."
+        });
+      }
+      
+      // Save credit score
+      const savedScore = await storage.createCreditScore(creditScoreData);
+      res.json(savedScore);
+      
+    } catch (error) {
+      console.error("Error fetching credit score:", error);
+      res.status(500).json({ message: "Erro ao consultar credit score" });
+    }
+  });
+  
+  // Helper function to calculate credit score based on company data
+  function calculateCreditScore(receitaData: any): number {
+    let score = 600; // Base score
+    
+    // Add points for active status
+    if (receitaData.situacao === 'ATIVA') score += 100;
+    
+    // Add points based on company age
+    if (receitaData.abertura) {
+      const ageYears = (new Date().getFullYear() - new Date(receitaData.abertura).getFullYear());
+      if (ageYears > 10) score += 100;
+      else if (ageYears > 5) score += 50;
+      else if (ageYears > 2) score += 25;
+    }
+    
+    // Add points based on capital
+    if (receitaData.capital_social) {
+      const capital = parseFloat(receitaData.capital_social);
+      if (capital > 1000000) score += 100;
+      else if (capital > 500000) score += 50;
+      else if (capital > 100000) score += 25;
+    }
+    
+    // Add points for having partners
+    if (receitaData.qsa && receitaData.qsa.length > 0) score += 50;
+    
+    // Ensure score is within bounds
+    return Math.min(Math.max(score, 0), 1000);
+  }
+  
+  // Helper function to format currency
+  function formatCurrency(value: string | number): string {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(numValue);
+  }
+  
+  // Helper function to format CEP
+  function formatCEP(cep: string): string {
+    if (!cep) return '';
+    const cleaned = cep.replace(/\D/g, '');
+    return cleaned.replace(/(\d{5})(\d{3})/, '$1-$2');
+  }
+  
+  // Helper function to format phone
+  function formatPhone(phone: string): string {
+    if (!phone) return '';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 11) {
+      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (cleaned.length === 10) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return phone;
+  }
+
+  // Communication endpoints for credit applications
+  app.put('/api/credit-applications/:id/admin-message', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const { message, type } = req.body; // type: 'observation', 'document_request', 'analysis_note'
+
+      const currentUser = await storage.getUser(userId);
+
+      // Only admin/super_admin/financeira can send messages
+      if (!['admin', 'super_admin', 'financeira'].includes(currentUser?.role || '')) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Update the appropriate field based on message type and user role
+      let updateData: any = {};
+      
+      if (type === 'observation') {
+        updateData.adminObservations = message;
+      } else if (type === 'document_request') {
+        updateData.requestedDocuments = message;
+      } else if (type === 'analysis_note') {
+        if (currentUser.role === 'financeira') {
+          updateData.financialNotes = message;
+        } else {
+          updateData.analysisNotes = message;
+        }
+      }
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+      
+      // Send notification to importer about new message
+      await storage.notifyNewMessage(
+        application.userId,
+        applicationId,
+        type,
+        currentUser.role || 'admin'
+      );
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error sending admin message:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint for importers to reply to admin messages
+  app.put('/api/credit-applications/:id/importer-reply', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      const { reply } = req.body;
+
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Only the application owner can reply
+      if (application.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Add reply to existing observations or create new field
+      const currentObservations = application.adminObservations || '';
+      const timestamp = new Date().toLocaleString('pt-BR');
+      const newReply = `\n\n[RESPOSTA DO IMPORTADOR - ${timestamp}]\n${reply}`;
+      
+      const updatedApplication = await storage.updateCreditApplication(applicationId, {
+        adminObservations: currentObservations + newReply
+      });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error sending importer reply:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get admin fee for current user
+  app.get('/api/user/admin-fee', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const adminFee = await storage.getAdminFeeForUser(userId);
+
+      if (!adminFee) {
+        return res.json({ feePercentage: "10" }); // Default 10% if no fee configured
+      }
+
+      res.json(adminFee);
+    } catch (error) {
+      console.error("Error fetching admin fee:", error);
+      res.status(500).json({ message: "Erro ao buscar taxa administrativa" });
+    }
+  });
+
+  // TEST: Generate sample notification (for testing purposes)
+  app.post('/api/test/notification', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { applicationId, type } = req.body;
+
+      if (type === 'status_change') {
+        await storage.notifyCreditStatusChange(userId, applicationId || 42, 'approved');
+      } else if (type === 'message') {
+        await storage.notifyNewMessage(userId, applicationId || 42, 'document_request', 'admin');
+      } else if (type === 'documents') {
+        await storage.notifyDocumentStatus(userId, applicationId || 42, 10, 3);
+      }
+
+      res.json({ success: true, message: "Notificação de teste criada" });
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      res.status(500).json({ message: "Erro ao criar notificação de teste" });
+    }
+  });
+
+  // Get user's credit information for financial calculations
+  app.get('/api/user/credit-info', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+
+      // Get ALL user's approved credit applications using the SAME logic as dashboard
+      const creditApps = await storage.getCreditApplicationsByUser(userId);
+      console.log(`Found ${creditApps.length} credit applications for user ${userId}`);
+      
+      // Only show as approved to importers when admin has finalized the terms
+      const approvedCredits = creditApps.filter(app => {
+        const isApproved = app.financialStatus === 'approved' && 
+                          (app.adminStatus === 'admin_finalized' || app.adminStatus === 'finalized');
+                          
+        console.log(`App ${app.id}: status=${app.status}, adminStatus=${app.adminStatus}, financialStatus=${app.financialStatus}, isApproved=${isApproved}`);
+        return isApproved;
+      });
+
+      if (approvedCredits.length === 0) {
+        console.log(`No approved credits found for user ${userId}`);
+        return res.json({
+          totalCredit: 0,
+          usedCredit: 0,
+          availableCredit: 0,
+          adminFeePercentage: 10
         });
       }
 
-      const apiData = await response.json();
-      console.log('✅ Directd API response received');
+      // Calculate total credit from ALL approved applications - USE SAME LOGIC AS DASHBOARD
+      const totalCredit = approvedCredits.reduce((sum, app) => {
+        // Use finalCreditLimit if available, otherwise use the original requested amount
+        let creditLimit = 0;
+        if (app.finalCreditLimit) {
+          creditLimit = parseFloat(app.finalCreditLimit);
+        } else if (app.requestedAmount) {
+          creditLimit = parseFloat(app.requestedAmount);
+        }
+        console.log(`Credit application ${app.id}: finalCreditLimit=${app.finalCreditLimit}, requestedAmount=${app.requestedAmount}, using=${creditLimit}`);
+        return sum + creditLimit;
+      }, 0);
 
-      // Transform API response to our database format
-      const transformedData = {
-        creditApplicationId: applicationId,
-        cnpj: cnpj,
-        consultaUid: apiData.metaDados?.consultaUid,
-        consultaNome: apiData.metaDados?.consultaNome,
-        apiVersao: apiData.metaDados?.apiVersao,
-        tempoExecucaoMs: apiData.metaDados?.tempoExecucaoMs,
-        razaoSocial: apiData.retorno?.razaoSocial,
-        nomeFantasia: apiData.retorno?.nomeFantasia,
-        dataFundacao: apiData.retorno?.dataFundacao,
-        situacaoCadastral: apiData.retorno?.situacaoCadastral,
-        naturezaJuridicaCodigo: apiData.retorno?.naturezaJuridicaCodigo,
-        naturezaJuridicaDescricao: apiData.retorno?.naturezaJuridicaDescricao,
-        naturezaJuridicaTipo: apiData.retorno?.naturezaJuridicaTipo,
-        porte: apiData.retorno?.porte,
-        cnaeCodigo: apiData.retorno?.cnaeCodigo,
-        cnaeDescricao: apiData.retorno?.cnaeDescricao,
-        cnaesSecundarios: apiData.retorno?.cnaEsSecundarios || [],
-        quantidadeFuncionarios: apiData.retorno?.quantidadeFuncionarios,
-        faixaFuncionarios: apiData.retorno?.faixaFuncionarios,
-        quantidadeFiliais: apiData.retorno?.quantidadeFiliais,
-        matriz: apiData.retorno?.matriz,
-        orgaoPublico: apiData.retorno?.orgaoPublico,
-        ramo: apiData.retorno?.ramo,
-        tipoEmpresa: apiData.retorno?.tipoEmpresa,
-        tributacao: apiData.retorno?.tributacao,
-        opcaoMEI: apiData.retorno?.opcaoMEI,
-        opcaoSimples: apiData.retorno?.opcaoSimples,
-        faixaFaturamento: apiData.retorno?.faixaFaturamento,
-        faturamentoMedioCNAE: apiData.retorno?.faturamentoMedioCNAE,
-        faturamentoPresumido: apiData.retorno?.faturamentoPresumido,
-        telefones: apiData.retorno?.telefones || [],
-        enderecos: apiData.retorno?.enderecos || [],
-        emails: apiData.retorno?.emails || [],
-        socios: apiData.retorno?.socios || [],
-        ultimaAtualizacaoPJ: apiData.retorno?.ultimaAtualizacaoPJ
+      // Calculate used credit from imports - USE SAME STATUS LOGIC AS DASHBOARD
+      const imports = await storage.getImportsByUser(userId);
+      const approvedIds = approvedCredits.map(app => app.id);
+      const activeImports = imports.filter(imp => {
+        // Use the same status filtering as dashboard
+        const isActiveStatus = imp.status !== 'cancelado' && 
+                              imp.status !== 'cancelled' &&
+                              imp.status !== 'planejamento'; // Credit is only used when out of planning
+        
+        const hasLinkedCredit = imp.creditApplicationId && approvedIds.includes(imp.creditApplicationId);
+        
+        console.log(`Import ${imp.id}: status=${imp.status}, isActive=${isActiveStatus}, hasLinkedCredit=${hasLinkedCredit}, creditAppId=${imp.creditApplicationId}`);
+        
+        return isActiveStatus && hasLinkedCredit;
+      });
+
+      const usedCredit = activeImports.reduce((total, imp) => {
+        const importValue = parseFloat(imp.totalValue || '0');
+        console.log(`Import ${imp.id}: value=${importValue}, adding to used credit`);
+        return total + importValue;
+      }, 0);
+
+      // Get admin fee percentage
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const adminFeePercentage = adminFee ? parseFloat(adminFee.feePercentage) : 10;
+
+      const availableCredit = Math.max(0, totalCredit - usedCredit);
+
+      console.log(`Credit calculation for user ${userId}: total=${totalCredit}, used=${usedCredit}, available=${availableCredit}`);
+
+      res.json({
+        totalCredit,
+        usedCredit,
+        availableCredit,
+        adminFeePercentage
+      });
+    } catch (error) {
+      console.error("Error fetching credit info:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Supplier routes
+  app.post('/api/suppliers', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const supplierData = { 
+        ...req.body, 
+        userId,
+        contactPerson: req.body.contactName, // Map contactName to contactPerson for database
+        contactName: req.body.contactName
       };
 
-      // Save to database
-      const savedData = await storage.createDirectdCompanyData(transformedData);
+      const supplier = await storage.createSupplier(supplierData);
+      res.status(201).json(supplier);
+    } catch (error) {
+      console.error("Error creating supplier:", error);
+      res.status(500).json({ message: "Erro ao criar fornecedor" });
+    }
+  });
+
+  app.get('/api/suppliers', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const suppliers = await storage.getSuppliersByUser(userId);
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ message: "Erro ao buscar fornecedores" });
+    }
+  });
+
+  app.get('/api/suppliers/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+
+      const supplier = await storage.getSupplier(id);
+
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+
+      // Allow access if user owns the supplier, is admin, or is financeira
+      if (!isAdmin && !isFinanceira && supplier.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error fetching supplier:", error);
+      res.status(500).json({ message: "Erro ao buscar fornecedor" });
+    }
+  });
+
+  app.put('/api/suppliers/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const supplier = await storage.getSupplier(id);
+
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+
+      if (supplier.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const updatedSupplier = await storage.updateSupplier(id, req.body);
+      res.json(updatedSupplier);
+    } catch (error) {
+      console.error("Error updating supplier:", error);
+      res.status(500).json({ message: "Erro ao atualizar fornecedor" });
+    }
+  });
+
+  app.delete('/api/suppliers/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const supplier = await storage.getSupplier(id);
+
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+
+      if (supplier.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      await storage.deleteSupplier(id);
+      res.json({ message: "Fornecedor removido com sucesso" });
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      res.status(500).json({ message: "Erro ao remover fornecedor" });
+    }
+  });
+
+  // Administrative suppliers endpoint
+  app.get("/api/admin/suppliers", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+
+      // Only admins can access all suppliers
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const allSuppliers = await storage.getAllSuppliers();
+      res.json(allSuppliers);
+    } catch (error) {
+      console.error("Error fetching all suppliers:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/admin/suppliers/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+
+      // Only admins can access supplier details
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const id = parseInt(req.params.id);
+      const supplier = await storage.getSupplier(id);
+
+      if (!supplier) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error fetching supplier details:", error);
+      res.status(500).json({ message: "Erro ao buscar detalhes do fornecedor" });
+    }
+  });
+
+  // Admin routes for credit analysis
+  app.get("/api/admin/credit-applications/:id", requireAuth, moduleProtection(['ADMIN']), async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(applicationId);
+
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching admin credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/admin/credit-applications/:id/analysis", requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { adminNotes, preAnalysisStatus, adminRecommendation, riskAssessment } = req.body;
+
+      // Update the application with admin analysis data
+      const analysisData = {
+        adminNotes,
+        preAnalysisStatus, 
+        adminRecommendation,
+        riskAssessment,
+        analyzedBy: req.session.userId,
+        analyzedAt: new Date()
+      };
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, { reviewNotes: JSON.stringify(analysisData) });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating credit analysis:", error);
+      res.status(500).json({ message: "Erro ao salvar análise" });
+    }
+  });
+
+  app.post("/api/admin/credit-applications/:id/submit-financial", requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+
+      const updatedApplication = await storage.updateCreditApplicationStatus(applicationId, 'submitted_to_financial', {
+        submittedBy: req.session.userId,
+        submittedAt: new Date()
+      });
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error submitting to financial:", error);
+      res.status(500).json({ message: "Erro ao enviar para financeira" });
+    }
+  });
+
+  // ===== FINANCEIRA ROUTES =====
+
+  // Middleware para verificar role financeira
+  const requireFinanceira = (req: any, res: any, next: any) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+
+    storage.getUser(req.session.userId).then(user => {
+      if (user?.role !== "financeira") {
+        return res.status(403).json({ message: "Acesso negado - apenas financeira" });
+      }
+      next();
+    }).catch(error => {
+      console.error("Error checking financeira role:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    });
+  };
+
+  // Get all submitted credit applications for financeira
+  app.get('/api/financeira/credit-applications', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applications = await storage.getSubmittedCreditApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching submitted applications:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update financial status of credit application
+  app.put('/api/financeira/credit-applications/:id/financial-status', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, creditLimit, approvedTerms, financialNotes } = req.body;
+
+      if (!['approved_financial', 'rejected_financial', 'needs_documents_financial'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const financialData = {
+        creditLimit,
+        approvedTerms,
+        financialNotes,
+        financialAnalyzedBy: req.session.userId
+      };
+
+      const updatedApplication = await storage.updateFinancialStatus(
+        parseInt(id), 
+        status, 
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating financial status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get suppliers from pre-approved users for financeira
+  app.get('/api/financeira/suppliers', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const suppliers = await storage.getSuppliersByPreApprovedUsers();
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching financeira suppliers:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get imports from pre-approved users for financeira
+  app.get('/api/financeira/imports', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const imports = await storage.getImportsByPreApprovedUsers();
+      res.json(imports);
+    } catch (error) {
+      console.error("Error fetching financeira imports:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get specific credit application details for financeira
+  app.get('/api/financeira/credit-applications/:id', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getCreditApplication(applicationId);
+
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Financeira can view all applications (removed status restriction)
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching application for financeira:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira final approval endpoint
+  app.put('/api/financeira/credit-applications/:id/approve', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { creditLimit, approvedTerms, financialNotes } = req.body;
+
+      if (!creditLimit) {
+        return res.status(400).json({ message: "Limite de crédito é obrigatório" });
+      }
+
+      // Fetch application to get user ID
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const financialData = {
+        creditLimit: creditLimit,
+        approvedTerms: approvedTerms,
+        financialNotes: financialNotes || '',
+        financialStatus: 'approved',
+        financialAnalyzedBy: req.session.userId,
+        financialAnalyzedAt: new Date(),
+        status: 'approved'
+      };
+
+      // Update application with financial approval using automated notification system
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId,
+        'approved',
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error approving credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira final rejection endpoint
+  app.put('/api/financeira/credit-applications/:id/reject', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { financialNotes } = req.body;
+
+      const financialData = {
+        financialNotes: financialNotes || 'Rejeitado após análise financeira',
+        financialStatus: 'rejected',
+        rejectedBy: req.session.userId,
+        rejectedAt: new Date()
+      };
+
+      const updatedApplication = await storage.updateCreditApplicationStatus(
+        applicationId,
+        'rejected',
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error rejecting credit application:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira dashboard metrics endpoint
+  app.get('/api/financeira/dashboard/metrics', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const metrics = await storage.getFinanceiraDashboardMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching financeira dashboard metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Financeira update financial data endpoint
+  app.put('/api/financeira/credit-applications/:id/update-financial', requireAuth, requireFinanceira, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const financialData = {
+        ...req.body,
+        updatedBy: req.session.userId,
+        updatedAt: new Date().toISOString()
+      };
+
+      const updatedApplication = await storage.updateCreditApplication(
+        applicationId,
+        financialData
+      );
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating financial data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // =========== DOCUMENT UPLOAD ROUTES ===========
+
+  // Upload document to credit application
+  app.post('/api/credit/applications/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { documentType, isMandatory } = req.body;
+      const file = req.file;
+
+      console.log(`Document upload attempt: ${documentType} for application ${applicationId}`);
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      if (!documentType) {
+        return res.status(400).json({ message: "Tipo de documento não especificado" });
+      }
+
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "Arquivo muito grande (máximo 10MB)" });
+      }
+
+      // Check if user owns the application or has admin/financeira access
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Store document info with proper encoding
+      const documentInfo = {
+        filename: file.originalname,
+        originalName: file.originalname,
+        size: file.size,
+        type: file.mimetype,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: req.session.userId,
+        data: file.buffer.toString('base64'),
+      };
+
+      // Get current documents - ensure they're objects
+      const currentRequired = typeof application.requiredDocuments === 'object' && application.requiredDocuments !== null 
+        ? application.requiredDocuments 
+        : {};
+      const currentOptional = typeof application.optionalDocuments === 'object' && application.optionalDocuments !== null 
+        ? application.optionalDocuments 
+        : {};
+
+      // Check if it's a mandatory document - include dynamic shareholder documents
+      const mandatoryDocKeys = ['articles_of_association', 'business_license', 'legal_representative_id'];
+      const isDynamicShareholderDoc = documentType.startsWith('legal_representative_id_');
+      const isMandatoryDoc = mandatoryDocKeys.includes(documentType) || isDynamicShareholderDoc || isMandatory === 'true';
+
+      let updateData: any = {};
+
+      if (isMandatoryDoc) {
+        const updatedRequired = { ...currentRequired };
+        
+        // Handle multiple documents for the same key
+        const existingDoc = updatedRequired[documentType];
+        if (existingDoc) {
+          // If there's already a document, convert to array or add to existing array
+          if (Array.isArray(existingDoc)) {
+            updatedRequired[documentType] = [...existingDoc, documentInfo];
+          } else {
+            updatedRequired[documentType] = [existingDoc, documentInfo];
+          }
+        } else {
+          updatedRequired[documentType] = documentInfo;
+        }
+        
+        updateData.requiredDocuments = updatedRequired;
+
+        // Update status based on mandatory documents (check if all mandatory types have at least one document)
+        const baseUploadedCount = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
+        
+        // Count shareholder documents
+        const shareholderDocKeys = Object.keys(updatedRequired).filter(key => key.startsWith('legal_representative_id_'));
+        const hasShareholderDocs = shareholderDocKeys.length > 0;
+        
+        // For status completion, we need all 3 base docs + at least 1 shareholder doc
+        const hasAllBaseDocs = baseUploadedCount === mandatoryDocKeys.length;
+        const isComplete = hasAllBaseDocs && (hasShareholderDocs || updatedRequired['legal_representative_id']);
+        
+        if (isComplete) {
+          updateData.documentsStatus = 'complete';
+          if (application.status === 'pending' || application.status === 'draft') {
+            updateData.status = 'pre_analysis';
+          }
+        } else if (baseUploadedCount > 0 || hasShareholderDocs) {
+          updateData.documentsStatus = 'partial';
+        }
+      } else {
+        const updatedOptional = { ...currentOptional };
+        
+        // Handle multiple documents for the same key
+        const existingDoc = updatedOptional[documentType];
+        if (existingDoc) {
+          // If there's already a document, convert to array or add to existing array
+          if (Array.isArray(existingDoc)) {
+            updatedOptional[documentType] = [...existingDoc, documentInfo];
+          } else {
+            updatedOptional[documentType] = [existingDoc, documentInfo];
+          }
+        } else {
+          updatedOptional[documentType] = documentInfo;
+        }
+        
+        updateData.optionalDocuments = updatedOptional;
+      }
+
+      // Perform single database update with all changes
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+
+      // Invalidate caches
+      invalidateCreditApplicationCache();
+      if (creditDetailsCache[applicationId]) {
+        delete creditDetailsCache[applicationId];
+      }
+
+      console.log(`Document uploaded successfully: ${documentInfo.originalName} for application ${applicationId}`);
       
-      console.log('💾 Directd data saved to database');
+      // Return updated application data to help with cache management
+      res.json({ 
+        success: true, 
+        document: {
+          filename: documentInfo.originalName,
+          size: documentInfo.size,
+          type: documentInfo.type,
+          uploadedAt: documentInfo.uploadedAt
+        },
+        application: updatedApplication
+      });
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ 
+        message: "Erro ao fazer upload do documento",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Delete document from credit application
+  app.delete('/api/credit/applications/:id/documents/:documentId', requireAuth, async (req: any, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const documentId = req.params.documentId;
+
+      console.log(`Document deletion attempt: ${documentId} for application ${applicationId}`);
+
+      // Check if user owns the application or has admin/financeira access
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Get current documents
+      const currentRequired = typeof application.requiredDocuments === 'object' && application.requiredDocuments !== null 
+        ? application.requiredDocuments 
+        : {};
+      const currentOptional = typeof application.optionalDocuments === 'object' && application.optionalDocuments !== null 
+        ? application.optionalDocuments 
+        : {};
+
+      let updateData: any = {};
+      let documentFound = false;
+
+      console.log(`Attempting to remove document: ${documentId}`);
+      console.log('Current required documents:', Object.keys(currentRequired));
+      console.log('Current optional documents:', Object.keys(currentOptional));
+
+      // Check for compound document ID (e.g., "articles_of_association_filename.jpg")
+      let baseDocumentKey = documentId;
+      let isCompoundId = false;
+      let targetFilename = null;
       
-      return res.json({
+      // If documentId contains underscores, it might be a compound ID
+      if (documentId.includes('_')) {
+        const parts = documentId.split('_');
+        if (parts.length >= 2) {
+          // Try different combinations to find the base key
+          for (let i = parts.length - 1; i >= 1; i--) {
+            const potentialBaseKey = parts.slice(0, i).join('_');
+            if (currentRequired[potentialBaseKey] || currentOptional[potentialBaseKey]) {
+              baseDocumentKey = potentialBaseKey;
+              targetFilename = parts.slice(i).join('_'); // Remaining parts form the filename
+              isCompoundId = true;
+              console.log(`Found compound document: base key = ${baseDocumentKey}, target file = ${targetFilename}`);
+              break;
+            }
+          }
+        }
+      }
+
+      // First, try to find the document by exact key match in required documents
+      if (currentRequired[documentId]) {
+        const updatedRequired = { ...currentRequired };
+        delete updatedRequired[documentId];
+        updateData.requiredDocuments = updatedRequired;
+        documentFound = true;
+        console.log(`Removed exact match from required documents: ${documentId}`);
+      }
+      // If compound ID, try to remove from array within base document key
+      else if (isCompoundId && currentRequired[baseDocumentKey]) {
+        const updatedRequired = { ...currentRequired };
+        const currentDoc = updatedRequired[baseDocumentKey];
+        
+        if (Array.isArray(currentDoc)) {
+          // Remove specific file from array based on exact filename match
+          const initialLength = currentDoc.length;
+          updatedRequired[baseDocumentKey] = currentDoc.filter(doc => {
+            const docFilename = doc.filename || doc.originalName || '';
+            const matches = docFilename === targetFilename;
+            if (matches) {
+              console.log(`Removing file: ${docFilename} (matches target: ${targetFilename})`);
+            }
+            return !matches;
+          });
+          
+          const finalLength = updatedRequired[baseDocumentKey].length;
+          console.log(`Array length: ${initialLength} -> ${finalLength}`);
+          
+          // If array becomes empty, remove the key entirely
+          if (updatedRequired[baseDocumentKey].length === 0) {
+            delete updatedRequired[baseDocumentKey];
+            console.log(`Removed empty document key: ${baseDocumentKey}`);
+          }
+        } else {
+          // Single document, remove entirely
+          delete updatedRequired[baseDocumentKey];
+          console.log(`Removed single document: ${baseDocumentKey}`);
+        }
+        
+        updateData.requiredDocuments = updatedRequired;
+        documentFound = true;
+        console.log(`Removed compound document from required: ${documentId}`);
+      }
+
+      // Check if document exists in optional documents (only if not found in required)
+      if (!documentFound && currentOptional[documentId]) {
+        const updatedOptional = { ...currentOptional };
+        delete updatedOptional[documentId];
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+        console.log(`Removed exact match from optional documents: ${documentId}`);
+      }
+      // If compound ID in optional documents
+      else if (!documentFound && isCompoundId && currentOptional[baseDocumentKey]) {
+        const updatedOptional = { ...currentOptional };
+        const currentDoc = updatedOptional[baseDocumentKey];
+        
+        if (Array.isArray(currentDoc)) {
+          // Remove specific file from array based on exact filename match
+          const initialLength = currentDoc.length;
+          updatedOptional[baseDocumentKey] = currentDoc.filter(doc => {
+            const docFilename = doc.filename || doc.originalName || '';
+            const matches = docFilename === targetFilename;
+            if (matches) {
+              console.log(`Removing optional file: ${docFilename} (matches target: ${targetFilename})`);
+            }
+            return !matches;
+          });
+          
+          const finalLength = updatedOptional[baseDocumentKey].length;
+          console.log(`Optional array length: ${initialLength} -> ${finalLength}`);
+          
+          // If array becomes empty, remove the key entirely
+          if (updatedOptional[baseDocumentKey].length === 0) {
+            delete updatedOptional[baseDocumentKey];
+            console.log(`Removed empty optional document key: ${baseDocumentKey}`);
+          }
+        } else {
+          // Single document, remove entirely
+          delete updatedOptional[baseDocumentKey];
+          console.log(`Removed single optional document: ${baseDocumentKey}`);
+        }
+        
+        updateData.optionalDocuments = updatedOptional;
+        documentFound = true;
+        console.log(`Removed compound document from optional: ${documentId}`);
+      }
+
+      // Update status based on remaining mandatory documents if we removed from required
+      if (documentFound && (currentRequired[documentId] || (isCompoundId && currentRequired[baseDocumentKey]))) {
+        const mandatoryDocKeys = ['articles_of_association', 'business_license', 'legal_representative_id'];
+        const updatedRequired = updateData.requiredDocuments || currentRequired;
+        const uploadedMandatory = mandatoryDocKeys.filter(key => updatedRequired[key]).length;
+        
+        if (uploadedMandatory === 0) {
+          updateData.documentsStatus = 'pending';
+          if (application.status === 'pre_analysis') {
+            updateData.status = 'pending';
+          }
+        } else if (uploadedMandatory < mandatoryDocKeys.length) {
+          updateData.documentsStatus = 'partial';
+        }
+      }
+
+      if (!documentFound) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      console.log(`Removing document ${documentId} from application ${applicationId}`);
+
+      const updatedApplication = await storage.updateCreditApplication(applicationId, updateData);
+      
+      // Invalidate caches
+      invalidateCreditApplicationCache();
+      if (creditDetailsCache[applicationId]) {
+        delete creditDetailsCache[applicationId];
+      }
+      
+      res.json({ 
         success: true,
-        data: savedData,
-        source: 'api',
-        metaDados: apiData.metaDados
+        message: "Documento removido com sucesso",
+        application: updatedApplication 
+      });
+    } catch (error) {
+      console.error("Error removing document:", error);
+      res.status(500).json({ message: "Erro ao remover documento" });
+    }
+  });
+
+  // Payment endpoints
+
+  // Get individual payment details
+  app.get('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.getPaymentById(paymentId);
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+
+      // Get import to check ownership
+      const importData = await storage.getImport(payment.importId);
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error("Error fetching payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Document Request endpoints
+  app.post('/api/document-requests', requireAuth, async (req: any, res) => {
+    try {
+      const { creditApplicationId, requestedFrom, documentName, documentType, description } = req.body;
+      
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'financeira' && currentUser.role !== 'super_admin')) {
+        return res.status(403).json({ message: "Apenas administradores podem solicitar documentos" });
+      }
+
+      const documentRequest = await storage.createDocumentRequest({
+        creditApplicationId,
+        requestedBy: req.session.userId,
+        requestedFrom,
+        documentType,
+        documentName,
+        description,
+        status: 'pending'
+      });
+
+      // Create notification for the importer
+      await storage.notifyDocumentStatus(
+        requestedFrom,
+        creditApplicationId,
+        'requested',
+        `Novo documento solicitado: ${documentName}`
+      );
+
+      res.json(documentRequest);
+    } catch (error) {
+      console.error("Error creating document request:", error);
+      res.status(500).json({ message: "Erro ao solicitar documento" });
+    }
+  });
+
+  app.get('/api/credit/applications/:id/document-requests', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const documentRequests = await storage.getDocumentRequestsForApplication(parseInt(id));
+      res.json(documentRequests);
+    } catch (error) {
+      console.error("Error fetching document requests:", error);
+      res.status(500).json({ message: "Erro ao buscar documentos solicitados" });
+    }
+  });
+
+  app.post('/api/document-requests/:id/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Arquivo não enviado" });
+      }
+
+      const documentRequest = await storage.getDocumentRequestById(parseInt(id));
+      if (!documentRequest) {
+        return res.status(404).json({ message: "Solicitação de documento não encontrada" });
+      }
+
+      // Check if user is the one requested from
+      if (documentRequest.requestedFrom !== req.session.userId) {
+        return res.status(403).json({ message: "Você não tem permissão para enviar este documento" });
+      }
+
+      const fileUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      
+      await storage.uploadDocumentForRequest(parseInt(id), fileUrl);
+
+      // Notify admin/financeira
+      await storage.notifyDocumentStatus(
+        documentRequest.requestedBy,
+        documentRequest.creditApplicationId,
+        'uploaded',
+        `Documento enviado: ${documentRequest.documentName}`
+      );
+
+      res.json({ success: true, message: "Documento enviado com sucesso" });
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Erro ao enviar documento" });
+    }
+  });
+
+  // Support Ticket endpoints
+  app.post('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const { subject, category, priority, message, creditApplicationId } = req.body;
+      
+      const ticket = await storage.createSupportTicket({
+        createdBy: req.session.userId,
+        creditApplicationId,
+        subject,
+        category,
+        priority: priority || 'medium',
+        message
+      });
+
+      // Create notification for admins
+      const admins = await storage.getUsersByRole('admin');
+      for (const admin of admins) {
+        await storage.createNotification({
+          userId: admin.id,
+          type: 'ticket_created',
+          title: 'Novo Ticket de Suporte',
+          message: `Novo ticket criado: ${subject}`,
+          relatedId: ticket.id,
+          relatedType: 'ticket'
+        });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error creating support ticket:", error);
+      res.status(500).json({ message: "Erro ao criar ticket" });
+    }
+  });
+
+  app.get('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(403).json({ message: "Usuário não encontrado" });
+      }
+
+      const tickets = await storage.getSupportTicketsForUser(req.session.userId, currentUser.role);
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching support tickets:", error);
+      res.status(500).json({ message: "Erro ao buscar tickets" });
+    }
+  });
+
+  app.get('/api/support/tickets/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const ticket = await storage.getSupportTicket(parseInt(id));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira';
+      
+      if (!isAdmin && ticket.createdBy !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error fetching ticket:", error);
+      res.status(500).json({ message: "Erro ao buscar ticket" });
+    }
+  });
+
+  app.post('/api/support/tickets/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { message, isInternal } = req.body;
+
+      const ticket = await storage.getSupportTicket(parseInt(id));
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira';
+      
+      if (!isAdmin && ticket.createdBy !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const ticketMessage = await storage.createTicketMessage({
+        ticketId: parseInt(id),
+        senderId: req.session.userId,
+        message,
+        isInternal: isInternal || false
+      });
+
+      // Notify the other party
+      const recipientId = ticket.createdBy === req.session.userId ? ticket.assignedTo : ticket.createdBy;
+      if (recipientId && !isInternal) {
+        await storage.createNotification({
+          userId: recipientId,
+          type: 'ticket_message',
+          title: 'Nova Mensagem no Ticket',
+          message: `Nova mensagem no ticket: ${ticket.subject}`,
+          relatedId: ticket.id,
+          relatedType: 'ticket'
+        });
+      }
+
+      res.json(ticketMessage);
+    } catch (error) {
+      console.error("Error creating ticket message:", error);
+      res.status(500).json({ message: "Erro ao enviar mensagem" });
+    }
+  });
+
+  app.get('/api/support/tickets/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const ticket = await storage.getSupportTicket(parseInt(id));
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira';
+      
+      if (!isAdmin && ticket.createdBy !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const messages = await storage.getTicketMessages(parseInt(id));
+      
+      // Filter internal messages for non-admin users
+      const filteredMessages = isAdmin ? messages : messages.filter(m => !m.isInternal);
+      
+      res.json(filteredMessages);
+    } catch (error) {
+      console.error("Error fetching ticket messages:", error);
+      res.status(500).json({ message: "Erro ao buscar mensagens" });
+    }
+  });
+
+  // Get supplier data for payment
+  app.get('/api/payments/:id/supplier', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.getPaymentById(paymentId);
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Get import and supplier data
+      const importData = await storage.getImport(payment.importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      const isOwner = importData.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Get supplier from the first product (simplified)
+      let supplierData = null;
+      if (importData.products && importData.products.length > 0) {
+        const firstProduct = importData.products[0];
+        if (firstProduct.supplierName) {
+          // Find supplier by name
+          const suppliers = await storage.getSuppliers(importData.userId);
+          supplierData = suppliers.find(s => s.companyName === firstProduct.supplierName);
+        }
+      }
+
+      if (!supplierData) {
+        return res.status(404).json({ message: "Dados do fornecedor não encontrados" });
+      }
+
+      res.json(supplierData);
+    } catch (error) {
+      console.error("Error fetching supplier data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process payment with receipt upload
+  app.post('/api/payments/:id/pay', requireAuth, upload.single('receipt'), async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { paymentMethod, notes } = req.body;
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser processados" });
+      }
+
+      // Handle receipt upload
+      let receiptUrl = null;
+      if (req.file) {
+        const receiptData = req.file.buffer.toString('base64');
+        receiptUrl = `data:${req.file.mimetype};base64,${receiptData}`;
+      }
+
+      // Update payment status
+      const updatedPayment = await storage.updatePayment(paymentId, {
+        status: 'paid',
+        paymentMethod,
+        notes,
+        receiptUrl,
+        paidDate: new Date()
+      });
+
+      res.json({
+        message: "Pagamento processado com sucesso",
+        payment: updatedPayment
+      });
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      res.status(500).json({ message: "Erro ao processar pagamento" });
+    }
+  });
+
+  // Update payment details
+  app.put('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { dueDate, amount, notes } = req.body;
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser editados" });
+      }
+
+      const updatedPayment = await storage.updatePayment(paymentId, {
+        dueDate: new Date(dueDate),
+        amount: amount.toString(),
+        notes
+      });
+
+      res.json(updatedPayment);
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      res.status(500).json({ message: "Erro ao atualizar pagamento" });
+    }
+  });
+
+  // Cancel payment
+  app.delete('/api/payments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+
+      const payment = await storage.getPaymentById(paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const importData = await storage.getImport(payment.importId);
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isOwner = importData?.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      if (payment.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser cancelados" });
+      }
+
+      await storage.deletePayment(paymentId);
+
+      res.json({ message: "Pagamento cancelado com sucesso" });
+    } catch (error) {
+      console.error("Error canceling payment:", error);
+      res.status(500).json({ message: "Erro ao cancelar pagamento" });
+    }
+  });
+
+  // Download document endpoint with real file retrieval
+  app.get('/api/documents/download/:documentKey/:applicationId', requireAuth, async (req: any, res) => {
+    try {
+      const { documentKey, applicationId } = req.params;
+
+      // Get the application to retrieve document data
+      const application = await storage.getCreditApplication(parseInt(applicationId));
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+
+      // Check permissions: user must own the application or be admin/financeira
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+      const isOwner = application.userId === req.session.userId;
+
+      if (!isOwner && !isAdmin && !isFinanceira) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Parse document key and get documents from database
+      const requiredDocs = application.requiredDocuments || {};
+      const optionalDocs = application.optionalDocuments || {};
+      
+      console.log(`Looking for document: ${documentKey}`);
+      console.log('Required docs keys:', Object.keys(requiredDocs));
+      console.log('Optional docs keys:', Object.keys(optionalDocs));
+
+      // Try to find in required documents first
+      let documentData = requiredDocs[documentKey];
+      
+      // If document is an array, get the first document
+      if (Array.isArray(documentData)) {
+        documentData = documentData[0];
+      }
+      
+      // If not found, try optional documents
+      if (!documentData) {
+        documentData = optionalDocs[documentKey];
+        // If optional document is an array, get the first document
+        if (Array.isArray(documentData)) {
+          documentData = documentData[0];
+        }
+      }
+
+      // Handle indexed documents (like cnpj_certificate_0, cnpj_certificate_2)
+      if (!documentData && documentKey.includes('_')) {
+        const parts = documentKey.split('_');
+        const baseKey = parts.slice(0, -1).join('_'); // Remove last part (index)
+        const index = parseInt(parts[parts.length - 1]);
+        
+        console.log(`Trying base key: ${baseKey} with index: ${index}`);
+        
+        // Check in required docs
+        const baseDoc = requiredDocs[baseKey] || optionalDocs[baseKey];
+        if (Array.isArray(baseDoc) && baseDoc[index]) {
+          documentData = baseDoc[index];
+        }
+      }
+
+      if (!documentData || !documentData.data) {
+        console.log(`Document not found: ${documentKey}`);
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Use original filename if available, fallback to stored filename
+      const filename = documentData.originalName || documentData.filename || `documento_${documentKey}`;
+
+      // Set proper headers for download with original filename
+      res.setHeader('Content-Type', documentData.type || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+      res.setHeader('Content-Length', documentData.size || 0);
+
+      // Send the actual file data
+      const fileBuffer = Buffer.from(documentData.data, 'base64');
+      console.log(`Document download: ${filename} for application ${applicationId} by user ${req.session.userId}`);
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ message: "Erro ao fazer download do documento" });
+    }
+  });
+
+  // Enhanced caching system for performance optimization
+  let adminMetricsCache: any = null;
+  let adminMetricsCacheTime = 0;
+  let userCreditCache: { [userId: number]: { data: any, time: number } } = {};
+  let creditDetailsCache: { [creditId: number]: { data: any, time: number } } = {};
+
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+  const DETAILS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute for credit details
+
+  // Function to invalidate admin caches
+  function invalidateAdminCaches() {
+    creditApplicationsCache = null;
+    adminMetricsCache = null;
+    adminMetricsCacheTime = 0;
+    console.log("Admin caches invalidated");
+  }
+
+  // Admin dashboard metrics endpoint
+  app.get('/api/admin/dashboard/metrics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+
+      // Only admins can access dashboard metrics
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      // Check cache first
+      const now = Date.now();
+      if (adminMetricsCache && (now - adminMetricsCacheTime) < CACHE_DURATION) {
+        console.log("Serving admin metrics from cache");
+        return res.json(adminMetricsCache);
+      }
+
+      console.log("Fetching fresh admin metrics");
+      const metrics = await storage.getAdminDashboardMetrics();
+
+      // Update cache
+      adminMetricsCache = metrics;
+      adminMetricsCacheTime = now;
+
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching admin dashboard metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document upload endpoint
+  app.post('/api/imports/:id/documents', requireAuth, upload.single('document'), async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
+      }
+
+      if (!category) {
+        return res.status(400).json({ message: "Categoria do documento é obrigatória" });
+      }
+
+      // Get import to verify ownership
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      // Convert file to base64
+      const base64File = file.buffer.toString('base64');
+      const documentData = {
+        category,
+        filename: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        data: base64File,
+        uploadedAt: new Date().toISOString()
+      };
+
+      // Get current documents
+      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
+      currentDocuments[category] = documentData;
+
+      // Update import with new document
+      await storage.updateImport(importId, {
+        documents: JSON.stringify(currentDocuments)
+      });
+
+      console.log(`Document uploaded successfully: ${file.originalname} for import ${importId}`);
+      res.json({ 
+        success: true, 
+        message: "Documento enviado com sucesso",
+        document: {
+          category,
+          filename: file.originalname,
+          uploadedAt: documentData.uploadedAt
+        }
       });
 
     } catch (error) {
-      console.error('❌ Error fetching Directd company data:', error);
-      return res.status(500).json({ 
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      console.error("Error uploading import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document download endpoint
+  app.get('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.params;
+
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      const documents = importData.documents ? JSON.parse(importData.documents) : {};
+      const document = documents[category];
+
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Convert base64 back to buffer
+      const buffer = Buffer.from(document.data, 'base64');
+
+      res.set({
+        'Content-Type': document.mimeType,
+        'Content-Disposition': `attachment; filename="${document.filename}"`
       });
+
+      res.send(buffer);
+
+    } catch (error) {
+      console.error("Error downloading import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Import document delete endpoint
+  app.delete('/api/imports/:id/documents/:category', requireAuth, async (req: any, res) => {
+    try {
+      const importId = parseInt(req.params.id);
+      const { category } = req.params;
+
+      const importData = await storage.getImport(importId);
+      if (!importData) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Check permissions
+      if (currentUser.role !== "admin" && currentUser.role !== "super_admin" && importData.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Sem permissão para esta importação" });
+      }
+
+      // Get current documents and remove the specified category
+      const currentDocuments = importData.documents ? JSON.parse(importData.documents) : {};
+      delete currentDocuments[category];
+
+      // Update import
+      await storage.updateImport(importId, {
+        documents: JSON.stringify(currentDocuments)
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Documento removido com sucesso"
+      });
+
+    } catch (error) {
+      console.error("Error deleting import document:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Importer dashboard endpoint
+  app.get('/api/dashboard/importer', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Get user's credit applications
+      const creditApplications = await storage.getCreditApplicationsByUser(req.session.userId);
+      
+      // Only show as approved to importers when admin has finalized the terms
+      const approvedApplications = creditApplications.filter(app => 
+        app.financialStatus === 'approved' && 
+        (app.adminStatus === 'admin_finalized' || app.adminStatus === 'finalized')
+      );
+
+      // Get user's imports
+      const imports = await storage.getImportsByUser(req.session.userId);
+
+      // Get user's suppliers
+      const suppliers = await storage.getSuppliersByUser(req.session.userId);
+
+      // Calculate credit metrics from ALL approved applications - SAME LOGIC AS /api/user/credit-info
+      let creditMetrics = {
+        approvedAmount: 0,
+        usedAmount: 0,
+        availableAmount: 0,
+        utilizationRate: 0
+      };
+
+      if (approvedApplications.length > 0) {
+        // Sum all approved credit limits - USE SAME LOGIC
+        const totalCreditLimit = approvedApplications.reduce((sum, app) => {
+          let creditLimit = 0;
+          if (app.finalCreditLimit) {
+            creditLimit = parseFloat(app.finalCreditLimit);
+          } else if (app.requestedAmount) {
+            creditLimit = parseFloat(app.requestedAmount);
+          }
+          return sum + creditLimit;
+        }, 0);
+
+        // Calculate used credit from active imports - USE EXACT SAME STATUS LOGIC
+        const approvedIds = approvedApplications.map(app => app.id);
+        const activeImports = imports.filter(imp => {
+          const isActiveStatus = imp.status !== 'cancelado' && 
+                                imp.status !== 'cancelled' &&
+                                imp.status !== 'planejamento'; // Credit only used when out of planning
+          
+          const hasLinkedCredit = imp.creditApplicationId && approvedIds.includes(imp.creditApplicationId);
+          
+          return isActiveStatus && hasLinkedCredit;
+        });
+
+        const usedAmount = activeImports.reduce((sum, imp) => {
+          return sum + parseFloat(imp.totalValue || '0');
+        }, 0);
+
+        creditMetrics = {
+          approvedAmount: totalCreditLimit,
+          usedAmount: usedAmount,
+          availableAmount: Math.max(0, totalCreditLimit - usedAmount),
+          utilizationRate: totalCreditLimit > 0 ? (usedAmount / totalCreditLimit) * 100 : 0
+        };
+      }
+
+      // Calculate import metrics
+      const totalValue = imports.reduce((sum, imp) => sum + parseFloat(imp.totalValue || '0'), 0);
+      const activeImports = imports.filter(imp => 
+        imp.status !== 'concluido' && imp.status !== 'cancelado'
+      ).length;
+      const completedImports = imports.filter(imp => imp.status === 'concluido').length;
+
+      // Status breakdown
+      const statusBreakdown = {
+        planning: imports.filter(imp => imp.status === 'planejamento').length,
+        production: imports.filter(imp => imp.status === 'producao').length,
+        shipping: imports.filter(imp => 
+          imp.status === 'transporte_maritimo' || 
+          imp.status === 'transporte_aereo' ||
+          imp.status === 'entregue_agente' ||
+          imp.status === 'desembaraco' ||
+          imp.status === 'transporte_nacional'
+        ).length,
+        completed: completedImports
+      };
+
+      // Recent activity - last 5 imports and credit applications
+      const recentImports = imports
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 5)
+        .map(imp => ({
+          id: imp.id,
+          name: imp.importName || `Importação #${imp.id}`,
+          status: imp.status,
+          totalValue: imp.totalValue || '0',
+          date: imp.createdAt || new Date().toISOString()
+        }));
+
+      const recentCreditApplications = creditApplications
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 3)
+        .map(app => ({
+          id: app.id,
+          status: app.adminStatus || app.status,
+          amount: app.finalCreditLimit || app.requestedAmount || '0',
+          date: app.createdAt || new Date().toISOString()
+        }));
+
+      // Generate upcoming payments based on approved credit applications and imports
+      const upcomingPayments = [];
+      if (approvedApplications.length > 0 && imports.length > 0) {
+        // Create sample upcoming payments based on platform's payment structure
+        const today = new Date();
+        const samplePayments = [
+          {
+            id: 1,
+            type: 'installment' as const,
+            amount: 21000,
+            dueDate: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+            daysUntilDue: 5,
+            importId: imports[0]?.id || 1,
+            importName: imports[0]?.importName || 'Pasta de Tomate',
+            supplier: 'Fornecedor China Ltd'
+          },
+          {
+            id: 2,
+            type: 'installment' as const,
+            amount: 21000,
+            dueDate: new Date(today.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+            daysUntilDue: 12,
+            importId: imports[0]?.id || 1,
+            importName: imports[0]?.importName || 'Pasta de Tomate',
+            supplier: 'Fornecedor China Ltd'
+          },
+          {
+            id: 3,
+            type: 'entry' as const,
+            amount: 36000,
+            dueDate: new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+            daysUntilDue: 2,
+            importId: imports[1]?.id || 2,
+            importName: imports[1]?.importName || 'Nova Importação',
+            supplier: 'Supplier Shanghai Co'
+          }
+        ];
+        upcomingPayments.push(...samplePayments);
+      }
+
+      const dashboardData = {
+        creditMetrics,
+        importMetrics: {
+          totalImports: imports.length,
+          activeImports,
+          completedImports,
+          totalValue
+        },
+        supplierMetrics: {
+          totalSuppliers: suppliers.length,
+          activeSuppliers: suppliers.filter(s => s.status === 'active').length
+        },
+        recentActivity: {
+          imports: recentImports,
+          creditApplications: recentCreditApplications
+        },
+        statusBreakdown,
+        upcomingPayments
+      };
+
+      res.json(dashboardData);
+
+    } catch (error) {
+      console.error("Error fetching importer dashboard data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Production diagnostics endpoint (admin only)
+  app.get('/api/diagnostics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      
+      // Only admins can access diagnostics
+      if (currentUser?.role !== "admin" && currentUser?.role !== "super_admin") {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { ProductionDiagnostics } = await import('./diagnostics');
+      const diagnosticResults = await ProductionDiagnostics.runFullDiagnostic();
+      
+      res.json(diagnosticResults);
+    } catch (error) {
+      console.error("Error running diagnostics:", error);
+      res.status(500).json({ 
+        message: "Erro ao executar diagnóstico", 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  // Simple health check endpoint
+  app.get('/api/health', async (req, res) => {
+    try {
+      // Basic database connectivity test
+      const testUser = await storage.getUser(1);
+      res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database: 'connected'
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        status: 'ERROR', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database: 'disconnected',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // ===== ADMIN IMPORTERS MANAGEMENT =====
+
+  // Get all importers (admin only)
+  app.get('/api/admin/importers', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const importers = await storage.getAllImporters();
+      res.json(importers);
+    } catch (error) {
+      console.error("Error fetching importers:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reset importer password (admin only)
+  app.post('/api/admin/importers/:id/reset-password', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const importer = await storage.getUser(parseInt(id));
+      
+      if (!importer) {
+        return res.status(404).json({ message: "Importador não encontrado" });
+      }
+
+      if (importer.role !== 'importer') {
+        return res.status(400).json({ message: "Usuário não é um importador" });
+      }
+
+      // Generate new password
+      const newPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password in database
+      await storage.updateUserPassword(parseInt(id), hashedPassword);
+
+      // In a real application, you would send this via email
+      res.json({ 
+        message: "Senha redefinida com sucesso",
+        temporaryPassword: newPassword 
+      });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get importer details (admin only)
+  app.get('/api/admin/importers/:id', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const importer = await storage.getImporterDetails(parseInt(id));
+      
+      if (!importer) {
+        return res.status(404).json({ message: "Importador não encontrado" });
+      }
+
+      res.json(importer);
+    } catch (error) {
+      console.error("Error fetching importer details:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update importer status (admin only)
+  app.put('/api/admin/importers/:id/status', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!['active', 'inactive', 'pending'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const updatedImporter = await storage.updateUserStatus(parseInt(id), status);
+      res.json(updatedImporter);
+    } catch (error) {
+      console.error("Error updating importer status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get importer activity logs (admin only)
+  app.get('/api/admin/importers/:id/logs', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const logs = await storage.getImporterActivityLogs(parseInt(id));
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching importer logs:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Test endpoint for importer updates (temporary, no auth)
+  app.put('/api/test/importers/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      console.log("Test endpoint - updating importer:", id, "with data:", updateData);
+
+      // Validate financial terms if provided
+      if (updateData.defaultAdminFeeRate !== undefined && updateData.defaultAdminFeeRate !== null) {
+        if (updateData.defaultAdminFeeRate < 0 || updateData.defaultAdminFeeRate > 100) {
+          return res.status(400).json({ message: "Taxa administrativa deve estar entre 0 e 100%" });
+        }
+      }
+
+      if (updateData.defaultDownPaymentRate !== undefined && updateData.defaultDownPaymentRate !== null) {
+        if (updateData.defaultDownPaymentRate < 0 || updateData.defaultDownPaymentRate > 100) {
+          return res.status(400).json({ message: "Percentual de entrada deve estar entre 0 e 100%" });
+        }
+      }
+
+      if (updateData.defaultPaymentTerms) {
+        // Validate payment terms format (comma-separated numbers)
+        const terms = updateData.defaultPaymentTerms.split(',').map((term: any) => parseInt(term.trim()));
+        if (terms.some((term: any) => isNaN(term) || term <= 0)) {
+          return res.status(400).json({ message: "Prazos devem ser números positivos separados por vírgula" });
+        }
+      }
+
+      const updatedImporter = await storage.updateImporterData(parseInt(id), updateData);
+      console.log("Updated importer successfully:", updatedImporter);
+      res.json(updatedImporter);
+    } catch (error) {
+      console.error("Error updating importer data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update importer data including financial terms (admin only)
+  app.put('/api/admin/importers/:id', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+
+      // Validate financial terms if provided
+      if (updateData.defaultAdminFeeRate !== undefined && updateData.defaultAdminFeeRate !== null) {
+        if (updateData.defaultAdminFeeRate < 0 || updateData.defaultAdminFeeRate > 100) {
+          return res.status(400).json({ message: "Taxa administrativa deve estar entre 0 e 100%" });
+        }
+      }
+
+      if (updateData.defaultDownPaymentRate !== undefined && updateData.defaultDownPaymentRate !== null) {
+        if (updateData.defaultDownPaymentRate < 0 || updateData.defaultDownPaymentRate > 100) {
+          return res.status(400).json({ message: "Percentual de entrada deve estar entre 0 e 100%" });
+        }
+      }
+
+      if (updateData.defaultPaymentTerms) {
+        // Validate payment terms format (comma-separated numbers)
+        const terms = updateData.defaultPaymentTerms.split(',').map((term: any) => parseInt(term.trim()));
+        if (terms.some((term: any) => isNaN(term) || term <= 0)) {
+          return res.status(400).json({ message: "Prazos devem ser números positivos separados por vírgula" });
+        }
+      }
+
+      const updatedImporter = await storage.updateImporterData(parseInt(id), updateData);
+      res.json(updatedImporter);
+    } catch (error) {
+      console.error("Error updating importer data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== PAYMENT SCHEDULES MANAGEMENT =====
+
+  // Get payment schedule metrics
+  app.get('/api/payment-schedules/metrics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      let schedules;
+      
+      if (isAdmin || isFinanceira) {
+        schedules = await storage.getAllPaymentSchedules();
+      } else {
+        schedules = await storage.getPaymentSchedulesByUser(req.session.userId);
+      }
+
+      const totalPayments = schedules.length;
+      const pendingPayments = schedules.filter(s => s.status === 'pending').length;
+      const paidPayments = schedules.filter(s => s.status === 'paid').length;
+      const overduePayments = schedules.filter(s => {
+        const dueDate = new Date(s.dueDate);
+        const today = new Date();
+        return s.status === 'pending' && dueDate < today;
+      }).length;
+
+      const totalAmount = schedules.reduce((sum, s) => sum + parseFloat(s.amount || '0'), 0);
+      const pendingAmount = schedules
+        .filter(s => s.status === 'pending')
+        .reduce((sum, s) => sum + parseFloat(s.amount || '0'), 0);
+
+      res.json({
+        totalPayments,
+        pendingPayments,
+        paidPayments,
+        overduePayments,
+        totalAmount,
+        pendingAmount
+      });
+    } catch (error) {
+      console.error("Error fetching payment metrics:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get all payment schedules for authenticated user or admin
+  app.get('/api/payment-schedules', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      let schedules;
+      
+      if (isAdmin || isFinanceira) {
+        // Admin and financeira see all payment schedules
+        schedules = await storage.getAllPaymentSchedules();
+      } else {
+        // Regular users see only their own payment schedules
+        schedules = await storage.getPaymentSchedulesByUser(req.session.userId);
+      }
+
+      res.json(schedules);
+    } catch (error) {
+      console.error("Error fetching payment schedules:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Get specific payment schedule details
+  app.get('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      const isFinanceira = currentUser?.role === 'financeira';
+
+      if (!isAdmin && !isFinanceira) {
+        // Check if user owns the import associated with this payment
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      res.json(paymentSchedule);
+    } catch (error) {
+      console.error("Error fetching payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Update payment schedule
+  app.put('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { amount, dueDate, notes } = req.body;
+
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        // Check if user owns the import
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+
+        // Only allow editing pending payments
+        if (paymentSchedule.status !== 'pending') {
+          return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser editados" });
+        }
+      }
+
+      const updatedPayment = await storage.updatePaymentSchedule(parseInt(id), {
+        amount,
+        dueDate: new Date(dueDate),
+        paymentNotes: notes
+      });
+
+      res.json(updatedPayment[0]);
+    } catch (error) {
+      console.error("Error updating payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Cancel payment schedule
+  app.delete('/api/payment-schedules/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        // Check if user owns the import
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+
+        // Only allow canceling pending payments
+        if (paymentSchedule.status !== 'pending') {
+          return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser cancelados" });
+        }
+      }
+
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'cancelled');
+      res.json({ message: "Pagamento cancelado com sucesso" });
+    } catch (error) {
+      console.error("Error canceling payment schedule:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Split payment into installments
+  app.post('/api/payment-schedules/:id/split', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { installments, startDate } = req.body;
+
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      if (paymentSchedule.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas pagamentos pendentes podem ser divididos" });
+      }
+
+      // Create installment payments
+      const totalAmount = parseFloat(paymentSchedule.amount);
+      const installmentAmount = totalAmount / installments;
+      const newSchedules = [];
+
+      for (let i = 0; i < installments; i++) {
+        const dueDate = new Date(startDate);
+        dueDate.setMonth(dueDate.getMonth() + i);
+
+        newSchedules.push({
+          importId: paymentSchedule.importId,
+          paymentType: 'installment',
+          amount: installmentAmount.toFixed(2),
+          currency: paymentSchedule.currency,
+          dueDate,
+          status: 'pending',
+          installmentNumber: i + 1,
+          totalInstallments: installments
+        });
+      }
+
+      // Delete original payment and create new ones
+      await storage.deletePaymentSchedule(parseInt(id));
+      const createdSchedules = await storage.createMultiplePaymentSchedules(newSchedules);
+
+      res.json({ 
+        message: "Pagamento dividido com sucesso", 
+        schedules: createdSchedules 
+      });
+    } catch (error) {
+      console.error("Error splitting payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process external payment
+  app.post('/api/payment-schedules/:id/external-payment', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const formData = req.body;
+
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      // Update payment schedule status
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      // Create payment record
+      const paymentData = {
+        paymentScheduleId: parseInt(id),
+        importId: paymentSchedule.importId,
+        amount: formData.amount,
+        currency: paymentSchedule.currency,
+        paymentMethod: 'external',
+        paymentReference: formData.notes,
+        status: 'confirmed',
+        paidAt: new Date(formData.paymentDate),
+        confirmedAt: new Date(),
+        confirmedBy: req.session.userId,
+        notes: formData.notes
+      };
+
+      await storage.createPayment(paymentData);
+
+      res.json({ message: "Pagamento registrado com sucesso" });
+    } catch (error) {
+      console.error("Error processing external payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Process PayComex payment
+  app.post('/api/payment-schedules/:id/paycomex-payment', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { method, cardData, exchangeRate, feePercentage } = req.body;
+
+      const paymentSchedule = await storage.getPaymentScheduleById(parseInt(id));
+      if (!paymentSchedule) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      // Check permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+      if (!isAdmin) {
+        const importRecord = await storage.getImport(paymentSchedule.importId);
+        if (!importRecord || importRecord.userId !== req.session.userId) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      // Calculate PayComex transaction details
+      const usdAmount = parseFloat(paymentSchedule.amount);
+      const brlAmount = usdAmount * exchangeRate;
+      const feeAmount = brlAmount * feePercentage;
+      const totalBrlAmount = brlAmount + feeAmount;
+
+      // Simulate PayComex processing (in real implementation, integrate with actual PayComex API)
+      const transactionId = `paycomex_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+
+      // Update payment schedule status
+      await storage.updatePaymentScheduleStatus(parseInt(id), 'paid');
+
+      // Create payment record
+      const paymentData = {
+        paymentScheduleId: parseInt(id),
+        importId: paymentSchedule.importId,
+        amount: paymentSchedule.amount,
+        currency: paymentSchedule.currency,
+        paymentMethod: `paycomex_${method}`,
+        paymentReference: transactionId,
+        status: 'confirmed',
+        paidAt: new Date(),
+        confirmedAt: new Date(),
+        confirmedBy: req.session.userId,
+        notes: `PayComex ${method} payment. BRL total: R$ ${totalBrlAmount.toFixed(2)} (rate: ${exchangeRate}, fee: ${(feePercentage * 100).toFixed(1)}%)`
+      };
+
+      await storage.createPayment(paymentData);
+
+      res.json({ 
+        message: "Pagamento processado com sucesso via PayComex",
+        transactionId,
+        brlAmount: totalBrlAmount.toFixed(2)
+      });
+    } catch (error) {
+      console.error("Error processing PayComex payment:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== SUPPORT SYSTEM ROUTES =====
+
+  // Get all tickets for current user
+  app.get('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tickets = await storage.getSupportTicketsByUser(userId);
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching support tickets:", error);
+      res.status(500).json({ message: "Erro ao buscar tickets" });
+    }
+  });
+
+  // Create new support ticket
+  app.post('/api/support/tickets', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { title, description, priority } = req.body;
+
+      const ticket = await storage.createSupportTicket({
+        userId,
+        title,
+        description,
+        priority
+      });
+
+      res.status(201).json(ticket);
+    } catch (error) {
+      console.error("Error creating support ticket:", error);
+      res.status(500).json({ message: "Erro ao criar ticket" });
+    }
+  });
+
+  // Get specific ticket details
+  app.get('/api/support/tickets/:id', requireAuth, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check if user owns the ticket or is admin
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin && ticket.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error fetching ticket:", error);
+      res.status(500).json({ message: "Erro ao buscar ticket" });
+    }
+  });
+
+  // Add message to ticket
+  app.post('/api/support/tickets/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const { message } = req.body;
+
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+
+      // Check if user owns the ticket or is admin
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin && ticket.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const newMessage = await storage.addTicketMessage({
+        ticketId,
+        userId,
+        message,
+        isFromAdmin: isAdmin
+      });
+
+      res.status(201).json(newMessage);
+    } catch (error) {
+      console.error("Error adding ticket message:", error);
+      res.status(500).json({ message: "Erro ao enviar mensagem" });
+    }
+  });
+
+  // Update ticket status (admin only)
+  app.put('/api/support/tickets/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const { status } = req.body;
+
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const updatedTicket = await storage.updateTicketStatus(ticketId, status);
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status" });
     }
   });
 
@@ -3130,4 +5664,3 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
-

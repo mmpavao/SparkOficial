@@ -10,7 +10,6 @@ import {
   importDocuments,
   notifications,
   creditScores,
-  directdCompanyData,
   documentRequests,
   supportTickets,
   ticketMessages,
@@ -23,8 +22,6 @@ import {
   type Supplier,
   type InsertSupplier,
   type CreditScore,
-  type DirectdCompanyData,
-  type InsertDirectdCompanyData,
   type DocumentRequest,
   type SupportTicket,
   type TicketMessage,
@@ -1718,59 +1715,11 @@ export class DatabaseStorage {
   }
 
   async createCreditScore(scoreData: any): Promise<CreditScore> {
-    // Ensure all JSONB fields are properly formatted
-    const formattedData = {
-      ...scoreData,
-      companyData: scoreData.companyData || {},
-      creditApiData: scoreData.creditApiData || {},
-      mainActivity: scoreData.mainActivity || {},
-      secondaryActivities: scoreData.secondaryActivities || [],
-      partners: scoreData.partners || [],
-      creditHistory: scoreData.creditHistory || {},
-      financialProfile: scoreData.financialProfile || {},
-      debtDetails: scoreData.debtDetails || {},
-      protestDetails: scoreData.protestDetails || {},
-      lawsuitDetails: scoreData.lawsuitDetails || {},
-      bankruptcyDetails: scoreData.bankruptcyDetails || {}
-    };
-
     const [score] = await db
       .insert(creditScores)
-      .values(formattedData)
+      .values(scoreData)
       .returning();
     return score;
-  }
-
-  // ===== DIRECTD COMPANY DATA OPERATIONS =====
-
-  async createDirectdCompanyData(data: InsertDirectdCompanyData): Promise<DirectdCompanyData> {
-    const [companyData] = await db.insert(directdCompanyData).values(data).returning();
-    return companyData;
-  }
-
-  async getDirectdCompanyData(applicationId: number): Promise<DirectdCompanyData | undefined> {
-    const [data] = await db
-      .select()
-      .from(directdCompanyData)
-      .where(eq(directdCompanyData.creditApplicationId, applicationId));
-    return data;
-  }
-
-  async getDirectdCompanyDataByCnpj(cnpj: string): Promise<DirectdCompanyData | undefined> {
-    const [data] = await db
-      .select()
-      .from(directdCompanyData)
-      .where(eq(directdCompanyData.cnpj, cnpj));
-    return data;
-  }
-
-  async updateDirectdCompanyData(id: number, data: Partial<InsertDirectdCompanyData>): Promise<DirectdCompanyData> {
-    const [updated] = await db
-      .update(directdCompanyData)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(directdCompanyData.id, id))
-      .returning();
-    return updated;
   }
 
   // Create multiple payment schedules

@@ -76,7 +76,6 @@ export default function ImportersPage() {
   const { data: importers = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/admin/importers"],
     queryFn: () => apiRequest("/api/admin/importers", "GET"),
-    select: (data) => Array.isArray(data) ? data : []
   });
 
   // Reset password mutation
@@ -142,7 +141,7 @@ export default function ImportersPage() {
   };
 
   // Filter importers based on search term
-  const filteredImporters = (importers || []).filter((importer: Importer) =>
+  const filteredImporters = importers.filter((importer: Importer) =>
     importer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     importer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     importer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||

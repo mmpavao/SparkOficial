@@ -869,23 +869,6 @@ Changelog:
   * Integrated notification system for document requests and ticket updates
   * Established role-based permissions: importers can upload documents and create tickets, admins can request documents and manage all tickets
   * System allows bidirectional communication between importers and administrators without affecting existing functionality
-- July 07, 2025. CNPJá API integration successfully implemented:
-  * Replaced problematic apiconsultas.com GraphQL API with CNPJá REST API
-  * Updated Credit Score module to use CNPJA_API_KEY environment variable for authentication
-  * Integrated real Receita Federal data including company status, equity, Simples Nacional information
-  * Enhanced credit score calculation using authentic Brazilian business data from official sources
-  * Tested successful API calls with real company data (P1LED COMERCIO E IMPORTACAO)
-  * Improved credit analysis accuracy with official government data integration
-  * System now provides authentic credit scoring based on Receita Federal business information
-- July 07, 2025. CNPJá credit analysis system completed and validated:
-  * Implemented comprehensive CNPJá integration using existing CREDIT_API_KEY for commercial API access
-  * Created enhanced credit analysis with debt indicators, protest detection, and risk assessment
-  * Built intelligent fallback system: commercial API → public API → error handling
-  * Added real-time credit score calculation (0-1000 scale) based on company status and financial indicators
-  * System successfully displays: Credit Score 800 (Excellent), company data, debt analysis, protest verification
-  * Enhanced UI with risk summary cards, financial indicators, and data source transparency
-  * Confirmed working integration with authentic Brazilian business data from CNPJá API
-  * User validated system functionality: "O sistema está funcionando perfeitamente com a CNPJá"
 - July 07, 2025. UI/UX improvements and authentication fixes:
   * Fixed layout issue in financeira module credit analysis with vertical button alignment (flex-col gap-2 w-full)
   * Corrected confusing toast notification showing "Faça login" after successful login
@@ -915,25 +898,6 @@ Changelog:
   * Standardized button colors from blue to green theme variants (bg-[#22c55d], hover:bg-[#16a34a]) for platform consistency
   * Enhanced dashboard sections: Pipeline de Importações, Detalhes do Crédito, Importações Recentes, Aplicações de Crédito
   * Maintained all existing platform functionality and authentic data while upgrading visual presentation
-- July 08, 2025. Complete API removal and system transition preparation completed:
-  * Safely removed all CNPJá and credit analysis APIs from server/routes.ts without modifying database tables
-  * Disabled all credit analysis functions (callCnpjaCreditAPI, callCreditAPI, debt/protest/lawsuit detection)
-  * Preserved interface structure with mock data for future backend integration compatibility
-  * Updated CreditScoreAnalysis component to show temporary unavailability message
-  * All analysis functions return neutral values (score 750, MEDIUM risk, PENDING_ANALYSIS status)
-  * Credit applications database tables remain completely intact and unmodified
-  * System ready for new backend integration with alternative credit providers
-  * Interface preserved for seamless transition to new credit analysis services
-- July 08, 2025. Directd.com.br "API Cadastro Pessoa Jurídica Plus" integration completed:
-  * Successfully implemented complete integration with Directd.com.br API for comprehensive company data
-  * Recreated CreditScoreAnalysis component from scratch with organized visual interface
-  * Created /api/credit/applications/:id/directd-company-data endpoint with full data transformation
-  * Implemented intelligent caching system and mock data for testing without API key
-  * Fixed critical server initialization issues and importers page filter errors
-  * Added userCreditCache variable declaration to resolve undefined reference errors
-  * Enhanced importers query with Array.isArray validation for stable data handling
-  * System ready for DIRECTD_API_TOKEN activation to fetch real company data from API Plus
-  * Integration provides comprehensive business data: company info, fiscal data, economic activity, partners, contacts
 ```
 
 ## User Preferences
