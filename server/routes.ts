@@ -3450,16 +3450,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           openingDate: (() => {
             try {
               if (primaryData?.dataFundacao) {
-                return new Date(primaryData.dataFundacao);
+                // Handle DD/MM/YYYY HH:MM:SS format from DirectD API
+                const dateStr = primaryData.dataFundacao.split(' ')[0]; // Remove time part
+                const [day, month, year] = dateStr.split('/');
+                const parsedDate = new Date(`${year}-${month}-${day}`);
+                if (isNaN(parsedDate.getTime())) {
+                  console.log('⚠️ Invalid dataFundacao format:', primaryData.dataFundacao);
+                  return null;
+                }
+                return parsedDate;
               }
               if (primaryData?.abertura) {
-                // Handle DD/MM/YYYY format
+                // Handle DD/MM/YYYY format from Receita WS
                 const [day, month, year] = primaryData.abertura.split('/');
-                return new Date(`${year}-${month}-${day}`);
+                const parsedDate = new Date(`${year}-${month}-${day}`);
+                if (isNaN(parsedDate.getTime())) {
+                  console.log('⚠️ Invalid abertura format:', primaryData.abertura);
+                  return null;
+                }
+                return parsedDate;
               }
               return null;
             } catch (error) {
-              console.log('⚠️ Invalid date format:', primaryData?.dataFundacao || primaryData?.abertura);
+              console.log('⚠️ Date parsing error:', error, primaryData?.dataFundacao || primaryData?.abertura);
               return null;
             }
           })(),
