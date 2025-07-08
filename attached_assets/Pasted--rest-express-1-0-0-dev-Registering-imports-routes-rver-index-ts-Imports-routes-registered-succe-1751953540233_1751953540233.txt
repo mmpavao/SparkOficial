@@ -1,0 +1,69 @@
+
+> rest-express@1.0.0 dev
+Registering imports routes...rver/index.ts
+Imports routes registered successfully
+5:44:24 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: lPKhPEdXaG73ljk0e8VKnfQISaX3bsSN, User ID: undefined
+5:44:33 AM [express] GET /api/auth/user 200 in 116ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:44:34 AM [express] GET /api/auth/user 304 in 375ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:44:34 AM [express] GET /api/notifications 200 in 117ms
+Authentication successful for user: 22 Role: admin
+5:44:34 AM [express] GET /api/notifications/unread-count 200 in 121ms
+Fetching fresh admin metrics
+5:44:36 AM [express] GET /api/admin/dashboard/metrics 200 in 1816ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:44:50 AM [express] GET /api/notifications/unread-count 200 in 476ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:45:05 AM [express] GET /api/notifications 200 in 489ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:45:05 AM [express] GET /api/notifications/unread-count 200 in 130ms
+[Session Debug] GET /api/admin/credit-applications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+5:45:09 AM [express] GET /api/admin/credit-applications 304 in 491ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/user/financial-settings - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+🔍 Fetching financial settings for user: 22
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+5:45:12 AM [express] GET /api/user/financial-settings 304 in 187ms :: {"adminFeePercentage":10,"down…
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+5:45:13 AM [express] GET /api/admin/credit-applications/63 200 in 1299ms :: {"id":63,"userId":34,"le…
+[Session Debug] GET /api/credit/applications/63/credit-score - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+5:45:15 AM [express] GET /api/credit/applications/63/credit-score 404 in 688ms :: {"message":"Credit…
+[Session Debug] POST /api/credit/applications/63/credit-score - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+Auth check - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N User ID: 22
+Authentication successful for user: 22 Role: admin
+5:45:18 AM [express] POST /api/credit/applications/63/credit-score 503 in 892ms :: {"message":"Servi…
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:45:20 AM [express] GET /api/notifications/unread-count 200 in 120ms
+[Session Debug] GET /api/notifications - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:45:36 AM [express] GET /api/notifications 200 in 492ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: kiBR9FOZDyDsVkmm6u5KJE7o5W0WhK8N, User ID: 22
+5:45:36 AM [express] GET /api/notifications/unread-count 200 in 480ms
