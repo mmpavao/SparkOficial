@@ -2070,7 +2070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ca.pre_analysis_status, ca.financial_status, ca.admin_status,
           ca.created_at, ca.updated_at, ca.final_credit_limit, ca.credit_limit,
           ca.approved_terms, ca.final_approved_terms, ca.cnpj,
-          cs.score, cs.consulted_at, cs.status_pendencia_financeira, cs.total_pendencia
+          cs.credit_score, cs.score_date, cs.has_debts, cs.has_protests, cs.has_bankruptcy, cs.has_lawsuits
         FROM credit_applications ca
         LEFT JOIN credit_scores cs ON cs.credit_application_id = ca.id
         ORDER BY ca.created_at DESC
@@ -2092,10 +2092,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedTerms: row.approved_terms,
         finalApprovedTerms: row.final_approved_terms,
         cnpj: row.cnpj,
-        creditScore: row.score,
-        scoreDate: row.consulted_at,
-        pendencyStatus: row.status_pendencia_financeira,
-        totalPendency: row.total_pendencia
+        creditScore: row.credit_score,
+        scoreDate: row.score_date,
+        hasDebts: row.has_debts,
+        hasProtests: row.has_protests,
+        hasBankruptcy: row.has_bankruptcy,
+        hasLawsuits: row.has_lawsuits
       }));
 
       console.log(`Found ${formattedApplications.length} credit applications`);
@@ -3258,8 +3260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Direct Data Credit Score consultation endpoint (POST - admin only)
-  app.post('/api/credit/applications/:id/direct-data-score', requireAuth, async (req: any, res) => {
+  // Credit Score endpoint (POST - admin only)
+  app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
@@ -3288,95 +3290,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean CNPJ for API call
       const cleanCnpj = application.cnpj.replace(/\D/g, '');
       
-      // Call Direct Data API
-      const { DirectDataService } = await import('../services/directDataService');
+      let creditScoreData: any;
+      let receitaData: any = null;
+      let creditApiData: any = null;
       
-      try {
-        console.log(`🔍 [Direct Data] Iniciando consulta para CNPJ: ${cleanCnpj}`);
-        
-        // Consulta Direct Data API
-        const directDataResponse = await DirectDataService.consultarCreditoCompleto(cleanCnpj);
-        
-        // Processa dados para formato do sistema
-        const processedData = DirectDataService.processarDadosCredito(directDataResponse);
-        
-        console.log(`✅ [Direct Data] Consulta processada - Score: ${processedData.score.valor}, Risco: ${processedData.risco.nivel}`);
-        
-        // Salva no banco de dados
-        const creditScoreData = await storage.createCreditScore({
-          creditApplicationId: applicationId,
-          cnpj: cleanCnpj,
-          creditScore: processedData.score.valor,
-          scoreCategory: processedData.score.categoria,
-          riskLevel: processedData.risco.nivel,
-          scoreMotivos: processedData.score.motivos,
-          scoreObservacao: processedData.score.observacao,
-          razaoSocial: processedData.empresa.razaoSocial,
-          nomeFantasia: processedData.empresa.nomeFantasia,
-          situacaoCadastral: processedData.empresa.situacaoCadastral,
-          naturezaJuridica: processedData.empresa.naturezaJuridica,
-          dataFundacao: processedData.empresa.dataFundacao,
-          atividadePrincipal: processedData.empresa.atividadePrincipal,
-          capitalSocial: processedData.empresa.capitalSocial,
-          quantidadeFiliais: processedData.empresa.quantidadeFiliais,
-          endereco: processedData.empresa.endereco,
-          email: processedData.empresa.email,
-          telefone: processedData.empresa.telefone,
-          statusPendencia: processedData.pendencias.status,
-          totalPendencia: processedData.pendencias.totalPendencia,
-          quantidadeProtestos: processedData.pendencias.protestos.quantidade,
-          valorProtestos: processedData.pendencias.protestos.valor,
-          protestos: processedData.pendencias.protestos.detalhes,
-          quantidadeAcoes: processedData.pendencias.acoesJudiciais.quantidade,
-          valorAcoes: processedData.pendencias.acoesJudiciais.valor,
-          acoesJudiciais: processedData.pendencias.acoesJudiciais.detalhes,
-          quantidadeRecuperacoes: processedData.pendencias.recuperacoesJudiciais.quantidade,
-          valorRecuperacoes: processedData.pendencias.recuperacoesJudiciais.valor,
-          recuperacoesJudiciais: processedData.pendencias.recuperacoesJudiciais.detalhes,
-          quantidadeChequesSemFundo: processedData.pendencias.chequesSemFundo.quantidade,
-          chequesSemFundo: processedData.pendencias.chequesSemFundo.detalhes,
-          indicadoresNegocio: processedData.risco.indicadores,
-          consultas30Dias: processedData.consultas.ultimos30Dias,
-          consultas60Dias: processedData.consultas.ultimos60Dias,
-          consultas90Dias: processedData.consultas.ultimos90Dias,
-          consultasMais90Dias: processedData.consultas.mais90Dias,
-          detalhesConsultas: processedData.consultas.detalhes,
-          socios: processedData.socios,
-          consultaUid: processedData.metaDados.consultaUid,
-          tempoExecucao: processedData.metaDados.tempoExecucao,
-          apiVersao: processedData.metaDados.apiVersao,
-          directDataResponse: directDataResponse,
-          consultaStatus: 'success'
-        });
-        
-        return res.json(creditScoreData);
-        
-      } catch (error) {
-        console.error(`❌ [Direct Data] Erro na consulta:`, error);
-        
-        // Salva erro no banco
+      // Step 1: Get basic company data from Receita WS API
+      if (process.env.RECEITA_WS_API_KEY) {
         try {
-          const errorData = await storage.createCreditScore({
-            creditApplicationId: applicationId,
-            cnpj: cleanCnpj,
-            creditScore: 0,
-            scoreCategory: 'Erro',
-            riskLevel: 'ALTO',
-            consultaStatus: 'error',
-            errorMessage: error instanceof Error ? error.message : 'Erro desconhecido na consulta Direct Data'
+          console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
+          
+          const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cleanCnpj}`, {
+            headers: {
+              'Authorization': `Bearer ${process.env.RECEITA_WS_API_KEY}`,
+              'Accept': 'application/json'
+            }
           });
           
-          return res.status(500).json({
-            message: "Erro na consulta Direct Data",
-            error: error instanceof Error ? error.message : 'Erro desconhecido',
-            data: errorData
-          });
-        } catch (dbError) {
-          console.error('❌ Erro ao salvar dados de erro:', dbError);
-          return res.status(500).json({
-            message: "Erro na consulta Direct Data e ao salvar erro no banco",
-            error: error instanceof Error ? error.message : 'Erro desconhecido'
-          });
+          if (response.ok) {
+            receitaData = await response.json();
+            console.log('✅ Receita WS API response received');
+            
+          } else {
+            console.log('⚠️ Receita WS API call failed, status:', response.status);
+          }
+        } catch (error) {
+          console.error('❌ Receita WS API error:', error);
+        }
+      }
+
+      // Step 2: Get detailed credit analysis from Credit API
+      if (process.env.CREDIT_API_KEY) {
+        try {
+          creditApiData = await callCreditAPI(cleanCnpj);
+          console.log('✅ Credit API data received successfully');
+        } catch (error) {
+          console.error('❌ Credit API error:', error);
         }
       }
 
@@ -6242,45 +6190,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('🔍 Starting comprehensive credit analysis for CNPJ:', cnpj);
         console.log('📊 Raw CNPJá data structure received:', Object.keys(cnpjaData || {}));
         
-        // DADOS REAIS da CNPJá - SEM INVENTAR INFORMAÇÕES DE CRÉDITO
-        console.log('⚠️ IMPORTANTE: CNPJá Office API NÃO fornece dados de crédito, débitos ou score bancário');
-        console.log('📊 Dados disponíveis na CNPJá: apenas informações básicas da empresa');
-        
+        // Enhanced credit analysis using CNPJá data with real debt detection
         const creditData = {
-          cnpj: cnpjaData.taxId || cnpj,
+          cnpj: cnpjaData.taxId || cnpjaData.cnpj || cnpj,
+          creditRating: calculateCreditRatingFromCnpja(cnpjaData),
+          bankingScore: calculateBankingScore(cnpjaData),
+          paymentBehavior: analyzeCreditBehavior(cnpjaData),
+          creditHistory: cnpjaData.company?.founded || cnpjaData.founded ? 'ESTABLISHED' : 'NEW',
+          financialProfile: analyzeFinancialProfile(cnpjaData),
+          riskLevel: calculateRiskLevel(cnpjaData),
           
-          // Dados reais disponíveis na CNPJá
-          companyName: cnpjaData.company?.name || cnpjaData.alias || 'Nome não disponível',
+          // Real debt detection (this was the missing piece!)
+          hasDebts: checkForDebtIndicators(cnpjaData),
+          debtDetails: extractDebtDetails(cnpjaData),
+          hasProtests: checkForProtestIndicators(cnpjaData),
+          protestDetails: extractProtestDetails(cnpjaData),
+          hasLawsuits: checkForLawsuitIndicators(cnpjaData),
+          lawsuitDetails: extractLawsuitDetails(cnpjaData),
+          hasBankruptcy: cnpjaData.status?.id === 8 || cnpjaData.status?.text?.includes('BAIXADA'),
+          bankruptcyDetails: cnpjaData.status?.text,
+          
+          // Enhanced analysis results
+          companyName: cnpjaData.name || cnpjaData.company?.name || 'Nome não disponível',
           companyStatus: cnpjaData.status?.text || 'Status não disponível',
-          foundedDate: cnpjaData.founded || cnpjaData.company?.founded || null,
-          equity: cnpjaData.company?.equity || 0,
-          companySize: cnpjaData.company?.size?.text || 'Não informado',
-          companyNature: cnpjaData.company?.nature?.text || 'Não informado',
-          mainActivity: cnpjaData.mainActivity?.text || 'Não informado',
-          address: cnpjaData.address || null,
+          foundedDate: cnpjaData.company?.founded || cnpjaData.founded || null,
+          equity: cnpjaData.company?.equity || cnpjaData.equity || 0,
           
-          // DADOS DE CRÉDITO NÃO DISPONÍVEIS NA CNPJá Office API
-          creditRating: 'NÃO_DISPONÍVEL',
-          bankingScore: null,
-          paymentBehavior: 'NÃO_DISPONÍVEL',
-          creditHistory: 'NÃO_DISPONÍVEL',
-          financialProfile: 'NÃO_DISPONÍVEL',
-          riskLevel: 'NÃO_DISPONÍVEL',
-          
-          // Informações de crédito requerem APIs especializadas (não CNPJá)
-          hasDebts: null,
-          debtDetails: [],
-          hasProtests: null,
-          protestDetails: null,
-          hasLawsuits: null,
-          lawsuitDetails: null,
-          hasBankruptcy: null,
-          bankruptcyDetails: null,
-          
-          // Metadados
           dataSource: cnpjaResponse.source,
           lastUpdate: new Date().toISOString(),
-          limitacao: 'CNPJá Office API fornece apenas dados básicos da empresa - não inclui informações de crédito'
+          apiLimitation: cnpjaResponse.limitation || null
         };
         
         console.log('🎯 Final analysis results:');

@@ -68,7 +68,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
     setIsLoading(true);
     try {
       console.log('🔍 Starting Credit Score consultation for application:', application.id);
-      const response = await apiRequest(`/api/credit/applications/${application.id}/direct-data-score`, 'POST');
+      const response = await apiRequest(`/api/credit/applications/${application.id}/credit-score`, 'POST');
       console.log('✅ Credit Score response received:', response);
       
       setCreditScore(response);
@@ -215,7 +215,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-sm text-gray-600">
-                Última consulta: {new Date(creditScore.consultedAt).toLocaleDateString('pt-BR')}
+                Última consulta: {new Date(creditScore.scoreDate).toLocaleDateString('pt-BR')}
               </span>
               {permissions.isAdmin && (
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -279,8 +279,8 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <h3 className="text-lg font-semibold">Credit Score</h3>
-                  <Badge className={`${getScoreColor(creditScore.score)}`}>
-                    {getScoreLabel(creditScore.score)}
+                  <Badge className={`${getScoreColor(creditScore.creditScore)}`}>
+                    {getScoreLabel(creditScore.creditScore)}
                   </Badge>
                 </div>
                 
@@ -294,10 +294,10 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
                     <div 
-                      className={`h-full bg-gradient-to-r ${getScoreGradient(creditScore.score)} flex items-center justify-end pr-2 transition-all duration-1000`}
-                      style={{ width: `${(creditScore.score / 1000) * 100}%` }}
+                      className={`h-full bg-gradient-to-r ${getScoreGradient(creditScore.creditScore)} flex items-center justify-end pr-2 transition-all duration-1000`}
+                      style={{ width: `${(creditScore.creditScore / 1000) * 100}%` }}
                     >
-                      <span className="text-white font-bold text-sm">{creditScore.score}</span>
+                      <span className="text-white font-bold text-sm">{creditScore.creditScore}</span>
                     </div>
                   </div>
                 </div>
@@ -317,40 +317,31 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               <div className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Razão Social</p>
-                  <p className="font-medium text-sm break-words">{creditScore.razaoSocial || application.legalCompanyName}</p>
+                  <p className="font-medium text-sm break-words">{creditScore.legalName || application.legalCompanyName}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Nome Fantasia</p>
-                  <p className="font-medium text-sm break-words">{creditScore.nomeFantasia || application.tradingName || '-'}</p>
+                  <p className="font-medium text-sm break-words">{creditScore.tradingName || application.tradingName || '-'}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Situação Cadastral</p>
-                  <Badge className={creditScore.situacaoCadastral === 'ATIVA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
-                    {creditScore.situacaoCadastral || 'ATIVA'}
+                  <p className="text-sm text-gray-500">Status</p>
+                  <Badge className={creditScore.status === 'ATIVA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                    {creditScore.status || 'ATIVA'}
                   </Badge>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Natureza Jurídica</p>
-                  <p className="font-medium text-sm">
-                    {creditScore.naturezaJuridica || '-'}
-                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Capital Social</p>
                   <p className="font-medium text-sm">
-                    {creditScore.capitalSocial ? `R$ ${Number(creditScore.capitalSocial).toLocaleString('pt-BR')}` : '-'}
+                    {creditScore.shareCapital || '-'}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Data de Fundação</p>
+                  <p className="text-sm text-gray-500">Data de Abertura</p>
                   <p className="font-medium text-sm">
-                    {creditScore.dataFundacao || '-'}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Atividade Principal</p>
-                  <p className="font-medium text-sm">
-                    {creditScore.atividadePrincipal || '-'}
+                    {creditScore.openingDate ? 
+                      new Date(creditScore.openingDate).toLocaleDateString('pt-BR') : 
+                      '-'
+                    }
                   </p>
                 </div>
               </div>
@@ -367,26 +358,11 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardHeader>
             <CardContent className="pt-2">
               <div className="space-y-2">
-                {creditScore.endereco ? (
-                  <>
-                    <p className="text-sm break-words">
-                      {creditScore.endereco.logradouro}, {creditScore.endereco.numero}
-                      {creditScore.endereco.complemento && `, ${creditScore.endereco.complemento}`}
-                    </p>
-                    <p className="text-sm">
-                      {creditScore.endereco.bairro} - {creditScore.endereco.cidade}, {creditScore.endereco.uf}
-                    </p>
-                    <p className="text-sm">CEP: {creditScore.endereco.cep}</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm break-words">{application.address}</p>
-                    <p className="text-sm">
-                      {application.city}, {application.state}
-                    </p>
-                    <p className="text-sm">CEP: {application.zipCode}</p>
-                  </>
-                )}
+                <p className="text-sm break-words">{creditScore.address || application.address}</p>
+                <p className="text-sm">
+                  {creditScore.city || application.city}, {creditScore.state || application.state}
+                </p>
+                <p className="text-sm">CEP: {creditScore.zipCode || application.zipCode}</p>
               </div>
             </CardContent>
           </Card>
@@ -402,7 +378,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
                   <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm break-all">{creditScore.telefone || application.phone}</span>
+                  <span className="text-sm break-all">{creditScore.phone || application.phone}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
@@ -475,40 +451,37 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </Card>
           )}
 
-          {/* Financial Pendencies Analysis */}
+          {/* Credit Analysis */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <FileText className="w-5 h-5 flex-shrink-0" />
-                Pendências Financeiras
+                Análise de Crédito
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Status Geral</span>
-                  <Badge className={
-                    creditScore.statusPendenciaFinanceira === 'Não encontrado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }>
-                    {creditScore.statusPendenciaFinanceira === 'Não encontrado' ? 'Sem Pendências' : 'Com Pendências'}
-                  </Badge>
-                </div>
-
-                {creditScore.totalPendencia && creditScore.totalPendencia > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                    <span className="text-sm font-medium">Valor Total</span>
+                  <span className="text-sm font-medium">Débitos</span>
+                  {creditScore.hasDebts ? (
                     <Badge className="bg-red-100 text-red-700">
-                      R$ {Number(creditScore.totalPendencia).toLocaleString('pt-BR')}
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Possui
                     </Badge>
-                  </div>
-                )}
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Não possui
+                    </Badge>
+                  )}
+                </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">Protestos</span>
-                  {creditScore.protestos && creditScore.protestos.length > 0 ? (
+                  {creditScore.hasProtests ? (
                     <Badge className="bg-red-100 text-red-700">
                       <XCircle className="w-3 h-3 mr-1" />
-                      {creditScore.protestos.length} registro(s)
+                      Possui
                     </Badge>
                   ) : (
                     <Badge className="bg-green-100 text-green-700">
@@ -519,11 +492,11 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Ações Judiciais</span>
-                  {creditScore.acoesJudiciais && creditScore.acoesJudiciais.length > 0 ? (
+                  <span className="text-sm font-medium">Falência</span>
+                  {creditScore.hasBankruptcy ? (
                     <Badge className="bg-red-100 text-red-700">
                       <XCircle className="w-3 h-3 mr-1" />
-                      {creditScore.acoesJudiciais.length} ação(ões)
+                      Possui
                     </Badge>
                   ) : (
                     <Badge className="bg-green-100 text-green-700">
@@ -534,26 +507,11 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Recuperação Judicial</span>
-                  {creditScore.recuperacaoJudicial && creditScore.recuperacaoJudicial.length > 0 ? (
+                  <span className="text-sm font-medium">Processos Judiciais</span>
+                  {creditScore.hasLawsuits ? (
                     <Badge className="bg-red-100 text-red-700">
                       <XCircle className="w-3 h-3 mr-1" />
-                      {creditScore.recuperacaoJudicial.length} registro(s)
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Não possui
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Cheques sem Fundo</span>
-                  {creditScore.chequesSemFundo && creditScore.chequesSemFundo.length > 0 ? (
-                    <Badge className="bg-red-100 text-red-700">
-                      <XCircle className="w-3 h-3 mr-1" />
-                      {creditScore.chequesSemFundo.length} registro(s)
+                      Possui
                     </Badge>
                   ) : (
                     <Badge className="bg-green-100 text-green-700">
@@ -566,8 +524,8 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardContent>
           </Card>
 
-          {/* CNPJá API Limitations */}
-          {creditScore && (creditScore as any).limitacao && (
+          {/* Enhanced Credit Analysis from Credit API */}
+          {((creditScore as any).creditRating || (creditScore as any).bankingScore || (creditScore as any).paymentBehavior || (creditScore as any).riskLevel) && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
