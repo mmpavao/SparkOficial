@@ -675,18 +675,6 @@ export const creditScores = pgTable("credit_scores", {
   // Partners/Shareholders
   partners: jsonb("partners"), // [{name, qualification, joinDate}]
   
-  // QUOD DirectData specific fields (optional, for enhanced analysis)
-  employeeCount: integer("employee_count"), // Exact number from QUOD
-  employeeRange: text("employee_range"), // Range description from QUOD
-  revenueRange: text("revenue_range"), // Faixa de faturamento
-  averageRevenue: text("average_revenue"), // Faturamento médio do CNAE
-  presumedRevenue: text("presumed_revenue"), // Faturamento presumido
-  companySize: text("company_size"), // Porte da empresa
-  isMatrix: boolean("is_matrix"), // Flag matriz
-  branchCount: text("branch_count"), // Quantidade de filiais
-  taxation: text("taxation"), // Tributação
-  apiSource: text("api_source").default("receita_ws"), // 'quod_directdata' or 'receita_ws'
-  
   // Credit Analysis Results
   creditAnalysis: jsonb("credit_analysis"), // Results from credit bureau checks
   hasDebts: boolean("has_debts").default(false),
