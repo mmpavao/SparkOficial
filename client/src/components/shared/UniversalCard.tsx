@@ -113,13 +113,13 @@ export function UniversalCard({
                 </Badge>
                 
                 {/* Credit Score Bar */}
-                {creditScore !== undefined && creditScore > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Score:</span>
-                    <div className="w-32">
-                      <CreditScoreBar score={creditScore} height="h-1.5" />
+                {creditScore && creditScore > 0 && (
+                  <div className="flex items-center gap-2 bg-gray-50 p-2 rounded">
+                    <span className="text-xs text-gray-600 font-medium">Credit Score:</span>
+                    <div className="w-24">
+                      <CreditScoreBar score={creditScore} height="h-2" />
                     </div>
-                    <span className="text-xs font-medium text-gray-700">{creditScore}</span>
+                    <span className="text-xs font-bold text-gray-800">{creditScore}</span>
                   </div>
                 )}
               </div>
