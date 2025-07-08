@@ -1,0 +1,62 @@
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+No existing credit score found
+Credit Score API error: 
+Error {status: 503}
+
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+Credit Score API error: 
+Error {status: 503}
+
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+Credit Score API error: 
+Error {status: 503}
+
+at t.value (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+Credit Score API error: 
+Error {status: 503}
+
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
+👤 User Financial Settings for Application: undefined
+📝 Application Data: 
+Object {userId: 34, creditLimit: null}
+🔍 SUBMIT BUTTON DEBUG: 
+Object {status: "pending", preAnalysisStatus: "pending", financialStatus: "pending_financial", adminStatus: "pending_admin", shouldShow: false}
