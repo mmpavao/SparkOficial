@@ -3391,14 +3391,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let creditIndicators: any[] = [];
 
         // Process ONLY real API data - no defaults
-        if (scoreApiData.data) {
+        if (scoreApiData?.status === 'SUCCESS' && scoreApiData.data) {
           const apiData = scoreApiData.data;
           
-          // Extract score from real API response
-          if (apiData.score !== undefined) {
-            calculatedScore = apiData.score;
+          // Extract score from real API response (DirectD Score API structure)
+          if (apiData.retorno?.pessoaJuridica?.score !== undefined) {
+            calculatedScore = apiData.retorno.pessoaJuridica.score;
           } else if (apiData.pessoaJuridica?.score !== undefined) {
             calculatedScore = apiData.pessoaJuridica.score;
+          } else if (apiData.score !== undefined) {
+            calculatedScore = apiData.score;
           }
           
           // Map real score to risk level if score exists
@@ -3410,8 +3412,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Process real business indicators if they exist
-          if (apiData.indicadoresNegocio && Array.isArray(apiData.indicadoresNegocio)) {
-            creditIndicators = apiData.indicadoresNegocio.map((ind: any) => ({
+          const indicadores = apiData.retorno?.pessoaJuridica?.indicadoresNegocio || apiData.indicadoresNegocio;
+          if (indicadores && Array.isArray(indicadores)) {
+            creditIndicators = indicadores.map((ind: any) => ({
               indicator: ind.indicador,
               status: ind.status,
               risk: ind.risco,
@@ -3419,7 +3422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }));
 
             // Analyze indicators for debt/protest detection
-            apiData.indicadoresNegocio.forEach((ind: any) => {
+            indicadores.forEach((ind: any) => {
               const indicator = ind.indicador?.toLowerCase() || '';
               const risco = ind.risco?.toLowerCase() || '';
               
@@ -3437,6 +3440,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             });
           }
+        } else {
+          console.log('No valid DirectD Score API data available');
         }
 
         // Use Cadastro API data as primary source, fallback to Receita WS
@@ -6166,10 +6171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🏦 Calling DirectD QUOD Score API for CNPJ:', cnpj);
       
       const cleanCnpj = cnpj.replace(/[^\d]/g, '');
-      const response = await fetch(`https://apiv3.directd.com.br/api/quod-score/${cleanCnpj}`, {
+      const response = await fetch(`https://apiv3.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_SCORE_TOKEN}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${process.env.DIRECTD_SCORE_TOKEN}`,
           'Accept': '*/*',
           'Content-Type': 'application/json'
         }
