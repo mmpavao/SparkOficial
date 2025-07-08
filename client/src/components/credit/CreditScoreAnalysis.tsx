@@ -169,7 +169,6 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           )}
         </CardContent>
       </Card>
-
       {/* Loading State */}
       {isLoading && !creditScore && (
         <div className="space-y-4">
@@ -187,7 +186,6 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           </Card>
         </div>
       )}
-
       {/* Credit Score Results */}
       {creditScore && (
         <>
@@ -244,7 +242,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Status</p>
-                  <Badge className={creditScore.status === 'ATIVA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                  <Badge className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-primary/80 text-[#3ba76b] bg-[#effbf7]">
                     {creditScore.status || 'ATIVA'}
                   </Badge>
                 </div>
