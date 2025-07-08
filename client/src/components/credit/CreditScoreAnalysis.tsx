@@ -407,7 +407,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 
                 {/* Restrições Creditícias */}
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-red-800 mb-4 flex items-center gap-2">
+                  <h4 className="font-semibold mb-4 flex items-center gap-2 text-[#0c0a09]">
                     <AlertTriangle className="w-4 h-4" />
                     Restrições Creditícias
                   </h4>
