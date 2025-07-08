@@ -3023,6 +3023,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('✅ DirectD Score API response received:', JSON.stringify(scoreData, null, 2));
             console.log('✅ DirectD Cadastro API response received:', JSON.stringify(cadastroData, null, 2));
             
+            // Log the exact score value being returned
+            console.log('🎯 SCORE REAL DA API QUOD:', scoreData.retorno?.pessoaJuridica?.score || 'Não encontrado');
+            console.log('📊 FAIXA SCORE:', scoreData.retorno?.pessoaJuridica?.faixaScore || 'Não encontrado');
+            console.log('💡 MOTIVOS DO SCORE:', JSON.stringify(scoreData.retorno?.pessoaJuridica?.scoreMotivos || [], null, 2));
+            
             // Extract data from Score QUOD API
             const scoreRetorno = scoreData.retorno || {};
             const pessoaJuridica = scoreRetorno.pessoaJuridica || {};
