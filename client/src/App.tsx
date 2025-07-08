@@ -36,7 +36,6 @@ import AdminSupportPage from "@/pages/admin-support";
 import SupportPage from "@/pages/support";
 import SupportNewPage from "@/pages/support-new";
 import SupportTicketPage from "@/pages/support-ticket";
-import CPFAnalysisPage from "@/pages/cpf-analysis";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -88,7 +87,6 @@ function Router() {
         <Route path="/payments/:id" component={PaymentDetailsPage} />
         <Route path="/support" component={SupportPage} />
         <Route path="/reports" component={ReportsPage} />
-        <Route path="/cpf-analysis" component={CPFAnalysisPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/users" component={() => <AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/users/new" component={() => <AdminRoute><AdminUserNewPage /></AdminRoute>} />
