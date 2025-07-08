@@ -3318,15 +3318,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Step 2: Get detailed credit analysis from Credit API
-      if (process.env.CREDIT_API_KEY) {
-        try {
-          creditApiData = await callCreditAPI(cleanCnpj);
-          console.log('✅ Credit API data received successfully');
-        } catch (error) {
-          console.error('❌ Credit API error:', error);
-        }
-      }
+      // Step 2: Credit analysis temporarily disabled
+      console.log('📋 Credit API analysis temporarily disabled - skipping credit API call');
+      creditApiData = null;
 
       // Step 3: Get location photo
       let locationPhotoUrl = null;
@@ -6016,252 +6010,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CNPJá API Integration - Receita Federal + Credit Score
+  // CNPJá API Integration temporarily disabled
   async function callCnpjaAPI(cnpj: string): Promise<any> {
-    if (!process.env.CNPJA_API_KEY) {
-      throw new Error('CNPJá API key not configured');
-    }
-
-    try {
-      console.log('🏦 Calling CNPJá API for CNPJ:', cnpj);
-      
-      const response = await fetch(`https://api.cnpja.com/office/${cnpj}?simples=true`, {
-        method: 'GET',
-        headers: {
-          'Authorization': process.env.CNPJA_API_KEY
-        }
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ CNPJá API HTTP error:', response.status, errorText);
-        throw new Error(`CNPJá API HTTP error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ CNPJá API response received');
-      
-      return result;
-    } catch (error) {
-      console.error('❌ CNPJá API error:', error);
-      throw error;
-    }
+    console.log('📋 CNPJá API calls temporarily disabled for CNPJ:', cnpj);
+    throw new Error('CNPJá API temporarily disabled - awaiting new backend integration');
   }
 
-  // CNPJá Credit Analysis - Using official estabelecimentos endpoint
+  // Credit API calls temporarily disabled - interface preserved for future integration
   async function callCnpjaCreditAPI(cnpj: string): Promise<any> {
-    try {
-      console.log('🏦 Calling CNPJá Estabelecimentos API - CNPJ:', cnpj);
-      
-      // Use official CNPJá estabelecimentos endpoint with tax data
-      const url = `https://api.cnpja.com/estabelecimentos/${cnpj}?simples=true&registrations=BR&ccc=true`;
-      console.log('🔗 Request URL:', url);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': process.env.CREDIT_API_KEY || '',
-          'Accept': 'application/json',
-          'User-Agent': 'SparkComex/1.0'
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ CNPJá API response received');
-        console.log('📊 Response structure:', Object.keys(result || {}));
-        
-        // Log specific tax-related fields for debugging
-        if (result.simples) {
-          console.log('💰 Simples Nacional data:', JSON.stringify(result.simples, null, 2));
-        }
-        if (result.registrations) {
-          console.log('📋 Registrations data:', JSON.stringify(result.registrations, null, 2));
-        }
-        if (result.status) {
-          console.log('🏢 Company status:', JSON.stringify(result.status, null, 2));
-        }
-        
-        // Accept any valid establishment data
-        if (result && (result.cnpj || result.taxId)) {
-          return {
-            success: true,
-            data: result,
-            source: 'CNPJA_ESTABELECIMENTOS'
-          };
-        } else {
-          console.log('⚠️ Invalid response structure:', Object.keys(result || {}));
-          return {
-            success: false,
-            error: 'Invalid establishment data',
-            data: result
-          };
-        }
-      } else {
-        const errorText = await response.text();
-        console.log('❌ CNPJá API failed with status:', response.status);
-        console.log('❌ Error response:', errorText);
-        
-        // If commercial API fails, try public API
-        return await fallbackToPublicAPI(cnpj);
-      }
-    } catch (error) {
-      console.error('❌ CNPJá API error:', error);
-      return await fallbackToPublicAPI(cnpj);
-    }
+    console.log('📋 Credit API calls disabled - returning interface-compatible mock data');
+    
+    // Return structure that maintains interface compatibility
+    return {
+      success: false,
+      error: 'Credit analysis temporarily disabled',
+      source: 'DISABLED'
+    };
   }
 
-  // Fallback to public API if commercial fails
+  // Fallback function disabled
   async function fallbackToPublicAPI(cnpj: string): Promise<any> {
-    try {
-      console.log('🔄 Trying CNPJá public API as fallback...');
-      
-      const response = await fetch(`https://cnpja.com/api/open/cnpj/${cnpj}`, {
-        headers: { 
-          'Accept': 'application/json',
-          'User-Agent': 'SparkComex/1.0'
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Public API response received');
-        console.log('📊 Public response structure:', Object.keys(result || {}));
-        
-        return {
-          success: true,
-          data: result,
-          source: 'CNPJA_PUBLIC'
-        };
-      } else {
-        console.log('❌ Public API also failed with status:', response.status);
-        return {
-          success: false,
-          error: 'Both CNPJá APIs failed',
-          details: `Commercial: failed, Public: ${response.status}`
-        };
-      }
-    } catch (error) {
-      console.log('❌ Public API error:', error);
-      return {
-        success: false,
-        error: 'All CNPJá APIs failed',
-        details: error.message
-      };
-    }
+    return {
+      success: false,
+      error: 'Credit analysis temporarily disabled',
+      source: 'DISABLED'
+    };
   }
 
   async function callCreditAPI(cnpj: string): Promise<any> {
-    try {
-      console.log('🏦 Starting CNPJá Credit Analysis - CNPJ:', cnpj);
+    console.log('📋 Credit analysis temporarily disabled for CNPJ:', cnpj);
+    
+    // Return mock data that maintains interface compatibility
+    const mockCreditData = {
+      cnpj: cnpj,
+      creditRating: 'PENDING_ANALYSIS',
+      bankingScore: 750, // Neutral score for interface display
+      paymentBehavior: 'UNKNOWN',
+      creditHistory: 'PENDING_VERIFICATION',
+      financialProfile: 'PENDING_ANALYSIS',
+      riskLevel: 'MEDIUM',
       
-      // Use CNPJá for credit analysis
-      const cnpjaResponse = await callCnpjaCreditAPI(cnpj);
+      // Interface-compatible structure
+      hasDebts: false,
+      debtDetails: null,
+      hasProtests: false,
+      protestDetails: null,
+      hasLawsuits: false,
+      lawsuitDetails: null,
+      hasBankruptcy: false,
+      bankruptcyDetails: null,
       
-      if (cnpjaResponse.success) {
-        const cnpjaData = cnpjaResponse.data;
-        
-        console.log('🔍 Starting comprehensive credit analysis for CNPJ:', cnpj);
-        console.log('📊 Raw CNPJá data structure received:', Object.keys(cnpjaData || {}));
-        
-        // Enhanced credit analysis using CNPJá data with real debt detection
-        const creditData = {
-          cnpj: cnpjaData.taxId || cnpjaData.cnpj || cnpj,
-          creditRating: calculateCreditRatingFromCnpja(cnpjaData),
-          bankingScore: calculateBankingScore(cnpjaData),
-          paymentBehavior: analyzeCreditBehavior(cnpjaData),
-          creditHistory: cnpjaData.company?.founded || cnpjaData.founded ? 'ESTABLISHED' : 'NEW',
-          financialProfile: analyzeFinancialProfile(cnpjaData),
-          riskLevel: calculateRiskLevel(cnpjaData),
-          
-          // Real debt detection (this was the missing piece!)
-          hasDebts: checkForDebtIndicators(cnpjaData),
-          debtDetails: extractDebtDetails(cnpjaData),
-          hasProtests: checkForProtestIndicators(cnpjaData),
-          protestDetails: extractProtestDetails(cnpjaData),
-          hasLawsuits: checkForLawsuitIndicators(cnpjaData),
-          lawsuitDetails: extractLawsuitDetails(cnpjaData),
-          hasBankruptcy: cnpjaData.status?.id === 8 || cnpjaData.status?.text?.includes('BAIXADA'),
-          bankruptcyDetails: cnpjaData.status?.text,
-          
-          // Enhanced analysis results
-          companyName: cnpjaData.name || cnpjaData.company?.name || 'Nome não disponível',
-          companyStatus: cnpjaData.status?.text || 'Status não disponível',
-          foundedDate: cnpjaData.company?.founded || cnpjaData.founded || null,
-          equity: cnpjaData.company?.equity || cnpjaData.equity || 0,
-          
-          dataSource: cnpjaResponse.source,
-          lastUpdate: new Date().toISOString(),
-          apiLimitation: cnpjaResponse.limitation || null
-        };
-        
-        console.log('🎯 Final analysis results:');
-        console.log(`   - Credit Score: ${creditData.bankingScore}`);
-        console.log(`   - Has Debts: ${creditData.hasDebts ? 'SIM' : 'NÃO'}`);
-        console.log(`   - Risk Level: ${creditData.riskLevel}`);
-        console.log(`   - Rating: ${creditData.creditRating}`);
-        
-        return { data: creditData };
-      } else {
-        // If API fails, create realistic analysis for PROW IMPORTADORA case study
-        console.log('⚠️ CNPJá API failed, analyzing with available data for CNPJ:', cnpj);
-        
-        // For PROW IMPORTADORA (65.484.271/0001-05) - use real data from your consultation
-        if (cnpj === '65484271000105') {
-          const prowData = {
-            cnpj: '65.484.271/0001-05',
-            creditRating: 'POOR', // Based on score 569 and debts
-            bankingScore: 569, // Real score from consultation
-            paymentBehavior: 'POOR', // 24.5% default probability
-            creditHistory: 'ESTABLISHED', // Founded 1991
-            financialProfile: 'SMALL_BUSINESS',
-            riskLevel: 'HIGH', // Due to debts
-            
-            // Real debt data from consultation
-            hasDebts: true,
-            debtDetails: [
-              {
-                type: 'SCPC',
-                description: 'Pendência financeira registrada',
-                amount: 'R$ 3.417,00',
-                status: 'ATIVO',
-                severity: 'ALTA',
-                creditor: 'BOA VISTA SERVICOS S/A',
-                date: '28/03/2023 - 27/04/2023',
-                source: 'Consulta Real - Documento Anexado'
-              }
-            ],
-            hasProtests: false,
-            protestDetails: null,
-            hasLawsuits: false,
-            lawsuitDetails: null,
-            hasBankruptcy: false,
-            bankruptcyDetails: null,
-            
-            companyName: 'PROW IMPORTADORA E DISTRIBUIDORA DE PRODUTOS PARA SAUDE LTDA',
-            companyStatus: 'ATIVO',
-            foundedDate: '1991-02-08',
-            equity: 10000, // R$ 10.000,00 from consultation
-            
-            dataSource: 'Real Consultation Data',
-            lastUpdate: new Date().toISOString(),
-            realDebtAnalysis: true
-          };
-          
-          console.log('✅ Using REAL debt data for PROW IMPORTADORA:');
-          console.log('   - Score: 569 (Poor)');
-          console.log('   - Debts: R$ 3.417,00 confirmed');
-          console.log('   - Risk: HIGH due to confirmed debts');
-          
-          return { data: prowData };
-        }
-        
-        throw new Error('CNPJá API failed and no fallback data available');
-      }
-    } catch (error) {
-      console.error('❌ CNPJá Credit API error:', error);
-      throw error;
-    }
+      companyName: 'Análise Temporariamente Indisponível',
+      companyStatus: 'Em processamento',
+      foundedDate: null,
+      equity: 0,
+      
+      dataSource: 'MOCK_DATA_INTERFACE_PRESERVED',
+      lastUpdate: new Date().toISOString(),
+      analysisDisabled: true
+    };
+    
+    return { data: mockCreditData };
   }
 
   // Helper functions for enhanced credit analysis
@@ -6273,374 +6082,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function checkForDebtIndicators(cnpjaData: any): boolean {
-    console.log('🔍 Checking debt indicators in CNPJá estabelecimentos data...');
-    
-    // Check for Simples Nacional debt issues (from estabelecimentos endpoint)
-    if (cnpjaData.simples) {
-      const simples = cnpjaData.simples;
-      console.log('💰 Simples Nacional analysis:', JSON.stringify(simples, null, 2));
-      
-      if (simples.optant === false && simples.reason) {
-        const reason = simples.reason;
-        if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA') || reason.includes('IRREGULAR')) {
-          console.log('🚨 DÉBITO NO SIMPLES NACIONAL ENCONTRADO:', reason);
-          return true;
-        }
-      }
-    }
-    
-    // Check company registration status for debt-related issues
-    if (cnpjaData.status) {
-      console.log('🏢 Company status analysis:', JSON.stringify(cnpjaData.status, null, 2));
-      
-      if (cnpjaData.status.id === 3) { // Suspensa
-        console.log('🚨 EMPRESA SUSPENSA - Forte indicador de débitos');
-        return true;
-      }
-      
-      if (cnpjaData.status.id === 4) { // Inapta
-        console.log('🚨 EMPRESA INAPTA - Indicador de problemas fiscais');
-        return true;
-      }
-      
-      if (cnpjaData.status.id === 8) { // Baixada
-        console.log('🚨 EMPRESA BAIXADA - Possível indicador de problemas graves');
-        return true;
-      }
-    }
-    
-    // Check state registrations for irregularities
-    if (cnpjaData.registrations && Array.isArray(cnpjaData.registrations)) {
-      console.log('📋 State registrations analysis:', cnpjaData.registrations.length, 'registrations');
-      
-      for (const registration of cnpjaData.registrations) {
-        if (registration.status && registration.status !== 'ATIVO') {
-          console.log('🚨 REGISTRO ESTADUAL IRREGULAR:', registration.state, '-', registration.status);
-          return true;
-        }
-      }
-    }
-    
-    // Log what we're analyzing
-    console.log('📊 Complete analysis results:');
-    console.log('   - Status ID:', cnpjaData.status?.id);
-    console.log('   - Status Text:', cnpjaData.status?.text);
-    console.log('   - Simples Optant:', cnpjaData.simples?.optant);
-    console.log('   - Simples Reason:', cnpjaData.simples?.reason);
-    console.log('   - Registrations Count:', cnpjaData.registrations?.length || 0);
-    
-    return false; // No debt indicators found in available data
+    console.log('📋 Debt analysis disabled - returning false for interface compatibility');
+    return false; // Always return false since analysis is disabled
   }
 
   function extractDebtDetails(cnpjaData: any): any[] | null {
-    const debts = [];
-    
-    // Extract Simples Nacional debt details (from estabelecimentos endpoint)
-    if (cnpjaData.simples && cnpjaData.simples.optant === false && cnpjaData.simples.reason) {
-      const reason = cnpjaData.simples.reason;
-      if (reason.includes('DÉBITO') || reason.includes('DIVIDA') || reason.includes('PENDÊNCIA') || reason.includes('IRREGULAR')) {
-        debts.push({
-          type: 'SIMPLES_NACIONAL',
-          description: reason,
-          status: 'PENDENTE',
-          severity: 'ALTA',
-          date: cnpjaData.simples.since || 'Não informado',
-          source: 'Receita Federal via CNPJá Estabelecimentos'
-        });
-        console.log('📋 Débito Simples Nacional extraído:', reason);
-      }
-    }
-    
-    // Extract status-based debt indicators
-    if (cnpjaData.status) {
-      if (cnpjaData.status.id === 3) { // Suspensa
-        debts.push({
-          type: 'STATUS_EMPRESA',
-          description: 'Empresa com situação cadastral SUSPENSA',
-          status: 'ATIVO',
-          severity: 'ALTA',
-          details: cnpjaData.status.text,
-          since: cnpjaData.status.since || 'Não informado',
-          source: 'Receita Federal via CNPJá'
-        });
-        console.log('📋 Status suspenso extraído');
-      }
-      
-      if (cnpjaData.status.id === 4) { // Inapta
-        debts.push({
-          type: 'STATUS_EMPRESA',
-          description: 'Empresa com situação cadastral INAPTA',
-          status: 'ATIVO',
-          severity: 'MEDIA',
-          details: cnpjaData.status.text,
-          since: cnpjaData.status.since || 'Não informado',
-          source: 'Receita Federal via CNPJá'
-        });
-        console.log('📋 Status inapto extraído');
-      }
-      
-      if (cnpjaData.status.id === 8) { // Baixada
-        debts.push({
-          type: 'STATUS_EMPRESA',
-          description: 'Empresa com situação cadastral BAIXADA',
-          status: 'ATIVO',
-          severity: 'CRITICA',
-          details: cnpjaData.status.text,
-          since: cnpjaData.status.since || 'Não informado',
-          source: 'Receita Federal via CNPJá'
-        });
-        console.log('📋 Status baixado extraído');
-      }
-    }
-    
-    // Extract state registration irregularities
-    if (cnpjaData.registrations && Array.isArray(cnpjaData.registrations)) {
-      cnpjaData.registrations.forEach((registration: any) => {
-        if (registration.status && registration.status !== 'ATIVO') {
-          debts.push({
-            type: 'REGISTRO_ESTADUAL',
-            description: `Registro estadual irregular em ${registration.state}`,
-            status: registration.status,
-            severity: 'MEDIA',
-            state: registration.state,
-            number: registration.number,
-            source: 'SEFAZ via CNPJá'
-          });
-          console.log('📋 Registro estadual irregular extraído:', registration.state, registration.status);
-        }
-      });
-    }
-    
-    console.log(`📋 Total de ${debts.length} indicadores de débito/problemas extraídos dos dados reais da CNPJá`);
-    return debts.length > 0 ? debts : null;
+    console.log('📋 Debt extraction disabled - returning null for interface compatibility');
+    return null; // Always return null since analysis is disabled
   }
 
   function checkForProtestIndicators(cnpjaData: any): boolean {
-    // Check real protest data from CNPJá registrations field
-    const registrations = cnpjaData.registrations || {};
-    if (registrations.protests && registrations.protests.length > 0) {
-      console.log('🚨 PROTESTOS REAIS ENCONTRADOS:', registrations.protests.length, 'registros');
-      return true;
-    }
-    
-    // Legacy check for protests in status text
-    if (cnpjaData.status?.text?.includes('PROTEST')) return true;
-    return false;
+    console.log('📋 Protest analysis disabled - returning false for interface compatibility');
+    return false; // Always return false since analysis is disabled
   }
 
   function extractProtestDetails(cnpjaData: any): any[] | null {
-    return null; // Would need commercial CNPJá plan
+    console.log('📋 Protest extraction disabled - returning null for interface compatibility');
+    return null; // Always return null since analysis is disabled
   }
 
   function checkForLawsuitIndicators(cnpjaData: any): boolean {
-    // Check real lawsuit data from CNPJá lawsuits field
-    const lawsuits = cnpjaData.lawsuits || [];
-    if (lawsuits && lawsuits.length > 0) {
-      console.log('🚨 PROCESSOS JUDICIAIS REAIS ENCONTRADOS:', lawsuits.length, 'registros');
-      return true;
-    }
-    
-    // Check registrations for legal issues
-    const registrations = cnpjaData.registrations || {};
-    if (registrations.legal && registrations.legal.length > 0) {
-      console.log('🚨 QUESTÕES LEGAIS ENCONTRADAS:', registrations.legal.length, 'registros');
-      return true;
-    }
-    
-    return false;
+    console.log('📋 Lawsuit analysis disabled - returning false for interface compatibility');
+    return false; // Always return false since analysis is disabled
   }
 
   function extractLawsuitDetails(cnpjaData: any): any[] | null {
-    const lawsuits = [];
-    
-    // Extract real lawsuit data from CNPJá lawsuits field
-    const lawsuitData = cnpjaData.lawsuits || [];
-    lawsuitData.forEach((lawsuit: any) => {
-      lawsuits.push({
-        type: 'PROCESSO_JUDICIAL',
-        description: lawsuit.description || 'Processo judicial em andamento',
-        court: lawsuit.court || 'Não informado',
-        status: lawsuit.status || 'ATIVO',
-        value: lawsuit.value || 'Não informado',
-        date: lawsuit.date || 'Não informado',
-        source: 'CNPJá Real Data'
-      });
-    });
-    
-    // Extract legal issues from registrations if available
-    const registrations = cnpjaData.registrations || {};
-    if (registrations.legal) {
-      registrations.legal.forEach((legal: any) => {
-        lawsuits.push({
-          type: 'QUESTAO_LEGAL',
-          description: legal.description || 'Questão legal registrada',
-          status: legal.status || 'ATIVA',
-          source: 'CNPJá Real Data'
-        });
-      });
-    }
-    
-    console.log(`📋 Extraídos ${lawsuits.length} registros de processos judiciais reais da CNPJá`);
-    return lawsuits.length > 0 ? lawsuits : null;
+    console.log('📋 Lawsuit extraction disabled - returning null for interface compatibility');
+    return null; // Always return null since analysis is disabled
   }
 
 
 
-  // Helper functions for credit analysis
+  // Helper functions for credit analysis - disabled for API transition
   function calculateCreditRatingFromCnpja(cnpjaData: any): string {
-    const status = cnpjaData.status?.id;
-    const hasSimples = cnpjaData.company?.simples?.optant;
-    const equity = cnpjaData.company?.equity || 0;
-    
-    if (status === 2) return 'EXCELLENT'; // ATIVA
-    if (status === 3) return 'POOR'; // SUSPENSA
-    if (status === 8) return 'VERY_POOR'; // BAIXADA
-    
-    if (hasSimples && equity > 100000) return 'GOOD';
-    if (hasSimples) return 'FAIR';
-    
-    return 'FAIR';
+    console.log('📋 Credit rating calculation disabled - returning PENDING_ANALYSIS for interface compatibility');
+    return 'PENDING_ANALYSIS'; // Neutral rating for interface display
   }
 
   function calculateBankingScore(cnpjaData: any): number {
-    console.log('🎯 Calculating banking score - analyzing real debt situation...');
-    
-    let score = 600; // Base score
-    
-    // CRITICAL: Check for real debt indicators first (this is what was missing!)
-    const hasDebts = checkForDebtIndicators(cnpjaData);
-    if (hasDebts) {
-      console.log('🚨 REAL DEBTS DETECTED - Major score penalty applied');
-      score -= 300; // Major penalty for confirmed debts
-    }
-    
-    // Company age bonus
-    if (cnpjaData.company?.founded) {
-      const founded = new Date(cnpjaData.company.founded);
-      const years = (new Date().getTime() - founded.getTime()) / (1000 * 60 * 60 * 24 * 365);
-      score += Math.min(years * 20, 200); // Max 200 points for age
-      console.log(`📅 Company age: ${years.toFixed(1)} years - Score bonus: +${Math.min(years * 20, 200)}`);
-    }
-    
-    // Equity analysis
-    const equity = cnpjaData.company?.equity || cnpjaData.equity || 0;
-    if (equity > 1000000) {
-      score += 100;
-      console.log(`💰 High equity (${equity}) - Score bonus: +100`);
-    } else if (equity > 100000) {
-      score += 50;
-      console.log(`💰 Medium equity (${equity}) - Score bonus: +50`);
-    } else if (equity > 10000) {
-      score += 25;
-      console.log(`💰 Low equity (${equity}) - Score bonus: +25`);
-    } else {
-      console.log(`💰 Very low equity (${equity}) - No bonus`);
-    }
-    
-    // Status penalties (company registration issues)
-    if (cnpjaData.status?.id === 3) {
-      score -= 200; // SUSPENSA
-      console.log('🚨 Company SUSPENDED - Score penalty: -200');
-    }
-    if (cnpjaData.status?.id === 4) {
-      score -= 150; // INAPTA
-      console.log('🚨 Company INACTIVE - Score penalty: -150');
-    }
-    if (cnpjaData.status?.id === 8) {
-      score -= 400; // BAIXADA
-      console.log('❌ Company CLOSED - Score penalty: -400');
-    }
-    
-    // Simples Nacional analysis
-    if (cnpjaData.simples?.optant === true) {
-      score += 50;
-      console.log('✅ Simples Nacional participant - Score bonus: +50');
-    } else if (cnpjaData.simples?.optant === false && cnpjaData.simples?.reason) {
-      score -= 100; // Excluded from Simples for problems
-      console.log('🚨 Excluded from Simples Nacional - Score penalty: -100');
-    }
-    
-    const finalScore = Math.min(Math.max(score, 0), 1000);
-    console.log(`🎯 Final calculated score: ${finalScore}`);
-    
-    return finalScore;
+    console.log('📋 Banking score calculation disabled - returning neutral score for interface compatibility');
+    return 750; // Neutral score for interface display
   }
 
   function analyzeFinancialProfile(cnpjaData: any): string {
-    const equity = cnpjaData.company?.equity || 0;
-    const isSimples = cnpjaData.company?.simples?.optant;
-    
-    if (equity > 5000000) return 'LARGE_CORPORATE';
-    if (equity > 1000000) return 'MEDIUM_CORPORATE';
-    if (equity > 100000) return 'SMALL_BUSINESS';
-    if (isSimples) return 'MICRO_BUSINESS';
-    
-    return 'STARTUP';
+    console.log('📋 Financial profile analysis disabled - returning PENDING_ANALYSIS for interface compatibility');
+    return 'PENDING_ANALYSIS'; // Neutral profile for interface display
   }
 
   function calculateRiskLevel(cnpjaData: any): string {
-    console.log('⚠️ Calculating risk level based on real data...');
-    
-    // CRITICAL: Check for real debts first
-    const hasDebts = checkForDebtIndicators(cnpjaData);
-    if (hasDebts) {
-      console.log('🚨 DEBTS DETECTED - Risk level: HIGH');
-      return 'HIGH';
-    }
-    
-    const status = cnpjaData.status?.id;
-    const equity = cnpjaData.company?.equity || cnpjaData.equity || 0;
-    
-    if (status === 8) {
-      console.log('❌ Company CLOSED - Risk level: CRITICAL');
-      return 'CRITICAL'; // Changed from HIGH to CRITICAL for closed companies
-    }
-    
-    if (status === 3 || status === 4) {
-      console.log('🚨 Company SUSPENDED/INACTIVE - Risk level: HIGH');
-      return 'HIGH';
-    }
-    
-    if (status === 2) { // ATIVA
-      if (equity > 500000) {
-        console.log('✅ Active company with good equity - Risk level: LOW');
-        return 'LOW';
-      } else {
-        console.log('⚠️ Active company with low equity - Risk level: MEDIUM');
-        return 'MEDIUM';
-      }
-    }
-    
-    console.log('⚠️ Unknown status - Default risk level: MEDIUM');
-    return 'MEDIUM';
+    console.log('📋 Risk level calculation disabled - returning MEDIUM for interface compatibility');
+    return 'MEDIUM'; // Neutral risk level for interface display
   }
 
   function enhanceCreditScore(receitaScore: number, creditApiData: any): number {
-    let enhancedScore = receitaScore;
-    
-    if (creditApiData?.data) {
-      const data = creditApiData.data;
-      
-      // Adjust score based on credit API findings
-      if (data.hasDebts) enhancedScore -= 150;
-      if (data.hasProtests) enhancedScore -= 200;
-      if (data.hasBankruptcy) enhancedScore -= 300;
-      if (data.hasLawsuits) enhancedScore -= 100;
-      
-      // Bonus for good payment behavior
-      if (data.paymentBehavior === 'EXCELLENT') enhancedScore += 100;
-      else if (data.paymentBehavior === 'GOOD') enhancedScore += 50;
-      else if (data.paymentBehavior === 'POOR') enhancedScore -= 100;
-      
-      // Banking score influence
-      if (data.bankingScore) {
-        if (data.bankingScore >= 800) enhancedScore += 50;
-        else if (data.bankingScore <= 400) enhancedScore -= 50;
-      }
-    }
-    
-    // Ensure score stays within bounds
-    return Math.min(Math.max(enhancedScore, 0), 1000);
+    console.log('📋 Credit score enhancement disabled - returning neutral score for interface compatibility');
+    return 750; // Neutral enhanced score for interface display
   }
 
   // Register imports routes

@@ -65,40 +65,20 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
   }, [application.id]);
 
   const handleConsultar = async () => {
-    setIsLoading(true);
-    try {
-      console.log('🔍 Starting Credit Score consultation for application:', application.id);
-      const response = await apiRequest(`/api/credit/applications/${application.id}/credit-score`, 'POST');
-      console.log('✅ Credit Score response received:', response);
-      
-      setCreditScore(response);
+    if (!permissions.isAdmin) {
       toast({
-        title: "Análise concluída",
-        description: "Credit Score calculado com sucesso",
+        title: "Acesso negado",
+        description: "Análise de crédito disponível apenas para administradores",
+        variant: "destructive"
       });
-      
-      // Invalidate credit applications cache to refresh the list and details
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/credit/applications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/credit-applications/${application.id}`] });
-      
-      // Force re-render by updating the component state
-      console.log('🔄 Credit Score state updated, component should re-render');
-    } catch (error: any) {
-      console.error('❌ Credit Score API error:', error);
-      const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";
-      const errorDetails = error.response?.data?.details || "";
-      
-      toast({
-        title: errorMessage,
-        description: errorDetails,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    toast({
+      title: "Análise temporariamente indisponível",
+      description: "Sistema de análise de crédito em manutenção. Aguarde nova integração.",
+      variant: "destructive"
+    });
   };
 
   const handleDownloadPDF = async () => {
@@ -186,32 +166,19 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         </CardHeader>
         <CardContent>
           {!creditScore ? (
-            permissions.isAdmin ? (
-              <Button 
-                onClick={handleConsultar}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-              >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Consultando...
-                  </>
-                ) : (
-                  <>
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    Consultar Credit Score
-                  </>
-                )}
-              </Button>
-            ) : (
-              <div className="text-center text-gray-500">
-                <Shield className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">
-                  Análise de crédito disponível apenas para administradores
-                </p>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-blue-800">
+                    Sistema de Análise de Crédito Temporariamente Indisponível
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Aguarde nova integração com fornecedores de dados de crédito
+                  </p>
+                </div>
               </div>
-            )
+            </div>
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-sm text-gray-600">
