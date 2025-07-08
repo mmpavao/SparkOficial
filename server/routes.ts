@@ -6151,7 +6151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🏢 Calling DirectD Cadastro API for CNPJ:', cnpj);
       
       const cleanCnpj = cnpj.replace(/[^\d]/g, '');
-      const response = await fetch(`https://app.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_CADASTRO_TOKEN}`, {
+      const response = await fetch(`https://apiv3.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_CADASTRO_TOKEN}`, {
         method: 'GET',
         headers: {
           'Accept': '*/*',
@@ -6159,14 +6159,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ DirectD Cadastro API HTTP error:', response.status, errorText);
-        throw new Error(`DirectD Cadastro API HTTP error: ${response.status}`);
-      }
-
       const result = await response.json();
       console.log('✅ DirectD Cadastro API response received');
+      
+      // Check if API returned error in metaDados
+      if (result.metaDados && result.metaDados.resultadoId !== 1) {
+        console.log('⚠️ DirectD Cadastro API returned error:', result.metaDados.mensagem);
+        return {
+          status: 'ERROR',
+          message: result.metaDados.mensagem || 'API Error',
+          resultadoId: result.metaDados.resultadoId
+        };
+      }
+
+      // If successful, return the structured data
+      if (result.retorno) {
+        return {
+          status: 'SUCCESS',
+          data: result.retorno,
+          metaDados: result.metaDados
+        };
+      }
       
       return result;
     } catch (error) {

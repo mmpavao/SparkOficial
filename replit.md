@@ -933,6 +933,13 @@ Changelog:
   * Requires user verification of token validity and possible API endpoint corrections
   * System maintains fallback to Receita WS API which continues functioning correctly
   * Button labels updated to remove API names as requested (now shows "Consultar Credit Score")
+- July 08, 2025. DirectD CNPJ Plus API successfully integrated:
+  * Fixed API URL from app.directd.com.br to apiv3.directd.com.br based on official documentation
+  * Implemented proper error handling for metaDados.resultadoId responses
+  * API now returns valid JSON data with complete company information including razão social, CNAE, address, partners
+  * Added structured response handling for SUCCESS/ERROR status with proper data formatting
+  * Tested successfully with valid CNPJ returning authentic Brazilian company data
+  * CNPJ Plus API integration completed and functional - ready for production use
 ```
 
 ## User Preferences
