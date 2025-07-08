@@ -71,6 +71,12 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
       queryClient.invalidateQueries({ queryKey: ['/api/financeira/credit-applications'] });
       queryClient.invalidateQueries({ queryKey: [`/api/credit/applications/${application.id}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/admin/credit-applications/${application.id}`] });
+      
+      // Force refetch all credit applications to show score immediately
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/admin/credit-applications'] });
+        queryClient.refetchQueries({ queryKey: ['/api/credit/applications'] });
+      }, 500);
     } catch (error: any) {
       console.error('Credit Score API error:', error);
       const errorMessage = error.response?.data?.message || error.message || "Não foi possível consultar o Credit Score";
@@ -373,26 +379,50 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <FileText className="w-5 h-5 flex-shrink-0" />
-                Análise de Crédito
+                Análise de Risco Creditício
               </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">
+                Dados obtidos via DirectD - Órgãos oficiais brasileiros
+              </p>
             </CardHeader>
             <CardContent className="pt-2">
               <div className="space-y-4">
+                {/* Score Summary */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-blue-900">Resumo da Análise</span>
+                    <Badge className={`${getScoreColor(creditScore.creditScore)}`}>
+                      Score: {creditScore.creditScore}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-blue-700">
+                    {creditScore.creditScore >= 600 
+                      ? "Empresa apresenta baixo risco creditício com perfil adequado para operações comerciais."
+                      : "Empresa apresenta risco moderado. Análise detalhada recomendada antes da aprovação."
+                    }
+                  </p>
+                </div>
+
                 {/* Payment Capacity */}
                 {creditScore.capacidadePagamento && (
-                  <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                     <div className="flex items-center gap-2 mb-1">
-                      <DollarSign className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-900">Capacidade de Pagamento</span>
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-900">Capacidade de Pagamento</span>
                     </div>
-                    <p className="text-sm text-blue-700">{creditScore.capacidadePagamento}</p>
+                    <p className="text-sm text-emerald-700">{creditScore.capacidadePagamento}</p>
                   </div>
                 )}
 
                 {/* Risk Indicators */}
                 <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Indicadores de Restrição</h4>
+                  
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium">Débitos</span>
+                    <div>
+                      <span className="text-sm font-medium">Débitos em Aberto</span>
+                      <p className="text-xs text-gray-500">Dívidas não quitadas em órgãos oficiais</p>
+                    </div>
                     {creditScore.hasDebts ? (
                       <Badge className="bg-red-100 text-red-700">
                         <XCircle className="w-3 h-3 mr-1" />
@@ -401,13 +431,16 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     ) : (
                       <Badge className="bg-green-100 text-green-700">
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
+                        Nenhum
                       </Badge>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium">Protestos</span>
+                    <div>
+                      <span className="text-sm font-medium">Protestos Cartoriais</span>
+                      <p className="text-xs text-gray-500">Títulos protestados em cartórios</p>
+                    </div>
                     {creditScore.hasProtests ? (
                       <Badge className="bg-red-100 text-red-700">
                         <XCircle className="w-3 h-3 mr-1" />
@@ -416,13 +449,16 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     ) : (
                       <Badge className="bg-green-100 text-green-700">
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
+                        Nenhum
                       </Badge>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium">Falência</span>
+                    <div>
+                      <span className="text-sm font-medium">Processos de Falência</span>
+                      <p className="text-xs text-gray-500">Pedidos de falência ou recuperação judicial</p>
+                    </div>
                     {creditScore.hasBankruptcy ? (
                       <Badge className="bg-red-100 text-red-700">
                         <XCircle className="w-3 h-3 mr-1" />
@@ -431,13 +467,16 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     ) : (
                       <Badge className="bg-green-100 text-green-700">
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
+                        Nenhum
                       </Badge>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium">Processos Judiciais</span>
+                    <div>
+                      <span className="text-sm font-medium">Ações Judiciais</span>
+                      <p className="text-xs text-gray-500">Processos em andamento nos tribunais</p>
+                    </div>
                     {creditScore.hasLawsuits ? (
                       <Badge className="bg-red-100 text-red-700">
                         <XCircle className="w-3 h-3 mr-1" />
@@ -446,7 +485,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     ) : (
                       <Badge className="bg-green-100 text-green-700">
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        Não possui
+                        Nenhum
                       </Badge>
                     )}
                   </div>
@@ -455,30 +494,51 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 {/* Business Indicators */}
                 {creditScore.indicadoresNegocio && Array.isArray(creditScore.indicadoresNegocio) && creditScore.indicadoresNegocio.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Indicadores de Negócio</h4>
-                    <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Comportamento Comercial</h4>
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 mb-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-amber-800 font-medium">Diferença entre indicadores:</p>
+                          <p className="text-xs text-amber-700 mt-1">
+                            • <strong>Débitos em Aberto:</strong> Dívidas oficiais não quitadas<br/>
+                            • <strong>Atrasos em Contratos:</strong> Histórico de pagamentos em atraso (não significa débito atual)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
                       {creditScore.indicadoresNegocio.map((indicator, index) => (
-                        <div key={index} className="flex flex-col gap-1 p-3 bg-gray-50 rounded">
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium">
-                              {typeof indicator === 'object' ? indicator.indicador : indicator}
-                            </span>
+                        <div key={index} className="p-3 bg-white border rounded-lg">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <TrendingUp className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  {typeof indicator === 'object' ? indicator.indicador : indicator}
+                                </span>
+                              </div>
+                              {typeof indicator === 'object' && indicator.status && (
+                                <p className="text-xs text-gray-600 ml-6 mb-2">{indicator.status}</p>
+                              )}
+                              {typeof indicator === 'object' && indicator.observacao && (
+                                <p className="text-xs text-blue-700 ml-6 bg-blue-50 p-2 rounded">
+                                  💡 {indicator.observacao}
+                                </p>
+                              )}
+                            </div>
+                            {typeof indicator === 'object' && indicator.risco && (
+                              <Badge 
+                                className={`text-xs flex-shrink-0 ${
+                                  indicator.risco === 'Baixo' ? 'bg-green-100 text-green-700' :
+                                  indicator.risco === 'Médio' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}
+                              >
+                                {indicator.risco}
+                              </Badge>
+                            )}
                           </div>
-                          {typeof indicator === 'object' && indicator.status && (
-                            <p className="text-xs text-gray-600 ml-6">{indicator.status}</p>
-                          )}
-                          {typeof indicator === 'object' && indicator.risco && (
-                            <Badge 
-                              className={`ml-6 text-xs ${
-                                indicator.risco === 'Baixo' ? 'bg-green-100 text-green-700' :
-                                indicator.risco === 'Médio' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
-                              }`}
-                            >
-                              Risco: {indicator.risco}
-                            </Badge>
-                          )}
                         </div>
                       ))}
                     </div>
