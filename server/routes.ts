@@ -3376,9 +3376,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Step 4: Process real DirectD Score API data - fallback to Receita WS only if no score
       if (scoreApiData?.status === 'SUCCESS' || receitaData || cadastroApiData?.status === 'SUCCESS') {
         if (scoreApiData?.status === 'SUCCESS') {
-          console.log('Processing real DirectD Score API data:', JSON.stringify(scoreApiData.data, null, 2));
+          console.log('✅ Processing real DirectD Score API data - SUCCESS detected');
         } else {
-          console.log('No DirectD Score API data - using Receita WS or Cadastro API only');
+          console.log('⚠️ No DirectD Score API data - using Receita WS or Cadastro API only');
         }
         
         // Extract real credit score from DirectD QUOD API
@@ -3460,7 +3460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         creditScoreData = {
           creditApplicationId: applicationId,
           cnpj: application.cnpj,
-          creditScore: calculatedScore,
+          creditScore: calculatedScore || 0, // Ensure never NULL
           scoreDate: new Date(),
           locationPhoto: locationPhotoUrl,
           // Company data from DirectD Cadastro API or Receita WS fallback
@@ -6190,8 +6190,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('✅ DirectD Score API response received');
       console.log('Raw API response:', JSON.stringify(result, null, 2));
       
-      // Check if API returned error in metaDados
-      if (result.metaDados && result.metaDados.resultadoId !== 'SUCCESS') {
+      // Check if API returned error in metaDados (1 = success, not "SUCCESS")
+      if (result.metaDados && result.metaDados.resultadoId !== 1) {
         console.log('⚠️ DirectD Score API returned error:', result.metaDados.mensagem);
         return {
           status: 'ERROR',
@@ -6203,7 +6203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If successful, return the structured data
       return {
         status: 'SUCCESS',
-        data: result.data || result.retorno || result,
+        data: result,
         metaDados: result.metaDados
       };
       
