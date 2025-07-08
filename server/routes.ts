@@ -3589,35 +3589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Helper function to calculate credit score based on company data
-  function calculateCreditScore(receitaData: any): number {
-    let score = 600; // Base score
-    
-    // Add points for active status
-    if (receitaData.situacao === 'ATIVA') score += 100;
-    
-    // Add points based on company age
-    if (receitaData.abertura) {
-      const ageYears = (new Date().getFullYear() - new Date(receitaData.abertura).getFullYear());
-      if (ageYears > 10) score += 100;
-      else if (ageYears > 5) score += 50;
-      else if (ageYears > 2) score += 25;
-    }
-    
-    // Add points based on capital
-    if (receitaData.capital_social) {
-      const capital = parseFloat(receitaData.capital_social);
-      if (capital > 1000000) score += 100;
-      else if (capital > 500000) score += 50;
-      else if (capital > 100000) score += 25;
-    }
-    
-    // Add points for having partners
-    if (receitaData.qsa && receitaData.qsa.length > 0) score += 50;
-    
-    // Ensure score is within bounds
-    return Math.min(Math.max(score, 0), 1000);
-  }
+
   
   // Helper function to format currency
   function formatCurrency(value: string | number): string {

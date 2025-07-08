@@ -1,0 +1,113 @@
+Credit Score
+Baixo
+0
+250
+500
+750
+1000
+368
+Dados da Empresa
+Razão Social
+
+PROW IMPORTADORA E DISTRIBUIDORA DE PRODUTOS PARA SAUDE LTDA
+
+Nome Fantasia
+
+PROW MEDICAMENTOS
+
+Status
+
+Ativa
+Capital Social
+
+Não informado
+
+Data de Abertura
+
+07/02/1991
+
+Endereço
+COMTIPO R JOAO RAMALHO, 59, CENTRO
+
+SAO BERNARDO DO CAMPO, SP
+
+CEP: 09715-360
+
+Contato
+(11) 91173-3178
+financeiro@prowmedicamentos.com.br
+Atividades Econômicas (CNAE)
+Atividade Principal
+
+4644301 - Comércio Atacadista de Medicamentos E Drogas de Uso Humano
+
+Atividades Secundárias
+
+4618401 - Representantes Comerciais E Agentes do Comércio de Medicamentos, Cosméticos E Produtos de Perfumaria
+
+4637199 - Comércio Atacadista Especializado em Outros Produtos Alimentícios Não Especificados Anteriormente
+
+4639701 - Comércio Atacadista de Produtos Alimentícios em Geral
+
+4644302 - Comércio Atacadista de Medicamentos E Drogas de Uso Veterinário
+
+4645101 - Comércio Atacadista de Instrumentos E Materiais para Uso Médico, Cirúrgico, Hospitalar E de Laboratórios
+
+4645103 - Comércio Atacadista de Produtos Odontológicos
+
+4646001 - Comércio Atacadista de Cosméticos E Produtos de Perfumaria
+
+4646002 - Comércio Atacadista de Produtos de Higiene Pessoal
+
+4649408 - Comércio Atacadista de Produtos de Higiene, Limpeza E Conservação Domiciliar
+
+4664800 - Comércio Atacadista de Máquinas, Aparelhos E Equipamentos para Uso Odonto-Médico-Hospitalar, Partes E Peças
+
+4689399 - Comércio Atacadista Especializado em Outros Produtos Intermediários Não Especificados Anteriormente
+
+7319002 - Promoção de Vendas
+
+Sócios
+Rosana Aparecida Fabiano
+
+Sócio Administrador
+
+Entrada: Invalid Date
+
+Fermino do Espirito Santo Neto
+
+Sócio Administrador
+
+Entrada: Invalid Date
+
+Kelly Cristina Fabiano Ribeiro
+
+Sócio Administrador
+
+Entrada: 02/08/2024
+
+Análise de Crédito
+Débitos
+Possui
+Protestos
+Não possui
+Falência
+Não possui
+Processos Judiciais
+Não possui
+Análise Avançada de Crédito
+Nível de Risco
+CRITICAL
+Fonte dos Dados
+CNPJá API
+Pública
+Última Atualização
+07/07/2025, 22:34:49
+Resumo de Risco Financeiro
+Score de Risco Geral
+Baixo
+368/1000
+3
+Indicadores Positivos
+1
+Alertas de Risco

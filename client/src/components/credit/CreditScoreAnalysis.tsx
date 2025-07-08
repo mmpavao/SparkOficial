@@ -571,8 +571,8 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardContent>
           </Card>
 
-          {/* Enhanced Credit Analysis from Credit API */}
-          {((creditScore as any).creditRating || (creditScore as any).bankingScore || (creditScore as any).paymentBehavior || (creditScore as any).riskLevel) && (
+          {/* DirectD QUOD Score Analysis */}
+          {(creditScore as any).riskLevel && (creditScore as any).riskLevel !== 'PENDING_ANALYSIS' && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -582,59 +582,22 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardHeader>
               <CardContent className="pt-2">
                 <div className="space-y-3">
-                  {(creditScore as any).creditRating && (creditScore as any).creditRating !== 'Não informado' && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium">Rating de Crédito</span>
-                      <Badge className="bg-blue-100 text-blue-700">
-                        {(creditScore as any).creditRating}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {(creditScore as any).bankingScore && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium">Score Bancário</span>
-                      <Badge className="bg-blue-100 text-blue-700">
-                        {(creditScore as any).bankingScore}/1000
-                      </Badge>
-                    </div>
-                  )}
-
-                  {(creditScore as any).paymentBehavior && (creditScore as any).paymentBehavior !== 'Não informado' && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium">Comportamento de Pagamento</span>
-                      <Badge className={`${
-                        (creditScore as any).paymentBehavior === 'EXCELLENT' ? 'bg-green-100 text-green-700' :
-                        (creditScore as any).paymentBehavior === 'GOOD' ? 'bg-blue-100 text-blue-700' :
-                        (creditScore as any).paymentBehavior === 'POOR' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {(creditScore as any).paymentBehavior === 'EXCELLENT' ? 'Excelente' :
-                         (creditScore as any).paymentBehavior === 'GOOD' ? 'Bom' :
-                         (creditScore as any).paymentBehavior === 'POOR' ? 'Ruim' :
-                         (creditScore as any).paymentBehavior}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {(creditScore as any).riskLevel && (creditScore as any).riskLevel !== 'Não informado' && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium">Nível de Risco</span>
-                      <Badge className={`${
-                        (creditScore as any).riskLevel === 'LOW' ? 'bg-green-100 text-green-700' :
-                        (creditScore as any).riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
-                        (creditScore as any).riskLevel === 'HIGH' ? 'bg-orange-100 text-orange-700' :
-                        (creditScore as any).riskLevel === 'VERY_HIGH' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {(creditScore as any).riskLevel === 'LOW' ? 'Baixo' :
-                         (creditScore as any).riskLevel === 'MEDIUM' ? 'Médio' :
-                         (creditScore as any).riskLevel === 'HIGH' ? 'Alto' :
-                         (creditScore as any).riskLevel === 'VERY_HIGH' ? 'Muito Alto' :
-                         (creditScore as any).riskLevel}
-                      </Badge>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <span className="text-sm font-medium">Nível de Risco</span>
+                    <Badge className={`${
+                      (creditScore as any).riskLevel === 'LOW' ? 'bg-green-100 text-green-700' :
+                      (creditScore as any).riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                      (creditScore as any).riskLevel === 'HIGH' ? 'bg-orange-100 text-orange-700' :
+                      (creditScore as any).riskLevel === 'CRITICAL' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {(creditScore as any).riskLevel === 'LOW' ? 'Baixo' :
+                       (creditScore as any).riskLevel === 'MEDIUM' ? 'Médio' :
+                       (creditScore as any).riskLevel === 'HIGH' ? 'Alto' :
+                       (creditScore as any).riskLevel === 'CRITICAL' ? 'Crítico' :
+                       (creditScore as any).riskLevel}
+                    </Badge>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -680,53 +643,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardContent>
           </Card>
 
-          {/* Enhanced Financial Risk Summary */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Shield className="w-5 h-5 flex-shrink-0" />
-                Resumo de Risco Financeiro
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="space-y-4">
-                {/* Risk Score Visualization */}
-                <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 border border-green-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Score de Risco Geral</span>
-                    <Badge className={`${
-                      creditScore.creditScore >= 800 ? 'bg-green-100 text-green-700' :
-                      creditScore.creditScore >= 600 ? 'bg-blue-100 text-blue-700' :
-                      creditScore.creditScore >= 400 ? 'bg-yellow-100 text-yellow-700' :
-                      creditScore.creditScore >= 200 ? 'bg-orange-100 text-orange-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {getScoreLabel(creditScore.creditScore)}
-                    </Badge>
-                  </div>
-                  <div className="text-2xl font-bold text-center py-2">
-                    {creditScore.creditScore}/1000
-                  </div>
-                </div>
 
-                {/* Credit Indicators Summary */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {[!creditScore.hasDebts, !creditScore.hasProtests, !creditScore.hasBankruptcy, !creditScore.hasLawsuits].filter(Boolean).length}
-                    </div>
-                    <div className="text-xs text-gray-600">Indicadores Positivos</div>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">
-                      {[creditScore.hasDebts, creditScore.hasProtests, creditScore.hasBankruptcy, creditScore.hasLawsuits].filter(Boolean).length}
-                    </div>
-                    <div className="text-xs text-gray-600">Alertas de Risco</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Location Photo */}
           {creditScore?.locationPhoto && (

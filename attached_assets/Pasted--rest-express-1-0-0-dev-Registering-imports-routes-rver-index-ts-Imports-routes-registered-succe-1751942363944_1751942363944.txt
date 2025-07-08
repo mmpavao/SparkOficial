@@ -1,0 +1,197 @@
+
+> rest-express@1.0.0 dev
+Registering imports routes...rver/index.ts
+Imports routes registered successfully
+2:34:01 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: sN6zbhKwLKpYPC0dh3pybRPxwgYo-_kC, User ID: undefined
+2:34:09 AM [express] GET /api/auth/user 304 in 117ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:34:11 AM [express] GET /api/auth/user 304 in 375ms :: {"user":{"id":21,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+Auth check - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO User ID: 21
+[Session Debug] GET /api/notifications/unread-count - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:34:11 AM [express] GET /api/notifications 200 in 118ms
+Authentication successful for user: 21 Role: admin
+2:34:11 AM [express] GET /api/notifications/unread-count 200 in 131ms
+Fetching fresh admin metrics
+2:34:13 AM [express] GET /api/admin/dashboard/metrics 304 in 2287ms :: {"totalImporters":7,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:34:27 AM [express] GET /api/notifications/unread-count 200 in 485ms
+[Session Debug] GET /api/admin/credit-applications - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+Auth check - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO User ID: 21
+Authentication successful for user: 21 Role: admin
+Admin credit applications request - User: 21
+Current user role: admin
+Fetching fresh credit applications
+Found 4 credit applications
+2:34:38 AM [express] GET /api/admin/credit-applications 304 in 846ms :: [{"id":73,"userId":40,"legal…
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+Auth check - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO User ID: 21
+Authentication successful for user: 21 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+[Session Debug] GET /api/user/financial-settings - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+[Session Debug] GET /api/user/financial-settings - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+🔍 Fetching financial settings for user: 21
+👤 User data: {
+  id: 21,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+2:34:41 AM [express] GET /api/user/financial-settings 304 in 833ms :: {"adminFeePercentage":10,"down…
+2:34:41 AM [express] GET /api/admin/credit-applications/61 304 in 1056ms :: {"id":61,"userId":32,"le…
+[Session Debug] GET /api/notifications - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:34:41 AM [express] GET /api/notifications 200 in 120ms
+[Session Debug] GET /api/credit/applications/61/credit-score - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+Auth check - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO User ID: 21
+Authentication successful for user: 21 Role: admin
+[Session Debug] GET /api/notifications/unread-count - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:34:42 AM [express] GET /api/notifications/unread-count 200 in 126ms
+2:34:42 AM [express] GET /api/credit/applications/61/credit-score 404 in 756ms :: {"message":"Credit…
+[Session Debug] POST /api/credit/applications/61/credit-score - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+Auth check - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO User ID: 21
+Authentication successful for user: 21 Role: admin
+📊 Calling Receita WS API for CNPJ: 65484271000105
+✅ Receita WS API response received
+🏦 Calling DirectD QUOD Score API for CNPJ: 65484271000105
+DirectD Score API Response Status: 200
+✅ DirectD Score API response received
+Raw API response: {
+  "metaDados": {
+    "consultaNome": "Score de Crédito - QUOD",
+    "consultaUid": "direct-a63a40b2-ee54-4d56-9116-1fcbe8fd7017",
+    "chave": "CNPJ=65484271000105;",
+    "usuario": "Marcio Pavao",
+    "mensagem": "Sucesso",
+    "ip": "34.127.117.128",
+    "resultadoId": 1,
+    "resultado": "Sucesso",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": null,
+    "assincrono": false,
+    "data": "07/07/2025 23:34:47",
+    "tempoExecucaoMs": 884
+  },
+  "retorno": {
+    "dataConsulta": "07/07/2025 23:29:02",
+    "documentoConsultado": "65.484.271/0001-05",
+    "pessoaFisica": null,
+    "pessoaJuridica": {
+      "score": 368,
+      "faixaScore": "Alto índice de inadimplência",
+      "motivos": [
+        "Possui pouco volume de pagamentos em dia",
+        "Possui atrasos de parcelas/faturas em contratos recentes",
+        "Possui pouco volume de pagamentos em dia",
+        "Possui contratos com alto valor para quitação"
+      ],
+      "indicadoresNegocio": [
+        {
+          "indicador": "Pontualidade de Pagamento",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Gravidade (tempo) em Atrasos",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Uso Emergencial",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Endividamento Contrato e Credores",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Risco do Perfil de Contratação",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        }
+      ]
+    },
+    "observacao": null
+  }
+}
+✅ DirectD Score API data received successfully
+🏢 Calling DirectD Cadastro API for CNPJ: 65484271000105
+✅ DirectD Cadastro API response received
+✅ DirectD Cadastro API data received successfully
+✅ Processing real DirectD Score API data - SUCCESS detected
+🔍 Primary data keys: [
+  'cnpj',
+  'razaoSocial',
+  'nomeFantasia',
+  'dataFundacao',
+  'cnaeCodigo',
+  'cnaeDescricao',
+  'cnaEsSecundarios',
+  'situacaoCadastral',
+  'situacaoEspecial',
+  'naturezaJuridicaCodigo',
+  'naturezaJuridicaDescricao',
+  'naturezaJuridicaTipo',
+  'porte',
+  'faixaFuncionarios',
+  'quantidadeFuncionarios',
+  'faixaFaturamento',
+  'faturamentoMedioCNAE',
+  'faturamentoPresumido',
+  'matriz',
+  'orgaoPublico',
+  'ramo',
+  'tipoEmpresa',
+  'tributacao',
+  'opcaoMEI',
+  'opcaoSimples',
+  'quantidadeFiliais',
+  'telefones',
+  'enderecos',
+  'emails',
+  'ultimaAtualizacaoPJ',
+  'socios'
+]
+🔍 Date fields: {
+  dataFundacao: '08/02/1991 00:00:00',
+  abertura: undefined,
+  dataAbertura: undefined
+}
+2:34:49 AM [express] POST /api/credit/applications/61/credit-score 200 in 4025ms :: {"id":17,"credit…
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+Auth check - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO User ID: 21
+Authentication successful for user: 21 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+2:34:51 AM [express] GET /api/admin/credit-applications/61 200 in 1454ms :: {"id":61,"userId":32,"le…
+[Session Debug] GET /api/notifications/unread-count - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:34:57 AM [express] GET /api/notifications/unread-count 200 in 124ms
+[Session Debug] GET /api/notifications - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:35:12 AM [express] GET /api/notifications 200 in 476ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:35:12 AM [express] GET /api/notifications/unread-count 200 in 120ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
+2:35:28 AM [express] GET /api/notifications/unread-count 200 in 475ms
+[Session Debug] GET /api/notifications - Session ID: 21FPfSOodNZzOpo8vbLMnvdRoROwd0zO, User ID: 21
