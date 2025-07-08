@@ -3056,10 +3056,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('📊 DADOS PRINCIPAIS DO CADASTRO:');
             console.log('  - capitalSocial:', cadastroRetorno.capitalSocial);
             console.log('  - faturamentoPresumido:', cadastroRetorno.faturamentoPresumido);
-            console.log('  - dataInicioAtividade:', cadastroRetorno.dataInicioAtividade);
             console.log('  - dataFundacao:', cadastroRetorno.dataFundacao);
-            console.log('  - dataAbertura:', cadastroRetorno.dataAbertura);
-            console.log('  - socios:', JSON.stringify(cadastroRetorno.socios || [], null, 2));
+            console.log('  - socios count:', cadastroRetorno.socios?.length || 0);
             
             // Use new API data structure
             creditScoreData = {
@@ -3071,7 +3069,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               legalName: cadastroRetorno.razaoSocial || 'Não informado',
               tradingName: cadastroRetorno.nomeFantasia || cadastroRetorno.razaoSocial || 'Não informado',
               status: cadastroRetorno.situacaoCadastral || 'ATIVA',
-              openingDate: cadastroRetorno.dataInicioAtividade || cadastroRetorno.dataFundacao || cadastroRetorno.dataAbertura || null,
+              openingDate: (() => {
+                const dateStr = cadastroRetorno.dataInicioAtividade || cadastroRetorno.dataFundacao || cadastroRetorno.dataAbertura;
+                if (!dateStr) return null;
+                
+                // Parse Brazilian date format DD/MM/YYYY HH:mm:ss
+                const [datePart] = dateStr.split(' ');
+                const [day, month, year] = datePart.split('/');
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                
+                return isNaN(date.getTime()) ? null : date;
+              })(),
               shareCapital: cadastroRetorno.capitalSocial || cadastroRetorno.faturamentoPresumido || 'Não informado',
               // Address from Cadastro
               address: cadastroRetorno.enderecos?.[0] ? 
@@ -3095,7 +3103,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               partners: cadastroRetorno.socios?.map((socio: any) => ({
                 name: socio.nome || 'Não informado',
                 qualification: socio.cargo || 'Sócio Administrador',
-                joinDate: socio.dataEntrada || socio.dataEntradaSociedade || null,
+                joinDate: (() => {
+                  const dateStr = socio.dataEntrada || socio.dataEntradaSociedade;
+                  if (!dateStr) return null;
+                  
+                  // Parse Brazilian date format DD/MM/YYYY HH:mm:ss
+                  const [datePart] = dateStr.split(' ');
+                  const [day, month, year] = datePart.split('/');
+                  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                  
+                  return isNaN(date.getTime()) ? null : date;
+                })(),
                 participationPercentage: socio.percentualParticipacao || socio.participacao || null
               })) || [],
               // Score QUOD specific data

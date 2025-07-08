@@ -1,0 +1,423 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Registering imports routes...
+Imports routes registered successfully
+10:59:43 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: yuNxWxSGv6huXNGw55x8lptpvX0kLfun, User ID: undefined
+10:59:54 PM [express] GET /api/auth/user 200 in 127ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:00:02 PM [express] GET /api/auth/user 304 in 406ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Authentication successful for user: 22 Role: admin
+11:00:02 PM [express] GET /api/notifications/unread-count 200 in 138ms
+11:00:02 PM [express] GET /api/notifications 200 in 144ms
+Fetching fresh admin metrics
+11:00:04 PM [express] GET /api/admin/dashboard/metrics 304 in 1893ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:02:55 PM [express] GET /api/notifications/unread-count 200 in 2930ms
+[Session Debug] GET /api/admin/credit-applications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+11:02:58 PM [express] GET /api/admin/credit-applications 304 in 2568ms :: [{"id":63,"userId":34,"lega…
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:03:02 PM [express] GET /api/notifications 200 in 125ms
+[Session Debug] GET /api/admin/credit-applications/62 - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/62
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+🔍 Fetching financial settings for user: 22
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+11:03:04 PM [express] GET /api/user/financial-settings 304 in 733ms :: {"adminFeePercentage":10,"down…
+11:03:05 PM [express] GET /api/admin/credit-applications/62 304 in 2083ms :: {"id":62,"userId":33,"le…
+[Session Debug] GET /api/credit/applications/62/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+11:03:06 PM [express] GET /api/credit/applications/62/credit-score 304 in 1087ms :: {"id":16,"creditA…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:03:10 PM [express] GET /api/notifications/unread-count 200 in 125ms
+[Session Debug] GET /api/auth/user - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:03:28 PM [express] GET /api/auth/user 304 in 366ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+11:03:28 PM [express] GET /api/notifications 200 in 126ms
+11:03:28 PM [express] GET /api/notifications/unread-count 200 in 128ms
+Fetching fresh admin metrics
+[Session Debug] GET /api/admin/credit-applications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Serving credit applications from cache
+11:03:30 PM [express] GET /api/admin/credit-applications 304 in 483ms :: [{"id":63,"userId":34,"legal…
+11:03:31 PM [express] GET /api/admin/dashboard/metrics 304 in 2325ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+🔍 Fetching financial settings for user: 22
+[Session Debug] GET /api/admin/credit-applications/63 - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/63
+11:03:31 PM [express] GET /api/user/financial-settings 304 in 173ms :: {"adminFeePercentage":10,"down…
+11:03:32 PM [express] GET /api/admin/credit-applications/63 200 in 868ms :: {"id":63,"userId":34,"leg…
+[Session Debug] GET /api/credit/applications/63/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+11:03:35 PM [express] GET /api/credit/applications/63/credit-score 404 in 1017ms :: {"message":"Credi…
+[Session Debug] POST /api/credit/applications/63/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+📊 Calling DirectD APIs for CNPJ: 35364825000170
+✅ DirectD Score API response received: {
+  "metaDados": {
+    "consultaNome": "Score de Crédito - QUOD",
+    "consultaUid": "direct-516ef1a4-bb35-496d-b4d2-b36b0298ca8a",
+    "chave": "CNPJ=35364825000170;",
+    "usuario": "Marcio Pavao",
+    "mensagem": "Sucesso",
+    "ip": "34.82.198.242",
+    "resultadoId": 1,
+    "resultado": "Sucesso",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": null,
+    "assincrono": false,
+    "data": "08/07/2025 20:03:41",
+    "tempoExecucaoMs": 440
+  },
+  "retorno": {
+    "dataConsulta": "07/07/2025 23:04:38",
+    "documentoConsultado": "35.364.825/0001-70",
+    "pessoaFisica": null,
+    "pessoaJuridica": {
+      "score": 458,
+      "faixaScore": "Alto índice de inadimplência",
+      "motivos": [
+        "Possui contratos com grande quantidade de parcelas",
+        "Possui utilização de alto valor de crédito do tipo emergencial nos últimos 3 meses",
+        "Possui quadro societário com baixo número de sócios ou acionistas",
+        "Possui pouco volume de pagamentos em dia"
+      ],
+      "indicadoresNegocio": [
+        {
+          "indicador": "Pontualidade de Pagamento",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Gravidade (tempo) em Atrasos",
+          "status": "A empresa não apresenta dívidas vencidas e não pagas.",
+          "risco": "Baixo",
+          "observacao": null
+        },
+        {
+          "indicador": "Uso Emergencial",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Endividamento Contrato e Credores",
+          "status": "A empresa não apresenta contratos em aberto.",
+          "risco": "Baixo",
+          "observacao": null
+        },
+        {
+          "indicador": "Risco do Perfil de Contratação",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        }
+      ]
+    },
+    "observacao": null
+  }
+}
+✅ DirectD Cadastro API response received: {
+  "metaDados": {
+    "consultaNome": "Cadastro - Pessoa Jurídica - Plus",
+    "consultaUid": "direct-192fdadc-fdf5-4de1-bfdf-7694e1d82fb4",
+    "chave": "CNPJ=35364825000170;",
+    "usuario": "Marcio Pavao",
+    "mensagem": "Sucesso",
+    "ip": "34.82.198.242",
+    "resultadoId": 1,
+    "resultado": "Sucesso",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": null,
+    "assincrono": false,
+    "data": "08/07/2025 20:03:42",
+    "tempoExecucaoMs": 435
+  },
+  "retorno": {
+    "cnpj": "35.364.825/0001-70",
+    "razaoSocial": "P1LED COMERCIO E IMPORTACAO DE PRODUTOS ELETRICOS E SERVICOS LTDA",
+    "nomeFantasia": "P1LED COMERCIO E IMPORTACAO",
+    "dataFundacao": "31/10/2019 00:00:00",
+    "cnaeCodigo": 4673700,
+    "cnaeDescricao": "Comércio Atacadista de Material Elétrico",
+    "cnaEsSecundarios": [
+      {
+        "cnaeCodigoSecundario": 4321500,
+        "cnaeDescricaoSecundario": "Instalação E Manutenção Elétrica"
+      },
+      {
+        "cnaeCodigoSecundario": 4649402,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Aparelhos Eletrônicos de Uso Pessoal E Doméstico"
+      },
+      {
+        "cnaeCodigoSecundario": 4651601,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Equipamentos de Informática"
+      },
+      {
+        "cnaeCodigoSecundario": 4652400,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Componentes Eletrônicos E Equipamentos de Telefonia E Comunicação"
+      },
+      {
+        "cnaeCodigoSecundario": 4742300,
+        "cnaeDescricaoSecundario": "Comércio Varejista de Material Elétrico"
+      },
+      {
+        "cnaeCodigoSecundario": 5232000,
+        "cnaeDescricaoSecundario": "Atividades de Agenciamento Marítimo"
+      },
+      {
+        "cnaeCodigoSecundario": 5250803,
+        "cnaeDescricaoSecundario": "Agenciamento de Cargas, Exceto para O Transporte Marítimo"
+      },
+      {
+        "cnaeCodigoSecundario": 5250804,
+        "cnaeDescricaoSecundario": "Organização Logística do Transporte de Carga"
+      },
+      {
+        "cnaeCodigoSecundario": 5911102,
+        "cnaeDescricaoSecundario": "Produção de Filmes para Publicidade"
+      },
+      {
+        "cnaeCodigoSecundario": 6201501,
+        "cnaeDescricaoSecundario": "Desenvolvimento de Programas de Computador sob Encomenda"
+      },
+      {
+        "cnaeCodigoSecundario": 7319003,
+        "cnaeDescricaoSecundario": "Marketing Direto"
+      },
+      {
+        "cnaeCodigoSecundario": 7319004,
+        "cnaeDescricaoSecundario": "Consultoria em Publicidade"
+      },
+      {
+        "cnaeCodigoSecundario": 7729202,
+        "cnaeDescricaoSecundario": "Aluguel de Móveis, Utensílios E Aparelhos de Uso Doméstico E Pessoal, Instrumentos Musicais"
+      },
+      {
+        "cnaeCodigoSecundario": 7739099,
+        "cnaeDescricaoSecundario": "Aluguel de Outras Máquinas E Equipamentos Comerciais E Industriais Não Especificados Anteriormente, sem Operador"
+      },
+      {
+        "cnaeCodigoSecundario": 8211300,
+        "cnaeDescricaoSecundario": "Serviços Combinados de Escritório E Apoio Administrativo"
+      }
+    ],
+    "situacaoCadastral": "Ativa",
+    "situacaoEspecial": null,
+    "naturezaJuridicaCodigo": 2062,
+    "naturezaJuridicaDescricao": "Sociedade Empresária Limitada",
+    "naturezaJuridicaTipo": null,
+    "porte": null,
+    "faixaFuncionarios": "Até 9 Funcionários",
+    "quantidadeFuncionarios": 6,
+    "faixaFaturamento": "R$ 2.800.000 até R$ 4.800.000",
+    "faturamentoMedioCNAE": "R$ 7.709.681,74",
+    "faturamentoPresumido": "R$ 3.573.054,55",
+    "matriz": true,
+    "orgaoPublico": null,
+    "ramo": null,
+    "tipoEmpresa": "LTDA",
+    "tributacao": "LUCRO PRESUMIDO",
+    "opcaoMEI": "NÃO",
+    "opcaoSimples": "NÃO",
+    "quantidadeFiliais": "1 até 2 filiais",
+    "telefones": [
+      {
+        "telefoneComDDD": "(11) 3086-3312",
+        "telemarketingBloqueado": false,
+        "operadora": "VIVO",
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 3135-6548",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 3596-3746",
+        "telemarketingBloqueado": false,
+        "operadora": "CLARO",
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 5140-1339",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 98955-2343",
+        "telemarketingBloqueado": false,
+        "operadora": "CLARO",
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      }
+    ],
+    "enderecos": [
+      {
+        "logradouro": "AV PAULISTA",
+        "numero": "302",
+        "complemento": "AND 10 CJ 10",
+        "bairro": "BELA VISTA",
+        "cidade": "SAO PAULO",
+        "uf": "SP",
+        "cep": "01310-000"
+      },
+      {
+        "logradouro": "R ESTADOS UNIDOS",
+        "numero": "2186",
+        "complemento": null,
+        "bairro": "JARDIM AMERICA",
+        "cidade": "SAO PAULO",
+        "uf": "SP",
+        "cep": "01427-002"
+      }
+    ],
+    "emails": [
+      {
+        "enderecoEmail": "contato@insightcontabilidade.com"
+      },
+      {
+        "enderecoEmail": "savio@insightcontabilidade.com"
+      }
+    ],
+    "ultimaAtualizacaoPJ": "24/06/2025 00:00:00",
+    "socios": [
+      {
+        "documento": "314.628.368-95",
+        "nome": "Daniel Horn",
+        "percentualParticipacao": "50.00",
+        "dataEntrada": "21/09/2020 00:00:00",
+        "cargo": "Sócio Administrador"
+      },
+      {
+        "documento": "346.422.928-96",
+        "nome": "Rafael Bamenga",
+        "percentualParticipacao": "50.00",
+        "dataEntrada": "31/10/2019 00:00:00",
+        "cargo": "Sócio Administrador"
+      }
+    ]
+  }
+}
+🎯 SCORE REAL DA API QUOD: 458
+📊 FAIXA SCORE: Alto índice de inadimplência
+💡 MOTIVOS DO SCORE: []
+📊 DADOS PRINCIPAIS DO CADASTRO:
+  - capitalSocial: undefined
+  - faturamentoPresumido: R$ 3.573.054,55
+  - dataInicioAtividade: undefined
+  - dataFundacao: 31/10/2019 00:00:00
+  - dataAbertura: undefined
+  - socios: [
+  {
+    "documento": "314.628.368-95",
+    "nome": "Daniel Horn",
+    "percentualParticipacao": "50.00",
+    "dataEntrada": "21/09/2020 00:00:00",
+    "cargo": "Sócio Administrador"
+  },
+  {
+    "documento": "346.422.928-96",
+    "nome": "Rafael Bamenga",
+    "percentualParticipacao": "50.00",
+    "dataEntrada": "31/10/2019 00:00:00",
+    "cargo": "Sócio Administrador"
+  }
+]
+Error fetching credit score: TypeError: value.toISOString is not a function
+    at PgTimestamp.mapToDriverValue (/home/runner/workspace/node_modules/src/pg-core/columns/timestamp.ts:66:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:223:69)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/workspace/node_modules/src/sql/sql.ts:148:30)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:170:17)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/workspace/node_modules/src/sql/sql.ts:148:30)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:174:17)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/workspace/node_modules/src/sql/sql.ts:148:30)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:124:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at SQL.toQuery (/home/runner/workspace/node_modules/src/sql/sql.ts:123:17)
+    at PgDialect.sqlToQuery (/home/runner/workspace/node_modules/src/pg-core/dialect.ts:591:14)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/insert.ts:405:19)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at QueryPromise._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/insert.ts:400:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/insert.ts:422:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at QueryPromise.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/insert.ts:421:17)
+    at QueryPromise.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11:03:42 PM [express] POST /api/credit/applications/63/credit-score 500 in 2636ms :: {"message":"Erro…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:03:44 PM [express] GET /api/notifications/unread-count 200 in 122ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:03:59 PM [express] GET /api/notifications 200 in 475ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+11:03:59 PM [express] GET /api/notifications/unread-count 200 in 473ms
