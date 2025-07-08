@@ -3260,8 +3260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Credit Score endpoint (POST - admin only)
-  app.post('/api/credit/applications/:id/credit-score', requireAuth, async (req: any, res) => {
+  // Direct Data Credit Score consultation endpoint (POST - admin only)
+  app.post('/api/credit/applications/:id/direct-data-score', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
       const applicationId = parseInt(req.params.id);
@@ -3290,41 +3290,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean CNPJ for API call
       const cleanCnpj = application.cnpj.replace(/\D/g, '');
       
-      let creditScoreData: any;
-      let receitaData: any = null;
-      let creditApiData: any = null;
+      // Call Direct Data API
+      const { DirectDataService } = await import('../services/directDataService');
       
-      // Step 1: Get basic company data from Receita WS API
-      if (process.env.RECEITA_WS_API_KEY) {
+      try {
+        console.log(`🔍 [Direct Data] Iniciando consulta para CNPJ: ${cleanCnpj}`);
+        
+        // Consulta Direct Data API
+        const directDataResponse = await DirectDataService.consultarCreditoCompleto(cleanCnpj);
+        
+        // Processa dados para formato do sistema
+        const processedData = DirectDataService.processarDadosCredito(directDataResponse);
+        
+        console.log(`✅ [Direct Data] Consulta processada - Score: ${processedData.score.valor}, Risco: ${processedData.risco.nivel}`);
+        
+        // Salva no banco de dados
+        const creditScoreData = await storage.createCreditScore({
+          creditApplicationId: applicationId,
+          cnpj: cleanCnpj,
+          creditScore: processedData.score.valor,
+          scoreCategory: processedData.score.categoria,
+          riskLevel: processedData.risco.nivel,
+          scoreMotivos: processedData.score.motivos,
+          scoreObservacao: processedData.score.observacao,
+          razaoSocial: processedData.empresa.razaoSocial,
+          nomeFantasia: processedData.empresa.nomeFantasia,
+          situacaoCadastral: processedData.empresa.situacaoCadastral,
+          naturezaJuridica: processedData.empresa.naturezaJuridica,
+          dataFundacao: processedData.empresa.dataFundacao,
+          atividadePrincipal: processedData.empresa.atividadePrincipal,
+          capitalSocial: processedData.empresa.capitalSocial,
+          quantidadeFiliais: processedData.empresa.quantidadeFiliais,
+          endereco: processedData.empresa.endereco,
+          email: processedData.empresa.email,
+          telefone: processedData.empresa.telefone,
+          statusPendencia: processedData.pendencias.status,
+          totalPendencia: processedData.pendencias.totalPendencia,
+          quantidadeProtestos: processedData.pendencias.protestos.quantidade,
+          valorProtestos: processedData.pendencias.protestos.valor,
+          protestos: processedData.pendencias.protestos.detalhes,
+          quantidadeAcoes: processedData.pendencias.acoesJudiciais.quantidade,
+          valorAcoes: processedData.pendencias.acoesJudiciais.valor,
+          acoesJudiciais: processedData.pendencias.acoesJudiciais.detalhes,
+          quantidadeRecuperacoes: processedData.pendencias.recuperacoesJudiciais.quantidade,
+          valorRecuperacoes: processedData.pendencias.recuperacoesJudiciais.valor,
+          recuperacoesJudiciais: processedData.pendencias.recuperacoesJudiciais.detalhes,
+          quantidadeChequesSemFundo: processedData.pendencias.chequesSemFundo.quantidade,
+          chequesSemFundo: processedData.pendencias.chequesSemFundo.detalhes,
+          indicadoresNegocio: processedData.risco.indicadores,
+          consultas30Dias: processedData.consultas.ultimos30Dias,
+          consultas60Dias: processedData.consultas.ultimos60Dias,
+          consultas90Dias: processedData.consultas.ultimos90Dias,
+          consultasMais90Dias: processedData.consultas.mais90Dias,
+          detalhesConsultas: processedData.consultas.detalhes,
+          socios: processedData.socios,
+          consultaUid: processedData.metaDados.consultaUid,
+          tempoExecucao: processedData.metaDados.tempoExecucao,
+          apiVersao: processedData.metaDados.apiVersao,
+          directDataResponse: directDataResponse,
+          consultaStatus: 'success'
+        });
+        
+        return res.json(creditScoreData);
+        
+      } catch (error) {
+        console.error(`❌ [Direct Data] Erro na consulta:`, error);
+        
+        // Salva erro no banco
         try {
-          console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
-          
-          const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cleanCnpj}`, {
-            headers: {
-              'Authorization': `Bearer ${process.env.RECEITA_WS_API_KEY}`,
-              'Accept': 'application/json'
-            }
+          const errorData = await storage.createCreditScore({
+            creditApplicationId: applicationId,
+            cnpj: cleanCnpj,
+            creditScore: 0,
+            scoreCategory: 'Erro',
+            riskLevel: 'ALTO',
+            consultaStatus: 'error',
+            errorMessage: error instanceof Error ? error.message : 'Erro desconhecido na consulta Direct Data'
           });
           
-          if (response.ok) {
-            receitaData = await response.json();
-            console.log('✅ Receita WS API response received');
-            
-          } else {
-            console.log('⚠️ Receita WS API call failed, status:', response.status);
-          }
-        } catch (error) {
-          console.error('❌ Receita WS API error:', error);
-        }
-      }
-
-      // Step 2: Get detailed credit analysis from Credit API
-      if (process.env.CREDIT_API_KEY) {
-        try {
-          creditApiData = await callCreditAPI(cleanCnpj);
-          console.log('✅ Credit API data received successfully');
-        } catch (error) {
-          console.error('❌ Credit API error:', error);
+          return res.status(500).json({
+            message: "Erro na consulta Direct Data",
+            error: error instanceof Error ? error.message : 'Erro desconhecido',
+            data: errorData
+          });
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar dados de erro:', dbError);
+          return res.status(500).json({
+            message: "Erro na consulta Direct Data e ao salvar erro no banco",
+            error: error instanceof Error ? error.message : 'Erro desconhecido'
+          });
         }
       }
 

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar, jsonb, index, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, jsonb, index, boolean, integer, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -638,76 +638,84 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export type Notification = typeof notifications.$inferSelect;
 
-// Credit Score table for Receita WS integration
+// Credit Score table for Direct Data API integration
 export const creditScores = pgTable("credit_scores", {
   id: serial("id").primaryKey(),
   creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
   cnpj: text("cnpj").notNull(),
   
-  // Score Information
+  // Score Information (Direct Data)
   creditScore: integer("credit_score").notNull(), // 0-1000
-  scoreDate: timestamp("score_date").defaultNow(),
+  scoreCategory: text("score_category"), // Excelente, Bom, Regular, Baixo
+  riskLevel: text("risk_level"), // BAIXO, MÉDIO, ALTO
+  scoreMotivos: jsonb("score_motivos").default('[]'),
+  scoreObservacao: text("score_observacao"),
   
-  // Company Data from Receita WS
-  companyData: jsonb("company_data"), // Full response from Receita WS
+  // Dados básicos da empresa (Direct Data)
+  razaoSocial: text("razao_social"),
+  nomeFantasia: text("nome_fantasia"),
+  situacaoCadastral: text("situacao_cadastral"), // ATIVA, BAIXADA, etc
+  naturezaJuridica: text("natureza_juridica"),
+  dataFundacao: text("data_fundacao"),
+  atividadePrincipal: text("atividade_principal"),
+  capitalSocial: decimal("capital_social", { precision: 15, scale: 2 }),
+  quantidadeFiliais: integer("quantidade_filiais"),
   
-  // Parsed fields for quick access
-  legalName: text("legal_name"),
-  tradingName: text("trading_name"),
-  status: text("status"), // ATIVA, BAIXADA, etc
-  openingDate: timestamp("opening_date"),
-  shareCapital: text("share_capital"),
-  
-  // Location photo from CNPJá API
-  locationPhoto: text("location_photo"), // Base64 encoded image
-  
-  // Address
-  address: text("address"),
-  city: text("city"),
-  state: text("state"),
-  zipCode: text("zip_code"),
-  
-  // Contact
-  phone: text("phone"),
+  // Endereço (Direct Data)
+  endereco: jsonb("endereco"), // {logradouro, numero, complemento, bairro, cidade, uf, cep}
   email: text("email"),
+  telefone: text("telefone"),
   
-  // CNAE - Economic Activities
-  mainActivity: jsonb("main_activity"), // {code, description}
-  secondaryActivities: jsonb("secondary_activities"), // [{code, description}]
+  // Pendências financeiras (Direct Data)
+  statusPendencia: text("status_pendencia"),
+  totalPendencia: decimal("total_pendencia", { precision: 15, scale: 2 }),
   
-  // Partners/Shareholders
-  partners: jsonb("partners"), // [{name, qualification, joinDate}]
+  // Protestos detalhados
+  quantidadeProtestos: integer("quantidade_protestos").default(0),
+  valorProtestos: decimal("valor_protestos", { precision: 15, scale: 2 }).default('0'),
+  protestos: jsonb("protestos").default('[]'), // Array completo de protestos
   
-  // Credit Analysis Results (Receita WS + Credit API)
-  creditAnalysis: jsonb("credit_analysis"), // Results from credit bureau checks
-  hasDebts: boolean("has_debts").default(false),
-  hasProtests: boolean("has_protests").default(false),
-  hasBankruptcy: boolean("has_bankruptcy").default(false),
-  hasLawsuits: boolean("has_lawsuits").default(false),
+  // Ações judiciais detalhadas
+  quantidadeAcoes: integer("quantidade_acoes").default(0),
+  valorAcoes: decimal("valor_acoes", { precision: 15, scale: 2 }).default('0'),
+  acoesJudiciais: jsonb("acoes_judiciais").default('[]'), // Array completo de ações
   
-  // Advanced Credit API Data
-  creditApiData: jsonb("credit_api_data"), // Full response from Credit API
-  creditRating: text("credit_rating"), // Rating from banking analysis
-  bankingScore: integer("banking_score"), // Specific banking score
-  paymentBehavior: text("payment_behavior"), // Historical payment patterns
-  creditHistory: jsonb("credit_history"), // Detailed credit history
-  financialProfile: jsonb("financial_profile"), // Financial stability indicators
-  riskLevel: text("risk_level"), // LOW, MEDIUM, HIGH, VERY_HIGH
-  debtDetails: jsonb("debt_details"), // Detailed debt information
-  protestDetails: jsonb("protest_details"), // Detailed protest information
-  lawsuitDetails: jsonb("lawsuit_details"), // Detailed lawsuit information
-  bankruptcyDetails: jsonb("bankruptcy_details"), // Detailed bankruptcy information
+  // Recuperações judiciais e falências
+  quantidadeRecuperacoes: integer("quantidade_recuperacoes").default(0),
+  valorRecuperacoes: decimal("valor_recuperacoes", { precision: 15, scale: 2 }).default('0'),
+  recuperacoesJudiciais: jsonb("recuperacoes_judiciais").default('[]'),
   
-  // API Integration Status
-  receitaWsStatus: text("receita_ws_status").default("pending"), // success, error, pending
-  creditApiStatus: text("credit_api_status").default("pending"), // success, error, pending
-  lastReceitaWsCheck: timestamp("last_receita_ws_check"),
-  lastCreditApiCheck: timestamp("last_credit_api_check"),
+  // Cheques sem fundo
+  quantidadeChequesSemFundo: integer("quantidade_cheques_sem_fundo").default(0),
+  chequesSemFundo: jsonb("cheques_sem_fundo").default('[]'),
+  
+  // Indicadores de negócio (Direct Data)
+  indicadoresNegocio: jsonb("indicadores_negocio").default('[]'),
+  
+  // Histórico de consultas (Direct Data)
+  consultas30Dias: integer("consultas_30_dias").default(0),
+  consultas60Dias: integer("consultas_60_dias").default(0),
+  consultas90Dias: integer("consultas_90_dias").default(0),
+  consultasMais90Dias: integer("consultas_mais_90_dias").default(0),
+  detalhesConsultas: jsonb("detalhes_consultas").default('[]'),
+  
+  // Quadro societário (Direct Data)
+  socios: jsonb("socios").default('[]'),
+  
+  // Metadados da consulta Direct Data
+  consultaUid: text("consulta_uid"), // UID único da consulta
+  tempoExecucao: integer("tempo_execucao"), // Tempo de execução em ms
+  apiVersao: text("api_versao"), // Versão da API utilizada
+  directDataResponse: jsonb("direct_data_response"), // Resposta completa da API
+  
+  // Status da integração
+  consultaStatus: text("consulta_status").default("success"), // success, error, pending
+  errorMessage: text("error_message"), // Mensagem de erro se houver
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  lastCheckedAt: timestamp("last_checked_at").defaultNow(),
+  consultedAt: timestamp("consulted_at").defaultNow(),
 });
 
 export type CreditScore = typeof creditScores.$inferSelect;
