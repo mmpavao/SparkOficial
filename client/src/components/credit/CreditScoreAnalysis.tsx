@@ -407,14 +407,14 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 
                 {/* Restrições Creditícias */}
                 <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg border border-red-200">
-                  <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                  <h4 className="font-semibold text-red-800 mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
                     Restrições Creditícias
                   </h4>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Débitos</span>
+                      <span className="text-gray-700 font-medium">Débitos</span>
                       <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                         creditScore.hasDebts 
                           ? 'bg-red-100 text-red-700' 
@@ -435,7 +435,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Protestos</span>
+                      <span className="text-gray-700 font-medium">Protestos</span>
                       <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                         creditScore.hasProtests 
                           ? 'bg-red-100 text-red-700' 
@@ -456,7 +456,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Falência</span>
+                      <span className="text-gray-700 font-medium">Falência</span>
                       <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                         creditScore.hasBankruptcy 
                           ? 'bg-red-100 text-red-700' 
@@ -477,7 +477,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-700">Processos Judiciais</span>
+                      <span className="text-gray-700 font-medium">Processos Judiciais</span>
                       <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                         creditScore.hasLawsuits 
                           ? 'bg-red-100 text-red-700' 
