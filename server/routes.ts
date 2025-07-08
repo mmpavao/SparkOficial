@@ -3055,9 +3055,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Debug logs for data analysis
             console.log('📊 DADOS PRINCIPAIS DO CADASTRO:');
             console.log('  - capitalSocial:', cadastroRetorno.capitalSocial);
+            console.log('  - capitalSocialValor:', cadastroRetorno.capitalSocialValor);
+            console.log('  - capitalSocialIntegralizado:', cadastroRetorno.capitalSocialIntegralizado);
+            console.log('  - capital:', cadastroRetorno.capital);
+            console.log('  - valorCapitalSocial:', cadastroRetorno.valorCapitalSocial);
             console.log('  - faturamentoPresumido:', cadastroRetorno.faturamentoPresumido);
             console.log('  - dataFundacao:', cadastroRetorno.dataFundacao);
             console.log('  - socios count:', cadastroRetorno.socios?.length || 0);
+            console.log('  - ALL FIELDS:', Object.keys(cadastroRetorno).filter(key => key.toLowerCase().includes('capital')));
             
             // Use new API data structure
             creditScoreData = {
