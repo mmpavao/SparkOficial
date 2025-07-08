@@ -648,8 +648,8 @@ export const creditScores = pgTable("credit_scores", {
   creditScore: integer("credit_score").notNull(), // 0-1000
   scoreDate: timestamp("score_date").defaultNow(),
   
-  // Company Data from Receita WS
-  companyData: jsonb("company_data"), // Full response from Receita WS
+  // Company Data from Receita WS (Legacy)
+  receitaData: jsonb("receita_data"), // Full response from Receita WS
   
   // Parsed fields for quick access
   legalName: text("legal_name"),
@@ -701,6 +701,25 @@ export const creditScores = pgTable("credit_scores", {
   bouncedChecks: jsonb("bounced_checks"), // Cheques sem fundo
   negativeConsultDate: timestamp("negative_consult_date"), // Data da consulta negativo
   negativeRawData: jsonb("negative_raw_data"), // Full response from Detalhamento Negativo API
+  
+  // DirectD Cadastro Pessoa Jurídica Plus API Data Integration
+  companyRegistrationData: jsonb("company_registration_data"), // Full company registration response
+  companySize: text("company_size"), // Porte da empresa (ME, EPP, Grande, etc.)
+  employeeRange: text("employee_range"), // Faixa de funcionários
+  employeeCount: integer("employee_count"), // Número exato de funcionários
+  foundationDate: timestamp("foundation_date"), // Data de fundação/abertura
+  registrationStatus: text("registration_status"), // Status cadastral (ATIVA, SUSPENSA, etc.)
+  companyAddresses: jsonb("company_addresses"), // Array de endereços da empresa
+  companyPhones: jsonb("company_phones"), // Array de telefones da empresa
+  companyEmails: jsonb("company_emails"), // Array de emails da empresa
+  companyPartners: jsonb("company_partners"), // Array de sócios com participação
+  directdConsultDate: timestamp("directd_consult_date"), // Data da consulta DirectD
+  directdRawData: jsonb("directd_raw_data"), // Full response from Cadastro Pessoa Jurídica Plus API
+  
+  // Consolidated Data Fields for Quick Access (from all 3 APIs)
+  quodData: jsonb("quod_data"), // Consolidated QUOD API data
+  detalhamentoData: jsonb("detalhamento_data"), // Consolidated Detalhamento Negativo data
+  companyData: jsonb("company_data_directd"), // Consolidated Company Registration data
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
