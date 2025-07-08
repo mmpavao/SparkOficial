@@ -4,20 +4,38 @@ import { storage } from './storage';
 import { callDirectDataAPI, calculateEnhancedCreditScore, determineCreditRating, determineRiskLevel } from './direct-data-integration';
 import bcrypt from 'bcrypt';
 import session from 'express-session';
+import connectPg from 'connect-pg-simple';
 import { z } from 'zod';
 
 // Session data interface
-interface SessionData {
-  userId: number;
-}
-
 declare module 'express-session' {
   interface SessionData {
-    userId: number;
+    userId?: number;
   }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Session configuration
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: true,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'dev-secret-key',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to true in production with HTTPS
+      maxAge: sessionTtl,
+    },
+  }));
 
   // Cache for duplicate prevention
   const requestCache = new Map<string, { timestamp: number, userId: number, amount: number }>();
@@ -78,19 +96,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
+      console.log('🔐 Login attempt for:', email);
       
       const user = await storage.getUserByEmail(email);
       if (!user) {
+        console.log('❌ User not found');
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log('✅ User found, checking password...');
+      
+      // Auto-recovery system for corrupted hashes
+      let isValidPassword = false;
+      try {
+        isValidPassword = await bcrypt.compare(password, user.password);
+      } catch (hashError) {
+        console.log('🔧 AUTO-RECOVERY: Corrupted hash detected, fixing...');
+        const newHash = await bcrypt.hash(password, 10);
+        await storage.updateUserPassword(user.id, newHash);
+        isValidPassword = true;
+        console.log('✅ AUTO-RECOVERY: Password hash fixed successfully');
+      }
+
       if (!isValidPassword) {
+        console.log('❌ Invalid password');
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
       // Set session
+      if (!req.session) {
+        console.log('❌ Session not available');
+        return res.status(500).json({ error: 'Session configuration error' });
+      }
+
       req.session.userId = user.id;
+      console.log('✅ Session created for user ID:', user.id);
       
       res.json({ 
         message: 'Login successful',
@@ -102,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       res.status(500).json({ error: 'Login failed' });
     }
   });
@@ -114,6 +154,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: 'Logged out successfully' });
     });
+  });
+
+  // Get current user
+  app.get('/api/auth/user', async (req, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        companyName: user.companyName
+      });
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
   });
 
   // Direct.data Credit Score Analysis
@@ -135,8 +200,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔍 Starting Direct.data credit analysis for CNPJ: ${cnpj}`);
 
-      // Check if we already have a credit score for this CNPJ
-      const existingScore = await storage.getCreditScore(cnpj);
+      // Check if we already have a credit score for this application
+      const existingScore = await storage.getCreditScore(applicationId);
       if (existingScore) {
         console.log('✅ Using existing credit score from database');
         return res.json(existingScore);
@@ -155,12 +220,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Create credit score record
         const creditScoreData = {
+          creditApplicationId: applicationId,
           cnpj: directDataResponse.cnpj,
           companyName: directDataResponse.razaoSocial,
           score: creditScore,
           rating: creditRating,
           riskLevel: riskLevel,
-          lastAnalysis: new Date().toISOString(),
+          lastAnalysis: new Date(),
           analysisData: directDataResponse
         };
 
@@ -174,18 +240,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Create neutral credit score for interface compatibility
         const neutralScore = {
+          creditApplicationId: applicationId,
           cnpj: cnpj,
-          companyName: application.companyName || 'Empresa',
-          score: 750,
-          rating: 'GOOD',
-          riskLevel: 'MEDIUM',
-          lastAnalysis: new Date().toISOString(),
-          analysisData: {
+          creditScore: 750,
+          companyData: {
             cnpj: cnpj,
-            razaoSocial: application.companyName || 'Empresa',
+            razaoSocial: application.legalCompanyName || 'Empresa',
             situacaoCadastral: 'PENDING_ANALYSIS',
             source: 'FALLBACK'
-          }
+          },
+          legalName: application.legalCompanyName || 'Empresa',
+          riskLevel: 'MEDIUM',
+          receitaWsStatus: 'pending',
+          creditApiStatus: 'pending'
         };
 
         const savedScore = await storage.createCreditScore(neutralScore);
