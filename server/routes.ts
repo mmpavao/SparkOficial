@@ -1617,7 +1617,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         incoterms: data.incoterms,
         shippingMethod: data.shippingMethod,
         containerType: data.containerType || null,
-        estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : null,
+        estimatedDelivery: data.estimatedDelivery ? (() => {
+          const date = new Date(data.estimatedDelivery);
+          return isNaN(date.getTime()) ? null : date;
+        })() : null,
         status: "planning",
         currentStage: "estimativa",
         // Credit management fields
@@ -3025,7 +3028,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               legalName: dadosCadastrais.razaoSocial || 'Não informado',
               tradingName: dadosCadastrais.nomeFantasia || dadosCadastrais.razaoSocial || 'Não informado',
               status: dadosCadastrais.situacaoCadastral || 'ATIVA',
-              openingDate: dadosCadastrais.dataFundacao ? new Date(dadosCadastrais.dataFundacao) : null,
+              openingDate: dadosCadastrais.dataFundacao ? (() => {
+                const date = new Date(dadosCadastrais.dataFundacao);
+                return isNaN(date.getTime()) ? null : date;
+              })() : null,
               shareCapital: entidadeJuridica.quadroSocietario?.capitalSocial ? formatCurrency(entidadeJuridica.quadroSocietario.capitalSocial) : 'Não informado',
               // Address from DirectD
               address: formatAddress(dadosCadastrais.endereco),
