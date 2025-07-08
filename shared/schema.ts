@@ -712,5 +712,71 @@ export const creditScores = pgTable("credit_scores", {
 
 export type CreditScore = typeof creditScores.$inferSelect;
 
+// Directd.com.br API data storage - Cadastro Pessoa Jurídica Plus
+export const directdCompanyData = pgTable("directd_company_data", {
+  id: serial("id").primaryKey(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
+  cnpj: text("cnpj").notNull(),
+  
+  // Metadata from Directd API
+  consultaUid: text("consulta_uid"),
+  consultaNome: text("consulta_nome"),
+  apiVersao: text("api_versao"),
+  tempoExecucaoMs: integer("tempo_execucao_ms"),
+  
+  // Company Basic Data
+  razaoSocial: text("razao_social"),
+  nomeFantasia: text("nome_fantasia"),
+  dataFundacao: text("data_fundacao"),
+  situacaoCadastral: text("situacao_cadastral"),
+  
+  // Legal Structure
+  naturezaJuridicaCodigo: integer("natureza_juridica_codigo"),
+  naturezaJuridicaDescricao: text("natureza_juridica_descricao"),
+  naturezaJuridicaTipo: text("natureza_juridica_tipo"),
+  porte: text("porte"),
+  
+  // Business Activities
+  cnaeCodigo: integer("cnae_codigo"),
+  cnaeDescricao: text("cnae_descricao"),
+  cnaesSecundarios: jsonb("cnaes_secundarios"), // Array of secondary CNAE codes
+  
+  // Operational Data
+  quantidadeFuncionarios: integer("quantidade_funcionarios"),
+  faixaFuncionarios: text("faixa_funcionarios"),
+  quantidadeFiliais: text("quantidade_filiais"),
+  matriz: boolean("matriz"),
+  orgaoPublico: text("orgao_publico"),
+  ramo: text("ramo"),
+  tipoEmpresa: text("tipo_empresa"),
+  
+  // Tax and Financial
+  tributacao: text("tributacao"),
+  opcaoMEI: text("opcao_mei"),
+  opcaoSimples: text("opcao_simples"),
+  faixaFaturamento: text("faixa_faturamento"),
+  faturamentoMedioCNAE: text("faturamento_medio_cnae"),
+  faturamentoPresumido: text("faturamento_presumido"),
+  
+  // Contact Information
+  telefones: jsonb("telefones"), // Array of phone objects
+  enderecos: jsonb("enderecos"), // Array of address objects
+  emails: jsonb("emails"), // Array of email objects
+  
+  // Partners/Shareholders
+  socios: jsonb("socios"), // Array of partner objects
+  
+  // Last Update Info
+  ultimaAtualizacaoPJ: text("ultima_atualizacao_pj"),
+  
+  // System tracking
+  dataConsulta: timestamp("data_consulta").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type DirectdCompanyData = typeof directdCompanyData.$inferSelect;
+export type InsertDirectdCompanyData = typeof directdCompanyData.$inferInsert;
+
 // Import all imports-related tables and schemas
 export * from './imports-schema';
