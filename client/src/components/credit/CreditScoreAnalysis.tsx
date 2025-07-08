@@ -442,6 +442,98 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </div>
             </CardContent>
           </Card>
+
+          {/* QUOD Credit Score Analysis */}
+          {(creditScore.quodScore || creditScore.quodBusinessIndicators) && (
+            <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="w-5 h-5 flex-shrink-0 text-blue-600" />
+                  <span className="text-blue-800">Análise QUOD Score</span>
+                  <Badge className="bg-blue-100 text-blue-700 text-xs">Fonte Autêntica</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="space-y-4">
+                  {creditScore.quodScore && (
+                    <div className="p-4 bg-white rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">Score QUOD</span>
+                        <Badge className={getScoreColor(creditScore.quodScore)}>
+                          {creditScore.quodScore}
+                        </Badge>
+                      </div>
+                      {creditScore.quodScoreRange && (
+                        <p className="text-sm text-gray-600">Faixa: {creditScore.quodScoreRange}</p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {creditScore.quodPaymentCapacity && (
+                    <div className="p-4 bg-white rounded-lg border">
+                      <span className="text-sm font-medium text-gray-700">Capacidade de Pagamento</span>
+                      <p className="text-sm text-gray-600 mt-1">{creditScore.quodPaymentCapacity}</p>
+                    </div>
+                  )}
+                  
+                  {creditScore.quodProfile && (
+                    <div className="p-4 bg-white rounded-lg border">
+                      <span className="text-sm font-medium text-gray-700">Perfil de Crédito</span>
+                      <p className="text-sm text-gray-600 mt-1">{creditScore.quodProfile}</p>
+                    </div>
+                  )}
+                  
+                  {creditScore.quodMotives && (creditScore.quodMotives as string[]).length > 0 && (
+                    <div className="p-4 bg-white rounded-lg border">
+                      <span className="text-sm font-medium text-gray-700 mb-2 block">Motivos do Score</span>
+                      <div className="space-y-1">
+                        {(creditScore.quodMotives as string[]).map((motivo, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                            <span className="text-sm text-gray-600">{motivo}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {creditScore.quodBusinessIndicators && (creditScore.quodBusinessIndicators as any[]).length > 0 && (
+                    <div className="p-4 bg-white rounded-lg border">
+                      <span className="text-sm font-medium text-gray-700 mb-3 block">Indicadores de Negócio</span>
+                      <div className="space-y-3">
+                        {(creditScore.quodBusinessIndicators as any[]).map((indicator, index) => (
+                          <div key={index} className="border-l-4 border-gray-200 pl-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-gray-800">{indicator.indicador}</span>
+                              <Badge className={
+                                indicator.risco === 'BAIXO' ? 'bg-green-100 text-green-700' :
+                                indicator.risco === 'MÉDIO' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }>
+                                {indicator.risco}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-600">Status: {indicator.status}</p>
+                            {indicator.observacao && (
+                              <p className="text-xs text-gray-500 mt-1">{indicator.observacao}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {creditScore.quodConsultDate && (
+                    <div className="text-center pt-2">
+                      <p className="text-xs text-gray-500">
+                        Consulta QUOD realizada em: {new Date(creditScore.quodConsultDate).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

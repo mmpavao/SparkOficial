@@ -682,6 +682,17 @@ export const creditScores = pgTable("credit_scores", {
   hasBankruptcy: boolean("has_bankruptcy").default(false),
   hasLawsuits: boolean("has_lawsuits").default(false),
   
+  // QUOD API Data Integration
+  quodScore: integer("quod_score"), // Score from QUOD API (0-1000)
+  quodScoreRange: text("quod_score_range"), // Faixa do Score from QUOD
+  quodPaymentCapacity: text("quod_payment_capacity"), // Capacidade de Pagamento
+  quodProfile: text("quod_profile"), // Perfil de crédito
+  quodMotives: jsonb("quod_motives"), // Lista de Motivos (array of strings)
+  quodBusinessIndicators: jsonb("quod_business_indicators"), // Indicadores de Negócio (array of objects)
+  quodObservation: text("quod_observation"), // Observação from QUOD
+  quodConsultDate: timestamp("quod_consult_date"), // Data da consulta QUOD
+  quodRawData: jsonb("quod_raw_data"), // Full response from QUOD API
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -2991,7 +2991,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let creditScoreData: any;
       
-      // Try to use Receita WS API if key is available
+      // Try to use Receita WS API first, then QUOD API
+      let receitaData = null;
+      let quodData = null;
+      
+      // 1. Receita WS API Call
       if (process.env.RECEITA_WS_API_KEY) {
         try {
           console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
@@ -3004,7 +3008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           if (response.ok) {
-            const receitaData = await response.json();
+            receitaData = await response.json();
             console.log('✅ Receita WS API response received:', JSON.stringify(receitaData, null, 2));
             
             // Use ONLY real data from Receita WS API - no fallback to application data
@@ -3061,18 +3065,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (apiError) {
           console.error('❌ Receita WS API error:', apiError);
-          return res.status(503).json({ 
-            message: "Erro ao consultar Receita Federal",
-            details: "Verifique a configuração da API key ou tente novamente mais tarde"
-          });
+          // Don't return error - continue with QUOD API
         }
-      } else {
-        // No API key configured
+      }
+      
+      // 2. QUOD API Call for Credit Score
+      if (process.env.QUOD_API_TOKEN) {
+        try {
+          console.log('📊 Calling QUOD API for CNPJ:', cleanCnpj);
+          
+          const quodResponse = await fetch(`https://apiv3.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.QUOD_API_TOKEN}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (quodResponse.ok) {
+            quodData = await quodResponse.json();
+            console.log('✅ QUOD API response received:', JSON.stringify(quodData, null, 2));
+          } else {
+            const errorText = await quodResponse.text();
+            console.error('⚠️ QUOD API error:', quodResponse.status, errorText);
+          }
+        } catch (quodError) {
+          console.error('❌ QUOD API error:', quodError);
+        }
+      }
+      
+      // 3. Create credit score data combining both APIs
+      if (!receitaData && !quodData) {
         return res.status(503).json({ 
-          message: "Serviço de consulta não configurado",
-          details: "A API da Receita Federal não está configurada. Entre em contato com o administrador."
+          message: "Serviços de consulta não configurados",
+          details: "As APIs da Receita Federal e QUOD não estão configuradas. Entre em contato com o administrador."
         });
       }
+      
+      // Build credit score data with both APIs
+      creditScoreData = buildCreditScoreData(applicationId, application, receitaData, quodData);
       
       // Save credit score
       const savedScore = await storage.createCreditScore(creditScoreData);
@@ -3084,7 +3114,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Helper function to calculate credit score based on company data
+  // Helper function to build credit score data combining both APIs
+  function buildCreditScoreData(applicationId: number, application: any, receitaData: any, quodData: any): any {
+    const baseData = {
+      creditApplicationId: applicationId,
+      cnpj: application.cnpj,
+      scoreDate: new Date(),
+      lastCheckedAt: new Date()
+    };
+    
+    // Use QUOD score if available, otherwise calculate from Receita data
+    let creditScore = 600; // Default fallback
+    if (quodData?.retorno?.pessoaJuridica?.score) {
+      creditScore = quodData.retorno.pessoaJuridica.score;
+    } else if (receitaData) {
+      creditScore = calculateCreditScore(receitaData);
+    }
+    
+    return {
+      ...baseData,
+      creditScore,
+      
+      // Receita WS Data
+      legalName: receitaData?.nome || application.legalCompanyName,
+      tradingName: receitaData?.fantasia || receitaData?.nome || application.tradingName || 'Não informado',
+      status: receitaData?.situacao || 'Não informado',
+      openingDate: receitaData?.abertura ? new Date(receitaData.abertura.split('/').reverse().join('-')) : null,
+      shareCapital: receitaData?.capital_social ? formatCurrency(receitaData.capital_social) : 'Não informado',
+      address: receitaData ? [
+        receitaData.logradouro,
+        receitaData.numero,
+        receitaData.complemento,
+        receitaData.bairro
+      ].filter(Boolean).join(', ') : application.address,
+      city: receitaData?.municipio || application.city,
+      state: receitaData?.uf || application.state,
+      zipCode: receitaData?.cep ? formatCEP(receitaData.cep) : application.zipCode,
+      phone: receitaData?.telefone ? formatPhone(receitaData.telefone) : application.phone,
+      email: receitaData?.email || application.email,
+      mainActivity: receitaData?.atividade_principal?.[0] ? {
+        code: receitaData.atividade_principal[0].code || 'Não informado',
+        description: receitaData.atividade_principal[0].text || 'Não informado'
+      } : { code: 'Não informado', description: 'Não informado' },
+      secondaryActivities: receitaData?.atividades_secundarias?.map((act: any) => ({
+        code: act.code || 'Não informado',
+        description: act.text || 'Não informado'
+      })) || [],
+      partners: receitaData?.qsa?.map((partner: any) => ({
+        name: partner.nome || 'Não informado',
+        qualification: partner.qual || 'Não informado',
+        joinDate: partner.data_entrada || null
+      })) || [],
+      companyData: receitaData || null,
+      
+      // QUOD API Data
+      quodScore: quodData?.retorno?.pessoaJuridica?.score || null,
+      quodScoreRange: quodData?.retorno?.pessoaJuridica?.faixaScore || null,
+      quodPaymentCapacity: quodData?.retorno?.pessoaJuridica?.capacidadePagamento || null,
+      quodProfile: quodData?.retorno?.pessoaJuridica?.perfil || null,
+      quodMotives: quodData?.retorno?.pessoaJuridica?.motivos || null,
+      quodBusinessIndicators: quodData?.retorno?.pessoaJuridica?.indicadoresNegocio || null,
+      quodObservation: quodData?.retorno?.observacao || null,
+      quodConsultDate: quodData?.retorno?.dataConsulta ? new Date(quodData.retorno.dataConsulta) : null,
+      quodRawData: quodData || null,
+      
+      // Credit risk flags (enhanced with QUOD data)
+      hasDebts: extractRiskFromQuod(quodData, 'debts') || false,
+      hasProtests: extractRiskFromQuod(quodData, 'protests') || false,
+      hasBankruptcy: extractRiskFromQuod(quodData, 'bankruptcy') || false,
+      hasLawsuits: extractRiskFromQuod(quodData, 'lawsuits') || false,
+    };
+  }
+  
+  // Helper function to extract risk indicators from QUOD data
+  function extractRiskFromQuod(quodData: any, riskType: string): boolean {
+    if (!quodData?.retorno?.pessoaJuridica?.indicadoresNegocio) return false;
+    
+    const indicators = quodData.retorno.pessoaJuridica.indicadoresNegocio;
+    const riskKeywords = {
+      debts: ['débito', 'dívida', 'pendência financeira'],
+      protests: ['protesto', 'protestos'],
+      bankruptcy: ['falência', 'recuperação judicial'],
+      lawsuits: ['ação judicial', 'processo', 'litígio']
+    };
+    
+    return indicators.some((indicator: any) => {
+      const indicatorText = (indicator.indicador || '').toLowerCase();
+      return riskKeywords[riskType]?.some(keyword => indicatorText.includes(keyword)) && 
+             indicator.risco !== 'BAIXO';
+    });
+  }
+
+  // Helper function to calculate credit score based on company data (fallback)
   function calculateCreditScore(receitaData: any): number {
     let score = 600; // Base score
     
