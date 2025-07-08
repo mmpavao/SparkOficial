@@ -924,6 +924,15 @@ Changelog:
   * Credit applications database tables remain completely intact and unmodified
   * System ready for new backend integration with alternative credit providers
   * Interface preserved for seamless transition to new credit analysis services
+- July 08, 2025. DirectD API integration diagnosis completed:
+  * Attempted integration with DirectD APIs (Score + CadastroPessoaJuridicaPlus) using provided tokens
+  * Identified HTTP 406 errors were caused by API server rejecting specific Accept headers
+  * Fixed header configuration to use Accept: */* instead of application/json
+  * Discovered both APIs returning HTML page instead of JSON data, indicating possible token authentication issues
+  * APIs consistently return DirectD website homepage regardless of token or CNPJ used
+  * Requires user verification of token validity and possible API endpoint corrections
+  * System maintains fallback to Receita WS API which continues functioning correctly
+  * Button labels updated to remove API names as requested (now shows "Consultar Credit Score")
 ```
 
 ## User Preferences

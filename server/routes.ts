@@ -6120,8 +6120,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(`https://app.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_SCORE_TOKEN}`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Accept': '*/*',
+          'User-Agent': 'curl/8.11.1'
         }
       });
 
@@ -6154,8 +6154,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(`https://app.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_CADASTRO_TOKEN}`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Accept': '*/*',
+          'User-Agent': 'curl/8.11.1'
         }
       });
 

@@ -203,12 +203,12 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Consultando DirectD APIs...
+                    Consultando APIs...
                   </>
                 ) : (
                   <>
                     <TrendingUp className="w-4 h-4 mr-2" />
-                    Consultar Credit Score (DirectD)
+                    Consultar Credit Score
                   </>
                 )}
               </Button>
