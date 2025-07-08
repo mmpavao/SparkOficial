@@ -2991,8 +2991,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let creditScoreData: any;
       
-      // Try to use Receita WS API if key is available
-      if (process.env.RECEITA_WS_API_KEY) {
+      // Priority 1: Try QUOD DirectData API if token is available
+      if (process.env.QUOD_DIRECTDATA_TOKEN) {
+        try {
+          console.log('🎯 Calling QUOD DirectData API for CNPJ:', cleanCnpj);
+          
+          const quodResponse = await fetch(`https://apiv3.directd.com.br/api/CadastroPessoaJuridicaPlus?CNPJ=${cleanCnpj}&TOKEN=${process.env.QUOD_DIRECTDATA_TOKEN}`);
+          
+          if (quodResponse.ok) {
+            const quodData = await quodResponse.json();
+            console.log('✅ QUOD DirectData API response received:', JSON.stringify(quodData, null, 2));
+            
+            // Process QUOD data for credit score analysis
+            if (quodData.retorno) {
+              const retorno = quodData.retorno;
+              
+              creditScoreData = {
+                creditApplicationId: applicationId,
+                cnpj: application.cnpj,
+                creditScore: calculateQuodCreditScore(retorno),
+                scoreDate: new Date(),
+                // Company data from QUOD
+                legalName: retorno.razaoSocial || 'Não informado',
+                tradingName: retorno.nomeFantasia || retorno.razaoSocial || 'Não informado',
+                status: retorno.situacaoCadastral || 'Não informado',
+                openingDate: retorno.dataFundacao ? new Date(retorno.dataFundacao.split('/').reverse().join('-')) : null,
+                shareCapital: retorno.faturamentoPresumido || 'Não informado',
+                // Address from QUOD
+                address: retorno.enderecos?.[0] ? [
+                  retorno.enderecos[0].logradouro,
+                  retorno.enderecos[0].numero,
+                  retorno.enderecos[0].complemento,
+                  retorno.enderecos[0].bairro
+                ].filter(Boolean).join(', ') : 'Não informado',
+                city: retorno.enderecos?.[0]?.cidade || 'Não informado',
+                state: retorno.enderecos?.[0]?.uf || 'Não informado',
+                zipCode: retorno.enderecos?.[0]?.cep || 'Não informado',
+                phone: retorno.telefones?.[0]?.telefoneComDDD || 'Não informado',
+                email: retorno.emails?.[0]?.enderecoEmail || 'Não informado',
+                // Business activity
+                mainActivity: {
+                  code: retorno.cnaeCodigo?.toString() || 'Não informado',
+                  description: retorno.cnaeDescricao || 'Não informado'
+                },
+                secondaryActivities: retorno.cnaEsSecundarios?.map((cnae: any) => ({
+                  code: cnae.cnaeCodigoSecundario?.toString() || 'Não informado',
+                  description: cnae.cnaeDescricaoSecundario || 'Não informado'
+                })) || [],
+                // Partners/shareholders
+                partners: retorno.socios?.map((socio: any) => ({
+                  name: socio.nome || 'Não informado',
+                  qualification: socio.cargo || 'Não informado',
+                  participation: socio.percentualParticipacao || 'Não informado',
+                  joinDate: socio.dataEntrada || null
+                })) || [],
+                // Additional QUOD-specific data for enhanced analysis
+                employeeCount: retorno.quantidadeFuncionarios || 0,
+                employeeRange: retorno.faixaFuncionarios || 'Não informado',
+                revenueRange: retorno.faixaFaturamento || 'Não informado',
+                averageRevenue: retorno.faturamentoMedioCNAE || 'Não informado',
+                presumedRevenue: retorno.faturamentoPresumido || 'Não informado',
+                companySize: retorno.porte || 'Não informado',
+                isMatrix: retorno.matriz || false,
+                branchCount: retorno.quantidadeFiliais || '0',
+                taxation: retorno.tributacao || 'Não informado',
+                apiSource: 'quod_directdata', // Mark as QUOD data
+                // Credit risk indicators (enhanced)
+                hasDebts: false, // To be enhanced with additional APIs
+                hasProtests: false, // To be enhanced with additional APIs
+                hasBankruptcy: false, // To be enhanced with additional APIs
+                hasLawsuits: false // To be enhanced with additional APIs
+              };
+              
+              console.log('🎯 QUOD data processed successfully for credit analysis');
+            }
+          } else {
+            console.log('❌ QUOD DirectData API failed, trying Receita WS fallback');
+            throw new Error('QUOD API failed');
+          }
+        } catch (error) {
+          console.error('❌ QUOD DirectData API error:', error);
+          console.log('🔄 Fallback to Receita WS API');
+        }
+      }
+      
+      // Priority 2: Fallback to Receita WS API if QUOD failed or is not available
+      if (!creditScoreData && process.env.RECEITA_WS_API_KEY) {
         try {
           console.log('📊 Calling Receita WS API for CNPJ:', cleanCnpj);
           
@@ -3140,6 +3224,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
     }
     return phone;
+  }
+
+  // Enhanced credit score calculation using QUOD DirectData API data
+  function calculateQuodCreditScore(quodData: any): number {
+    let score = 500; // Base score for QUOD (lower than Receita WS)
+    
+    console.log('🧮 Calculating QUOD credit score with data:', JSON.stringify(quodData, null, 2));
+    
+    // Company status (higher weight for QUOD)
+    if (quodData.situacaoCadastral === 'ATIVA') {
+      score += 150;
+      console.log('✅ Active company: +150 points');
+    }
+    
+    // Company age based on foundation date
+    if (quodData.dataFundacao) {
+      try {
+        const foundationDate = new Date(quodData.dataFundacao.split('/').reverse().join('-'));
+        const ageYears = (new Date().getFullYear() - foundationDate.getFullYear());
+        if (ageYears > 15) {
+          score += 120;
+          console.log(`🕒 Company age ${ageYears} years (>15): +120 points`);
+        } else if (ageYears > 10) {
+          score += 80;
+          console.log(`🕒 Company age ${ageYears} years (>10): +80 points`);
+        } else if (ageYears > 5) {
+          score += 50;
+          console.log(`🕒 Company age ${ageYears} years (>5): +50 points`);
+        } else if (ageYears > 2) {
+          score += 25;
+          console.log(`🕒 Company age ${ageYears} years (>2): +25 points`);
+        }
+      } catch (error) {
+        console.log('⚠️ Error parsing foundation date');
+      }
+    }
+    
+    // Employee count (new indicator from QUOD)
+    if (quodData.quantidadeFuncionarios) {
+      const employees = parseInt(quodData.quantidadeFuncionarios);
+      if (employees > 500) {
+        score += 100;
+        console.log(`👥 Large company (${employees} employees): +100 points`);
+      } else if (employees > 100) {
+        score += 70;
+        console.log(`👥 Medium company (${employees} employees): +70 points`);
+      } else if (employees > 20) {
+        score += 40;
+        console.log(`👥 Small company (${employees} employees): +40 points`);
+      } else if (employees > 5) {
+        score += 20;
+        console.log(`👥 Micro company (${employees} employees): +20 points`);
+      }
+    }
+    
+    // Revenue analysis (QUOD provides multiple revenue indicators)
+    if (quodData.faixaFaturamento) {
+      const revenue = quodData.faixaFaturamento.toLowerCase();
+      if (revenue.includes('acima') || revenue.includes('mais de') || revenue.includes('superior')) {
+        score += 80;
+        console.log(`💰 High revenue range (${quodData.faixaFaturamento}): +80 points`);
+      } else if (revenue.includes('milhões') || revenue.includes('milhoes')) {
+        score += 60;
+        console.log(`💰 Million range revenue (${quodData.faixaFaturamento}): +60 points`);
+      } else if (revenue.includes('mil')) {
+        score += 30;
+        console.log(`💰 Thousand range revenue (${quodData.faixaFaturamento}): +30 points`);
+      }
+    }
+    
+    // Company size classification
+    if (quodData.porte) {
+      const size = quodData.porte.toLowerCase();
+      if (size.includes('grande')) {
+        score += 80;
+        console.log(`🏢 Large company size: +80 points`);
+      } else if (size.includes('média') || size.includes('medio')) {
+        score += 50;
+        console.log(`🏢 Medium company size: +50 points`);
+      } else if (size.includes('pequena')) {
+        score += 30;
+        console.log(`🏢 Small company size: +30 points`);
+      }
+    }
+    
+    // Matrix status (headquarters vs branch)
+    if (quodData.matriz === true) {
+      score += 30;
+      console.log('🏛️ Matrix/headquarters: +30 points');
+    }
+    
+    // Branch network
+    if (quodData.quantidadeFiliais && parseInt(quodData.quantidadeFiliais) > 0) {
+      const branches = parseInt(quodData.quantidadeFiliais);
+      if (branches > 10) {
+        score += 60;
+        console.log(`🌟 Large branch network (${branches}): +60 points`);
+      } else if (branches > 3) {
+        score += 40;
+        console.log(`🌟 Medium branch network (${branches}): +40 points`);
+      } else {
+        score += 20;
+        console.log(`🌟 Small branch network (${branches}): +20 points`);
+      }
+    }
+    
+    // Partnership/shareholder structure
+    if (quodData.socios && quodData.socios.length > 0) {
+      score += 40;
+      console.log(`🤝 Has partners (${quodData.socios.length}): +40 points`);
+      
+      // Additional points for diverse ownership
+      if (quodData.socios.length > 2) {
+        score += 20;
+        console.log('👥 Diverse ownership structure: +20 points');
+      }
+    }
+    
+    // Tax compliance indicators
+    if (quodData.opcaoSimples === 'Sim' || quodData.opcaoSimples === 'SIM') {
+      score += 25;
+      console.log('📊 Simples Nacional option: +25 points');
+    }
+    
+    // Ensure score is within bounds (0-1000)
+    const finalScore = Math.min(Math.max(score, 0), 1000);
+    console.log(`🎯 Final QUOD credit score: ${finalScore}/1000`);
+    
+    return finalScore;
   }
 
   // Communication endpoints for credit applications

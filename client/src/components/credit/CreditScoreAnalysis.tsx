@@ -267,6 +267,90 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </CardContent>
           </Card>
 
+          {/* QUOD Enhanced Data (only show if available) */}
+          {creditScore.apiSource === 'quod_directdata' && (
+            <Card className="border-2 border-blue-200 bg-blue-50/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base text-blue-800">
+                  <TrendingUp className="w-4 h-4 flex-shrink-0" />
+                  Análise Avançada QUOD
+                  <Badge variant="outline" className="ml-2 text-xs bg-blue-100 text-blue-700 border-blue-300">
+                    Dados Premiums
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {creditScore.employeeCount && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Funcionários</p>
+                      <p className="font-medium text-sm flex items-center gap-2">
+                        <Users className="w-3 h-3" />
+                        {creditScore.employeeCount.toLocaleString()} funcionários
+                      </p>
+                      {creditScore.employeeRange && (
+                        <p className="text-xs text-gray-400">Faixa: {creditScore.employeeRange}</p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {creditScore.revenueRange && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Faturamento</p>
+                      <p className="font-medium text-sm flex items-center gap-2">
+                        <DollarSign className="w-3 h-3" />
+                        {creditScore.revenueRange}
+                      </p>
+                      {creditScore.presumedRevenue && (
+                        <p className="text-xs text-gray-400">Presumido: {creditScore.presumedRevenue}</p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {creditScore.companySize && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Porte</p>
+                      <p className="font-medium text-sm flex items-center gap-2">
+                        <Briefcase className="w-3 h-3" />
+                        {creditScore.companySize}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {(creditScore.isMatrix !== undefined || creditScore.branchCount) && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Estrutura</p>
+                      <div className="space-y-1">
+                        {creditScore.isMatrix !== undefined && (
+                          <p className="font-medium text-sm flex items-center gap-2">
+                            <Building2 className="w-3 h-3" />
+                            {creditScore.isMatrix ? 'Matriz' : 'Filial'}
+                          </p>
+                        )}
+                        {creditScore.branchCount && parseInt(creditScore.branchCount) > 0 && (
+                          <p className="text-xs text-gray-400">
+                            {creditScore.branchCount} filiais
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {creditScore.taxation && (
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Tributação</p>
+                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                        {creditScore.taxation}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Contact and Address */}
           <Card>
             <CardHeader className="pb-3">
