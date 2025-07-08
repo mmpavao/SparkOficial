@@ -16,6 +16,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  AlertCircle,
   RefreshCw,
   TrendingUp,
   Shield,
@@ -402,6 +403,100 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
                       : "Empresa apresenta risco moderado. Análise detalhada recomendada antes da aprovação."
                     }
                   </p>
+                </div>
+                
+                {/* Restrições Creditícias */}
+                <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg border border-red-200">
+                  <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Restrições Creditícias
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-700">Débitos</span>
+                      <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                        creditScore.hasDebts 
+                          ? 'bg-red-100 text-red-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {creditScore.hasDebts ? (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Possui
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Não possui
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-700">Protestos</span>
+                      <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                        creditScore.hasProtests 
+                          ? 'bg-red-100 text-red-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {creditScore.hasProtests ? (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Possui
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Não possui
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-700">Falência</span>
+                      <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                        creditScore.hasBankruptcy 
+                          ? 'bg-red-100 text-red-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {creditScore.hasBankruptcy ? (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Possui
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Não possui
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-700">Processos Judiciais</span>
+                      <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                        creditScore.hasLawsuits 
+                          ? 'bg-red-100 text-red-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {creditScore.hasLawsuits ? (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Possui
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Não possui
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
 

@@ -2992,6 +2992,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean CNPJ for API call
       const cleanCnpj = application.cnpj.replace(/\D/g, '');
       
+      // Helper function to analyze indicators
+      const analyzeIndicator = (indicadores: any[], keywords: string[]): boolean => {
+        if (!indicadores || !Array.isArray(indicadores)) return false;
+        
+        return indicadores.some(indicator => {
+          const indicadorText = (indicator.indicador || '').toUpperCase();
+          const statusText = (indicator.status || '').toUpperCase();
+          const observacaoText = (indicator.observacao || '').toUpperCase();
+          
+          return keywords.some(keyword => 
+            indicadorText.includes(keyword) || 
+            statusText.includes(keyword) || 
+            observacaoText.includes(keyword)
+          );
+        });
+      };
+      
       let creditScoreData: any;
       
       // Try to use DirectD API if token is available
@@ -3076,10 +3093,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })) || [],
               // Score QUOD specific data
               companyData: { score: scoreData, cadastro: cadastroData }, // Store both API responses
-              hasDebts: false, // Will be determined by indicators
-              hasProtests: false, // Will be determined by indicators
-              hasBankruptcy: false, // Will be determined by indicators
-              hasLawsuits: false, // Will be determined by indicators
+              hasDebts: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['DEBITO', 'DIVIDA', 'INADIMPLENCIA']),
+              hasProtests: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['PROTESTO', 'PROTESTOS']),
+              hasBankruptcy: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['FALENCIA', 'CONCORDATA', 'RECUPERACAO']),
+              hasLawsuits: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['JUDICIAL', 'PROCESSO', 'ACAO']),
               creditAnalysis: scoreData, // Complete Score response for detailed analysis
               
               // Score QUOD specific fields - Removed per user request for young companies
