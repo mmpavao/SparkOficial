@@ -3101,15 +3101,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
 
-          // Call CND API for state tax certificate
+          // Call CND API for state tax certificate with timeout
           console.log('📞 CND API call for CNPJ:', cleanCnpj);
-          const cndResponse = await fetch(`https://apiv3.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-          });
+          const cndController = new AbortController();
+          const cndTimeout = setTimeout(() => cndController.abort(), 10000); // 10 seconds timeout
+          
+          let cndResponse;
+          try {
+            cndResponse = await fetch(`https://apiv3.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              signal: cndController.signal
+            });
+            clearTimeout(cndTimeout);
+          } catch (error) {
+            clearTimeout(cndTimeout);
+            console.log('⚠️ CND API timeout or error:', error.message);
+            cndResponse = null;
+          }
           
           if (scoreResponse.ok && cadastroResponse.ok) {
             const scoreData = await scoreResponse.json();
@@ -3117,11 +3129,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Process CND response
             let cndData = null;
-            if (cndResponse.ok) {
+            if (cndResponse && cndResponse.ok) {
               cndData = await cndResponse.json();
               console.log('✅ DirectD CND API response received:', JSON.stringify(cndData, null, 2));
-            } else {
+            } else if (cndResponse) {
               console.log('⚠️ CND API failed:', cndResponse.status, cndResponse.statusText);
+            } else {
+              console.log('⚠️ CND API unavailable or timed out');
             }
             
             console.log('✅ DirectD Score API response received:', JSON.stringify(scoreData, null, 2));
@@ -3234,22 +3248,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               scoreMotivos: [], // Removed score reasons
               
               // CND - Certidão Negativa de Débitos data
-              cndStatus: cndRetorno.status || 'Não Consultado',
-              cndHasDebts: cndRetorno.possuiDebito || false,
-              cndEffectiveNegative: cndRetorno.efeitoNegativa || false,
-              cndCertificateNumber: cndRetorno.numeroCertidao || null,
-              cndValidationCode: cndRetorno.codigoValidacao || null,
-              cndIssueDate: cndRetorno.dataEmissao ? (() => {
+              cndStatus: cndData ? (cndRetorno.status || 'Consultado') : 'Não Consultado',
+              cndHasDebts: cndData ? (cndRetorno.possuiDebito || false) : null,
+              cndEffectiveNegative: cndData ? (cndRetorno.efeitoNegativa || false) : null,
+              cndCertificateNumber: cndData ? (cndRetorno.numeroCertidao || null) : null,
+              cndValidationCode: cndData ? (cndRetorno.codigoValidacao || null) : null,
+              cndIssueDate: cndData && cndRetorno.dataEmissao ? (() => {
                 const [day, month, year] = cndRetorno.dataEmissao.split('/');
                 return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
               })() : null,
-              cndExpiryDate: cndRetorno.dataValidade ? (() => {
+              cndExpiryDate: cndData && cndRetorno.dataValidade ? (() => {
                 const [day, month, year] = cndRetorno.dataValidade.split('/');
                 return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
               })() : null,
-              cndDebtsDetails: cndRetorno.debitos || [],
-              cndStateRegistration: cndRetorno.inscricaoEstadual || null,
-              cndState: cndRetorno.uf || 'SP',
+              cndDebtsDetails: cndData ? (cndRetorno.debitos || []) : [],
+              cndStateRegistration: cndData ? (cndRetorno.inscricaoEstadual || null) : null,
+              cndState: cndData ? (cndRetorno.uf || 'SP') : 'SP',
               cndFullResponse: cndData || null,
               
               lastCheckedAt: new Date()

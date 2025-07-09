@@ -926,6 +926,15 @@ Changelog:
   * Updated backend API to not store sensitive fields (faixaScore, scoreMotivos, indicadoresNegocio)
   * Maintained core functionality: credit score value, company data, address, contacts, activities, and partners
   * Interface now shows simplified credit analysis appropriate for young companies with limited credit history
+- July 09, 2025. CND (Certidão Negativa de Débitos) API integration implementation:
+  * Added 11 new database columns for CND state tax certificate data storage
+  * Implemented CND API integration using Direct Data provider with 10-second timeout protection
+  * Created CND interface section in Credit Score Analysis showing fiscal status and debt information
+  * Added conditional rendering to hide CND section when data is unavailable (API timeout/error)
+  * Established automatic CND consultation alongside Score QUOD during credit score analysis
+  * CND integration provides government fiscal validation complementing commercial credit scores
+  * System handles API failures gracefully with fallback to "Não Consultado" status
+  * CND data includes: status, debt presence, certificate number, validity dates, and detailed debt information
 ```
 
 ## User Preferences

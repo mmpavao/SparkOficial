@@ -1,0 +1,101 @@
+
+> rest-express@1.0.0 dev
+Registering imports routes...rver/index.ts
+Imports routes registered successfully
+2:51:39 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: I_vMGkdiFBEb_IEjINcbzy2tgrbxmwJk, User ID: undefined
+2:51:49 AM [express] GET /api/auth/user 200 in 123ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:51:49 AM [express] GET /api/auth/user 304 in 371ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+2:51:50 AM [express] GET /api/notifications 200 in 125ms
+Authentication successful for user: 22 Role: admin
+2:51:50 AM [express] GET /api/notifications/unread-count 200 in 132ms
+Fetching fresh admin metrics
+2:51:51 AM [express] GET /api/admin/dashboard/metrics 304 in 1816ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:52:05 AM [express] GET /api/notifications/unread-count 200 in 481ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:52:20 AM [express] GET /api/notifications 200 in 481ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:52:20 AM [express] GET /api/notifications/unread-count 200 in 121ms
+[Session Debug] GET /api/auth/user - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:52:37 AM [express] GET /api/auth/user 304 in 366ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Authentication successful for user: 22 Role: admin
+2:52:37 AM [express] GET /api/notifications 200 in 122ms
+2:52:37 AM [express] GET /api/notifications/unread-count 200 in 123ms
+Serving admin metrics from cache
+2:52:37 AM [express] GET /api/admin/dashboard/metrics 304 in 238ms :: {"totalImporters":6,"totalAppl…
+[Session Debug] GET /api/admin/credit-applications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+2:52:39 AM [express] GET /api/admin/credit-applications 304 in 301ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+🔍 Fetching financial settings for user: 22
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+2:52:41 AM [express] GET /api/user/financial-settings 304 in 184ms :: {"adminFeePercentage":10,"down…
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+2:52:42 AM [express] GET /api/admin/credit-applications/61 200 in 1522ms :: {"id":61,"userId":32,"le…
+[Session Debug] GET /api/credit/applications/61/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+2:52:47 AM [express] GET /api/credit/applications/61/credit-score 404 in 1144ms :: {"message":"Credi…
+[Session Debug] POST /api/credit/applications/61/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+
+🏢 CNPJ COMPARISON DEBUG:
+📋 Application CNPJ: 65.484.271/0001-05
+🔍 Clean CNPJ for API: 65484271000105
+📊 Expected CNPJ: 65484271000105
+✅ Match: true
+📊 Calling DirectD APIs for CNPJ: 65484271000105
+🚨 DISCREPANCY ALERT: Web interface shows Score 585, API returning different values
+📅 Timestamp: 2025-07-09T02:52:51.024Z
+📞 CND API call for CNPJ: 65484271000105
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:52:52 AM [express] GET /api/notifications/unread-count 200 in 124ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:53:08 AM [express] GET /api/notifications 200 in 485ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:53:08 AM [express] GET /api/notifications/unread-count 200 in 474ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:53:23 AM [express] GET /api/notifications/unread-count 200 in 481ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:53:38 AM [express] GET /api/notifications 200 in 523ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:53:39 AM [express] GET /api/notifications/unread-count 200 in 123ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:53:54 AM [express] GET /api/notifications/unread-count 200 in 489ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:54:09 AM [express] GET /api/notifications 200 in 488ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+2:54:09 AM [express] GET /api/notifications/unread-count 200 in 119ms

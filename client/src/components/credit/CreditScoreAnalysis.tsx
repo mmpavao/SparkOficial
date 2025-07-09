@@ -350,7 +350,7 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
           )}
 
           {/* CND - Certidão Negativa de Débitos */}
-          {creditScore.cndStatus && (
+          {creditScore.cndStatus && creditScore.cndStatus !== 'Não Consultado' && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
