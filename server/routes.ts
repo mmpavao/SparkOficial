@@ -3674,13 +3674,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate PDF buffer
       const pdfBuffer = await pdfService.generateDossiePDF(dossieData);
       
-      // Set response headers for PDF download
+      // Set response headers for PDF inline viewing
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="dossie-${dossieData.companyName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf"`);
+      res.setHeader('Content-Disposition', `inline; filename="dossie-${dossieData.companyName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       
       // Send PDF buffer
-      res.send(pdfBuffer);
+      res.end(pdfBuffer);
     } catch (error) {
       console.error("Error generating PDF dossie:", error);
       res.status(500).json({ message: "Erro ao gerar PDF do dossiê" });
