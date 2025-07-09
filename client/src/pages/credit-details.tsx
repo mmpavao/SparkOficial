@@ -16,7 +16,7 @@ import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 
-import CreditAnalysisPanel from "@/components/credit/CreditAnalysisPanel";
+import CreditAnalysisCard from "@/components/credit/CreditAnalysisCard";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { formatCompactCurrency } from "@/lib/numberFormat";
@@ -908,7 +908,7 @@ export default function CreditDetailsPage() {
           />
           
           {/* Credit Score Analysis */}
-          <CreditAnalysisPanel 
+          <CreditAnalysisCard 
             creditScore={creditScore} 
             onRefresh={refreshCreditScore}
             isLoading={isLoadingCreditScore}
