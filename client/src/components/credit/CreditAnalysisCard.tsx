@@ -23,7 +23,8 @@ import {
   UserCheck,
   Activity,
   BookOpen,
-  Info
+  Info,
+  Download
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
@@ -512,7 +513,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                       </span>
                     </div>
                   )}
-                  {!creditScore.cndHasDebts && (
+                  {!creditScore.cndCertificateNumber && (
                     <div className="text-center py-4 space-y-2">
                       <div className="flex items-center justify-center">
                         <Info className="w-8 h-8 text-gray-400" />
@@ -521,6 +522,30 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                         Não foi possível emitir a Certidão Negativa. Acesse o Relatório de Pendências Fiscais 
                         para visualização de débitos no Sintegra/Sefaz.
                       </p>
+                    </div>
+                  )}
+                  {creditScore.cndCertificateNumber && (
+                    <div className="text-center py-4 space-y-3">
+                      <div className="flex items-center justify-center">
+                        <CheckCircle className="w-8 h-8 text-green-500" />
+                      </div>
+                      <p className="text-sm text-gray-700 font-medium">
+                        Certidão Negativa emitida com sucesso
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Certidão válida até {creditScore.cndExpiryDate ? new Date(creditScore.cndExpiryDate).toLocaleDateString('pt-BR') : 'data não informada'}
+                      </p>
+                      {creditScore.cndPdfUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(creditScore.cndPdfUrl, '_blank')}
+                          className="mt-2"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Baixar PDF da CND
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

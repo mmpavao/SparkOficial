@@ -946,6 +946,15 @@ Changelog:
   * Achieved 360° credit analysis interface with smart data organization highlighting important information without confusion
   * Added green-blue gradient styling to "Consultar Credit Score" and "Atualizar" buttons for enhanced visual appeal
   * Removed duplicate header when no credit score exists, maintaining clean single-card interface as requested
+- July 09, 2025. CND section fixes and PDF download functionality implementation:
+  * Fixed CND section logic to display success message when certificate number exists instead of showing error
+  * Corrected risk analysis synchronization - main card now properly reflects CND debt status (hasDebts || cndHasDebts)
+  * Eliminated text duplication issue in CND section with proper conditional rendering
+  * Added cndPdfUrl field to database schema for storing PDF download links
+  * Implemented PDF download button in CND section with proper success/error state handling
+  * Enhanced CND badge to show "Possui débitos" or "Sem débitos" based on actual data
+  * Fixed inconsistency where successful CND emission still showed error message at bottom
+  * System now displays correct CND status with ability to download PDF when available
 ```
 
 ## User Preferences

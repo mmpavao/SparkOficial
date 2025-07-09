@@ -707,6 +707,7 @@ export const creditScores = pgTable("credit_scores", {
   cndDebtsDetails: jsonb("cnd_debts_details"), // Array of debt details if any
   cndStateRegistration: text("cnd_state_registration"), // State registration used
   cndState: text("cnd_state"), // State where CND was consulted
+  cndPdfUrl: text("cnd_pdf_url"), // URL to download the CND PDF certificate
   cndFullResponse: jsonb("cnd_full_response"), // Complete API response
   
   // SCR Bacen - Sistema de Informações de Crédito (Banking Credit Information System)
