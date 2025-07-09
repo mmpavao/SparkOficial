@@ -349,6 +349,75 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
             </Card>
           )}
 
+          {/* CND - Certidão Negativa de Débitos */}
+          {creditScore.cndStatus && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="w-5 h-5 flex-shrink-0" />
+                  Situação Fiscal - CND
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Status da Certidão</p>
+                      <p className="text-sm">{creditScore.cndStatus}</p>
+                    </div>
+                    <Badge 
+                      className={`${creditScore.cndStatus === 'Regular' ? 'bg-green-100 text-green-800' : 
+                        creditScore.cndStatus === 'Irregular' ? 'bg-red-100 text-red-800' : 
+                        'bg-yellow-100 text-yellow-800'}`}
+                    >
+                      {creditScore.cndHasDebts ? 'COM DÉBITOS' : 'SEM DÉBITOS'}
+                    </Badge>
+                  </div>
+                  
+                  {creditScore.cndCertificateNumber && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-700">Número da Certidão</p>
+                      <p className="text-sm font-mono bg-gray-50 p-2 rounded">
+                        {creditScore.cndCertificateNumber}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {creditScore.cndExpiryDate && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-700">Válida até</p>
+                      <p className="text-sm">
+                        {new Date(creditScore.cndExpiryDate).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {creditScore.cndState && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-700">Estado</p>
+                      <p className="text-sm">{creditScore.cndState}</p>
+                    </div>
+                  )}
+                  
+                  {creditScore.cndHasDebts && creditScore.cndDebtsDetails && (creditScore.cndDebtsDetails as any[]).length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-red-700">Débitos Encontrados</p>
+                      <div className="space-y-1">
+                        {(creditScore.cndDebtsDetails as any[]).map((debt, index) => (
+                          <div key={index} className="p-2 bg-red-50 rounded text-sm">
+                            <p className="font-medium">{debt.tipo || 'Débito'}</p>
+                            <p>Valor: R$ {debt.valor || 'Não informado'}</p>
+                            <p>Vencimento: {debt.vencimento || 'Não informado'}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Partners */}
           {creditScore.partners && (creditScore.partners as any[]).length > 0 && (
             <Card>

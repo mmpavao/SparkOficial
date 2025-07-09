@@ -696,6 +696,19 @@ export const creditScores = pgTable("credit_scores", {
   faixaScore: text("faixa_score"), // Score range description from QUOD
   scoreMotivos: jsonb("score_motivos"), // Array of reasons for score calculation
   
+  // CND - Certidão Negativa de Débitos (State Tax Certificate)
+  cndStatus: text("cnd_status"), // "Regular", "Irregular", "Não Consultado"
+  cndHasDebts: boolean("cnd_has_debts").default(false), // Flag indicating if has debts
+  cndEffectiveNegative: boolean("cnd_effective_negative").default(false), // If certificate has negative effect
+  cndCertificateNumber: text("cnd_certificate_number"), // Certificate number
+  cndValidationCode: text("cnd_validation_code"), // Validation code
+  cndIssueDate: timestamp("cnd_issue_date"), // Issue date
+  cndExpiryDate: timestamp("cnd_expiry_date"), // Expiry date
+  cndDebtsDetails: jsonb("cnd_debts_details"), // Array of debt details if any
+  cndStateRegistration: text("cnd_state_registration"), // State registration used
+  cndState: text("cnd_state"), // State where CND was consulted
+  cndFullResponse: jsonb("cnd_full_response"), // Complete API response
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

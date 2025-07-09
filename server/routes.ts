@@ -3100,10 +3100,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'Content-Type': 'application/json'
             }
           });
+
+          // Call CND API for state tax certificate
+          const cndResponse = await fetch(`https://api.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
           
           if (scoreResponse.ok && cadastroResponse.ok) {
             const scoreData = await scoreResponse.json();
             const cadastroData = await cadastroResponse.json();
+            
+            // Process CND response
+            let cndData = null;
+            if (cndResponse.ok) {
+              cndData = await cndResponse.json();
+              console.log('✅ DirectD CND API response received:', JSON.stringify(cndData, null, 2));
+            } else {
+              console.log('⚠️ CND API failed:', cndResponse.status, cndResponse.statusText);
+            }
+            
             console.log('✅ DirectD Score API response received:', JSON.stringify(scoreData, null, 2));
             console.log('✅ DirectD Cadastro API response received:', JSON.stringify(cadastroData, null, 2));
             
@@ -3118,6 +3137,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Extract data from Cadastro PJ Plus API
             const cadastroRetorno = cadastroData.retorno || {};
+            
+            // Extract data from CND API
+            const cndRetorno = cndData?.retorno || {};
             
             // Debug logs for data analysis
             console.log('📊 DADOS PRINCIPAIS DO CADASTRO:');
@@ -3209,6 +3231,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Additional fields from Score QUOD - Removed per user request
               faixaScore: null, // Removed score range details
               scoreMotivos: [], // Removed score reasons
+              
+              // CND - Certidão Negativa de Débitos data
+              cndStatus: cndRetorno.status || 'Não Consultado',
+              cndHasDebts: cndRetorno.possuiDebito || false,
+              cndEffectiveNegative: cndRetorno.efeitoNegativa || false,
+              cndCertificateNumber: cndRetorno.numeroCertidao || null,
+              cndValidationCode: cndRetorno.codigoValidacao || null,
+              cndIssueDate: cndRetorno.dataEmissao ? (() => {
+                const [day, month, year] = cndRetorno.dataEmissao.split('/');
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              })() : null,
+              cndExpiryDate: cndRetorno.dataValidade ? (() => {
+                const [day, month, year] = cndRetorno.dataValidade.split('/');
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              })() : null,
+              cndDebtsDetails: cndRetorno.debitos || [],
+              cndStateRegistration: cndRetorno.inscricaoEstadual || null,
+              cndState: cndRetorno.uf || 'SP',
+              cndFullResponse: cndData || null,
               
               lastCheckedAt: new Date()
             };

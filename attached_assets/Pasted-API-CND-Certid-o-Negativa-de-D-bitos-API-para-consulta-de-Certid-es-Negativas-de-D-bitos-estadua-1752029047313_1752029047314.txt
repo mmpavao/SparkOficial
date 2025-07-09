@@ -1,0 +1,113 @@
+API - CND - Certidão Negativa de Débitos
+API para consulta de Certidões Negativas de Débitos estaduais.
+
+
+/api/CertidaoNegativaDebitos
+
+💡 O endpoint /api/CertidaoNegativaDebitos permite obter Certidões Negativas de Débitos estaduais, comprovando a inexistência de pendências fiscais associadas à entidade consultada.
+
+
+Introdução
+A API CND facilita a obtenção de certidões estaduais, sendo amplamente utilizada para compliance, prevenção de autuações fiscais e análise de risco/crédito.
+
+URL Base
+A API está hospedada no seguinte endereço:
+
+https://api.directd.com.br
+Endpoint
+GET /api/CertidaoNegativaDebitos
+Descrição: Permite consultar Certidões Negativas de Débitos (CND) estaduais.
+
+Autenticação
+A autenticação é feita utilizando um TOKEN.
+
+Regras de Autenticação
+
+O TOKEN deve ser enviado como parâmetro obrigatório.
+Sem um token válido, o acesso será negado (401).
+Campos da API
+Informações Gerais
+
+UF: Unidade federativa onde a consulta será realizada.
+CNPJ: Cadastro Nacional de Pessoa Jurídica.
+CPF: Cadastro de Pessoa Física.
+Inscrição Estadual: Número da inscrição estadual vinculado à consulta.
+Detalhes da Certidão
+
+Nome da Entidade: Nome da entidade consultada.
+Documento Consultado: Documento usado na consulta (CPF, CNPJ ou IE).
+Data de Emissão: Data de emissão da certidão.
+Validade Até: Data de validade da certidão.
+Flag Débito: Indica se existem débitos pendentes.
+Flag Efeito de Negativa: Indica se a certidão tem efeito de negativa.
+Lista de Débitos: Detalhamento dos débitos associados (se existirem).
+Número da Certidão: Número único da certidão emitida.
+Código de Validação: Código usado para validar a certidão emitida.
+Parâmetros
+Nome	Tipo	Obrigatório	Descrição
+UF	string	Sim	
+Unidade federativa onde a consulta será realizada.
+
+CNPJ	string	Não	
+CNPJ da entidade a ser consultada (com ou sem formatação).
+
+CPF	string	Não	
+CPF da entidade a ser consultada (com ou sem formatação).
+
+Inscrição Estadual	string	Não	Inscrição estadual da entidade consultada.
+TOKEN	string	Sim	
+Token de autenticação necessário para a consulta.
+
+GERARCOMPROVANTE	string	Não	Indica se deve gerar comprovante em PDF.
+Exemplo de Requisição
+Usando cURL
+
+curl -X 'GET' \
+  'https://api.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=12345678000190&TOKEN=seu_token_aqui&GERARCOMPROVANTE=true' \
+  -H 'accept: application/json'
+Respostas
+Sucesso (200)
+Exemplo de Resposta
+
+{
+  "metaDados": {
+    "consultaNome": "CND - Certidão Negativa de Débitos",
+    "consultaUid": "cnd-123456",
+    "usuario": "Carlos",
+    "mensagem": "Sucesso",
+    "apiVersao": "v3",
+    "tempoExecucaoMs": 1100,
+    "gerarComprovante": true,
+    "urlComprovante": "https://api.directd.com.br/comprovantes/certidao123.pdf"
+  },
+  "retorno": {
+    "nomeEntidade": "EMPRESA EXEMPLO LTDA",
+    "documentoConsultado": "12.345.678/0001-90",
+    "uf": "SP",
+    "inscricaoEstadual": "123456789",
+    "dataEmissao": "01/12/2024",
+    "dataValidade": "01/01/2025",
+    "possuiDebito": false,
+    "debitos": [],
+    "efeitoNegativa": true,
+    "numeroCertidao": "CND-2024-12345",
+    "status": "Regular",
+    "codigoValidacao": "XYZ123456789"
+  }
+}
+Erros Comuns
+Código	Descrição
+400	Requisição Inválida: Parâmetros incorretos.
+401	Não Autenticado: Credenciais incorretas.
+403	Não Autorizado: Saldo insuficiente.
+404	
+Não Encontrado: Recurso solicitado não existe.
+
+408	
+Tempo Esgotado: O servidor não conseguiu processar a requisição no prazo estabelecido.
+
+500	
+Erro Interno: Falha ao processar a requisição. Entre em contato com o suporte.
+
+503	
+Consulta em Manutenção: O recurso solicitado está temporariamente indisponível.
