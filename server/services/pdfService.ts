@@ -209,7 +209,94 @@ export class PDFService {
   }
   
   /**
-   * Converte dados completos para formato do template
+   * Gera PDF diretamente com dados completos sem conversão
+   */
+  async generateDossiePDFFromCreditScore(creditScore: any): Promise<Buffer> {
+    // Use the isolated service to process all API data
+    const completeData = DossieDataService.processApiData(creditScore);
+    
+    // Pass complete data directly to template
+    return await this.generatePDFFromCompleteData(completeData);
+  }
+  
+  private async generatePDFFromCompleteData(data: DossieDataComplete): Promise<Buffer> {
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-extensions',
+        '--disable-plugins',
+        '--disable-default-apps',
+        '--disable-translate',
+        '--disable-device-discovery-notifications',
+        '--disable-software-rasterizer',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection',
+        '--disable-hang-monitor',
+        '--disable-popup-blocking',
+        '--disable-prompt-on-repost',
+        '--run-all-compositor-stages-before-draw',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-features=VizDisplayCompositor',
+        '--font-render-hinting=none'
+      ]
+    });
+
+    try {
+      const page = await browser.newPage();
+      
+      // Compile the template with complete data structure
+      const compiledTemplate = handlebars.compile(this.template);
+      const html = compiledTemplate(data);
+      
+      // Set the content
+      await page.setContent(html, {
+        waitUntil: 'networkidle0'
+      });
+      
+      // Generate PDF
+      const pdf = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '2cm',
+          right: '2cm',
+          bottom: '2cm',
+          left: '2cm'
+        },
+        printBackground: true,
+        displayHeaderFooter: true,
+        headerTemplate: `
+          <div style="width: 100%; font-size: 10px; text-align: center; color: #666; padding: 10px;">
+            <span>Dossiê ${data.companyName} - ${data.emissionDate}</span>
+          </div>
+        `,
+        footerTemplate: `
+          <div style="width: 100%; font-size: 10px; text-align: center; color: #666; padding: 10px;">
+            <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+          </div>
+        `
+      });
+
+      return pdf;
+    } finally {
+      await browser.close();
+    }
+  }
+
+  /**
+   * Converte dados completos para formato do template (usado para compatibilidade)
    */
   private convertToTemplateFormat(completeData: DossieDataComplete): DossieData {
     return {
