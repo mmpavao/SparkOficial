@@ -171,21 +171,21 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mobile-viewport">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 bg-white shadow-lg transform transition-all duration-300 ease-in-out z-50 mobile-sidebar ${
+        className={`fixed inset-y-0 left-0 bg-white shadow-lg transform transition-all duration-300 ease-in-out z-50 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } ${
           sidebarCollapsed ? "lg:w-20" : "lg:w-64"
-        } lg:translate-x-0 w-80 sm:w-64`}
+        } lg:translate-x-0 w-64`}
       >
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b">
           <div className={`transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
             <img 
               src={sparkLogo} 
               alt="Spark Comex" 
-              className="h-10 sm:h-12 w-auto ml-[6px] sm:ml-[12px] mr-[6px] sm:mr-[12px]"
+              className="h-12 w-auto ml-[12px] mr-[12px]"
             />
           </div>
           {/* Ícone do Spark Comex quando sidebar está fechada */}
@@ -196,12 +196,12 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               className="h-8 w-8"
             />
           </div>
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleSidebarCollapse}
-              className="hidden lg:flex p-2"
+              className="hidden lg:flex"
             >
               {sidebarCollapsed ? (
                 <ChevronRight className="w-4 h-4" />
@@ -213,17 +213,17 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className="lg:hidden p-2"
+              className="lg:hidden"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <nav className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+        <nav className="p-4 space-y-4">
           {/* Navegação Principal */}
           <div>
-            <div className={`mb-2 sm:mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
+            <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
                 SPARK COMEX
               </h3>
@@ -237,7 +237,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   <div key={item.path}>
                     <Button
                       variant="ghost"
-                      className={`w-full transition-colors h-12 sm:h-10 text-sm sm:text-base mobile-touch-target ${
+                      className={`w-full transition-colors ${
                         sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                       } ${
                         active 
@@ -285,7 +285,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           {/* Navegação Administrativa - APENAS para admins e super admins */}
           {(isAdmin && !isImporter) && (
             <div>
-              <div className={`mb-2 sm:mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
+              <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
                   ADMINISTRAÇÃO
                 </h3>
@@ -299,7 +299,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     <Button
                       key={item.path}
                       variant="ghost"
-                      className={`w-full transition-colors h-12 sm:h-10 text-sm sm:text-base mobile-touch-target ${
+                      className={`w-full transition-colors ${
                         sidebarCollapsed ? "lg:justify-center lg:px-2" : "justify-start"
                       } ${
                         active 
@@ -322,12 +322,12 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 border-t">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full p-2 sm:p-3 h-auto hover:bg-gray-50 justify-start"
+                className="w-full p-3 h-auto hover:bg-gray-50 justify-start"
               >
                 <div className="flex items-center w-full">
                   <div className={`flex ${sidebarCollapsed ? "lg:justify-center lg:w-full" : "items-center w-full"}`}>
@@ -351,7 +351,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64 mb-2 mobile-dropdown">
+            <DropdownMenuContent align="start" className="w-64 mb-2">
               {/* Header do usuário no dropdown */}
               <div className="px-3 py-3 border-b">
                 <div className="flex items-center space-x-3">
@@ -441,34 +441,27 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden mobile-overlay"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={toggleSidebar}
         />
       )}
       {/* Fixed Top Header */}
-      <header className={`fixed top-0 right-0 bg-white shadow-sm border-b z-30 transition-all duration-300 ease-in-out mobile-header ${
+      <header className={`fixed top-0 right-0 bg-white shadow-sm border-b z-30 transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "lg:left-20" : "lg:left-64"
       } left-0`}>
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className="mr-2 sm:mr-4 lg:hidden p-2 mobile-touch-target"
+              className="mr-4 lg:hidden"
             >
               <Menu className="w-5 h-5" />
             </Button>
-            {/* Logo no mobile quando sidebar fechada */}
-            <div className="lg:hidden">
-              <img 
-                src={sparkIcon} 
-                alt="Spark Comex" 
-                className="h-8 w-8"
-              />
-            </div>
+
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-4">
             <NotificationCenter />
           </div>
         </div>
@@ -478,7 +471,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       <div className={`transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
       }`}>
-        <main className="p-4 sm:p-6 pt-16 sm:pt-20">
+        <main className="p-6 pt-20">
           {children}
         </main>
       </div>
