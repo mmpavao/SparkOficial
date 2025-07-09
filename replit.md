@@ -935,6 +935,15 @@ Changelog:
   * CND integration provides government fiscal validation complementing commercial credit scores
   * System handles API failures gracefully with fallback to "Não Consultado" status
   * CND data includes: status, debt presence, certificate number, validity dates, and detailed debt information
+- July 09, 2025. Complete CreditAnalysisCard visual redesign following exact user reference:
+  * Recreated component completely with clean vertical layout eliminating all redundancies
+  * Implemented exact score bar design matching user reference image with scale numbers (0, 250, 500, 750, 1000)
+  * Added intelligent score visualization with color-coded bar and centered score value inside bar
+  * Positioned risk level badge in top-right corner matching reference design
+  * Enhanced CNAE display with both primary and secondary economic activities including codes
+  * Created expandable cards system for each API (Score QUOD, Cadastro PJ Plus, CND, SCR Bacen, Detalhamento Negativo)
+  * Organized shareholder/partner information with complete visibility for company structure analysis
+  * Achieved 360° credit analysis interface with smart data organization highlighting important information without confusion
 ```
 
 ## User Preferences

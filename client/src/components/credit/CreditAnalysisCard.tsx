@@ -137,35 +137,44 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
               <TrendingUp className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h4 className="font-semibold text-lg">Credit Score</h4>
               <p className="text-sm text-gray-600">{creditScore.companyName || creditScore.legalName || ''}</p>
             </div>
           </div>
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Badge de nível */}
-          <div className="flex justify-start">
+          {/* Header com Badge no canto direito */}
+          <div className="flex justify-between items-start mb-6">
+            <div className="text-left">
+              <h4 className="text-2xl font-bold text-gray-900 mb-1">Credit Score</h4>
+            </div>
             <Badge 
               variant="outline" 
-              className={`${getBadgeColor(score)} px-4 py-2 text-sm font-medium`}
+              className={`${getBadgeColor(score)} px-3 py-1 text-sm font-medium`}
             >
               {getScoreLevel(score)}
             </Badge>
           </div>
 
-          {/* Score central */}
-          <div className="text-center space-y-3">
-            <div className="text-5xl font-bold text-blue-600">{score}</div>
-            <div className="text-gray-500">de 1000 pontos</div>
+          {/* Escala de valores */}
+          <div className="flex justify-between text-sm text-gray-500 mb-2">
+            <span>0</span>
+            <span>250</span>
+            <span>500</span>
+            <span>750</span>
+            <span>1000</span>
           </div>
 
-          {/* Barra de progresso */}
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className={`h-3 rounded-full transition-all duration-500 ${getScoreColor(score)}`}
-              style={{ width: `${Math.min((score / 1000) * 100, 100)}%` }}
-            />
+          {/* Barra de progresso com score */}
+          <div className="relative mb-8">
+            <div className="w-full bg-gray-200 rounded-full h-10">
+              <div 
+                className={`h-10 rounded-full transition-all duration-500 ${getScoreColor(score)} flex items-center justify-center`}
+                style={{ width: `${Math.min((score / 1000) * 100, 100)}%` }}
+              >
+                <span className="text-white font-bold text-lg">{score}</span>
+              </div>
+            </div>
           </div>
 
           {/* Análise de Risco */}
@@ -410,19 +419,44 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
               )}
 
               {/* Atividades Econômicas */}
-              {creditScore.mainActivity && (
+              {(creditScore.mainActivity || creditScore.secondaryActivities) && (
                 <div className="space-y-3">
-                  <h6 className="font-semibold">Atividades Econômicas</h6>
-                  <div className="space-y-2">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Activity className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium">Atividade Principal</span>
+                  <h6 className="font-semibold">Atividades Econômicas (CNAE)</h6>
+                  <div className="space-y-3">
+                    {creditScore.mainActivity && (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Activity className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm font-medium">Atividade Principal</span>
+                        </div>
+                        <span className="text-sm text-gray-700 ml-6">
+                          {creditScore.mainActivity.code ? `${creditScore.mainActivity.code} - ` : ''}
+                          {creditScore.mainActivity.description || 'Não informado'}
+                        </span>
                       </div>
-                      <span className="text-sm text-gray-700 ml-6">
-                        {creditScore.mainActivity.description || 'Não informado'}
-                      </span>
-                    </div>
+                    )}
+                    
+                    {creditScore.secondaryActivities && Array.isArray(creditScore.secondaryActivities) && creditScore.secondaryActivities.length > 0 && (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-1">
+                          <BookOpen className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm font-medium">Atividades Secundárias</span>
+                        </div>
+                        <div className="ml-6 space-y-1">
+                          {creditScore.secondaryActivities.slice(0, 3).map((activity: any, index: number) => (
+                            <span key={index} className="text-sm text-gray-700 block">
+                              {activity.code ? `${activity.code} - ` : ''}
+                              {activity.description || `Atividade ${index + 1}`}
+                            </span>
+                          ))}
+                          {creditScore.secondaryActivities.length > 3 && (
+                            <span className="text-sm text-gray-500 block">
+                              + {creditScore.secondaryActivities.length - 3} outras atividades
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
