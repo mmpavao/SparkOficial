@@ -1,0 +1,177 @@
+{
+  "info": {
+    "status": "OK",
+    "mensagem": "Sucesso"
+  },
+  "retorno": {
+    "cnpj": "35.364.825/0001-70",
+    "razaoSocial": "P1LED COMERCIO E IMPORTACAO DE PRODUTOS ELETRICOS E SERVICOS LTDA",
+    "nomeFantasia": "P1LED COMERCIO E IMPORTACAO",
+    "dataFundacao": "31/10/2019 00:00:00",
+    "cNAECodigo": 4673700,
+    "cNAEDescricao": "Comércio Atacadista de Material Elétrico",
+    "cNAEsSecundarios": [
+      {
+        "cNAECodigoSecundario": 4321500,
+        "cNAEDescricaoSecundario": "Instalação E Manutenção Elétrica"
+      },
+      {
+        "cNAECodigoSecundario": 4649402,
+        "cNAEDescricaoSecundario": "Comércio Atacadista de Aparelhos Eletrônicos de Uso Pessoal E Doméstico"
+      },
+      {
+        "cNAECodigoSecundario": 4651601,
+        "cNAEDescricaoSecundario": "Comércio Atacadista de Equipamentos de Informática"
+      },
+      {
+        "cNAECodigoSecundario": 4652400,
+        "cNAEDescricaoSecundario": "Comércio Atacadista de Componentes Eletrônicos E Equipamentos de Telefonia E Comunicação"
+      },
+      {
+        "cNAECodigoSecundario": 4742300,
+        "cNAEDescricaoSecundario": "Comércio Varejista de Material Elétrico"
+      },
+      {
+        "cNAECodigoSecundario": 5232000,
+        "cNAEDescricaoSecundario": "Atividades de Agenciamento Marítimo"
+      },
+      {
+        "cNAECodigoSecundario": 5250803,
+        "cNAEDescricaoSecundario": "Agenciamento de Cargas, Exceto para O Transporte Marítimo"
+      },
+      {
+        "cNAECodigoSecundario": 5250804,
+        "cNAEDescricaoSecundario": "Organização Logística do Transporte de Carga"
+      },
+      {
+        "cNAECodigoSecundario": 5911102,
+        "cNAEDescricaoSecundario": "Produção de Filmes para Publicidade"
+      },
+      {
+        "cNAECodigoSecundario": 6201501,
+        "cNAEDescricaoSecundario": "Desenvolvimento de Programas de Computador sob Encomenda"
+      },
+      {
+        "cNAECodigoSecundario": 7319003,
+        "cNAEDescricaoSecundario": "Marketing Direto"
+      },
+      {
+        "cNAECodigoSecundario": 7319004,
+        "cNAEDescricaoSecundario": "Consultoria em Publicidade"
+      },
+      {
+        "cNAECodigoSecundario": 7729202,
+        "cNAEDescricaoSecundario": "Aluguel de Móveis, Utensílios E Aparelhos de Uso Doméstico E Pessoal, Instrumentos Musicais"
+      },
+      {
+        "cNAECodigoSecundario": 7739099,
+        "cNAEDescricaoSecundario": "Aluguel de Outras Máquinas E Equipamentos Comerciais E Industriais Não Especificados Anteriormente, sem Operador"
+      },
+      {
+        "cNAECodigoSecundario": 8211300,
+        "cNAEDescricaoSecundario": "Serviços Combinados de Escritório E Apoio Administrativo"
+      }
+    ],
+    "situacaoCadastral": "Ativa",
+    "situacaoEspecial": null,
+    "naturezaJuridicaCodigo": 2062,
+    "naturezaJuridicaDescricao": "Sociedade Empresária Limitada",
+    "naturezaJuridicaTipo": null,
+    "porte": null,
+    "faixaFuncionarios": "Até 9 Funcionários",
+    "quantidadeFuncionarios": 6,
+    "faixaFaturamento": "R$ 2.800.000 até R$ 4.800.000",
+    "faturamentoMedioCNAE": "R$ 7.709.681,74",
+    "faturamentoPresumido": "R$ 3.573.054,55",
+    "matriz": true,
+    "orgaoPublico": null,
+    "ramo": null,
+    "tipoEmpresa": "LTDA",
+    "tributacao": "LUCRO PRESUMIDO",
+    "opcaoMEI": "NÃO",
+    "opcaoSimples": "NÃO",
+    "quantidadeFiliais": "1 até 2 filiais",
+    "telefones": [
+      {
+        "telefoneComDDD": "(11) 3086-3312",
+        "telemarketingBloqueado": false,
+        "operadora": "VIVO",
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 3135-6548",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 3596-3746",
+        "telemarketingBloqueado": false,
+        "operadora": "CLARO",
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 5140-1339",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE RESIDENCIAL",
+        "whatsApp": false
+      },
+      {
+        "telefoneComDDD": "(11) 98955-2343",
+        "telemarketingBloqueado": false,
+        "operadora": "CLARO",
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      }
+    ],
+    "enderecos": [
+      {
+        "logradouro": "AV PAULISTA",
+        "numero": "302",
+        "complemento": "AND 10 CJ 10",
+        "bairro": "BELA VISTA",
+        "cidade": "SAO PAULO",
+        "uf": "SP",
+        "cep": "01310-000"
+      },
+      {
+        "logradouro": "R ESTADOS UNIDOS",
+        "numero": "2186",
+        "complemento": null,
+        "bairro": "JARDIM AMERICA",
+        "cidade": "SAO PAULO",
+        "uf": "SP",
+        "cep": "01427-002"
+      }
+    ],
+    "emails": [
+      {
+        "enderecoEmail": "contato@insightcontabilidade.com"
+      },
+      {
+        "enderecoEmail": "savio@insightcontabilidade.com"
+      }
+    ],
+    "socios": [
+      {
+        "documento": "314.628.368-95",
+        "nome": "Daniel Horn",
+        "percentualParticipacao": "50.00",
+        "dataEntrada": "21/09/2020 00:00:00",
+        "cargo": "Sócio Administrador"
+      },
+      {
+        "documento": "346.422.928-96",
+        "nome": "Rafael Bamenga",
+        "percentualParticipacao": "50.00",
+        "dataEntrada": "31/10/2019 00:00:00",
+        "cargo": "Sócio Administrador"
+      }
+    ],
+    "ultimaAtualizacaoPJ": "24/06/2025 00:00:00"
+  }
+}

@@ -140,11 +140,14 @@ export interface DossieDataComplete {
       legalRepresentative: boolean;
     }[];
     
-    // Contatos e comunicação
+    // Contatos múltiplos com detalhes completos
     contacts: {
       phones: {
         number: string;
         type: string;
+        operator: string;
+        whatsApp: boolean;
+        marketingBlocked: boolean;
         verified: boolean;
       }[];
       emails: {
@@ -159,14 +162,22 @@ export interface DossieDataComplete {
       }[];
     };
     
-    // Informações adicionais
-    additionalInfo: {
+    // Informações financeiras completas
+    financialInfo: {
+      employeeRange: string;
       employeeCount: string;
-      annualRevenue: string;
-      branchOffices: number;
-      certifications: string[];
-      licenses: string[];
-      specialRegimes: string[];
+      revenueRange: string;
+      averageRevenue: string;
+      presumedRevenue: string;
+      branchRange: string;
+    };
+    
+    // Informações tributárias
+    taxInfo: {
+      taxRegime: string;
+      meiOption: string;
+      simplesOption: string;
+      companyType: string;
     };
   } | null;
   
@@ -183,24 +194,72 @@ export interface DossieDataComplete {
     pdfUrl: string;
   } | null;
   
-  // Dados do SCR Bacen
+  // Dados do SCR Bacen - TODOS OS PERCENTUAIS
   scrBacen: {
-    hasRecords: boolean;
-    totalDebt: string;
-    bankingRelationships: {
-      bankName: string;
-      accountType: string;
-      status: string;
-      openingDate: string;
-    }[];
-    creditOperations: {
-      modalityCode: string;
-      modalityDescription: string;
-      amount: string;
-      riskLevel: string;
-      installmentStatus: string;
-    }[];
-    consultationDate: string;
+    documentoConsultado: string;
+    quantidadeInstituicoes: number;
+    quantidadeOperacoes: number;
+    relacionamentos: string;
+    volume: string;
+    situacao: string;
+    perfil: string;
+    score: string;
+    classeRisco: string;
+    
+    // Carteira de crédito
+    carteiraCredito: {
+      valorVencer: string;
+      valorVencida: string;
+    } | null;
+    
+    // Índices por modalidade
+    indice: {
+      total: string;
+      cartao: string;
+      creditoPessoal: string;
+      chequeEspecial: string;
+    } | null;
+    
+    // Percentual por categoria - TODOS OS DADOS
+    percentualCategoria: {
+      linhaRiscoMaior: string;
+      cartao: string;
+      financiamentos: string;
+      emprestimos: string;
+      financiamentosExportacao: string;
+      financiamentosImobiliarios: string;
+      financiamentosVeiculos: string;
+      adiantamentosDepositantes: string;
+      operacoesArrendamento: string;
+      coobrigacoes: string;
+      outrosCreditos: string;
+      outros: string;
+    } | null;
+    
+    // Percentual vencido por modalidade
+    percentualVencido: {
+      cartao: string;
+      emprestimos: string;
+      financiamentos: string;
+      financiamentosImobiliarios: string;
+      financiamentosVeiculos: string;
+      adiantamentoDepositos: string;
+    } | null;
+    
+    // Percentual por prazo
+    percentualPrazo: {
+      curto: string;
+      medio: string;
+      longo: string;
+    } | null;
+    
+    // Percentual de evolução de compromisso
+    percentualEvolucaoCompromisso: {
+      total: string;
+      maiorRisco: string;
+      financiamentos: string;
+      cartao: string;
+    } | null;
   } | null;
   
   // Detalhamento Negativo - Análise completa de restrições
@@ -463,7 +522,7 @@ export class DossieDataService {
         }
       } : null,
       
-      // Cadastro PJ Plus
+      // Cadastro PJ Plus - DADOS COMPLETOS
       cadastroPjPlus: creditScoreData.companyName ? {
         // Informações básicas
         companyName: creditScoreData.companyName,
@@ -491,7 +550,10 @@ export class DossieDataService {
           ein: creditScoreData.ein || 'Não informado'
         },
         
-        // Endereço completo
+        // Endereços múltiplos (todos os endereços da empresa)
+        addresses: this.processMultipleAddresses(creditScoreData),
+        
+        // Endereço principal
         address: {
           street: creditScoreData.street || 'Não informado',
           number: creditScoreData.number || 'S/N',
@@ -531,31 +593,19 @@ export class DossieDataService {
           legalRepresentative: partner.legalRepresentative || false
         })) : [],
         
-        // Contatos e comunicação
+        // Contatos múltiplos com detalhes completos
         contacts: {
-          phones: creditScoreData.phone ? [{
-            number: creditScoreData.phone,
-            type: 'Comercial',
-            verified: false
-          }] : [],
-          emails: creditScoreData.email ? [{
-            address: creditScoreData.email,
-            type: 'Comercial',
-            verified: false
-          }] : [],
+          phones: this.processPhones(creditScoreData),
+          emails: this.processEmails(creditScoreData),
           website: creditScoreData.website || 'Não informado',
           socialMedia: creditScoreData.socialMedia || []
         },
         
-        // Informações adicionais
-        additionalInfo: {
-          employeeCount: creditScoreData.employeeCount || 'Não informado',
-          annualRevenue: creditScoreData.annualRevenue || 'Não informado',
-          branchOffices: creditScoreData.branchOffices || 0,
-          certifications: creditScoreData.certifications || [],
-          licenses: creditScoreData.licenses || [],
-          specialRegimes: creditScoreData.specialRegimes || []
-        }
+        // Informações financeiras completas
+        financialInfo: this.processFinancialInfo(creditScoreData),
+        
+        // Informações tributárias
+        taxInfo: this.processTaxInfo(creditScoreData)
       } : null,
       
       // CND
@@ -574,8 +624,8 @@ export class DossieDataService {
         pdfUrl: creditScoreData.cndPdfUrl || ''
       } : null,
       
-      // SCR Bacen
-      scrBacen: null, // Será implementado quando API estiver disponível
+      // SCR Bacen - DADOS COMPLETOS
+      scrBacen: this.processScrBacenData(creditScoreData),
       
       // Detalhamento Negativo
       negativeDetails: {
@@ -776,5 +826,187 @@ export class DossieDataService {
     factors.push('Sem restrições críticas identificadas');
     
     return factors;
+  }
+
+  /**
+   * Processa endereços múltiplos da empresa
+   */
+  private static processMultipleAddresses(data: any): any[] {
+    if (!data.enderecos) return [];
+    
+    return data.enderecos.map((endereco: any) => ({
+      street: endereco.logradouro || 'Não informado',
+      number: endereco.numero || 'S/N',
+      complement: endereco.complemento || 'Não informado',
+      neighborhood: endereco.bairro || 'Não informado',
+      city: endereco.cidade || 'Não informado',
+      state: endereco.uf || 'Não informado',
+      zipCode: endereco.cep || 'Não informado',
+      type: endereco.tipo || 'Principal'
+    }));
+  }
+
+  /**
+   * Processa telefones múltiplos com detalhes completos
+   */
+  private static processPhones(data: any): any[] {
+    if (!data.telefones) return [];
+    
+    return data.telefones.map((telefone: any) => ({
+      number: telefone.telefoneComDDD || telefone.numero || 'Não informado',
+      type: telefone.tipoTelefone || telefone.tipo || 'Não informado',
+      operator: telefone.operadora || 'Não informado',
+      whatsApp: telefone.whatsApp || false,
+      marketingBlocked: telefone.telemarketingBloqueado || false,
+      verified: telefone.verificado || false
+    }));
+  }
+
+  /**
+   * Processa emails múltiplos
+   */
+  private static processEmails(data: any): any[] {
+    if (!data.emails) return [];
+    
+    return data.emails.map((email: any) => ({
+      address: email.enderecoEmail || email.email || 'Não informado',
+      type: email.tipo || 'Comercial',
+      verified: email.verificado || false
+    }));
+  }
+
+  /**
+   * Processa sócios com dados completos
+   */
+  private static processPartners(data: any): any[] {
+    if (!data.socios) return [];
+    
+    return data.socios.map((socio: any) => ({
+      name: socio.nome || 'Não informado',
+      document: socio.documento || socio.cpf || 'Não informado',
+      participation: socio.percentualParticipacao || socio.participacao || '0',
+      position: socio.cargo || socio.qualificacao || 'Não informado',
+      entryDate: socio.dataEntrada ? 
+        new Date(socio.dataEntrada).toLocaleDateString('pt-BR') : 'Não informado',
+      age: socio.idade || 'Não informado',
+      nationality: socio.nacionalidade || 'Brasileira',
+      legalRepresentative: socio.representanteLegal || false
+    }));
+  }
+
+  /**
+   * Processa CNAEs secundários
+   */
+  private static processSecondaryCNAEs(data: any): any[] {
+    if (!data.cNAEsSecundarios) return [];
+    
+    return data.cNAEsSecundarios.map((cnae: any) => ({
+      code: cnae.cNAECodigoSecundario || cnae.codigo || 'Não informado',
+      description: cnae.cNAEDescricaoSecundario || cnae.descricao || 'Não informado',
+      startDate: cnae.dataInicio ? 
+        new Date(cnae.dataInicio).toLocaleDateString('pt-BR') : 'Não informado'
+    }));
+  }
+
+  /**
+   * Processa dados financeiros detalhados
+   */
+  private static processFinancialInfo(data: any): any {
+    return {
+      employeeRange: data.faixaFuncionarios || 'Não informado',
+      employeeCount: data.quantidadeFuncionarios || 'Não informado',
+      revenueRange: data.faixaFaturamento || 'Não informado',
+      averageRevenue: data.faturamentoMedioCNAE || 'Não informado',
+      presumedRevenue: data.faturamentoPresumido || 'Não informado',
+      branchRange: data.quantidadeFiliais || 'Não informado'
+    };
+  }
+
+  /**
+   * Processa informações tributárias
+   */
+  private static processTaxInfo(data: any): any {
+    return {
+      taxRegime: data.tributacao || 'Não informado',
+      meiOption: data.opcaoMEI || 'Não informado',
+      simplesOption: data.opcaoSimples || 'Não informado',
+      companyType: data.tipoEmpresa || 'Não informado'
+    };
+  }
+
+  /**
+   * Processa dados completos do SCR Bacen
+   */
+  private static processScrBacenData(data: any): any {
+    if (!data || !data.retorno) return null;
+    
+    const retorno = data.retorno;
+    
+    return {
+      documentoConsultado: retorno.documentoConsultado || 'Não informado',
+      quantidadeInstituicoes: retorno.quantidadeInstituicoes || 0,
+      quantidadeOperacoes: retorno.quantidadeOperacoes || 0,
+      relacionamentos: retorno.relacionamentos || 'Não informado',
+      volume: retorno.volume || 'Não informado',
+      situacao: retorno.situacao || 'Não informado',
+      perfil: retorno.perfil || 'Não informado',
+      score: retorno.score || 'Não informado',
+      classeRisco: retorno.classeRisco || 'Não informado',
+      
+      // Carteira de crédito
+      carteiraCredito: retorno.carteiraCredito ? {
+        valorVencer: retorno.carteiraCredito.valorVencer || 'Não informado',
+        valorVencida: retorno.carteiraCredito.valorVencida || 'Não informado'
+      } : null,
+      
+      // Índices por modalidade
+      indice: retorno.indice ? {
+        total: retorno.indice.total || 'Não informado',
+        cartao: retorno.indice.cartao || 'Não informado',
+        creditoPessoal: retorno.indice.creditoPessoal || 'Não informado',
+        chequeEspecial: retorno.indice.chequeEspecial || 'Não informado'
+      } : null,
+      
+      // Percentual por categoria - TODOS OS DADOS
+      percentualCategoria: retorno.percentualCategoria ? {
+        linhaRiscoMaior: retorno.percentualCategoria.linhaRiscoMaior || '0%',
+        cartao: retorno.percentualCategoria.cartao || '0%',
+        financiamentos: retorno.percentualCategoria.financiamentos || '0%',
+        emprestimos: retorno.percentualCategoria.emprestimos || '0%',
+        financiamentosExportacao: retorno.percentualCategoria.financiamentosExportacao || '0%',
+        financiamentosImobiliarios: retorno.percentualCategoria.financiamentosImobiliarios || '0%',
+        financiamentosVeiculos: retorno.percentualCategoria.financiamentosVeiculos || '0%',
+        adiantamentosDepositantes: retorno.percentualCategoria.adiantamentosDepositantes || '0%',
+        operacoesArrendamento: retorno.percentualCategoria.operacoesArrendamento || '0%',
+        coobrigacoes: retorno.percentualCategoria.coobrigacoes || '0%',
+        outrosCreditos: retorno.percentualCategoria.outrosCreditos || '0%',
+        outros: retorno.percentualCategoria.outros || '0%'
+      } : null,
+      
+      // Percentual vencido por modalidade
+      percentualVencido: retorno.percentualVencido ? {
+        cartao: retorno.percentualVencido.cartao || '0%',
+        emprestimos: retorno.percentualVencido.emprestimos || '0%',
+        financiamentos: retorno.percentualVencido.financiamentos || '0%',
+        financiamentosImobiliarios: retorno.percentualVencido.financiamentosImobiliarios || '0%',
+        financiamentosVeiculos: retorno.percentualVencido.financiamentosVeiculos || '0%',
+        adiantamentoDepositos: retorno.percentualVencido.adiantamentoDepositos || '0%'
+      } : null,
+      
+      // Percentual por prazo
+      percentualPrazo: retorno.percentualPrazo ? {
+        curto: retorno.percentualPrazo.curto || '0%',
+        medio: retorno.percentualPrazo.medio || '0%',
+        longo: retorno.percentualPrazo.longo || '0%'
+      } : null,
+      
+      // Percentual de evolução de compromisso
+      percentualEvolucaoCompromisso: retorno.percentualEvolucaoCompromisso ? {
+        total: retorno.percentualEvolucaoCompromisso.total || '0%',
+        maiorRisco: retorno.percentualEvolucaoCompromisso.maiorRisco || '0%',
+        financiamentos: retorno.percentualEvolucaoCompromisso.financiamentos || '0%',
+        cartao: retorno.percentualEvolucaoCompromisso.cartao || '0%'
+      } : null
+    };
   }
 }

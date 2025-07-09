@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dossiê {{companyName}}</title>
+    <title>Dossiê Completo de Análise de Crédito - {{companyName}}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -20,9 +20,9 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.5;
+            line-height: 1.4;
             color: #1a1a1a;
-            font-size: 12px;
+            font-size: 11px;
             background: #ffffff;
         }
         
@@ -30,63 +30,57 @@
             text-align: center;
             border-bottom: 3px solid #22c55e;
             padding-bottom: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             padding: 25px;
-            border-radius: 12px;
-        }
-        
-        .logo {
-            width: 120px;
-            height: auto;
-            margin-bottom: 15px;
+            border-radius: 8px;
         }
         
         .company-title {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
             color: #0f172a;
-            margin: 15px 0 8px 0;
+            margin: 10px 0;
             letter-spacing: -0.5px;
         }
         
         .company-cnpj {
-            font-size: 16px;
+            font-size: 14px;
             color: #64748b;
             font-weight: 500;
         }
         
         .document-info {
             background: #f1f5f9;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            border-left: 6px solid #22c55e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #22c55e;
         }
         
         .document-info h3 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #0f172a;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
         
         .info-item {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
         
         .info-label {
             font-weight: 500;
             color: #64748b;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -94,285 +88,356 @@
         .info-value {
             color: #0f172a;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
         }
         
         .section {
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             page-break-inside: avoid;
         }
         
         .section-title {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: #0f172a;
-            border-bottom: 3px solid #22c55e;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            letter-spacing: -0.3px;
-        }
-        
-        .subsection {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .subsection-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e293b;
             margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #22c55e;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .subsection-title::before {
-            content: '';
-            width: 4px;
-            height: 20px;
+        .section-number {
             background: #22c55e;
-            border-radius: 2px;
-        }
-        
-        .score-section {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            border: 2px solid #22c55e;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 25px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            min-width: 30px;
             text-align: center;
         }
         
-        .score-title {
-            font-size: 18px;
+        .subsection {
+            margin-bottom: 20px;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #e5e7eb;
+        }
+        
+        .subsection-title {
+            font-size: 14px;
             font-weight: 600;
-            color: #15803d;
+            color: #374151;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
             margin-bottom: 15px;
         }
         
-        .score-value {
-            font-size: 48px;
-            font-weight: 800;
-            color: #15803d;
-            margin-bottom: 10px;
-        }
-        
-        .score-bar {
-            width: 100%;
-            height: 12px;
-            background: #e2e8f0;
+        .data-item {
+            background: white;
+            padding: 10px;
             border-radius: 6px;
-            overflow: hidden;
-            margin: 15px 0;
+            border: 1px solid #e5e7eb;
         }
         
-        .score-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 35%, #22c55e 70%);
-            border-radius: 6px;
-            transition: width 0.3s ease;
-        }
-        
-        .score-labels {
-            display: flex;
-            justify-content: space-between;
+        .data-label {
+            font-weight: 500;
+            color: #6b7280;
             font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .data-value {
+            color: #111827;
+            font-weight: 600;
+            font-size: 12px;
+            word-wrap: break-word;
+        }
+        
+        .score-container {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 2px solid #3b82f6;
+        }
+        
+        .score-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1e40af;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .score-range {
+            text-align: center;
+            font-size: 14px;
             color: #64748b;
-            margin-top: 5px;
+            margin-bottom: 10px;
         }
         
         .risk-badge {
             display: inline-block;
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-top: 10px;
         }
         
-        .risk-low {
-            background: #dcfce7;
-            color: #15803d;
-        }
+        .risk-low { background: #dcfce7; color: #15803d; }
+        .risk-medium { background: #fef3c7; color: #d97706; }
+        .risk-high { background: #fee2e2; color: #dc2626; }
         
-        .risk-medium {
-            background: #fef3c7;
-            color: #d97706;
-        }
+        .status-positive { background: #dcfce7; color: #15803d; }
+        .status-negative { background: #fee2e2; color: #dc2626; }
+        .status-neutral { background: #f3f4f6; color: #6b7280; }
         
-        .risk-high {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        
-        .data-grid {
+        .percentage-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
         }
         
-        .data-item {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #22c55e;
+        .percentage-item {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
         }
         
-        .data-item-title {
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 8px;
-            font-size: 13px;
+        .percentage-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
         }
         
-        .data-item-value {
-            color: #475569;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 500;
+        .percentage-label {
+            font-size: 9px;
+            color: #6b7280;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
         }
         
-        .status-success {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        
-        .status-warning {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        
-        .status-error {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        
-        .status-neutral {
-            background: #f1f5f9;
-            color: #64748b;
-        }
-        
-        .partners-list {
+        .contact-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
         }
         
-        .partner-item {
-            background: #f8fafc;
+        .contact-item {
+            background: white;
             padding: 12px;
             border-radius: 8px;
-            border-left: 3px solid #22c55e;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .contact-type {
+            font-weight: 600;
+            color: #374151;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .contact-detail {
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .partner-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 10px;
         }
         
         .partner-name {
             font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 4px;
+            color: #1f2937;
+            font-size: 13px;
+            margin-bottom: 8px;
         }
         
         .partner-details {
-            font-size: 11px;
-            color: #64748b;
-        }
-        
-        .consultation-summary {
-            background: #f1f5f9;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .consultation-stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+        }
+        
+        .cnae-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 8px;
+        }
+        
+        .cnae-code {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .cnae-description {
+            color: #6b7280;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        
+        .financial-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
             text-align: center;
         }
         
-        .stat-item {
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .stat-number {
-            font-size: 24px;
+        .financial-value {
+            font-size: 14px;
             font-weight: 700;
-            color: #22c55e;
-            margin-bottom: 5px;
+            color: #1f2937;
+            margin-bottom: 4px;
         }
         
-        .stat-label {
-            font-size: 11px;
-            color: #64748b;
+        .financial-label {
+            font-size: 10px;
+            color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            color: #64748b;
-            font-size: 10px;
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .table th,
+        .table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 11px;
+        }
+        
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
         }
         
         .page-break {
             page-break-before: always;
         }
         
-        .no-break {
-            page-break-inside: avoid;
+        .highlight-box {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            margin: 15px 0;
         }
         
-        .activities-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
+        .warning-box {
+            background: #fee2e2;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+            margin: 15px 0;
         }
         
-        .activity-item {
-            background: #f8fafc;
-            padding: 10px;
+        .success-box {
+            background: #dcfce7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
+            margin: 15px 0;
+        }
+        
+        .evolution-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: white;
             border-radius: 6px;
-            font-size: 11px;
-            color: #475569;
-            border-left: 2px solid #22c55e;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 6px;
         }
         
-        .activity-code {
+        .evolution-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 11px;
+        }
+        
+        .evolution-value {
             font-weight: 600;
-            color: #1e293b;
+            color: #1f2937;
+            font-size: 12px;
+        }
+        
+        .detailed-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .detailed-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 11px;
+            color: #4b5563;
+        }
+        
+        .detailed-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .detailed-list li strong {
+            color: #1f2937;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
+    <!-- CABEÇALHO -->
     <div class="header">
-        <div class="company-title">{{companyName}}</div>
-        <div class="company-cnpj">CNPJ: {{maskCNPJ cnpj}}</div>
+        <h1 class="company-title">{{companyName}}</h1>
+        <p class="company-cnpj">CNPJ: {{formatCNPJ cnpj}}</p>
     </div>
-    
+
+    <!-- INFORMAÇÕES DO DOSSIÊ -->
     <div class="document-info">
         <h3>Informações do Dossiê</h3>
         <div class="info-grid">
@@ -394,703 +459,1012 @@
             </div>
         </div>
     </div>
-    
-    <div class="consultation-summary">
-        <h3 style="margin-bottom: 15px; font-size: 16px; font-weight: 600; color: #0f172a;">Resumo das Consultas</h3>
-        <div class="consultation-stats">
-            <div class="stat-item">
-                <div class="stat-number">{{totalConsultations}}</div>
-                <div class="stat-label">Total de Consultas</div>
+
+    <!-- RESUMO DAS CONSULTAS -->
+    <div class="section">
+        <h2 class="section-title">
+            <span class="section-number">1</span>
+            Resumo das Consultas Realizadas
+        </h2>
+        
+        <div class="data-grid">
+            <div class="data-item">
+                <div class="data-label">Total de Consultas</div>
+                <div class="data-value">{{totalConsultations}}</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{availableConsultations}}</div>
-                <div class="stat-label">Consultas Realizadas</div>
+            <div class="data-item">
+                <div class="data-label">Consultas Realizadas</div>
+                <div class="data-value">{{availableConsultations}}</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{unavailableConsultations}}</div>
-                <div class="stat-label">Indisponíveis</div>
+            <div class="data-item">
+                <div class="data-label">Indisponíveis</div>
+                <div class="data-value">{{unavailableConsultations}}</div>
             </div>
         </div>
     </div>
-    
+
+    <!-- SCORE QUOD -->
     {{#if scoreQuod}}
-    <div class="section">
-        <h2 class="section-title">1. Score QUOD - Análise de Crédito</h2>
+    <div class="section page-break">
+        <h2 class="section-title">
+            <span class="section-number">2</span>
+            Score QUOD - Análise de Crédito Detalhada
+        </h2>
         
-        <div class="score-section">
-            <div class="score-title">Score de Crédito</div>
+        <div class="score-container">
             <div class="score-value">{{scoreQuod.score}}</div>
-            <div class="score-bar">
-                <div class="score-fill" style="width: {{scoreQuod.scorePercentage}}%"></div>
+            <div class="score-range">{{scoreQuod.faixaScore}}</div>
+            <div style="text-align: center;">
+                <span class="risk-badge {{#if (eq scoreQuod.riskLevel 'Baixo')}}risk-low{{else}}{{#if (eq scoreQuod.riskLevel 'Médio')}}risk-medium{{else}}risk-high{{/if}}{{/if}}">
+                    Risco {{scoreQuod.riskLevel}}
+                </span>
             </div>
-            <div class="score-labels">
-                <span>0</span>
-                <span>250</span>
-                <span>500</span>
-                <span>750</span>
-                <span>1000</span>
-            </div>
-            <div class="risk-badge {{scoreQuod.riskClass}}">{{scoreQuod.riskLevel}}</div>
         </div>
-        
+
+        <div class="subsection">
+            <h3 class="subsection-title">Análise Detalhada do Score</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Percentual do Score</div>
+                    <div class="data-value">{{scoreQuod.scorePercentage}}%</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Classe de Risco</div>
+                    <div class="data-value">{{scoreQuod.riskClass}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data da Consulta</div>
+                    <div class="data-value">{{scoreQuod.consultationDate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Horário da Consulta</div>
+                    <div class="data-value">{{scoreQuod.consultationTime}}</div>
+                </div>
+            </div>
+        </div>
+
+        {{#if scoreQuod.scoreMotivos}}
+        <div class="subsection">
+            <h3 class="subsection-title">Fatores que Influenciaram o Score</h3>
+            <ul class="detailed-list">
+                {{#each scoreQuod.scoreMotivos}}
+                <li>• {{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+        {{/if}}
+
         {{#if scoreQuod.scoreAnalysis}}
         <div class="subsection">
-            <h3 class="subsection-title">Interpretação do Score</h3>
-            <div class="data-item">
-                <div class="data-item-title">Análise</div>
-                <div class="data-item-value">{{scoreQuod.scoreAnalysis.interpretation}}</div>
-            </div>
-            <div class="data-item">
-                <div class="data-item-title">Recomendações</div>
-                <div class="data-item-value">{{scoreQuod.scoreAnalysis.recommendations}}</div>
-            </div>
-        </div>
-        {{/if}}
-        
-        {{#if scoreQuod.scoreAnalysis.riskFactors}}
-        <div class="subsection">
-            <h3 class="subsection-title">Fatores de Risco</h3>
+            <h3 class="subsection-title">Interpretação e Recomendações</h3>
             <div class="data-grid">
-                {{#each scoreQuod.scoreAnalysis.riskFactors}}
                 <div class="data-item">
-                    <div class="data-item-title">Fator {{@index}}</div>
-                    <div class="data-item-value">{{this}}</div>
+                    <div class="data-label">Interpretação</div>
+                    <div class="data-value">{{scoreQuod.scoreAnalysis.interpretation}}</div>
                 </div>
-                {{/each}}
+                <div class="data-item">
+                    <div class="data-label">Recomendações</div>
+                    <div class="data-value">{{scoreQuod.scoreAnalysis.recommendations}}</div>
+                </div>
             </div>
         </div>
         {{/if}}
-        
-        {{#if scoreQuod.scoreAnalysis.positiveFactors}}
-        <div class="subsection">
-            <h3 class="subsection-title">Fatores Positivos</h3>
-            <div class="data-grid">
-                {{#each scoreQuod.scoreAnalysis.positiveFactors}}
-                <div class="data-item">
-                    <div class="data-item-title">Fator {{@index}}</div>
-                    <div class="data-item-value">{{this}}</div>
-                </div>
-                {{/each}}
-            </div>
-        </div>
-        {{/if}}
-        
+
         {{#if scoreQuod.businessIndicators}}
         <div class="subsection">
-            <h3 class="subsection-title">Indicadores de Negócio</h3>
+            <h3 class="subsection-title">Indicadores de Negócio Detalhados</h3>
+            
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Pontualidade de Pagamento</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.paymentPunctuality.status}}</span>
-                        <br><small>Risco: {{scoreQuod.businessIndicators.paymentPunctuality.risk}}</small>
-                        <br><small>Obs: {{scoreQuod.businessIndicators.paymentPunctuality.observation}}</small>
-                    </div>
+                    <div class="data-label">Pontualidade de Pagamento</div>
+                    <div class="data-value">{{scoreQuod.businessIndicators.paymentPunctuality.status}}</div>
+                    <div class="data-label">Risco: {{scoreQuod.businessIndicators.paymentPunctuality.risk}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Gravidade dos Atrasos</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.delaysSeverity.status}}</span>
-                        <br><small>Risco: {{scoreQuod.businessIndicators.delaysSeverity.risk}}</small>
-                        <br><small>Obs: {{scoreQuod.businessIndicators.delaysSeverity.observation}}</small>
-                    </div>
+                    <div class="data-label">Gravidade em Atrasos</div>
+                    <div class="data-value">{{scoreQuod.businessIndicators.delaysSeverity.status}}</div>
+                    <div class="data-label">Risco: {{scoreQuod.businessIndicators.delaysSeverity.risk}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Uso Emergencial</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.emergencyUsage.status}}</span>
-                        <br><small>Risco: {{scoreQuod.businessIndicators.emergencyUsage.risk}}</small>
-                        <br><small>Obs: {{scoreQuod.businessIndicators.emergencyUsage.observation}}</small>
-                    </div>
+                    <div class="data-label">Uso Emergencial</div>
+                    <div class="data-value">{{scoreQuod.businessIndicators.emergencyUsage.status}}</div>
+                    <div class="data-label">Risco: {{scoreQuod.businessIndicators.emergencyUsage.risk}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Perfil de Endividamento</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.debtProfile.status}}</span>
-                        <br><small>Risco: {{scoreQuod.businessIndicators.debtProfile.risk}}</small>
-                        <br><small>Obs: {{scoreQuod.businessIndicators.debtProfile.observation}}</small>
-                    </div>
+                    <div class="data-label">Perfil de Endividamento</div>
+                    <div class="data-value">{{scoreQuod.businessIndicators.debtProfile.status}}</div>
+                    <div class="data-label">Risco: {{scoreQuod.businessIndicators.debtProfile.risk}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Risco de Contrato</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.contractRisk.status}}</span>
-                        <br><small>Risco: {{scoreQuod.businessIndicators.contractRisk.risk}}</small>
-                        <br><small>Obs: {{scoreQuod.businessIndicators.contractRisk.observation}}</small>
-                    </div>
+                    <div class="data-label">Risco de Contratação</div>
+                    <div class="data-value">{{scoreQuod.businessIndicators.contractRisk.status}}</div>
+                    <div class="data-label">Risco: {{scoreQuod.businessIndicators.contractRisk.risk}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Consulta de Crédito</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.creditSearch.status}}</span>
-                        <br><small>Risco: {{scoreQuod.businessIndicators.creditSearch.risk}}</small>
-                        <br><small>Obs: {{scoreQuod.businessIndicators.creditSearch.observation}}</small>
-                    </div>
+                    <div class="data-label">Busca por Crédito</div>
+                    <div class="data-value">{{scoreQuod.businessIndicators.creditSearch.status}}</div>
+                    <div class="data-label">Risco: {{scoreQuod.businessIndicators.creditSearch.risk}}</div>
                 </div>
             </div>
         </div>
         {{/if}}
-        
+
         {{#if scoreQuod.paymentBehavior}}
         <div class="subsection">
             <h3 class="subsection-title">Comportamento de Pagamento</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Média de Dias de Atraso</div>
-                    <div class="data-item-value">{{scoreQuod.paymentBehavior.averageDelayDays}} dias</div>
+                    <div class="data-label">Média de Dias em Atraso</div>
+                    <div class="data-value">{{scoreQuod.paymentBehavior.averageDelayDays}} dias</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Consistência de Pagamento</div>
-                    <div class="data-item-value">{{scoreQuod.paymentBehavior.paymentConsistency}}</div>
+                    <div class="data-label">Consistência de Pagamento</div>
+                    <div class="data-value">{{scoreQuod.paymentBehavior.paymentConsistency}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Utilização de Crédito</div>
-                    <div class="data-item-value">{{scoreQuod.paymentBehavior.creditUtilization}}</div>
+                    <div class="data-label">Utilização de Crédito</div>
+                    <div class="data-value">{{scoreQuod.paymentBehavior.creditUtilization}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Histórico de Inadimplência</div>
-                    <div class="data-item-value">{{scoreQuod.paymentBehavior.defaultHistory}}</div>
+                    <div class="data-label">Histórico de Inadimplência</div>
+                    <div class="data-value">{{scoreQuod.paymentBehavior.defaultHistory}}</div>
                 </div>
             </div>
         </div>
         {{/if}}
     </div>
     {{/if}}
-    
+
+    <!-- CADASTRO PJ PLUS -->
     {{#if cadastroPjPlus}}
-    <div class="section">
-        <h2 class="section-title">2. Cadastro PJ Plus - Dados da Empresa</h2>
+    <div class="section page-break">
+        <h2 class="section-title">
+            <span class="section-number">3</span>
+            Cadastro Pessoa Jurídica Plus - Dados Completos
+        </h2>
         
         <div class="subsection">
-            <h3 class="subsection-title">Informações Gerais</h3>
+            <h3 class="subsection-title">Informações Básicas da Empresa</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Razão Social</div>
-                    <div class="data-item-value">{{cadastroPjPlus.companyName}}</div>
+                    <div class="data-label">Razão Social</div>
+                    <div class="data-value">{{cadastroPjPlus.companyName}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Nome Fantasia</div>
-                    <div class="data-item-value">{{cadastroPjPlus.fantasyName}}</div>
+                    <div class="data-label">Nome Fantasia</div>
+                    <div class="data-value">{{cadastroPjPlus.fantasyName}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">CNPJ</div>
-                    <div class="data-item-value">{{maskCNPJ cadastroPjPlus.cnpj}}</div>
+                    <div class="data-label">CNPJ</div>
+                    <div class="data-value">{{formatCNPJ cadastroPjPlus.cnpj}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Status</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-success">{{cadastroPjPlus.registrationStatus}}</span>
-                    </div>
+                    <div class="data-label">Data de Fundação</div>
+                    <div class="data-value">{{cadastroPjPlus.foundationDate}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Data de Fundação</div>
-                    <div class="data-item-value">{{cadastroPjPlus.foundationDate}}</div>
+                    <div class="data-label">Status de Registro</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationStatus}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Porte</div>
-                    <div class="data-item-value">{{cadastroPjPlus.companySize}}</div>
+                    <div class="data-label">Porte da Empresa</div>
+                    <div class="data-value">{{cadastroPjPlus.companySize}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Capital Social</div>
-                    <div class="data-item-value">{{formatCurrency cadastroPjPlus.capital}}</div>
+                    <div class="data-label">Natureza Jurídica</div>
+                    <div class="data-value">{{cadastroPjPlus.legalNature}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Natureza Jurídica</div>
-                    <div class="data-item-value">{{cadastroPjPlus.legalNature}}</div>
+                    <div class="data-label">Capital Social</div>
+                    <div class="data-value">{{cadastroPjPlus.capital}}</div>
                 </div>
             </div>
         </div>
-        
+
         {{#if cadastroPjPlus.registrationDetails}}
         <div class="subsection">
-            <h3 class="subsection-title">Detalhes de Registro</h3>
+            <h3 class="subsection-title">Detalhes da Situação Cadastral</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Data de Abertura</div>
-                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.openingDate}}</div>
+                    <div class="data-label">Data de Abertura</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationDetails.openingDate}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Última Atualização</div>
-                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.lastUpdateDate}}</div>
+                    <div class="data-label">Última Atualização</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationDetails.lastUpdateDate}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Situação Especial</div>
-                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.specialSituation}}</div>
+                    <div class="data-label">Situação Especial</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationDetails.specialSituation}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Órgão Responsável</div>
-                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.responsibleEntity}}</div>
+                    <div class="data-label">Data da Situação Especial</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationDetails.specialSituationDate}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Nº de Registro</div>
-                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.registrationNumber}}</div>
+                    <div class="data-label">Entidade Responsável</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationDetails.responsibleEntity}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">EIN</div>
-                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.ein}}</div>
+                    <div class="data-label">Número de Registro</div>
+                    <div class="data-value">{{cadastroPjPlus.registrationDetails.registrationNumber}}</div>
                 </div>
             </div>
         </div>
         {{/if}}
-        
+
         {{#if cadastroPjPlus.address}}
         <div class="subsection">
             <h3 class="subsection-title">Endereço Completo</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Logradouro</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.street}}, {{cadastroPjPlus.address.number}}</div>
+                    <div class="data-label">Logradouro</div>
+                    <div class="data-value">{{cadastroPjPlus.address.street}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Complemento</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.complement}}</div>
+                    <div class="data-label">Número</div>
+                    <div class="data-value">{{cadastroPjPlus.address.number}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Bairro</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.neighborhood}}</div>
+                    <div class="data-label">Complemento</div>
+                    <div class="data-value">{{cadastroPjPlus.address.complement}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Cidade</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.city}}</div>
+                    <div class="data-label">Bairro</div>
+                    <div class="data-value">{{cadastroPjPlus.address.neighborhood}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Estado</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.state}}</div>
+                    <div class="data-label">Cidade</div>
+                    <div class="data-value">{{cadastroPjPlus.address.city}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">CEP</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.zipCode}}</div>
+                    <div class="data-label">Estado</div>
+                    <div class="data-value">{{cadastroPjPlus.address.state}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">País</div>
-                    <div class="data-item-value">{{cadastroPjPlus.address.country}}</div>
+                    <div class="data-label">CEP</div>
+                    <div class="data-value">{{cadastroPjPlus.address.zipCode}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">País</div>
+                    <div class="data-value">{{cadastroPjPlus.address.country}}</div>
                 </div>
             </div>
         </div>
         {{/if}}
-        
-        {{#if cadastroPjPlus.activities}}
-        <div class="subsection">
-            <h3 class="subsection-title">Atividades Econômicas</h3>
-            <div class="data-grid">
-                {{#if cadastroPjPlus.activities.primary}}
-                <div class="data-item">
-                    <div class="data-item-title">Atividade Principal</div>
-                    <div class="data-item-value">
-                        <strong>{{cadastroPjPlus.activities.primary.code}}</strong> - {{cadastroPjPlus.activities.primary.description}}
-                        <br><small>Início: {{cadastroPjPlus.activities.primary.startDate}}</small>
-                    </div>
-                </div>
-                {{/if}}
-                {{#each cadastroPjPlus.activities.secondary}}
-                <div class="data-item">
-                    <div class="data-item-title">Atividade Secundária</div>
-                    <div class="data-item-value">
-                        <strong>{{this.code}}</strong> - {{this.description}}
-                        <br><small>Início: {{this.startDate}}</small>
-                    </div>
-                </div>
-                {{/each}}
-            </div>
-        </div>
-        {{/if}}
-        
-        {{#if cadastroPjPlus.partners}}
-        <div class="subsection">
-            <h3 class="subsection-title">Quadro Societário Detalhado</h3>
-            <div class="partners-list">
-                {{#each cadastroPjPlus.partners}}
-                <div class="partner-item">
-                    <div class="partner-name">{{this.name}}</div>
-                    <div class="partner-details">
-                        {{#if this.cpf}}CPF: {{maskCPF this.cpf}}{{/if}}
-                        {{#if this.qualification}} - {{this.qualification}} ({{this.qualificationDescription}}){{/if}}
-                        <br><small>Participação: {{this.participationPercentage}}%</small>
-                        {{#if this.entryDate}}<br><small>Ingresso: {{this.entryDate}}</small>{{/if}}
-                        {{#if this.age}}<br><small>Idade: {{this.age}} anos</small>{{/if}}
-                        {{#if this.nationality}}<br><small>Nacionalidade: {{this.nationality}}</small>{{/if}}
-                        {{#if this.legalRepresentative}}<br><small><strong>Representante Legal</strong></small>{{/if}}
-                    </div>
-                </div>
-                {{/each}}
-            </div>
-        </div>
-        {{/if}}
-        
+
         {{#if cadastroPjPlus.contacts}}
         <div class="subsection">
-            <h3 class="subsection-title">Contatos e Comunicação</h3>
-            <div class="data-grid">
+            <h3 class="subsection-title">Contatos Identificados</h3>
+            <div class="contact-grid">
                 {{#each cadastroPjPlus.contacts.phones}}
-                <div class="data-item">
-                    <div class="data-item-title">Telefone ({{this.type}})</div>
-                    <div class="data-item-value">
-                        {{this.number}}
-                        {{#if this.verified}}<span class="status-indicator status-success">Verificado</span>{{/if}}
+                <div class="contact-item">
+                    <div class="contact-type">Telefone</div>
+                    <div class="contact-details">
+                        <div class="contact-detail"><strong>Número:</strong> {{this.number}}</div>
+                        <div class="contact-detail"><strong>Tipo:</strong> {{this.type}}</div>
+                        <div class="contact-detail"><strong>Operadora:</strong> {{this.operator}}</div>
+                        <div class="contact-detail"><strong>WhatsApp:</strong> {{#if this.whatsApp}}Sim{{else}}Não{{/if}}</div>
+                        <div class="contact-detail"><strong>Marketing Bloqueado:</strong> {{#if this.marketingBlocked}}Sim{{else}}Não{{/if}}</div>
                     </div>
                 </div>
                 {{/each}}
+                
                 {{#each cadastroPjPlus.contacts.emails}}
-                <div class="data-item">
-                    <div class="data-item-title">Email ({{this.type}})</div>
-                    <div class="data-item-value">
-                        {{this.address}}
-                        {{#if this.verified}}<span class="status-indicator status-success">Verificado</span>{{/if}}
+                <div class="contact-item">
+                    <div class="contact-type">Email</div>
+                    <div class="contact-details">
+                        <div class="contact-detail"><strong>Endereço:</strong> {{this.address}}</div>
+                        <div class="contact-detail"><strong>Tipo:</strong> {{this.type}}</div>
                     </div>
                 </div>
                 {{/each}}
-                {{#if cadastroPjPlus.contacts.website}}
-                <div class="data-item">
-                    <div class="data-item-title">Website</div>
-                    <div class="data-item-value">{{cadastroPjPlus.contacts.website}}</div>
-                </div>
-                {{/if}}
             </div>
         </div>
         {{/if}}
-        
-        {{#if cadastroPjPlus.additionalInfo}}
+
+        {{#if cadastroPjPlus.partners}}
         <div class="subsection">
-            <h3 class="subsection-title">Informações Adicionais</h3>
+            <h3 class="subsection-title">Quadro Societário Completo</h3>
+            {{#each cadastroPjPlus.partners}}
+            <div class="partner-card">
+                <div class="partner-name">{{this.name}}</div>
+                <div class="partner-details">
+                    <div class="data-item">
+                        <div class="data-label">Documento</div>
+                        <div class="data-value">{{maskCPF this.document}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Participação</div>
+                        <div class="data-value">{{this.participation}}%</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Cargo</div>
+                        <div class="data-value">{{this.position}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Data de Entrada</div>
+                        <div class="data-value">{{formatDate this.entryDate}}</div>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if cadastroPjPlus.activities}}
+        <div class="subsection">
+            <h3 class="subsection-title">Atividades Econômicas (CNAEs)</h3>
+            
+            {{#if cadastroPjPlus.activities.primary}}
+            <div class="highlight-box">
+                <h4 style="margin-bottom: 10px; font-weight: 600;">Atividade Principal</h4>
+                <div class="cnae-item">
+                    <div class="cnae-code">{{cadastroPjPlus.activities.primary.code}}</div>
+                    <div class="cnae-description">{{cadastroPjPlus.activities.primary.description}}</div>
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if cadastroPjPlus.activities.secondary}}
+            <div>
+                <h4 style="margin-bottom: 10px; font-weight: 600;">Atividades Secundárias</h4>
+                {{#each cadastroPjPlus.activities.secondary}}
+                <div class="cnae-item">
+                    <div class="cnae-code">{{this.code}}</div>
+                    <div class="cnae-description">{{this.description}}</div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+
+        {{#if cadastroPjPlus.financialInfo}}
+        <div class="subsection">
+            <h3 class="subsection-title">Informações Financeiras</h3>
+            <div class="financial-grid">
+                <div class="financial-item">
+                    <div class="financial-value">{{cadastroPjPlus.financialInfo.employeeRange}}</div>
+                    <div class="financial-label">Faixa de Funcionários</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">{{cadastroPjPlus.financialInfo.employeeCount}}</div>
+                    <div class="financial-label">Quantidade de Funcionários</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">{{cadastroPjPlus.financialInfo.revenueRange}}</div>
+                    <div class="financial-label">Faixa de Faturamento</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">{{cadastroPjPlus.financialInfo.averageRevenue}}</div>
+                    <div class="financial-label">Faturamento Médio CNAE</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">{{cadastroPjPlus.financialInfo.presumedRevenue}}</div>
+                    <div class="financial-label">Faturamento Presumido</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">{{cadastroPjPlus.financialInfo.branchRange}}</div>
+                    <div class="financial-label">Quantidade de Filiais</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if cadastroPjPlus.taxInfo}}
+        <div class="subsection">
+            <h3 class="subsection-title">Informações Tributárias</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Número de Funcionários</div>
-                    <div class="data-item-value">{{cadastroPjPlus.additionalInfo.employeeCount}}</div>
+                    <div class="data-label">Regime Tributário</div>
+                    <div class="data-value">{{cadastroPjPlus.taxInfo.taxRegime}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Faturamento Anual</div>
-                    <div class="data-item-value">{{cadastroPjPlus.additionalInfo.annualRevenue}}</div>
+                    <div class="data-label">Optante pelo MEI</div>
+                    <div class="data-value">{{cadastroPjPlus.taxInfo.meiOption}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Filiais</div>
-                    <div class="data-item-value">{{cadastroPjPlus.additionalInfo.branchOffices}}</div>
+                    <div class="data-label">Optante pelo Simples</div>
+                    <div class="data-value">{{cadastroPjPlus.taxInfo.simplesOption}}</div>
                 </div>
-                {{#if cadastroPjPlus.additionalInfo.certifications}}
                 <div class="data-item">
-                    <div class="data-item-title">Certificações</div>
-                    <div class="data-item-value">{{join cadastroPjPlus.additionalInfo.certifications ", "}}</div>
+                    <div class="data-label">Tipo de Empresa</div>
+                    <div class="data-value">{{cadastroPjPlus.taxInfo.companyType}}</div>
                 </div>
-                {{/if}}
-                {{#if cadastroPjPlus.additionalInfo.licenses}}
-                <div class="data-item">
-                    <div class="data-item-title">Licenças</div>
-                    <div class="data-item-value">{{join cadastroPjPlus.additionalInfo.licenses ", "}}</div>
-                </div>
-                {{/if}}
-                {{#if cadastroPjPlus.additionalInfo.specialRegimes}}
-                <div class="data-item">
-                    <div class="data-item-title">Regimes Especiais</div>
-                    <div class="data-item-value">{{join cadastroPjPlus.additionalInfo.specialRegimes ", "}}</div>
-                </div>
-                {{/if}}
             </div>
         </div>
         {{/if}}
     </div>
     {{/if}}
-    
+
+    <!-- SCR BACEN -->
+    {{#if scrBacen}}
+    <div class="section page-break">
+        <h2 class="section-title">
+            <span class="section-number">4</span>
+            SCR Bacen - Sistema de Informações de Crédito
+        </h2>
+        
+        <div class="subsection">
+            <h3 class="subsection-title">Informações Gerais do Sistema</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Documento Consultado</div>
+                    <div class="data-value">{{formatCNPJ scrBacen.documentoConsultado}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Quantidade de Instituições</div>
+                    <div class="data-value">{{scrBacen.quantidadeInstituicoes}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Quantidade de Operações</div>
+                    <div class="data-value">{{scrBacen.quantidadeOperacoes}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Relacionamentos</div>
+                    <div class="data-value">{{scrBacen.relacionamentos}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Volume</div>
+                    <div class="data-value">{{scrBacen.volume}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Situação</div>
+                    <div class="data-value">{{scrBacen.situacao}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Score</div>
+                    <div class="data-value">{{scrBacen.score}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Classe de Risco</div>
+                    <div class="data-value">{{scrBacen.classeRisco}}</div>
+                </div>
+            </div>
+        </div>
+
+        {{#if scrBacen.carteiraCredito}}
+        <div class="subsection">
+            <h3 class="subsection-title">Carteira de Crédito</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Valor a Vencer</div>
+                    <div class="data-value">{{scrBacen.carteiraCredito.valorVencer}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Valor Vencido</div>
+                    <div class="data-value">{{scrBacen.carteiraCredito.valorVencida}}</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if scrBacen.indice}}
+        <div class="subsection">
+            <h3 class="subsection-title">Índices por Modalidade</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Total</div>
+                    <div class="data-value">{{scrBacen.indice.total}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Cartão</div>
+                    <div class="data-value">{{scrBacen.indice.cartao}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Crédito Pessoal</div>
+                    <div class="data-value">{{scrBacen.indice.creditoPessoal}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Cheque Especial</div>
+                    <div class="data-value">{{scrBacen.indice.chequeEspecial}}</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if scrBacen.percentualCategoria}}
+        <div class="subsection">
+            <h3 class="subsection-title">Percentual por Categoria</h3>
+            <div class="percentage-grid">
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.linhaRiscoMaior}}</div>
+                    <div class="percentage-label">Linha Risco Maior</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.cartao}}</div>
+                    <div class="percentage-label">Cartão</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.financiamentos}}</div>
+                    <div class="percentage-label">Financiamentos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.emprestimos}}</div>
+                    <div class="percentage-label">Empréstimos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.financiamentosExportacao}}</div>
+                    <div class="percentage-label">Financ. Exportação</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.financiamentosImobiliarios}}</div>
+                    <div class="percentage-label">Financ. Imobiliários</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.financiamentosVeiculos}}</div>
+                    <div class="percentage-label">Financ. Veículos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.adiantamentosDepositantes}}</div>
+                    <div class="percentage-label">Adiant. Depositantes</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.operacoesArrendamento}}</div>
+                    <div class="percentage-label">Op. Arrendamento</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.coobrigacoes}}</div>
+                    <div class="percentage-label">Coobrigações</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.outrosCreditos}}</div>
+                    <div class="percentage-label">Outros Créditos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualCategoria.outros}}</div>
+                    <div class="percentage-label">Outros</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if scrBacen.percentualVencido}}
+        <div class="subsection">
+            <h3 class="subsection-title">Percentual Vencido por Modalidade</h3>
+            <div class="percentage-grid">
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualVencido.cartao}}</div>
+                    <div class="percentage-label">Cartão</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualVencido.emprestimos}}</div>
+                    <div class="percentage-label">Empréstimos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualVencido.financiamentos}}</div>
+                    <div class="percentage-label">Financiamentos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualVencido.financiamentosImobiliarios}}</div>
+                    <div class="percentage-label">Financ. Imobiliários</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualVencido.financiamentosVeiculos}}</div>
+                    <div class="percentage-label">Financ. Veículos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualVencido.adiantamentoDepositos}}</div>
+                    <div class="percentage-label">Adiant. Depósitos</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if scrBacen.percentualPrazo}}
+        <div class="subsection">
+            <h3 class="subsection-title">Percentual por Prazo</h3>
+            <div class="percentage-grid">
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualPrazo.curto}}</div>
+                    <div class="percentage-label">Curto Prazo</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualPrazo.medio}}</div>
+                    <div class="percentage-label">Médio Prazo</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualPrazo.longo}}</div>
+                    <div class="percentage-label">Longo Prazo</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if scrBacen.percentualEvolucaoCompromisso}}
+        <div class="subsection">
+            <h3 class="subsection-title">Percentual de Evolução de Compromisso</h3>
+            <div class="percentage-grid">
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualEvolucaoCompromisso.total}}</div>
+                    <div class="percentage-label">Total</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualEvolucaoCompromisso.maiorRisco}}</div>
+                    <div class="percentage-label">Maior Risco</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualEvolucaoCompromisso.financiamentos}}</div>
+                    <div class="percentage-label">Financiamentos</div>
+                </div>
+                <div class="percentage-item">
+                    <div class="percentage-value">{{scrBacen.percentualEvolucaoCompromisso.cartao}}</div>
+                    <div class="percentage-label">Cartão</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    <!-- CND -->
     {{#if cndData}}
-    <div class="section">
-        <h2 class="section-title">3. Certidão Negativa de Débitos (CND)</h2>
+    <div class="section page-break">
+        <h2 class="section-title">
+            <span class="section-number">5</span>
+            Certidão Negativa de Débitos (CND)
+        </h2>
         
         <div class="subsection">
             <h3 class="subsection-title">Situação Fiscal</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Status</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if cndData.hasDebts}}status-error{{else}}status-success{{/if}}">
-                            {{#if cndData.hasDebts}}Possui Débitos{{else}}Sem Débitos{{/if}}
-                        </span>
+                    <div class="data-label">Status</div>
+                    <div class="data-value">{{cndData.status}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Número da Certidão</div>
+                    <div class="data-value">{{cndData.certificateNumber}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data de Emissão</div>
+                    <div class="data-value">{{formatDate cndData.emissionDate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Validade</div>
+                    <div class="data-value">{{formatDate cndData.validityDate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Possui Débitos</div>
+                    <div class="data-value">{{#if cndData.hasDebts}}Sim{{else}}Não{{/if}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Efeito Negativo</div>
+                    <div class="data-value">{{cndData.negativeEffect}}</div>
+                </div>
+            </div>
+        </div>
+
+        {{#if cndData.debts}}
+        <div class="subsection">
+            <h3 class="subsection-title">Detalhamento dos Débitos</h3>
+            {{#each cndData.debts}}
+            <div class="data-item" style="margin-bottom: 10px;">
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Tipo de Débito</div>
+                        <div class="data-value">{{this.type}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Valor</div>
+                        <div class="data-value">{{formatCurrency this.amount}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Data de Vencimento</div>
+                        <div class="data-value">{{formatDate this.dueDate}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Situação</div>
+                        <div class="data-value">{{this.status}}</div>
                     </div>
                 </div>
-                <div class="data-item">
-                    <div class="data-item-title">Número da Certidão</div>
-                    <div class="data-item-value">{{cndData.certificateNumber}}</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-item-title">Data de Emissão</div>
-                    <div class="data-item-value">{{cndData.emissionDate}}</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-item-title">Validade</div>
-                    <div class="data-item-value">{{cndData.validityDate}}</div>
-                </div>
             </div>
-            
-            {{#if cndData.hasDebts}}
-            <div class="data-item" style="margin-top: 15px;">
-                <div class="data-item-title">Valor dos Débitos</div>
-                <div class="data-item-value">{{formatCurrency cndData.debtAmount}}</div>
-            </div>
-            {{/if}}
+            {{/each}}
         </div>
+        {{/if}}
     </div>
     {{/if}}
-    
+
+    <!-- DETALHAMENTO NEGATIVO -->
     {{#if negativeDetails}}
-    <div class="section">
-        <h2 class="section-title">4. Detalhamento Negativo - Análise Completa</h2>
+    <div class="section page-break">
+        <h2 class="section-title">
+            <span class="section-number">6</span>
+            Detalhamento Negativo - Análise Completa
+        </h2>
         
         {{#if negativeDetails.protests}}
         <div class="subsection">
             <h3 class="subsection-title">Protestos</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Status</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeDetails.protests.hasProtests}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeDetails.protests.hasProtests}}Encontrados{{else}}Nada Consta{{/if}}
-                        </span>
-                    </div>
+                    <div class="data-label">Status</div>
+                    <div class="data-value">{{negativeDetails.protests.status}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Quantidade Total</div>
-                    <div class="data-item-value">{{negativeDetails.protests.totalCount}}</div>
+                    <div class="data-label">Quantidade Total</div>
+                    <div class="data-value">{{negativeDetails.protests.totalCount}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Valor Total</div>
-                    <div class="data-item-value">{{negativeDetails.protests.totalAmount}}</div>
+                    <div class="data-label">Valor Total</div>
+                    <div class="data-value">{{formatCurrency negativeDetails.protests.totalValue}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Nível de Risco</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeDetails.protests.analysis.riskLevel}}status-error{{else}}status-success{{/if}}">
-                            {{negativeDetails.protests.analysis.riskLevel}}
-                        </span>
-                    </div>
+                    <div class="data-label">Nível de Risco</div>
+                    <div class="data-value">{{negativeDetails.protests.riskLevel}}</div>
                 </div>
             </div>
             
+            {{#if negativeDetails.protests.analysis}}
+            <div class="highlight-box">
+                <h4 style="margin-bottom: 8px; font-weight: 600;">Análise de Impacto</h4>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Impacto</div>
+                        <div class="data-value">{{negativeDetails.protests.analysis.impact}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Recomendações</div>
+                        <div class="data-value">{{negativeDetails.protests.analysis.recommendations}}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Tendência</div>
+                        <div class="data-value">{{negativeDetails.protests.analysis.trend}}</div>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+
             {{#if negativeDetails.protests.records}}
             <div class="subsection">
-                <h4 class="subsection-title">Registros Detalhados</h4>
+                <h4 style="margin-bottom: 10px; font-weight: 600;">Registros de Protestos</h4>
                 {{#each negativeDetails.protests.records}}
-                <div class="data-item">
-                    <div class="data-item-title">Protesto {{@index}}</div>
-                    <div class="data-item-value">
-                        <strong>Protocolo:</strong> {{this.protocolNumber}}<br>
-                        <strong>Valor:</strong> {{this.amount}}<br>
-                        <strong>Data:</strong> {{this.date}}<br>
-                        <strong>Cartório:</strong> {{this.notaryOffice}}<br>
-                        <strong>Cidade:</strong> {{this.city}}/{{this.state}}<br>
-                        <strong>Motivo:</strong> {{this.reason}}<br>
-                        <strong>Status:</strong> {{this.status}}<br>
-                        <strong>Credor:</strong> {{this.creditorName}}<br>
-                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
+                <div class="data-item" style="margin-bottom: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-label">Valor</div>
+                            <div class="data-value">{{formatCurrency this.amount}}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Data</div>
+                            <div class="data-value">{{formatDate this.date}}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Motivo</div>
+                            <div class="data-value">{{this.reason}}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Status</div>
+                            <div class="data-value">{{this.status}}</div>
+                        </div>
                     </div>
                 </div>
                 {{/each}}
             </div>
             {{/if}}
-            
-            {{#if negativeDetails.protests.analysis}}
-            <div class="data-item">
-                <div class="data-item-title">Análise de Impacto</div>
-                <div class="data-item-value">
-                    <strong>Impacto:</strong> {{negativeDetails.protests.analysis.impact}}<br>
-                    <strong>Recomendações:</strong> {{negativeDetails.protests.analysis.recommendations}}<br>
-                    <strong>Tendência:</strong> {{negativeDetails.protests.analysis.trend}}
-                </div>
-            </div>
-            {{/if}}
         </div>
         {{/if}}
-        
+
         {{#if negativeDetails.bankruptcies}}
         <div class="subsection">
             <h3 class="subsection-title">Falências e Recuperações Judiciais</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Status</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeDetails.bankruptcies.hasBankruptcies}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeDetails.bankruptcies.hasBankruptcies}}Encontradas{{else}}Nada Consta{{/if}}
-                        </span>
-                    </div>
+                    <div class="data-label">Status</div>
+                    <div class="data-value">{{negativeDetails.bankruptcies.status}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Quantidade</div>
-                    <div class="data-item-value">{{negativeDetails.bankruptcies.totalCount}}</div>
+                    <div class="data-label">Quantidade</div>
+                    <div class="data-value">{{negativeDetails.bankruptcies.count}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Nível de Risco</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-success">{{negativeDetails.bankruptcies.analysis.riskLevel}}</span>
-                    </div>
+                    <div class="data-label">Nível de Risco</div>
+                    <div class="data-value">{{negativeDetails.bankruptcies.riskLevel}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Prognóstico</div>
-                    <div class="data-item-value">{{negativeDetails.bankruptcies.analysis.recoveryPrognosis}}</div>
+                    <div class="data-label">Prognóstico</div>
+                    <div class="data-value">{{negativeDetails.bankruptcies.prognosis}}</div>
                 </div>
             </div>
-            
-            {{#if negativeDetails.bankruptcies.records}}
-            <div class="subsection">
-                <h4 class="subsection-title">Registros Detalhados</h4>
-                {{#each negativeDetails.bankruptcies.records}}
-                <div class="data-item">
-                    <div class="data-item-title">Processo {{@index}}</div>
-                    <div class="data-item-value">
-                        <strong>Número:</strong> {{this.processNumber}}<br>
-                        <strong>Tribunal:</strong> {{this.court}}<br>
-                        <strong>Data:</strong> {{this.date}}<br>
-                        <strong>Status:</strong> {{this.status}}<br>
-                        <strong>Tipo:</strong> {{this.processType}}<br>
-                        <strong>Fase Atual:</strong> {{this.currentPhase}}<br>
-                        <strong>Administrador:</strong> {{this.administrator}}<br>
-                        <strong>Valor da Dívida:</strong> {{this.debtAmount}}<br>
-                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
-                    </div>
-                </div>
-                {{/each}}
-            </div>
-            {{/if}}
         </div>
         {{/if}}
-        
+
         {{#if negativeDetails.lawsuits}}
         <div class="subsection">
             <h3 class="subsection-title">Ações Judiciais</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Status</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeDetails.lawsuits.hasLawsuits}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeDetails.lawsuits.hasLawsuits}}Encontradas{{else}}Nada Consta{{/if}}
-                        </span>
-                    </div>
+                    <div class="data-label">Status</div>
+                    <div class="data-value">{{negativeDetails.lawsuits.status}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Quantidade</div>
-                    <div class="data-item-value">{{negativeDetails.lawsuits.totalCount}}</div>
+                    <div class="data-label">Quantidade</div>
+                    <div class="data-value">{{negativeDetails.lawsuits.count}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Valor Total</div>
-                    <div class="data-item-value">{{negativeDetails.lawsuits.totalAmount}}</div>
+                    <div class="data-label">Valor Total</div>
+                    <div class="data-value">{{formatCurrency negativeDetails.lawsuits.totalValue}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Tendência</div>
-                    <div class="data-item-value">{{negativeDetails.lawsuits.analysis.litigationTrend}}</div>
+                    <div class="data-label">Padrão de Pagamento</div>
+                    <div class="data-value">{{negativeDetails.lawsuits.paymentPattern}}</div>
                 </div>
             </div>
-            
-            {{#if negativeDetails.lawsuits.records}}
-            <div class="subsection">
-                <h4 class="subsection-title">Registros Detalhados</h4>
-                {{#each negativeDetails.lawsuits.records}}
-                <div class="data-item">
-                    <div class="data-item-title">Processo {{@index}}</div>
-                    <div class="data-item-value">
-                        <strong>Número:</strong> {{this.processNumber}}<br>
-                        <strong>Tribunal:</strong> {{this.court}}<br>
-                        <strong>Assunto:</strong> {{this.subject}}<br>
-                        <strong>Valor:</strong> {{this.amount}}<br>
-                        <strong>Data:</strong> {{this.date}}<br>
-                        <strong>Status:</strong> {{this.status}}<br>
-                        <strong>Tipo:</strong> {{this.processType}}<br>
-                        <strong>Autor:</strong> {{this.plaintiff}}<br>
-                        <strong>Réu:</strong> {{this.defendant}}<br>
-                        <strong>Advogado:</strong> {{this.lawyer}}<br>
-                        <strong>Probabilidade:</strong> {{this.probability}}<br>
-                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
-                    </div>
-                </div>
-                {{/each}}
-            </div>
-            {{/if}}
         </div>
         {{/if}}
-        
+
         {{#if negativeDetails.bouncedChecks}}
         <div class="subsection">
             <h3 class="subsection-title">Cheques sem Fundo</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Status</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeDetails.bouncedChecks.hasBouncedChecks}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeDetails.bouncedChecks.hasBouncedChecks}}Encontrados{{else}}Nada Consta{{/if}}
-                        </span>
-                    </div>
+                    <div class="data-label">Status</div>
+                    <div class="data-value">{{negativeDetails.bouncedChecks.status}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Quantidade</div>
-                    <div class="data-item-value">{{negativeDetails.bouncedChecks.totalCount}}</div>
+                    <div class="data-label">Quantidade</div>
+                    <div class="data-value">{{negativeDetails.bouncedChecks.count}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Valor Total</div>
-                    <div class="data-item-value">{{negativeDetails.bouncedChecks.totalAmount}}</div>
+                    <div class="data-label">Valor Total</div>
+                    <div class="data-value">{{formatCurrency negativeDetails.bouncedChecks.totalValue}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Padrão de Pagamento</div>
-                    <div class="data-item-value">{{negativeDetails.bouncedChecks.analysis.paymentPattern}}</div>
+                    <div class="data-label">Padrão de Pagamento</div>
+                    <div class="data-value">{{negativeDetails.bouncedChecks.paymentPattern}}</div>
                 </div>
             </div>
-            
-            {{#if negativeDetails.bouncedChecks.records}}
-            <div class="subsection">
-                <h4 class="subsection-title">Registros Detalhados</h4>
-                {{#each negativeDetails.bouncedChecks.records}}
-                <div class="data-item">
-                    <div class="data-item-title">Cheque {{@index}}</div>
-                    <div class="data-item-value">
-                        <strong>Número:</strong> {{this.checkNumber}}<br>
-                        <strong>Banco:</strong> {{this.bank}} ({{this.bankCode}})<br>
-                        <strong>Valor:</strong> {{this.amount}}<br>
-                        <strong>Data:</strong> {{this.date}}<br>
-                        <strong>Motivo:</strong> {{this.reason}}<br>
-                        <strong>Favorecido:</strong> {{this.payeeName}}<br>
-                        <strong>Sacador:</strong> {{this.drawerName}}<br>
-                        <strong>Status:</strong> {{this.status}}<br>
-                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
-                    </div>
-                </div>
-                {{/each}}
-            </div>
-            {{/if}}
         </div>
         {{/if}}
-        
+
         {{#if negativeDetails.overallAnalysis}}
         <div class="subsection">
             <h3 class="subsection-title">Análise Consolidada</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Total de Registros Negativos</div>
-                    <div class="data-item-value">{{negativeDetails.overallAnalysis.totalNegativeRecords}}</div>
+                    <div class="data-label">Total de Registros Negativos</div>
+                    <div class="data-value">{{negativeDetails.overallAnalysis.totalNegativeRecords}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Impacto Financeiro Total</div>
-                    <div class="data-item-value">{{negativeDetails.overallAnalysis.totalFinancialImpact}}</div>
+                    <div class="data-label">Impacto Financeiro Total</div>
+                    <div class="data-value">{{negativeDetails.overallAnalysis.totalFinancialImpact}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Nível de Risco</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator status-success">{{negativeDetails.overallAnalysis.riskLevel}}</span>
-                    </div>
+                    <div class="data-label">Nível de Risco</div>
+                    <div class="data-value">{{negativeDetails.overallAnalysis.riskLevel}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Recomendação de Crédito</div>
-                    <div class="data-item-value">{{negativeDetails.overallAnalysis.creditRecommendation}}</div>
+                    <div class="data-label">Recomendação de Crédito</div>
+                    <div class="data-value">{{negativeDetails.overallAnalysis.creditRecommendation}}</div>
                 </div>
             </div>
             
-            <div class="data-item">
-                <div class="data-item-title">Estratégias de Mitigação</div>
-                <div class="data-item-value">
+            <div class="highlight-box">
+                <h4 style="margin-bottom: 8px; font-weight: 600;">Aconselhamento de Monitoramento</h4>
+                <p>{{negativeDetails.overallAnalysis.monitoringAdvice}}</p>
+            </div>
+
+            {{#if negativeDetails.overallAnalysis.mitigationStrategies}}
+            <div class="success-box">
+                <h4 style="margin-bottom: 8px; font-weight: 600;">Estratégias de Mitigação</h4>
+                <ul class="detailed-list">
                     {{#each negativeDetails.overallAnalysis.mitigationStrategies}}
-                    • {{this}}<br>
+                    <li>• {{this}}</li>
                     {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    <!-- DADOS ADICIONAIS -->
+    {{#if additionalData}}
+    <div class="section page-break">
+        <h2 class="section-title">
+            <span class="section-number">7</span>
+            Dados Adicionais - Validações Complementares
+        </h2>
+        
+        {{#if additionalData.simplesNacional}}
+        <div class="subsection">
+            <h3 class="subsection-title">Simples Nacional</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Optante</div>
+                    <div class="data-value">{{#if additionalData.simplesNacional.isOptant}}Sim{{else}}Não{{/if}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data da Opção</div>
+                    <div class="data-value">{{formatDate additionalData.simplesNacional.optionDate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data da Exclusão</div>
+                    <div class="data-value">{{formatDate additionalData.simplesNacional.exclusionDate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Status</div>
+                    <div class="data-value">{{additionalData.simplesNacional.status}}</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if additionalData.receitaFederal}}
+        <div class="subsection">
+            <h3 class="subsection-title">Receita Federal</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Status de Registro</div>
+                    <div class="data-value">{{additionalData.receitaFederal.registrationStatus}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Última Atualização</div>
+                    <div class="data-value">{{formatDate additionalData.receitaFederal.lastUpdate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Situação Especial</div>
+                    <div class="data-value">{{additionalData.receitaFederal.specialSituation}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data da Situação Especial</div>
+                    <div class="data-value">{{formatDate additionalData.receitaFederal.specialSituationDate}}</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if additionalData.fgts}}
+        <div class="subsection">
+            <h3 class="subsection-title">FGTS - Regularidade do Empregador</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Status de Regularidade</div>
+                    <div class="data-value">{{additionalData.fgts.regularityStatus}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Número da Certidão</div>
+                    <div class="data-value">{{additionalData.fgts.certificateNumber}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data de Validade</div>
+                    <div class="data-value">{{formatDate additionalData.fgts.validityDate}}</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if additionalData.tcu}}
+        <div class="subsection">
+            <h3 class="subsection-title">TCU - Consulta Consolidada</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Possui Restrições</div>
+                    <div class="data-value">{{#if additionalData.tcu.hasRestrictions}}Sim{{else}}Não{{/if}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Tipo de Restrição</div>
+                    <div class="data-value">{{additionalData.tcu.restrictionType}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Data da Restrição</div>
+                    <div class="data-value">{{formatDate additionalData.tcu.restrictionDate}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Valor da Penalidade</div>
+                    <div class="data-value">{{formatCurrency additionalData.tcu.penaltyAmount}}</div>
                 </div>
             </div>
         </div>
         {{/if}}
     </div>
     {{/if}}
-    
-    <div class="footer">
-        <p><strong>Spark Comex</strong> - Plataforma de Análise de Crédito</p>
+
+    <!-- RODAPÉ -->
+    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #64748b; font-size: 10px;">
+        <p><strong>Spark Comex - Plataforma de Análise de Crédito</strong></p>
         <p>Documento gerado automaticamente em {{emissionDate}} às {{emissionTime}}</p>
         <p>Este documento é válido por 30 dias a partir da data de emissão</p>
     </div>
