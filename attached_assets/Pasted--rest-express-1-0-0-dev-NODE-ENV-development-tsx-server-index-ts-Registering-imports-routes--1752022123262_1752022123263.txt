@@ -1,0 +1,580 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Registering imports routes...
+Imports routes registered successfully
+12:45:51 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: UI4BMEEqXHSeZw-XeAwVeqhisYFmx_Vt, User ID: undefined
+12:46:01 AM [express] GET /api/auth/user 200 in 121ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:46:01 AM [express] GET /api/auth/user 304 in 379ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+12:46:02 AM [express] GET /api/notifications 200 in 124ms
+Authentication successful for user: 22 Role: admin
+12:46:02 AM [express] GET /api/notifications/unread-count 200 in 139ms
+Fetching fresh admin metrics
+12:46:04 AM [express] GET /api/admin/dashboard/metrics 304 in 1867ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/admin/credit-applications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+12:46:08 AM [express] GET /api/admin/credit-applications 304 in 303ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:46:17 AM [express] GET /api/notifications/unread-count 200 in 130ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:46:33 AM [express] GET /api/notifications 200 in 481ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:46:33 AM [express] GET /api/notifications/unread-count 200 in 506ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/auth/user - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:46:59 AM [express] GET /api/auth/user 304 in 357ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+12:46:59 AM [express] GET /api/notifications 200 in 116ms
+Authentication successful for user: 22 Role: admin
+12:46:59 AM [express] GET /api/notifications/unread-count 200 in 125ms
+Serving admin metrics from cache
+12:46:59 AM [express] GET /api/admin/dashboard/metrics 304 in 242ms :: {"totalImporters":6,"totalAppl…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:47:15 AM [express] GET /api/notifications/unread-count 200 in 464ms
+[Session Debug] GET /api/imports - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 IMPORTS REQUEST - User 22, Role: admin
+🔗 Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9
+👑 Admin/Financeira fetched 0 total imports
+✅ Sending 0 imports to frontend
+12:47:15 AM [express] GET /api/imports 304 in 492ms :: []
+[Session Debug] GET /api/suppliers - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+12:47:15 AM [express] GET /api/suppliers 304 in 244ms :: []
+[Session Debug] GET /api/admin/credit-applications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Serving credit applications from cache
+12:47:16 AM [express] GET /api/admin/credit-applications 304 in 617ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+🔍 Fetching financial settings for user: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+12:47:19 AM [express] GET /api/user/financial-settings 304 in 355ms :: {"adminFeePercentage":10,"down…
+12:47:19 AM [express] GET /api/admin/credit-applications/61 200 in 1069ms :: {"id":61,"userId":32,"le…
+[Session Debug] GET /api/credit/applications/61/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+12:47:24 AM [express] GET /api/credit/applications/61/credit-score 404 in 1342ms :: {"message":"Credi…
+[Session Debug] POST /api/credit/applications/61/credit-score - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+📊 Calling DirectD APIs for CNPJ: 65484271000105
+✅ DirectD Score API response received: {
+  "metaDados": {
+    "consultaNome": "Score de Crédito - QUOD",
+    "consultaUid": "direct-4ee9856c-3a89-4383-aa35-4d37bfec9349",
+    "chave": "CNPJ=65484271000105;",
+    "usuario": "Marcio Pavao",
+    "mensagem": "Sucesso",
+    "ip": "34.168.153.2",
+    "resultadoId": 1,
+    "resultado": "Sucesso",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": null,
+    "assincrono": false,
+    "data": "08/07/2025 21:47:27",
+    "tempoExecucaoMs": 767
+  },
+  "retorno": {
+    "dataConsulta": "07/07/2025 23:29:02",
+    "documentoConsultado": "65.484.271/0001-05",
+    "pessoaFisica": null,
+    "pessoaJuridica": {
+      "score": 368,
+      "faixaScore": "Alto índice de inadimplência",
+      "motivos": [
+        "Possui pouco volume de pagamentos em dia",
+        "Possui atrasos de parcelas/faturas em contratos recentes",
+        "Possui pouco volume de pagamentos em dia",
+        "Possui contratos com alto valor para quitação"
+      ],
+      "indicadoresNegocio": [
+        {
+          "indicador": "Pontualidade de Pagamento",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Gravidade (tempo) em Atrasos",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Uso Emergencial",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Endividamento Contrato e Credores",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Risco do Perfil de Contratação",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        },
+        {
+          "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+          "status": null,
+          "risco": null,
+          "observacao": null
+        }
+      ]
+    },
+    "observacao": null
+  }
+}
+✅ DirectD Cadastro API response received: {
+  "metaDados": {
+    "consultaNome": "Cadastro - Pessoa Jurídica - Plus",
+    "consultaUid": "direct-c7f116a6-842a-4381-adee-3b1528240efe",
+    "chave": "CNPJ=65484271000105;",
+    "usuario": "Marcio Pavao",
+    "mensagem": "Sucesso",
+    "ip": "34.168.153.2",
+    "resultadoId": 1,
+    "resultado": "Sucesso",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": null,
+    "assincrono": false,
+    "data": "08/07/2025 21:47:28",
+    "tempoExecucaoMs": 769
+  },
+  "retorno": {
+    "cnpj": "65.484.271/0001-05",
+    "razaoSocial": "PROW IMPORTADORA E DISTRIBUIDORA DE PRODUTOS PARA SAUDE LTDA",
+    "nomeFantasia": "PROW MEDICAMENTOS",
+    "dataFundacao": "08/02/1991 00:00:00",
+    "cnaeCodigo": 4644301,
+    "cnaeDescricao": "Comércio Atacadista de Medicamentos E Drogas de Uso Humano",
+    "cnaEsSecundarios": [
+      {
+        "cnaeCodigoSecundario": 4618401,
+        "cnaeDescricaoSecundario": "Representantes Comerciais E Agentes do Comércio de Medicamentos, Cosméticos E Produtos de Perfumaria"
+      },
+      {
+        "cnaeCodigoSecundario": 4637199,
+        "cnaeDescricaoSecundario": "Comércio Atacadista Especializado em Outros Produtos Alimentícios Não Especificados Anteriormente"
+      },
+      {
+        "cnaeCodigoSecundario": 4639701,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Produtos Alimentícios em Geral"
+      },
+      {
+        "cnaeCodigoSecundario": 4644302,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Medicamentos E Drogas de Uso Veterinário"
+      },
+      {
+        "cnaeCodigoSecundario": 4645101,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Instrumentos E Materiais para Uso Médico, Cirúrgico, Hospitalar E de Laboratórios"
+      },
+      {
+        "cnaeCodigoSecundario": 4645103,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Produtos Odontológicos"
+      },
+      {
+        "cnaeCodigoSecundario": 4646001,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Cosméticos E Produtos de Perfumaria"
+      },
+      {
+        "cnaeCodigoSecundario": 4646002,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Produtos de Higiene Pessoal"
+      },
+      {
+        "cnaeCodigoSecundario": 4649408,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Produtos de Higiene, Limpeza E Conservação Domiciliar"
+      },
+      {
+        "cnaeCodigoSecundario": 4664800,
+        "cnaeDescricaoSecundario": "Comércio Atacadista de Máquinas, Aparelhos E Equipamentos para Uso Odonto-Médico-Hospitalar, Partes E Peças"
+      },
+      {
+        "cnaeCodigoSecundario": 4689399,
+        "cnaeDescricaoSecundario": "Comércio Atacadista Especializado em Outros Produtos Intermediários Não Especificados Anteriormente"
+      },
+      {
+        "cnaeCodigoSecundario": 7319002,
+        "cnaeDescricaoSecundario": "Promoção de Vendas"
+      }
+    ],
+    "situacaoCadastral": "Ativa",
+    "situacaoEspecial": null,
+    "naturezaJuridicaCodigo": 2062,
+    "naturezaJuridicaDescricao": "Sociedade Empresária Limitada",
+    "naturezaJuridicaTipo": null,
+    "porte": "Micro",
+    "faixaFuncionarios": "Até 9 Funcionários",
+    "quantidadeFuncionarios": 7,
+    "faixaFaturamento": "R$ 270.000 até R$ 360.000",
+    "faturamentoMedioCNAE": "R$ 17.169.534,00",
+    "faturamentoPresumido": "R$ 360.000,00",
+    "matriz": true,
+    "orgaoPublico": null,
+    "ramo": null,
+    "tipoEmpresa": "LTDA",
+    "tributacao": "LUCRO PRESUMIDO",
+    "opcaoMEI": "NÃO",
+    "opcaoSimples": "NÃO",
+    "quantidadeFiliais": "0 até 1 filial",
+    "telefones": [
+      {
+        "telefoneComDDD": "(11) 91173-3178",
+        "telemarketingBloqueado": false,
+        "operadora": "VIVO",
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      },
+      {
+        "telefoneComDDD": "(11) 91173-3655",
+        "telemarketingBloqueado": false,
+        "operadora": "VIVO",
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      },
+      {
+        "telefoneComDDD": "(11) 94515-9516",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      },
+      {
+        "telefoneComDDD": "(11) 97230-4042",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      },
+      {
+        "telefoneComDDD": "(11) 97655-6566",
+        "telemarketingBloqueado": false,
+        "operadora": null,
+        "tipoTelefone": "TELEFONE MÓVEL",
+        "whatsApp": true
+      }
+    ],
+    "enderecos": [
+      {
+        "logradouro": "COMTIPO R JOAO RAMALHO",
+        "numero": "59",
+        "complemento": null,
+        "bairro": "CENTRO",
+        "cidade": "SAO BERNARDO DO CAMPO",
+        "uf": "SP",
+        "cep": "09715-360"
+      },
+      {
+        "logradouro": "R ALF BONILHA",
+        "numero": "340",
+        "complemento": "LJ 3",
+        "bairro": "CENTRO",
+        "cidade": "SAO BERNARDO DO CAMPO",
+        "uf": "SP",
+        "cep": "09721-230"
+      },
+      {
+        "logradouro": "R JOAO RAMALHO",
+        "numero": "59",
+        "complemento": null,
+        "bairro": "CENTRO",
+        "cidade": "RIACHO GRANDE",
+        "uf": "SP",
+        "cep": "09600-001"
+      }
+    ],
+    "emails": [
+      {
+        "enderecoEmail": "financeiro@prowmedicamentos.com.br"
+      }
+    ],
+    "ultimaAtualizacaoPJ": "24/06/2025 00:00:00",
+    "socios": [
+      {
+        "documento": "225.036.868-69",
+        "nome": "Rosana Aparecida Fabiano",
+        "percentualParticipacao": "33.33",
+        "dataEntrada": "26/07/2013 00:00:00",
+        "cargo": "Sócio Administrador"
+      },
+      {
+        "documento": "223.590.688-57",
+        "nome": "Fermino do Espirito Santo Neto",
+        "percentualParticipacao": "33.33",
+        "dataEntrada": "26/07/2013 00:00:00",
+        "cargo": "Sócio Administrador"
+      },
+      {
+        "documento": "349.775.588-55",
+        "nome": "Kelly Cristina Fabiano Ribeiro",
+        "percentualParticipacao": "33.33",
+        "dataEntrada": "08/02/2024 00:00:00",
+        "cargo": "Sócio Administrador"
+      }
+    ]
+  }
+}
+🎯 SCORE REAL DA API QUOD: 368
+📊 FAIXA SCORE: Alto índice de inadimplência
+💡 MOTIVOS DO SCORE: []
+📊 DADOS PRINCIPAIS DO CADASTRO:
+  - capitalSocial: undefined
+  - capitalSocialValor: undefined
+  - capitalSocialIntegralizado: undefined
+  - capital: undefined
+  - valorCapitalSocial: undefined
+  - faturamentoPresumido: R$ 360.000,00
+  - dataFundacao: 08/02/1991 00:00:00
+  - socios count: 3
+  - ALL FIELDS: []
+
+🔍 ANALYZING DEBTS:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for DEBTS: 1
+
+📝 Analyzing indicator: ENDIVIDAMENTO CONTRATO E CREDORES
+📝 Status: 
+📝 Risk: 
+🔍 Analysis: negative=, positive=, highRisk=
+✅ DEBTS: NO PROBLEMS FOUND
+
+🔍 ANALYZING PROTESTS:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for PROTESTS: 0
+✅ No PROTESTS indicators found = NO PROBLEM
+
+🔍 ANALYZING BANKRUPTCY:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for BANKRUPTCY: 0
+✅ No BANKRUPTCY indicators found = NO PROBLEM
+
+🔍 ANALYZING LAWSUITS:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for LAWSUITS: 0
+✅ No LAWSUITS indicators found = NO PROBLEM
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:47:29 AM [express] GET /api/notifications 200 in 127ms
+12:47:30 AM [express] POST /api/credit/applications/61/credit-score 200 in 4179ms :: {"id":19,"credit…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:47:30 AM [express] GET /api/notifications/unread-count 200 in 119ms
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+[Session Debug] GET /api/admin/credit-applications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Serving credit applications from cache
+12:47:31 AM [express] GET /api/admin/credit-applications 304 in 568ms :: [{"id":63,"userId":34,"legal…
+12:47:31 AM [express] GET /api/admin/credit-applications/61 200 in 1149ms :: {"id":61,"userId":32,"le…
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+Auth check - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9 User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+12:47:32 AM [express] GET /api/admin/credit-applications/61 304 in 881ms :: {"id":61,"userId":32,"leg…
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:47:45 AM [express] GET /api/notifications/unread-count 200 in 507ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:48:00 AM [express] GET /api/notifications 200 in 475ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:48:00 AM [express] GET /api/notifications/unread-count 200 in 122ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:48:16 AM [express] GET /api/notifications/unread-count 200 in 488ms
+[Session Debug] GET /api/notifications - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:48:30 AM [express] GET /api/notifications 200 in 505ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: d3ef_VsOaAb0qzv5IBLcJGe8E2fFmTk9, User ID: 22
+12:48:31 AM [express] GET /api/notifications/unread-count 200 in 121ms
