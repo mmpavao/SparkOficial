@@ -228,19 +228,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
           </div>
         </CardContent>
         
-        {/* Botão Consultar Credit Score no rodapé */}
-        {onRefresh && permissions.isAdmin && (
-          <div className="p-6 border-t">
-            <Button
-              variant="outline"
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
-            </Button>
-          </div>
-        )}
+
       </Card>
 
       {/* Detalhes Expandidos */}
