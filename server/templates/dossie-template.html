@@ -413,15 +413,15 @@
         </div>
     </div>
     
-    {{#if scoreData}}
+    {{#if scoreQuod}}
     <div class="section">
-        <h2 class="section-title">1. Análise de Score de Crédito</h2>
+        <h2 class="section-title">1. Score QUOD - Análise de Crédito</h2>
         
         <div class="score-section">
-            <div class="score-title">Score QUOD</div>
-            <div class="score-value">{{scoreData.score}}</div>
+            <div class="score-title">Score de Crédito</div>
+            <div class="score-value">{{scoreQuod.score}}</div>
             <div class="score-bar">
-                <div class="score-fill" style="width: {{scoreData.scorePercentage}}%"></div>
+                <div class="score-fill" style="width: {{scoreQuod.scorePercentage}}%"></div>
             </div>
             <div class="score-labels">
                 <span>0</span>
@@ -430,123 +430,359 @@
                 <span>750</span>
                 <span>1000</span>
             </div>
-            <div class="risk-badge {{scoreData.riskClass}}">{{scoreData.riskLevel}}</div>
+            <div class="risk-badge {{scoreQuod.riskClass}}">{{scoreQuod.riskLevel}}</div>
         </div>
         
-        {{#if scoreData.faixaScore}}
+        {{#if scoreQuod.scoreAnalysis}}
         <div class="subsection">
-            <h3 class="subsection-title">Faixa do Score</h3>
+            <h3 class="subsection-title">Interpretação do Score</h3>
             <div class="data-item">
-                <div class="data-item-title">Classificação</div>
-                <div class="data-item-value">{{scoreData.faixaScore}}</div>
+                <div class="data-item-title">Análise</div>
+                <div class="data-item-value">{{scoreQuod.scoreAnalysis.interpretation}}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-item-title">Recomendações</div>
+                <div class="data-item-value">{{scoreQuod.scoreAnalysis.recommendations}}</div>
             </div>
         </div>
         {{/if}}
         
-        {{#if scoreData.scoreMotivos}}
+        {{#if scoreQuod.scoreAnalysis.riskFactors}}
         <div class="subsection">
-            <h3 class="subsection-title">Fatores do Cálculo do Score</h3>
-            <div class="data-item">
-                <div class="data-item-title">Motivos</div>
-                <div class="data-item-value">{{scoreData.scoreMotivos}}</div>
+            <h3 class="subsection-title">Fatores de Risco</h3>
+            <div class="data-grid">
+                {{#each scoreQuod.scoreAnalysis.riskFactors}}
+                <div class="data-item">
+                    <div class="data-item-title">Fator {{@index}}</div>
+                    <div class="data-item-value">{{this}}</div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if scoreQuod.scoreAnalysis.positiveFactors}}
+        <div class="subsection">
+            <h3 class="subsection-title">Fatores Positivos</h3>
+            <div class="data-grid">
+                {{#each scoreQuod.scoreAnalysis.positiveFactors}}
+                <div class="data-item">
+                    <div class="data-item-title">Fator {{@index}}</div>
+                    <div class="data-item-value">{{this}}</div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if scoreQuod.businessIndicators}}
+        <div class="subsection">
+            <h3 class="subsection-title">Indicadores de Negócio</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Pontualidade de Pagamento</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.paymentPunctuality.status}}</span>
+                        <br><small>Risco: {{scoreQuod.businessIndicators.paymentPunctuality.risk}}</small>
+                        <br><small>Obs: {{scoreQuod.businessIndicators.paymentPunctuality.observation}}</small>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Gravidade dos Atrasos</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.delaysSeverity.status}}</span>
+                        <br><small>Risco: {{scoreQuod.businessIndicators.delaysSeverity.risk}}</small>
+                        <br><small>Obs: {{scoreQuod.businessIndicators.delaysSeverity.observation}}</small>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Uso Emergencial</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.emergencyUsage.status}}</span>
+                        <br><small>Risco: {{scoreQuod.businessIndicators.emergencyUsage.risk}}</small>
+                        <br><small>Obs: {{scoreQuod.businessIndicators.emergencyUsage.observation}}</small>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Perfil de Endividamento</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.debtProfile.status}}</span>
+                        <br><small>Risco: {{scoreQuod.businessIndicators.debtProfile.risk}}</small>
+                        <br><small>Obs: {{scoreQuod.businessIndicators.debtProfile.observation}}</small>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Risco de Contrato</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.contractRisk.status}}</span>
+                        <br><small>Risco: {{scoreQuod.businessIndicators.contractRisk.risk}}</small>
+                        <br><small>Obs: {{scoreQuod.businessIndicators.contractRisk.observation}}</small>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Consulta de Crédito</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-neutral">{{scoreQuod.businessIndicators.creditSearch.status}}</span>
+                        <br><small>Risco: {{scoreQuod.businessIndicators.creditSearch.risk}}</small>
+                        <br><small>Obs: {{scoreQuod.businessIndicators.creditSearch.observation}}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if scoreQuod.paymentBehavior}}
+        <div class="subsection">
+            <h3 class="subsection-title">Comportamento de Pagamento</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Média de Dias de Atraso</div>
+                    <div class="data-item-value">{{scoreQuod.paymentBehavior.averageDelayDays}} dias</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Consistência de Pagamento</div>
+                    <div class="data-item-value">{{scoreQuod.paymentBehavior.paymentConsistency}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Utilização de Crédito</div>
+                    <div class="data-item-value">{{scoreQuod.paymentBehavior.creditUtilization}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Histórico de Inadimplência</div>
+                    <div class="data-item-value">{{scoreQuod.paymentBehavior.defaultHistory}}</div>
+                </div>
             </div>
         </div>
         {{/if}}
     </div>
     {{/if}}
     
-    {{#if companyData}}
+    {{#if cadastroPjPlus}}
     <div class="section">
-        <h2 class="section-title">2. Dados da Empresa</h2>
+        <h2 class="section-title">2. Cadastro PJ Plus - Dados da Empresa</h2>
         
         <div class="subsection">
             <h3 class="subsection-title">Informações Gerais</h3>
             <div class="data-grid">
                 <div class="data-item">
                     <div class="data-item-title">Razão Social</div>
-                    <div class="data-item-value">{{companyData.companyName}}</div>
+                    <div class="data-item-value">{{cadastroPjPlus.companyName}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Nome Fantasia</div>
+                    <div class="data-item-value">{{cadastroPjPlus.fantasyName}}</div>
                 </div>
                 <div class="data-item">
                     <div class="data-item-title">CNPJ</div>
-                    <div class="data-item-value">{{maskCNPJ companyData.cnpj}}</div>
+                    <div class="data-item-value">{{maskCNPJ cadastroPjPlus.cnpj}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Situação</div>
+                    <div class="data-item-title">Status</div>
                     <div class="data-item-value">
-                        <span class="status-indicator {{#if companyData.isActive}}status-success{{else}}status-error{{/if}}">
-                            {{#if companyData.isActive}}Ativa{{else}}Inativa{{/if}}
-                        </span>
+                        <span class="status-indicator status-success">{{cadastroPjPlus.registrationStatus}}</span>
                     </div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Data de Abertura</div>
-                    <div class="data-item-value">{{companyData.openingDate}}</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-item-title">Capital Social</div>
-                    <div class="data-item-value">{{formatCurrency companyData.capital}}</div>
+                    <div class="data-item-title">Data de Fundação</div>
+                    <div class="data-item-value">{{cadastroPjPlus.foundationDate}}</div>
                 </div>
                 <div class="data-item">
                     <div class="data-item-title">Porte</div>
-                    <div class="data-item-value">{{companyData.size}}</div>
+                    <div class="data-item-value">{{cadastroPjPlus.companySize}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Capital Social</div>
+                    <div class="data-item-value">{{formatCurrency cadastroPjPlus.capital}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Natureza Jurídica</div>
+                    <div class="data-item-value">{{cadastroPjPlus.legalNature}}</div>
                 </div>
             </div>
         </div>
         
-        {{#if companyData.address}}
+        {{#if cadastroPjPlus.registrationDetails}}
         <div class="subsection">
-            <h3 class="subsection-title">Endereço</h3>
+            <h3 class="subsection-title">Detalhes de Registro</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Logradouro</div>
-                    <div class="data-item-value">{{companyData.address.street}}</div>
+                    <div class="data-item-title">Data de Abertura</div>
+                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.openingDate}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Bairro</div>
-                    <div class="data-item-value">{{companyData.address.district}}</div>
+                    <div class="data-item-title">Última Atualização</div>
+                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.lastUpdateDate}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Cidade</div>
-                    <div class="data-item-value">{{companyData.address.city}}</div>
+                    <div class="data-item-title">Situação Especial</div>
+                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.specialSituation}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">UF</div>
-                    <div class="data-item-value">{{companyData.address.state}}</div>
+                    <div class="data-item-title">Órgão Responsável</div>
+                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.responsibleEntity}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">CEP</div>
-                    <div class="data-item-value">{{companyData.address.zipCode}}</div>
+                    <div class="data-item-title">Nº de Registro</div>
+                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.registrationNumber}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">EIN</div>
+                    <div class="data-item-value">{{cadastroPjPlus.registrationDetails.ein}}</div>
                 </div>
             </div>
         </div>
         {{/if}}
         
-        {{#if companyData.activities}}
+        {{#if cadastroPjPlus.address}}
+        <div class="subsection">
+            <h3 class="subsection-title">Endereço Completo</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Logradouro</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.street}}, {{cadastroPjPlus.address.number}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Complemento</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.complement}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Bairro</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.neighborhood}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Cidade</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.city}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Estado</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.state}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">CEP</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.zipCode}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">País</div>
+                    <div class="data-item-value">{{cadastroPjPlus.address.country}}</div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if cadastroPjPlus.activities}}
         <div class="subsection">
             <h3 class="subsection-title">Atividades Econômicas</h3>
-            <div class="activities-grid">
-                {{#each companyData.activities}}
-                <div class="activity-item">
-                    <span class="activity-code">{{this.code}}</span> - {{this.description}}
+            <div class="data-grid">
+                {{#if cadastroPjPlus.activities.primary}}
+                <div class="data-item">
+                    <div class="data-item-title">Atividade Principal</div>
+                    <div class="data-item-value">
+                        <strong>{{cadastroPjPlus.activities.primary.code}}</strong> - {{cadastroPjPlus.activities.primary.description}}
+                        <br><small>Início: {{cadastroPjPlus.activities.primary.startDate}}</small>
+                    </div>
+                </div>
+                {{/if}}
+                {{#each cadastroPjPlus.activities.secondary}}
+                <div class="data-item">
+                    <div class="data-item-title">Atividade Secundária</div>
+                    <div class="data-item-value">
+                        <strong>{{this.code}}</strong> - {{this.description}}
+                        <br><small>Início: {{this.startDate}}</small>
+                    </div>
                 </div>
                 {{/each}}
             </div>
         </div>
         {{/if}}
         
-        {{#if companyData.partners}}
+        {{#if cadastroPjPlus.partners}}
         <div class="subsection">
-            <h3 class="subsection-title">Quadro Societário</h3>
+            <h3 class="subsection-title">Quadro Societário Detalhado</h3>
             <div class="partners-list">
-                {{#each companyData.partners}}
+                {{#each cadastroPjPlus.partners}}
                 <div class="partner-item">
                     <div class="partner-name">{{this.name}}</div>
                     <div class="partner-details">
                         {{#if this.cpf}}CPF: {{maskCPF this.cpf}}{{/if}}
-                        {{#if this.qualification}} - {{this.qualification}}{{/if}}
+                        {{#if this.qualification}} - {{this.qualification}} ({{this.qualificationDescription}}){{/if}}
+                        <br><small>Participação: {{this.participationPercentage}}%</small>
+                        {{#if this.entryDate}}<br><small>Ingresso: {{this.entryDate}}</small>{{/if}}
+                        {{#if this.age}}<br><small>Idade: {{this.age}} anos</small>{{/if}}
+                        {{#if this.nationality}}<br><small>Nacionalidade: {{this.nationality}}</small>{{/if}}
+                        {{#if this.legalRepresentative}}<br><small><strong>Representante Legal</strong></small>{{/if}}
                     </div>
                 </div>
                 {{/each}}
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if cadastroPjPlus.contacts}}
+        <div class="subsection">
+            <h3 class="subsection-title">Contatos e Comunicação</h3>
+            <div class="data-grid">
+                {{#each cadastroPjPlus.contacts.phones}}
+                <div class="data-item">
+                    <div class="data-item-title">Telefone ({{this.type}})</div>
+                    <div class="data-item-value">
+                        {{this.number}}
+                        {{#if this.verified}}<span class="status-indicator status-success">Verificado</span>{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+                {{#each cadastroPjPlus.contacts.emails}}
+                <div class="data-item">
+                    <div class="data-item-title">Email ({{this.type}})</div>
+                    <div class="data-item-value">
+                        {{this.address}}
+                        {{#if this.verified}}<span class="status-indicator status-success">Verificado</span>{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+                {{#if cadastroPjPlus.contacts.website}}
+                <div class="data-item">
+                    <div class="data-item-title">Website</div>
+                    <div class="data-item-value">{{cadastroPjPlus.contacts.website}}</div>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+        
+        {{#if cadastroPjPlus.additionalInfo}}
+        <div class="subsection">
+            <h3 class="subsection-title">Informações Adicionais</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Número de Funcionários</div>
+                    <div class="data-item-value">{{cadastroPjPlus.additionalInfo.employeeCount}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Faturamento Anual</div>
+                    <div class="data-item-value">{{cadastroPjPlus.additionalInfo.annualRevenue}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Filiais</div>
+                    <div class="data-item-value">{{cadastroPjPlus.additionalInfo.branchOffices}}</div>
+                </div>
+                {{#if cadastroPjPlus.additionalInfo.certifications}}
+                <div class="data-item">
+                    <div class="data-item-title">Certificações</div>
+                    <div class="data-item-value">{{join cadastroPjPlus.additionalInfo.certifications ", "}}</div>
+                </div>
+                {{/if}}
+                {{#if cadastroPjPlus.additionalInfo.licenses}}
+                <div class="data-item">
+                    <div class="data-item-title">Licenças</div>
+                    <div class="data-item-value">{{join cadastroPjPlus.additionalInfo.licenses ", "}}</div>
+                </div>
+                {{/if}}
+                {{#if cadastroPjPlus.additionalInfo.specialRegimes}}
+                <div class="data-item">
+                    <div class="data-item-title">Regimes Especiais</div>
+                    <div class="data-item-value">{{join cadastroPjPlus.additionalInfo.specialRegimes ", "}}</div>
+                </div>
+                {{/if}}
             </div>
         </div>
         {{/if}}
@@ -592,47 +828,264 @@
     </div>
     {{/if}}
     
-    {{#if negativeData}}
+    {{#if negativeDetails}}
     <div class="section">
-        <h2 class="section-title">4. Detalhamento Negativo</h2>
+        <h2 class="section-title">4. Detalhamento Negativo - Análise Completa</h2>
         
+        {{#if negativeDetails.protests}}
         <div class="subsection">
-            <h3 class="subsection-title">Registros Negativos</h3>
+            <h3 class="subsection-title">Protestos</h3>
             <div class="data-grid">
                 <div class="data-item">
-                    <div class="data-item-title">Protestos</div>
+                    <div class="data-item-title">Status</div>
                     <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeData.hasProtests}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeData.hasProtests}}Encontrados{{else}}Nada Consta{{/if}}
+                        <span class="status-indicator {{#if negativeDetails.protests.hasProtests}}status-error{{else}}status-success{{/if}}">
+                            {{#if negativeDetails.protests.hasProtests}}Encontrados{{else}}Nada Consta{{/if}}
                         </span>
                     </div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Falências</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeData.hasBankruptcy}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeData.hasBankruptcy}}Encontradas{{else}}Nada Consta{{/if}}
-                        </span>
-                    </div>
+                    <div class="data-item-title">Quantidade Total</div>
+                    <div class="data-item-value">{{negativeDetails.protests.totalCount}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Ações Judiciais</div>
-                    <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeData.hasLawsuits}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeData.hasLawsuits}}Encontradas{{else}}Nada Consta{{/if}}
-                        </span>
-                    </div>
+                    <div class="data-item-title">Valor Total</div>
+                    <div class="data-item-value">{{negativeDetails.protests.totalAmount}}</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-item-title">Cheques sem Fundo</div>
+                    <div class="data-item-title">Nível de Risco</div>
                     <div class="data-item-value">
-                        <span class="status-indicator {{#if negativeData.hasBouncedChecks}}status-error{{else}}status-success{{/if}}">
-                            {{#if negativeData.hasBouncedChecks}}Encontrados{{else}}Nada Consta{{/if}}
+                        <span class="status-indicator {{#if negativeDetails.protests.analysis.riskLevel}}status-error{{else}}status-success{{/if}}">
+                            {{negativeDetails.protests.analysis.riskLevel}}
                         </span>
                     </div>
                 </div>
             </div>
+            
+            {{#if negativeDetails.protests.records}}
+            <div class="subsection">
+                <h4 class="subsection-title">Registros Detalhados</h4>
+                {{#each negativeDetails.protests.records}}
+                <div class="data-item">
+                    <div class="data-item-title">Protesto {{@index}}</div>
+                    <div class="data-item-value">
+                        <strong>Protocolo:</strong> {{this.protocolNumber}}<br>
+                        <strong>Valor:</strong> {{this.amount}}<br>
+                        <strong>Data:</strong> {{this.date}}<br>
+                        <strong>Cartório:</strong> {{this.notaryOffice}}<br>
+                        <strong>Cidade:</strong> {{this.city}}/{{this.state}}<br>
+                        <strong>Motivo:</strong> {{this.reason}}<br>
+                        <strong>Status:</strong> {{this.status}}<br>
+                        <strong>Credor:</strong> {{this.creditorName}}<br>
+                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+            
+            {{#if negativeDetails.protests.analysis}}
+            <div class="data-item">
+                <div class="data-item-title">Análise de Impacto</div>
+                <div class="data-item-value">
+                    <strong>Impacto:</strong> {{negativeDetails.protests.analysis.impact}}<br>
+                    <strong>Recomendações:</strong> {{negativeDetails.protests.analysis.recommendations}}<br>
+                    <strong>Tendência:</strong> {{negativeDetails.protests.analysis.trend}}
+                </div>
+            </div>
+            {{/if}}
         </div>
+        {{/if}}
+        
+        {{#if negativeDetails.bankruptcies}}
+        <div class="subsection">
+            <h3 class="subsection-title">Falências e Recuperações Judiciais</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Status</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator {{#if negativeDetails.bankruptcies.hasBankruptcies}}status-error{{else}}status-success{{/if}}">
+                            {{#if negativeDetails.bankruptcies.hasBankruptcies}}Encontradas{{else}}Nada Consta{{/if}}
+                        </span>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Quantidade</div>
+                    <div class="data-item-value">{{negativeDetails.bankruptcies.totalCount}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Nível de Risco</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-success">{{negativeDetails.bankruptcies.analysis.riskLevel}}</span>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Prognóstico</div>
+                    <div class="data-item-value">{{negativeDetails.bankruptcies.analysis.recoveryPrognosis}}</div>
+                </div>
+            </div>
+            
+            {{#if negativeDetails.bankruptcies.records}}
+            <div class="subsection">
+                <h4 class="subsection-title">Registros Detalhados</h4>
+                {{#each negativeDetails.bankruptcies.records}}
+                <div class="data-item">
+                    <div class="data-item-title">Processo {{@index}}</div>
+                    <div class="data-item-value">
+                        <strong>Número:</strong> {{this.processNumber}}<br>
+                        <strong>Tribunal:</strong> {{this.court}}<br>
+                        <strong>Data:</strong> {{this.date}}<br>
+                        <strong>Status:</strong> {{this.status}}<br>
+                        <strong>Tipo:</strong> {{this.processType}}<br>
+                        <strong>Fase Atual:</strong> {{this.currentPhase}}<br>
+                        <strong>Administrador:</strong> {{this.administrator}}<br>
+                        <strong>Valor da Dívida:</strong> {{this.debtAmount}}<br>
+                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+        
+        {{#if negativeDetails.lawsuits}}
+        <div class="subsection">
+            <h3 class="subsection-title">Ações Judiciais</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Status</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator {{#if negativeDetails.lawsuits.hasLawsuits}}status-error{{else}}status-success{{/if}}">
+                            {{#if negativeDetails.lawsuits.hasLawsuits}}Encontradas{{else}}Nada Consta{{/if}}
+                        </span>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Quantidade</div>
+                    <div class="data-item-value">{{negativeDetails.lawsuits.totalCount}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Valor Total</div>
+                    <div class="data-item-value">{{negativeDetails.lawsuits.totalAmount}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Tendência</div>
+                    <div class="data-item-value">{{negativeDetails.lawsuits.analysis.litigationTrend}}</div>
+                </div>
+            </div>
+            
+            {{#if negativeDetails.lawsuits.records}}
+            <div class="subsection">
+                <h4 class="subsection-title">Registros Detalhados</h4>
+                {{#each negativeDetails.lawsuits.records}}
+                <div class="data-item">
+                    <div class="data-item-title">Processo {{@index}}</div>
+                    <div class="data-item-value">
+                        <strong>Número:</strong> {{this.processNumber}}<br>
+                        <strong>Tribunal:</strong> {{this.court}}<br>
+                        <strong>Assunto:</strong> {{this.subject}}<br>
+                        <strong>Valor:</strong> {{this.amount}}<br>
+                        <strong>Data:</strong> {{this.date}}<br>
+                        <strong>Status:</strong> {{this.status}}<br>
+                        <strong>Tipo:</strong> {{this.processType}}<br>
+                        <strong>Autor:</strong> {{this.plaintiff}}<br>
+                        <strong>Réu:</strong> {{this.defendant}}<br>
+                        <strong>Advogado:</strong> {{this.lawyer}}<br>
+                        <strong>Probabilidade:</strong> {{this.probability}}<br>
+                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+        
+        {{#if negativeDetails.bouncedChecks}}
+        <div class="subsection">
+            <h3 class="subsection-title">Cheques sem Fundo</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Status</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator {{#if negativeDetails.bouncedChecks.hasBouncedChecks}}status-error{{else}}status-success{{/if}}">
+                            {{#if negativeDetails.bouncedChecks.hasBouncedChecks}}Encontrados{{else}}Nada Consta{{/if}}
+                        </span>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Quantidade</div>
+                    <div class="data-item-value">{{negativeDetails.bouncedChecks.totalCount}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Valor Total</div>
+                    <div class="data-item-value">{{negativeDetails.bouncedChecks.totalAmount}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Padrão de Pagamento</div>
+                    <div class="data-item-value">{{negativeDetails.bouncedChecks.analysis.paymentPattern}}</div>
+                </div>
+            </div>
+            
+            {{#if negativeDetails.bouncedChecks.records}}
+            <div class="subsection">
+                <h4 class="subsection-title">Registros Detalhados</h4>
+                {{#each negativeDetails.bouncedChecks.records}}
+                <div class="data-item">
+                    <div class="data-item-title">Cheque {{@index}}</div>
+                    <div class="data-item-value">
+                        <strong>Número:</strong> {{this.checkNumber}}<br>
+                        <strong>Banco:</strong> {{this.bank}} ({{this.bankCode}})<br>
+                        <strong>Valor:</strong> {{this.amount}}<br>
+                        <strong>Data:</strong> {{this.date}}<br>
+                        <strong>Motivo:</strong> {{this.reason}}<br>
+                        <strong>Favorecido:</strong> {{this.payeeName}}<br>
+                        <strong>Sacador:</strong> {{this.drawerName}}<br>
+                        <strong>Status:</strong> {{this.status}}<br>
+                        {{#if this.observations}}<strong>Observações:</strong> {{this.observations}}{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+        
+        {{#if negativeDetails.overallAnalysis}}
+        <div class="subsection">
+            <h3 class="subsection-title">Análise Consolidada</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-item-title">Total de Registros Negativos</div>
+                    <div class="data-item-value">{{negativeDetails.overallAnalysis.totalNegativeRecords}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Impacto Financeiro Total</div>
+                    <div class="data-item-value">{{negativeDetails.overallAnalysis.totalFinancialImpact}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Nível de Risco</div>
+                    <div class="data-item-value">
+                        <span class="status-indicator status-success">{{negativeDetails.overallAnalysis.riskLevel}}</span>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-title">Recomendação de Crédito</div>
+                    <div class="data-item-value">{{negativeDetails.overallAnalysis.creditRecommendation}}</div>
+                </div>
+            </div>
+            
+            <div class="data-item">
+                <div class="data-item-title">Estratégias de Mitigação</div>
+                <div class="data-item-value">
+                    {{#each negativeDetails.overallAnalysis.mitigationStrategies}}
+                    • {{this}}<br>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+        {{/if}}
     </div>
     {{/if}}
     
