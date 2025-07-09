@@ -250,6 +250,45 @@ input[name="user_full_name_input"]:-webkit-autofill:focus {
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
+  
+  /* Mobile card improvements */
+  .mobile-card-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .mobile-card-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Mobile text handling */
+  .mobile-text-break {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Mobile grid improvements */
+  .mobile-responsive-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .mobile-responsive-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .mobile-responsive-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
 }
 
 .text-spark-700 { color: var(--spark-700); }

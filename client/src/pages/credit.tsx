@@ -261,16 +261,16 @@ export default function CreditPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
               ? "Análise Financeira - Aprovação de Crédito" 
               : permissions.canViewAllApplications 
                 ? "Gestão de Crédito - Área Administrativa" 
                 : "Solicitações de Crédito"}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm lg:text-base">
             {permissions.isFinanceira
               ? "Avalie e aprove solicitações de crédito pré-analisadas pela administração"
               : permissions.canViewAllApplications 
@@ -281,7 +281,7 @@ export default function CreditPage() {
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
           <Button 
             onClick={() => setLocation('/credit/new')}
-            className="bg-spark-600 hover:bg-spark-700"
+            className="bg-spark-600 hover:bg-spark-700 w-full lg:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nova Solicitação de Crédito
@@ -321,7 +321,7 @@ export default function CreditPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               {applications.filter(app => app && app.id).map((application: any) => {
                 const getStatusInfo = () => {
                   // FINANCEIRA VIEW: When Financeira approves, it's FINAL for them
