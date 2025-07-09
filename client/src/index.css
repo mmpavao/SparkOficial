@@ -271,6 +271,25 @@ input[name="user_full_name_input"]:-webkit-autofill:focus {
     hyphens: auto;
   }
   
+  /* Mobile truncation for titles - only applies on mobile */
+  @media (max-width: 767px) {
+    .mobile-title-truncate {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-height: 2.5rem;
+    }
+    
+    .mobile-badge-truncate {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 150px;
+    }
+  }
+  
   /* Mobile grid improvements */
   .mobile-responsive-grid {
     display: grid;

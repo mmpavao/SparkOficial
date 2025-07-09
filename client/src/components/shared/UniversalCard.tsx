@@ -91,11 +91,11 @@ export function UniversalCard({
             {/* Main info */}
             <div className="min-w-0 flex-1">
               <div className="flex flex-col lg:flex-row lg:items-center lg:gap-3 mb-2">
-                <h3 className="font-semibold text-gray-900 text-base lg:text-lg mobile-text-break lg:truncate">
+                <h3 className="font-semibold text-gray-900 text-base lg:text-lg mobile-title-truncate lg:truncate">
                   {title}
                 </h3>
                 {companyBadge && (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs mt-1 lg:mt-0 self-start">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs mt-1 lg:mt-0 self-start mobile-badge-truncate">
                     {companyBadge}
                   </Badge>
                 )}
