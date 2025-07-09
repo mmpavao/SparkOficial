@@ -1,0 +1,186 @@
+API - SCR Bacen - CMSW
+A API SCR Bacen - CMSW permite consultar informações do Sistema de Informações de Créditos do Banco Central do Brasil.
+
+
+
+💡O Sistema de Informações de Créditos (SCR) do Banco Central do Brasil é um banco de dados que armazena informações sobre operações de crédito de clientes com risco direto igual ou superior a R$ 200,00. Mantido e alimentado mensalmente pelas instituições financeiras, o SCR é uma ferramenta essencial para a supervisão bancária, permitindo o acompanhamento e a avaliação de riscos, além de auxiliar na prevenção de crises no sistema financeiro, sempre respeitando o sigilo bancário.
+
+
+Introdução
+A API SCR Bacen - CMSW fornece:
+
+Informações sobre operações de crédito
+Avaliação de riscos financeiros
+Histórico de relacionamentos bancários
+Análise de perfil creditício
+Monitoramento de compromissos financeiros
+Fonte: Fornecedor Externo
+
+URL Base
+A API está hospedada no seguinte endereço:
+
+https://apiv3.directd.com.br
+Endpoint
+SCR Bacen - CMSW
+GET /api/SCRBacen
+Descrição: Endpoint para realizar a consulta SCR Bacen - CMSW. Obs: esta consulta não possui comprovante.
+
+Importante: Informe apenas um único documento por requisição.
+
+Autenticação
+Para acessar esta API, é necessário fornecer um token de autenticação.
+
+Regras de Autenticação:
+
+O token deve ser enviado como parâmetro na URL da requisição.
+O token é obrigatório para realizar consultas.
+Em caso de dúvidas sobre o token, entre em contato com: suporte@directd.com.br
+Campos da API
+Dados Gerais
+Documento Consultado: CPF ou CNPJ consultado
+Quantidade de Instituições: Número de instituições financeiras
+Quantidade de Operações: Total de operações de crédito
+Relacionamentos: Vínculos com instituições financeiras
+Volume: Volume total de operações
+Situação: Status atual
+Perfil: Perfil de crédito
+Score: Pontuação de crédito
+Classe de Risco: Classificação de risco
+Carteira de Crédito
+Valor a Vencer: Montante a vencer
+Valor Vencido: Montante vencido
+Índices
+Total: Índice total
+Cartão: Índice de cartão
+Crédito Pessoal: Índice de crédito pessoal
+Cheque Especial: Índice de cheque especial
+Percentuais por Categoria
+Linha de Risco Maior
+Cartão
+Financiamentos
+Lista de Empréstimos
+Financiamentos de Exportação
+Financiamentos Imobiliários
+Financiamentos de Veículos
+Adiantamentos de Depositantes
+Operações de Arrendamento
+Coobrigações
+Outros Créditos
+Outros
+Percentual Vencido
+Cartão
+Empréstimos
+Financiamentos
+Financiamentos Imobiliários
+Financiamentos de Veículos
+Adiantamento de Depósitos
+Percentual do Prazo
+Curto
+Médio
+Longo
+Percentual de Evolução do Compromisso
+Total
+Maior Risco
+Financiamentos
+Cartão
+Parâmetros
+Nome	Tipo	Obrigatório	Descrição
+CPF	string	Não*	CPF do indivíduo. Pode ser enviado com ou sem formatação.
+CNPJ	string	Não*	CNPJ da empresa. Pode ser enviado com ou sem formatação.
+TOKEN	string	Sim	Token de autenticação necessário para a consulta.
+*É necessário informar CPF ou CNPJ (apenas um por requisição).
+
+Exemplos de Requisição
+Usando cURL - Consulta PF
+
+curl 'https://apiv3.directd.com.br/api/SCRBacen?CPF=12345678900&TOKEN=seu_token_aqui'
+Usando cURL - Consulta PJ
+
+curl 'https://apiv3.directd.com.br/api/SCRBacen?CNPJ=12345678000199&TOKEN=seu_token_aqui'
+Respostas
+Sucesso (200)
+Exemplo de Resposta
+
+{
+  "metaDados": {
+    "consultaNome": "string",
+    "consultaUid": "string",
+    "chave": "string",
+    "usuario": "string",
+    "mensagem": "string",
+    "ip": "string",
+    "resultadoId": 0,
+    "resultado": "string",
+    "apiVersao": "v3",
+    "gerarComprovante": false,
+    "urlComprovante": "string",
+    "assincrono": true,
+    "data": "dd/MM/yyyy HH:mm:ss",
+    "tempoExecucaoMs": 0
+  },
+  "retorno": {
+    "documentoConsultado": "string",
+    "quantidadeInstituicoes": 0,
+    "quantidadeOperacoes": 0,
+    "relacionamentos": "string",
+    "volume": "string",
+    "situacao": "string",
+    "perfil": "string",
+    "score": "string",
+    "classeRisco": "string",
+    "carteiraCredito": {
+      "valorVencer": "string",
+      "valorVencida": "string"
+    },
+    "indice": {
+      "total": "string",
+      "cartao": "string",
+      "creditoPessoal": "string",
+      "chequeEspecial": "string"
+    },
+    "percentualCategoria": {
+      "linhaRiscoMaior": "string",
+      "cartao": "string",
+      "financiamentos": "string",
+      "emprestimos": "string",
+      "financiamentosExportacao": "string",
+      "financiamentosImobiliarios": "string",
+      "financiamentosVeiculos": "string",
+      "adiantamentosDepositantes": "string",
+      "operacoesArrendamento": "string",
+      "coobrigacoes": "string",
+      "outrosCreditos": "string",
+      "outros": "string"
+    },
+    "percentualVencido": {
+      "cartao": "string",
+      "emprestimos": "string",
+      "financiamentos": "string",
+      "financiamentosImobiliarios": "string",
+      "financiamentosVeiculos": "string",
+      "adiantamentoDepositos": "string"
+    },
+    "percentualPrazo": {
+      "curto": "string",
+      "medio": "string",
+      "longo": "string"
+    },
+    "percentualEvolucaoCompromisso": {
+      "total": "string",
+      "maiorRisco": "string",
+      "financiamentos": "string",
+      "cartao": "string"
+    }
+  }
+}
+Outros Códigos de Resposta
+Código	Descrição
+201	Sucesso: a requisição async foi criada com sucesso e está em processamento.
+202	Em Processamento: a requisição async ainda está em processamento.
+400	Requisição Inválida: a requisição está incorreta ou os parâmetros são inválidos.
+401	Não Autenticado: o usuário não forneceu as credenciais corretas para acessar o recurso.
+403	Não Autorizado: o servidor recebeu a requisição, mas se negou a autorizá-la por conta de saldo indisponível.
+404	Não Encontrado: o servidor não encontrou uma representação atual do recurso solicitado.
+408	Tempo Esgotado: o servidor não conseguiu retornar a requisição no prazo estabelecido.
+500	Falha ao Realizar Consulta: o servidor não conseguiu processar a requisição com sucesso. Por favor, entre em contato com o nosso suporte.
+503	Consulta em Manutenção: a consulta requisitada está em manutenção. Por favor, entre em contato com o nosso suporte.
