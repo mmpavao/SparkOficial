@@ -1,0 +1,76 @@
+
+> rest-express@1.0.0 dev
+Registering imports routes...rver/index.ts
+Imports routes registered successfully
+5:39:07 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: FlFhaquz6-FaDcwyPJ0qd8diQUq4IjV8, User ID: undefined
+5:39:16 AM [express] GET /api/auth/user 304 in 120ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+5:39:24 AM [express] GET /api/auth/user 304 in 372ms :: {"user":{"id":22,"companyName":"Spark Comex …
+[Session Debug] GET /api/notifications - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+[Session Debug] GET /api/admin/dashboard/metrics - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+Auth check - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh User ID: 22
+5:39:24 AM [express] GET /api/notifications 200 in 133ms
+5:39:24 AM [express] GET /api/notifications/unread-count 200 in 132ms
+Authentication successful for user: 22 Role: admin
+Fetching fresh admin metrics
+5:39:26 AM [express] GET /api/admin/dashboard/metrics 200 in 1928ms :: {"totalImporters":6,"totalApp…
+[Session Debug] GET /api/notifications/unread-count - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+5:41:10 AM [express] GET /api/notifications/unread-count 200 in 491ms
+[Session Debug] GET /api/admin/credit-applications - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+Auth check - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh User ID: 22
+Authentication successful for user: 22 Role: admin
+Admin credit applications request - User: 22
+Current user role: admin
+Fetching fresh credit applications
+Found 3 credit applications
+5:41:11 AM [express] GET /api/admin/credit-applications 200 in 525ms :: [{"id":63,"userId":34,"legal…
+[Session Debug] GET /api/admin/credit-applications/61 - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+Auth check - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh User ID: 22
+Authentication successful for user: 22 Role: admin
+🔍 PROTEÇÃO: admin tentando acessar /api/admin/credit-applications/61
+[Session Debug] GET /api/credit/applications/61/credit-score - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+Auth check - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+[Session Debug] GET /api/user/financial-settings - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+🔍 Fetching financial settings for user: 22
+Authentication successful for user: 22 Role: admin
+👤 User data: {
+  id: 22,
+  defaultAdminFeeRate: null,
+  defaultDownPaymentRate: null,
+  defaultPaymentTerms: null
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 10,
+  downPaymentPercentage: 30,
+  paymentTerms: '30,60,90'
+}
+5:41:14 AM [express] GET /api/user/financial-settings 304 in 745ms :: {"adminFeePercentage":10,"down…
+5:41:14 AM [express] GET /api/admin/credit-applications/61 200 in 1322ms :: {"id":61,"userId":32,"le…
+5:41:15 AM [express] GET /api/credit/applications/61/credit-score 200 in 1707ms :: {"id":28,"creditA…
+[Session Debug] GET /api/credit/applications/61/dossie-pdf - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+Auth check - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh User ID: 22
+Authentication successful for user: 22 Role: admin
+Error generating PDF dossie: Error: Failed to launch the browser process!
+/home/runner/.cache/puppeteer/chrome/linux-138.0.7204.92/chrome-linux64/chrome: error while loading shared libraries: libnspr4.so: cannot open shared object file: No such file or directory
+
+
+TROUBLESHOOTING: https://pptr.dev/troubleshooting
+
+    at Interface.onClose (/home/runner/workspace/node_modules/@puppeteer/browsers/src/launch.ts:507:11)
+    at Interface.emit (node:events:530:35)
+    at Interface.close (node:internal/readline/interface:527:10)
+    at Socket.onend (node:internal/readline/interface:253:10)
+    at Socket.emit (node:events:530:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+5:41:21 AM [express] GET /api/credit/applications/61/dossie-pdf 500 in 1192ms :: {"message":"Erro ao…
+[Session Debug] GET /api/notifications - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+[Session Debug] GET /api/notifications/unread-count - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+5:41:38 AM [express] GET /api/notifications 200 in 491ms
+5:41:38 AM [express] GET /api/notifications/unread-count 200 in 507ms
