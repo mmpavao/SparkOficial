@@ -184,7 +184,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Débitos</span>
-                {getStatusIcon(creditScore.hasDebts)}
+                {getStatusIcon(creditScore.hasDebts || creditScore.cndHasDebts)}
               </div>
               
               <div className="flex items-center justify-between">
@@ -475,64 +475,56 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                 <div>
                   <CardTitle className="text-lg">CND - Certidões Negativas de Débitos</CardTitle>
                   <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200 mt-1">
-                    {creditScore.cndStatus || 'Não foi possível emitir a Certidão Negativa'}
+                    {creditScore.cndHasDebts ? 'Possui débitos' : 'Sem débitos'}
                   </Badge>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {creditScore.cndStatus && creditScore.cndStatus !== 'Não Consultado' ? (
+              <div className="space-y-3">
+                <h6 className="font-semibold">Status das Certidões</h6>
                 <div className="space-y-3">
-                  <h6 className="font-semibold">Status das Certidões</h6>
-                  <div className="space-y-3">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">Débitos Fiscais</span>
+                    <span className={`text-sm ${creditScore.cndHasDebts ? 'text-red-600' : 'text-green-600'}`}>
+                      {creditScore.cndHasDebts ? 'Possui' : 'Não possui'}
+                    </span>
+                  </div>
+                  {creditScore.cndCertificateNumber && (
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">Situação do Contribuinte</span>
-                      <span className="text-sm text-gray-700">{creditScore.cndStatus}</span>
+                      <span className="text-sm font-medium">Número da Certidão</span>
+                      <span className="text-sm text-gray-700">{creditScore.cndCertificateNumber}</span>
                     </div>
+                  )}
+                  {creditScore.cndIssueDate && (
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">Débitos Fiscais</span>
-                      <span className={`text-sm ${creditScore.cndHasDebts ? 'text-red-600' : 'text-green-600'}`}>
-                        {creditScore.cndHasDebts ? 'Possui' : 'Não possui'}
+                      <span className="text-sm font-medium">Data de Emissão</span>
+                      <span className="text-sm text-gray-700">
+                        {new Date(creditScore.cndIssueDate).toLocaleDateString('pt-BR')}
                       </span>
                     </div>
-                    {creditScore.cndCertificateNumber && (
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Número da Certidão</span>
-                        <span className="text-sm text-gray-700">{creditScore.cndCertificateNumber}</span>
+                  )}
+                  {creditScore.cndExpiryDate && (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Data de Validade</span>
+                      <span className="text-sm text-gray-700">
+                        {new Date(creditScore.cndExpiryDate).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  )}
+                  {!creditScore.cndHasDebts && (
+                    <div className="text-center py-4 space-y-2">
+                      <div className="flex items-center justify-center">
+                        <Info className="w-8 h-8 text-gray-400" />
                       </div>
-                    )}
-                    {creditScore.cndIssueDate && (
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Data de Emissão</span>
-                        <span className="text-sm text-gray-700">
-                          {new Date(creditScore.cndIssueDate).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                    )}
-                    {creditScore.cndExpiryDate && (
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Data de Validade</span>
-                        <span className="text-sm text-gray-700">
-                          {new Date(creditScore.cndExpiryDate).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                      <p className="text-sm text-gray-600">
+                        Não foi possível emitir a Certidão Negativa. Acesse o Relatório de Pendências Fiscais 
+                        para visualização de débitos no Sintegra/Sefaz.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-6 space-y-3">
-                  <div className="flex items-center justify-center">
-                    <Info className="w-12 h-12 text-gray-400" />
-                  </div>
-                  <div className="space-y-2">
-                    <h6 className="font-medium text-gray-700">Não foi possível emitir a Certidão Negativa</h6>
-                    <p className="text-sm text-gray-600 max-w-md mx-auto">
-                      Por favor, acesse a opção Relatório de Pendências Fiscais para visualização de débitos e/ou 
-                      pendências no Sintegra/Sefaz de São Paulo ou compareça a uma região fiscal mais próxima.
-                    </p>
-                  </div>
-                </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
