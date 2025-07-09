@@ -7,6 +7,7 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
 import { importRoutes } from "./imports-routes";
+import { pdfService } from "./services/pdfService";
 
 // Extend the session interface
 declare module "express-session" {
@@ -3638,6 +3639,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin fee:", error);
       res.status(500).json({ message: "Erro ao buscar taxa administrativa" });
+    }
+  });
+
+  // Generate PDF Dossie for credit application
+  app.get('/api/credit/applications/:id/dossie-pdf', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const applicationId = parseInt(req.params.id);
+      
+      // Get the credit application
+      const application = await storage.getCreditApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Solicitação não encontrada" });
+      }
+      
+      // Check access permissions
+      const user = await storage.getUser(userId);
+      const canAccess = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'financeira' || application.userId === userId;
+      
+      if (!canAccess) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      // Get credit score data
+      const creditScore = await storage.getCreditScore(applicationId);
+      if (!creditScore) {
+        return res.status(404).json({ message: "Análise de crédito não encontrada. Execute a consulta de Credit Score primeiro." });
+      }
+      
+      // Generate PDF data
+      const dossieData = pdfService.generateDossieDataFromCreditScore(creditScore);
+      
+      // Generate PDF buffer
+      const pdfBuffer = await pdfService.generateDossiePDF(dossieData);
+      
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="dossie-${dossieData.companyName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      // Send PDF buffer
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating PDF dossie:", error);
+      res.status(500).json({ message: "Erro ao gerar PDF do dossiê" });
     }
   });
 

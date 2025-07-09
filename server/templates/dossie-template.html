@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê {{companyName}}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        .company-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
+        
+        .document-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .document-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .subsection {
+            margin-bottom: 20px;
+        }
+        
+        .subsection-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+        
+        .consultation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .consultation-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .consultation-item.available {
+            border-left-color: #27ae60;
+        }
+        
+        .consultation-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .consultation-status {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .score-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .score-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .score-level {
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .company-data {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        
+        .data-label {
+            font-weight: bold;
+            color: #7f8c8d;
+            flex: 1;
+        }
+        
+        .data-value {
+            color: #2c3e50;
+            flex: 2;
+        }
+        
+        .address-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .partners-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .partner-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .partner-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .partner-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .partner-details {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-positive {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-negative {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-neutral {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="company-title">Dossiê Empresarial</div>
+        <div style="font-size: 18px; color: #7f8c8d;">{{companyName}}</div>
+        <div style="font-size: 14px; color: #7f8c8d; margin-top: 5px;">CNPJ: {{formatCNPJ cnpj}}</div>
+        <div style="font-size: 12px; color: #7f8c8d; margin-top: 15px;">Emitido via Spark Comex</div>
+    </div>
+
+    <!-- Document Information -->
+    <div class="document-info">
+        <h3>Informações do Documento</h3>
+        <div class="info-row">
+            <span class="info-label">Data de Emissão:</span>
+            <span class="info-value">{{emissionDate}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Horário de Emissão:</span>
+            <span class="info-value">{{emissionTime}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total de Consultas:</span>
+            <span class="info-value">{{totalConsultations}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Consultas Disponíveis:</span>
+            <span class="info-value">{{availableConsultations}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Consultas Indisponíveis:</span>
+            <span class="info-value">{{unavailableConsultations}}</span>
+        </div>
+    </div>
+
+    <!-- Consultations Grid -->
+    <div class="section">
+        <div class="section-title">Consultas Realizadas</div>
+        <div class="consultation-grid">
+            {{#each consultations}}
+            <div class="consultation-item {{#if available}}available{{/if}}">
+                <div class="consultation-name">{{name}}</div>
+                <div class="consultation-status">
+                    {{#if available}}✓ Disponível{{else}}✗ Indisponível{{/if}}
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    {{#if scoreData}}
+    <!-- Score Section -->
+    <div class="section">
+        <div class="section-title">Análise de Credit Score</div>
+        <div class="score-section">
+            <div class="score-title">Score de Crédito</div>
+            <div class="score-value">{{scoreData.score}}</div>
+            <div class="score-level">Nível: {{scoreData.riskLevel}}</div>
+            <div style="margin-top: 15px; font-size: 14px;">
+                Consultado em: {{formatDate scoreData.consultationDate}}
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if companyData}}
+    <!-- Company Data Section -->
+    <div class="section">
+        <div class="section-title">Dados da Empresa</div>
+        <div class="company-data">
+            <div class="data-row">
+                <span class="data-label">CNPJ:</span>
+                <span class="data-value">{{formatCNPJ companyData.cnpj}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Razão Social:</span>
+                <span class="data-value">{{companyData.companyName}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Nome Fantasia:</span>
+                <span class="data-value">{{companyData.fantasyName}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Data de Fundação:</span>
+                <span class="data-value">{{formatDate companyData.foundationDate}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Situação Cadastral:</span>
+                <span class="data-value">{{companyData.registrationStatus}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Porte da Empresa:</span>
+                <span class="data-value">{{companyData.companySize}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Natureza Jurídica:</span>
+                <span class="data-value">{{companyData.legalNature}}</span>
+            </div>
+        </div>
+
+        {{#if companyData.addresses}}
+        <div class="subsection">
+            <div class="subsection-title">Endereços</div>
+            {{#each companyData.addresses}}
+            <div class="address-section">
+                <div class="data-row">
+                    <span class="data-label">Logradouro:</span>
+                    <span class="data-value">{{street}}, {{number}}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Bairro:</span>
+                    <span class="data-value">{{neighborhood}}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Cidade/UF:</span>
+                    <span class="data-value">{{city}}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">CEP:</span>
+                    <span class="data-value">{{zipCode}}</span>
+                </div>
+                {{#if complement}}
+                <div class="data-row">
+                    <span class="data-label">Complemento:</span>
+                    <span class="data-value">{{complement}}</span>
+                </div>
+                {{/if}}
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if companyData.partners}}
+        <div class="subsection">
+            <div class="subsection-title">Sócios e Administradores</div>
+            <div class="partners-section">
+                {{#each companyData.partners}}
+                <div class="partner-item">
+                    <div class="partner-name">{{name}}</div>
+                    <div class="partner-details">
+                        Documento: {{maskCPF document}} | 
+                        Participação: {{participation}}% | 
+                        Cargo: {{position}} | 
+                        Entrada: {{formatDate entryDate}}
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if cndData}}
+    <!-- CND Section -->
+    <div class="section">
+        <div class="section-title">Certidão Negativa de Débitos (CND)</div>
+        <div class="company-data">
+            <div class="data-row">
+                <span class="data-label">Status:</span>
+                <span class="data-value">
+                    <span class="status-badge {{#if cndData.hasDebts}}status-negative{{else}}status-positive{{/if}}">
+                        {{#if cndData.hasDebts}}Possui Débitos{{else}}Sem Débitos{{/if}}
+                    </span>
+                </span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Número do Certificado:</span>
+                <span class="data-value">{{cndData.certificateNumber}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Data da Consulta:</span>
+                <span class="data-value">{{formatDate cndData.consultationDate}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Situação:</span>
+                <span class="data-value">{{cndData.status}}</span>
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if negativeData}}
+    <!-- Negative Data Section -->
+    <div class="section">
+        <div class="section-title">Detalhamento Negativo</div>
+        <div class="company-data">
+            <div class="data-row">
+                <span class="data-label">Documento Consultado:</span>
+                <span class="data-value">{{maskCNPJ negativeData.document}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Data da Consulta:</span>
+                <span class="data-value">{{formatDate negativeData.consultationDate}}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Status:</span>
+                <span class="data-value">
+                    <span class="status-badge status-neutral">{{negativeData.status}}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Este documento foi gerado automaticamente pelo sistema Spark Comex</p>
+        <p>Data de geração: {{formatDateTime emissionDate}} {{emissionTime}}</p>
+        <p>© 2025 Spark Comex - Todos os direitos reservados</p>
+    </div>
+</body>
+</html>

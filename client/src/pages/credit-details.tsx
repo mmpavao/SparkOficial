@@ -912,6 +912,7 @@ export default function CreditDetailsPage() {
             creditScore={creditScore} 
             onRefresh={refreshCreditScore}
             isLoading={isLoadingCreditScore}
+            applicationId={applicationId}
           />
 
           {/* Credit Limit Display for Approved Applications */}{application.financialStatus === 'approved' && application.creditLimit && (

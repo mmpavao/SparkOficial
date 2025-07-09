@@ -33,11 +33,44 @@ interface CreditAnalysisCardProps {
   creditScore: any;
   onRefresh?: () => void;
   isLoading?: boolean;
+  applicationId?: number;
 }
 
-export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }: CreditAnalysisCardProps) {
+export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, applicationId }: CreditAnalysisCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const permissions = useUserPermissions();
+
+  const handleGeneratePdf = async () => {
+    if (!applicationId) return;
+    
+    setIsGeneratingPdf(true);
+    try {
+      const response = await fetch(`/api/credit/applications/${applicationId}/dossie-pdf`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PDF');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dossie-${creditScore.legalName?.replace(/[^a-zA-Z0-9]/g, '-') || 'empresa'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Erro ao gerar PDF do dossiê');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   // Se não há credit score, mostra o card vazio
   if (!creditScore) {
@@ -205,8 +238,8 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
             </div>
           </div>
 
-          {/* Botão Expandir */}
-          <div className="pt-4 border-t">
+          {/* Botões de Ação */}
+          <div className="pt-4 border-t space-y-3">
             <Button
               variant="outline"
               onClick={() => setIsExpanded(!isExpanded)}
@@ -224,6 +257,26 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                 </>
               )}
             </Button>
+            
+            {applicationId && (
+              <Button
+                onClick={handleGeneratePdf}
+                disabled={isGeneratingPdf}
+                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg transition-all duration-300"
+              >
+                {isGeneratingPdf ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Gerando PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Gerar PDF do Dossiê
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </CardContent>
         
