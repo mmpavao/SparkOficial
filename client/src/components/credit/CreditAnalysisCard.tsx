@@ -127,20 +127,6 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Análise de Crédito 360°</h3>
-        {onRefresh && permissions.isAdmin && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Consultando...' : 'Atualizar'}
-          </Button>
-        )}
-      </div>
-
       {/* Card Principal seguindo o modelo exato */}
       <Card className="overflow-hidden">
         {/* Faixa colorida no topo */}
