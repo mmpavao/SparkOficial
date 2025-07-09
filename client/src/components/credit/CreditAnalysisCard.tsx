@@ -42,19 +42,6 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
   if (!creditScore) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Análise de Crédito 360°</h3>
-          {onRefresh && permissions.isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
-            </Button>
-          )}
-        </div>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Análise de Crédito 360°</CardTitle>

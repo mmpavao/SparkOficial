@@ -944,6 +944,8 @@ Changelog:
   * Created expandable cards system for each API (Score QUOD, Cadastro PJ Plus, CND, SCR Bacen, Detalhamento Negativo)
   * Organized shareholder/partner information with complete visibility for company structure analysis
   * Achieved 360° credit analysis interface with smart data organization highlighting important information without confusion
+  * Added green-blue gradient styling to "Consultar Credit Score" and "Atualizar" buttons for enhanced visual appeal
+  * Removed duplicate header when no credit score exists, maintaining clean single-card interface as requested
 ```
 
 ## User Preferences
