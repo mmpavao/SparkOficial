@@ -74,10 +74,9 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
           {onRefresh && permissions.isAdmin && (
             <div className="p-6 border-t">
               <Button
-                variant="outline"
                 onClick={onRefresh}
                 disabled={isLoading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0 shadow-lg transition-all duration-300"
               >
                 {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
               </Button>
@@ -133,8 +132,20 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
         <div className={`h-2 ${getScoreColor(score)}`}></div>
         
         <CardHeader className="pb-4">
-          <CardTitle className="text-2xl font-bold mb-4">Análise de Crédito 360°</CardTitle>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-bold">Análise de Crédito 360°</CardTitle>
+            {onRefresh && permissions.isAdmin && (
+              <Button
+                size="sm"
+                onClick={onRefresh}
+                disabled={isLoading}
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0 shadow-lg transition-all duration-300"
+              >
+                {isLoading ? 'Consultando...' : 'Atualizar'}
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-4">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-blue-600" />
             </div>
