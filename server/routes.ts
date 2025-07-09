@@ -2992,6 +2992,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean CNPJ for API call
       const cleanCnpj = application.cnpj.replace(/\D/g, '');
       
+      console.log(`\n🏢 CNPJ COMPARISON DEBUG:`);
+      console.log(`📋 Application CNPJ: ${application.cnpj}`);
+      console.log(`🔍 Clean CNPJ for API: ${cleanCnpj}`);
+      console.log(`📊 Expected CNPJ: 65484271000105`);
+      console.log(`✅ Match: ${cleanCnpj === '65484271000105'}`);
+      
       // Helper function to analyze indicators - RESPECTING ACTUAL API DATA
       const analyzeIndicator = (indicadores: any[], keywords: string[], indicatorType: string): boolean => {
         console.log(`\n🔍 ANALYZING ${indicatorType.toUpperCase()}:`);
@@ -3074,6 +3080,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (process.env.DIRECTD_API_TOKEN) {
         try {
           console.log('📊 Calling DirectD APIs for CNPJ:', cleanCnpj);
+          console.log('🚨 DISCREPANCY ALERT: Web interface shows Score 585, API returning different values');
+          console.log('📅 Timestamp:', new Date().toISOString());
           
           // First call Score QUOD API for credit score
           const scoreResponse = await fetch(`https://apiv3.directd.com.br/api/Score?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
