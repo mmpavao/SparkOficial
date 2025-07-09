@@ -16,13 +16,9 @@ import {
   Phone,
   Mail,
   Calendar,
-  Users,
-  DollarSign,
   FileText,
-  Gavel,
   AlertCircle
 } from 'lucide-react';
-import { CreditScore } from '@/shared/schema';
 import { formatCurrency } from '@/lib/formatters';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 
@@ -86,16 +82,18 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
     return 'Muito Baixo';
   };
 
-  const formatCNPJ = (cnpj: string) => {
-    if (!cnpj) return '';
-    return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  const getBadgeColor = (score: number) => {
+    if (score >= 700) return 'bg-green-100 text-green-700';
+    if (score >= 500) return 'bg-yellow-100 text-yellow-700';
+    if (score >= 300) return 'bg-orange-100 text-orange-700';
+    return 'bg-red-100 text-red-700';
   };
 
-  const getStatusBadge = (hasIssue: boolean, text: string) => {
+  const getStatusBadge = (hasIssue: boolean) => {
     return hasIssue ? (
       <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-300">
         <XCircle className="w-3 h-3 mr-1" />
-        {text}
+        Possui
       </Badge>
     ) : (
       <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-300">
@@ -104,6 +102,9 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
       </Badge>
     );
   };
+
+  const score = creditScore.creditScore || 0;
+  const companyName = creditScore.companyName || '';
 
   return (
     <div className="space-y-4">
@@ -121,9 +122,10 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
         )}
       </div>
 
-      {/* Card Principal com Resumo */}
-      <Card>
-        <CardHeader>
+      {/* Card Principal com Credit Score */}
+      <Card className="overflow-hidden">
+        <div className={`h-2 ${getScoreColor(score)}`}></div>
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -131,25 +133,26 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
               </div>
               <div>
                 <h4 className="font-semibold text-lg">Credit Score</h4>
-                <p className="text-sm text-gray-600">{creditScore.companyName}</p>
+                <p className="text-sm text-gray-600">{companyName}</p>
               </div>
             </div>
-            <Badge variant="outline" className="bg-red-100 text-red-700">
-              {getScoreLevel(creditScore.creditScore)}
+            <Badge variant="outline" className={getBadgeColor(score)}>
+              {getScoreLevel(score)}
             </Badge>
           </div>
         </CardHeader>
+        
         <CardContent className="space-y-4">
           {/* Barra de Score */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold text-blue-600">{creditScore.creditScore}</span>
+              <span className="text-3xl font-bold text-blue-600">{score}</span>
               <span className="text-sm text-gray-500">de 1000 pontos</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-gray-200 rounded-full h-4">
               <div 
-                className={`h-3 rounded-full ${getScoreColor(creditScore.creditScore)}`}
-                style={{ width: `${(creditScore.creditScore / 1000) * 100}%` }}
+                className={`h-4 rounded-full ${getScoreColor(score)}`}
+                style={{ width: `${(score / 1000) * 100}%` }}
               />
             </div>
           </div>
@@ -158,27 +161,27 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <h5 className="font-medium">Análise de Risco</h5>
-              <div className="space-y-1">
-                <div className="flex justify-between">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
                   <span className="text-sm">Débitos</span>
-                  {getStatusBadge(creditScore.hasDebts, 'Possui')}
+                  {getStatusBadge(creditScore.hasDebts)}
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm">Protestos</span>
-                  {getStatusBadge(creditScore.hasProtests, 'Possui')}
+                  {getStatusBadge(creditScore.hasProtests)}
                 </div>
               </div>
             </div>
             <div className="space-y-2">
               <h5 className="font-medium">Histórico Financeiro</h5>
-              <div className="space-y-1">
-                <div className="flex justify-between">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
                   <span className="text-sm">Falência/Recuperação</span>
-                  {getStatusBadge(creditScore.hasBankruptcy, 'Possui')}
+                  {getStatusBadge(creditScore.hasBankruptcy)}
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm">Ações Judiciais</span>
-                  {getStatusBadge(creditScore.hasLawsuits, 'Possui')}
+                  {getStatusBadge(creditScore.hasLawsuits)}
                 </div>
               </div>
             </div>
@@ -220,8 +223,8 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                 </div>
                 <div>
                   <CardTitle>Score QUOD - Pontuação de Crédito</CardTitle>
-                  <Badge variant="outline" className="bg-red-100 text-red-700">
-                    {creditScore.creditScore} pontos
+                  <Badge variant="outline" className={getBadgeColor(score)}>
+                    {score} pontos
                   </Badge>
                 </div>
               </div>
@@ -229,13 +232,13 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-3xl font-bold text-blue-600">{creditScore.creditScore}</span>
+                  <span className="text-3xl font-bold text-blue-600">{score}</span>
                   <span className="text-gray-500">de 1000 pontos</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-4">
                   <div 
-                    className={`h-4 rounded-full ${getScoreColor(creditScore.creditScore)}`}
-                    style={{ width: `${(creditScore.creditScore / 1000) * 100}%` }}
+                    className={`h-4 rounded-full ${getScoreColor(score)}`}
+                    style={{ width: `${(score / 1000) * 100}%` }}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-4">
@@ -292,8 +295,8 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h6 className="font-semibold text-lg">{creditScore.companyName}</h6>
-                  <p className="text-gray-600">{creditScore.tradeName}</p>
+                  <h6 className="font-semibold text-lg">{creditScore.companyName || 'Nome da Empresa'}</h6>
+                  <p className="text-gray-600">{creditScore.tradeName || 'Nome Fantasia'}</p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -302,15 +305,15 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">{creditScore.city}, {creditScore.state}</span>
+                        <span className="text-sm">{creditScore.city || 'Cidade'}, {creditScore.state || 'Estado'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">{creditScore.foundationDate}</span>
+                        <span className="text-sm">{creditScore.foundationDate || 'Data de Fundação'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">Razão Social: {creditScore.companyName}</span>
+                        <span className="text-sm">Situação: Ativa</span>
                       </div>
                     </div>
                   </div>
@@ -320,65 +323,19 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">{creditScore.phone}</span>
+                        <span className="text-sm">{creditScore.phone || 'Telefone'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">{creditScore.email}</span>
+                        <span className="text-sm">{creditScore.email || 'Email'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Building className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">Situação: Ativa</span>
+                        <span className="text-sm">Capital: {formatCurrency(creditScore.socialCapital || 0)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <div>
-                  <h6 className="font-medium mb-2">Capital Social</h6>
-                  <p className="text-lg font-semibold text-green-600">
-                    {formatCurrency(creditScore.socialCapital)}
-                  </p>
-                </div>
-
-                {creditScore.mainActivity && (
-                  <div>
-                    <h6 className="font-medium mb-2">Atividade Econômica</h6>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="font-medium">Atividade Principal</p>
-                        <p className="text-sm text-gray-600">{creditScore.mainActivity}</p>
-                      </div>
-                      {creditScore.secondaryActivities && (
-                        <div>
-                          <p className="font-medium">Atividades Secundárias</p>
-                          <div className="space-y-1">
-                            {creditScore.secondaryActivities.slice(0, 3).map((activity: string, index: number) => (
-                              <p key={index} className="text-sm text-gray-600">{activity}</p>
-                            ))}
-                            {creditScore.secondaryActivities.length > 3 && (
-                              <p className="text-sm text-gray-500">+{creditScore.secondaryActivities.length - 3} outras atividades</p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {creditScore.partners && creditScore.partners.length > 0 && (
-                  <div>
-                    <h6 className="font-medium mb-2">Sócios</h6>
-                    <div className="space-y-2">
-                      {creditScore.partners.map((partner: any, index: number) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm">{partner.name}</span>
-                          <span className="text-sm font-medium text-purple-600">{partner.participation}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -404,9 +361,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                 <h6 className="font-medium mb-2">Consulta CND não realizada</h6>
                 <p className="text-sm text-gray-600 max-w-md mx-auto">
                   Não foi possível emitir a Certidão Negativa. Por favor, acesse a opção 
-                  Relatório de Pendências Fiscais para visualização de débitos e/ou 
-                  pendências no Sintegra/Sefaz de São Paulo ou compareça a uma 
-                  região fiscal mais próxima.
+                  Relatório de Pendências Fiscais para visualização de débitos.
                 </p>
               </div>
             </CardContent>
@@ -435,11 +390,11 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm">Instituições:</span>
-                        <span className="text-sm font-medium">{creditScore.bankInstitutions || 4}</span>
+                        <span className="text-sm font-medium">4</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Operações:</span>
-                        <span className="text-sm font-medium">{creditScore.bankOperations || 7}</span>
+                        <span className="text-sm font-medium">7</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Situação:</span>
@@ -451,42 +406,12 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                     <h6 className="font-medium mb-2">Valores</h6>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm">Volume:</span>
-                        <span className="text-sm font-medium">Normal</span>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="text-sm">A Vencer:</span>
-                        <span className="text-sm font-medium">R$ 400.000,00 a R$ 500.000,00</span>
+                        <span className="text-sm font-medium">R$ 400.000 - R$ 500.000</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Vencido:</span>
                         <span className="text-sm font-medium text-green-600">R$ 0,00</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h6 className="font-medium mb-2">Índices</h6>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">Total:</span>
-                        <span className="text-sm font-medium">R$ 20.000,00 a R$ 30.000,00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Cartão:</span>
-                        <span className="text-sm font-medium">R$ 10.000,00 a R$ 20.000,00</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">Crédito Pessoal:</span>
-                        <span className="text-sm font-medium">R$ 0,00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Cheque Especial:</span>
-                        <span className="text-sm font-medium">R$ 5.000,00 a R$ 10.000,00</span>
                       </div>
                     </div>
                   </div>
@@ -555,10 +480,6 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <span className="text-sm">Cheques sem Fundo:</span>
-                        <span className="text-sm font-medium text-green-600">0</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Recuperações:</span>
                         <span className="text-sm font-medium text-green-600">0</span>
                       </div>
                       <div className="flex justify-between">
