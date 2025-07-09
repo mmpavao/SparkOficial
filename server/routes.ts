@@ -3102,7 +3102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           // Call CND API for state tax certificate
-          const cndResponse = await fetch(`https://api.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+          console.log('📞 CND API call for CNPJ:', cleanCnpj);
+          const cndResponse = await fetch(`https://apiv3.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
