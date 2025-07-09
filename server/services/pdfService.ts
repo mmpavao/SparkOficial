@@ -145,8 +145,38 @@ export class PDFService {
   private template: string;
 
   constructor() {
-    const templatePath = path.join(__dirname, '../templates/dossie-template.html');
-    this.template = readFileSync(templatePath, 'utf8');
+    // Try multiple paths for template file to support both development and production
+    const possiblePaths = [
+      path.join(__dirname, '../templates/dossie-template.html'), // Development path
+      path.join(__dirname, 'templates/dossie-template.html'),     // Production path (after build)
+      path.join(process.cwd(), 'server/templates/dossie-template.html'), // Alternative path
+      path.join(process.cwd(), 'dist/templates/dossie-template.html'),    // Dist path
+      path.join(process.cwd(), 'templates/dossie-template.html')           // Root template path
+    ];
+    
+    let templatePath = '';
+    let templateContent = '';
+    
+    for (const possiblePath of possiblePaths) {
+      try {
+        templateContent = readFileSync(possiblePath, 'utf8');
+        templatePath = possiblePath;
+        console.log(`✅ Template found at: ${templatePath}`);
+        break;
+      } catch (error) {
+        console.log(`❌ Template not found at: ${possiblePath}`);
+        continue;
+      }
+    }
+    
+    if (!templateContent) {
+      console.warn(`⚠️  Template file not found in any of the following paths: ${possiblePaths.join(', ')}`);
+      console.log('📄 Using fallback template...');
+      // Use a fallback template if file not found
+      this.template = this.getFallbackTemplate();
+    } else {
+      this.template = templateContent;
+    }
     
     // Register Handlebars helpers
     this.registerHandlebarsHelpers();
@@ -189,6 +219,11 @@ export class PDFService {
       const numValue = typeof value === 'string' ? parseFloat(value) : value;
       return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     });
+
+    // Helper for equality comparison
+    handlebars.registerHelper('eq', (a: any, b: any) => {
+      return a === b;
+    });
   }
 
   async generateDossiePDF(data: DossieData): Promise<Buffer> {
@@ -197,19 +232,6 @@ export class PDFService {
   
   /**
    * Gera PDF usando o serviço isolado de dados das APIs
-   */
-  async generateDossiePDFFromCreditScore(creditScore: any): Promise<Buffer> {
-    // Use the isolated service to process all API data
-    const completeData = DossieDataService.processApiData(creditScore);
-    
-    // Convert to the format expected by the PDF template
-    const data = this.convertToTemplateFormat(completeData);
-    
-    return await this.generatePDFFromData(data);
-  }
-  
-  /**
-   * Gera PDF diretamente com dados completos sem conversão
    */
   async generateDossiePDFFromCreditScore(creditScore: any): Promise<Buffer> {
     // Use the isolated service to process all API data
@@ -517,6 +539,240 @@ export class PDFService {
     if (score >= 700) return 'Baixo';
     if (score >= 500) return 'Médio';
     return 'Alto';
+  }
+
+  private getFallbackTemplate(): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dossiê Empresarial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #22c55e;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #22c55e;
+            margin: 0;
+            font-size: 24px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            color: #22c55e;
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            width: 150px;
+            color: #666;
+        }
+        .info-value {
+            flex: 1;
+        }
+        .score-display {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .score-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #22c55e;
+            margin: 10px 0;
+        }
+        .risk-level {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+        .consultation-list {
+            list-style: none;
+            padding: 0;
+        }
+        .consultation-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .consultation-available {
+            background: #d4edda;
+            color: #155724;
+        }
+        .consultation-unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-available {
+            background: #28a745;
+            color: white;
+        }
+        .status-unavailable {
+            background: #dc3545;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Dossiê Empresarial</h1>
+        <p>{{companyName}} - {{formatCNPJ cnpj}}</p>
+        <p>Emitido em {{emissionDate}} às {{emissionTime}}</p>
+    </div>
+
+    {{#if scoreData}}
+    <div class="section">
+        <h2>Análise de Crédito</h2>
+        <div class="score-display">
+            <div class="score-number">{{scoreData.score}}</div>
+            <div class="risk-level risk-{{#if (eq scoreData.riskLevel "Baixo")}}low{{/if}}{{#if (eq scoreData.riskLevel "Médio")}}medium{{/if}}{{#if (eq scoreData.riskLevel "Alto")}}high{{/if}}">
+                Risco {{scoreData.riskLevel}}
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if companyData}}
+    <div class="section">
+        <h2>Dados da Empresa</h2>
+        <div class="info-row">
+            <div class="info-label">Razão Social:</div>
+            <div class="info-value">{{companyData.companyName}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">CNPJ:</div>
+            <div class="info-value">{{formatCNPJ companyData.cnpj}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Data de Abertura:</div>
+            <div class="info-value">{{companyData.openingDate}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Capital Social:</div>
+            <div class="info-value">{{companyData.capital}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Porte:</div>
+            <div class="info-value">{{companyData.size}}</div>
+        </div>
+        {{#if companyData.address}}
+        <div class="info-row">
+            <div class="info-label">Endereço:</div>
+            <div class="info-value">{{companyData.address.street}}, {{companyData.address.district}}, {{companyData.address.city}} - {{companyData.address.state}}</div>
+        </div>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if cndData}}
+    <div class="section">
+        <h2>Certidão Negativa de Débitos</h2>
+        <div class="info-row">
+            <div class="info-label">Status:</div>
+            <div class="info-value">{{#if cndData.hasDebts}}Possui débitos{{else}}Sem débitos{{/if}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Número:</div>
+            <div class="info-value">{{cndData.certificateNumber}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Data de Emissão:</div>
+            <div class="info-value">{{cndData.emissionDate}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Validade:</div>
+            <div class="info-value">{{cndData.validityDate}}</div>
+        </div>
+        {{#if cndData.debtAmount}}
+        <div class="info-row">
+            <div class="info-label">Valor dos Débitos:</div>
+            <div class="info-value">{{cndData.debtAmount}}</div>
+        </div>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    <div class="section">
+        <h2>Consultas Realizadas</h2>
+        <div class="info-row">
+            <div class="info-label">Total de Consultas:</div>
+            <div class="info-value">{{totalConsultations}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Disponíveis:</div>
+            <div class="info-value">{{availableConsultations}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Indisponíveis:</div>
+            <div class="info-value">{{unavailableConsultations}}</div>
+        </div>
+        
+        <ul class="consultation-list">
+            {{#each consultations}}
+            <li class="consultation-item {{#if available}}consultation-available{{else}}consultation-unavailable{{/if}}">
+                <span>{{name}}</span>
+                <span class="status-badge {{#if available}}status-available{{else}}status-unavailable{{/if}}">
+                    {{#if available}}Disponível{{else}}Indisponível{{/if}}
+                </span>
+            </li>
+            {{/each}}
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>Este documento foi gerado automaticamente pelo sistema Spark Comex</p>
+        <p>Data/Hora: {{formatDateTime emissionDate}} {{emissionTime}}</p>
+    </div>
+</body>
+</html>
+    `;
   }
 
   private getRiskClass(score: number): string {

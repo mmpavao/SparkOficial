@@ -961,6 +961,14 @@ Changelog:
   * Added missing cnd_pdf_url column to credit_scores table via SQL ALTER TABLE command
   * Resolved "column credit_scores.cnd_pdf_url does not exist" error preventing credit application access
   * System now loads credit details properly with all CND functionality working correctly
+- July 09, 2025. Production deployment template file fixes:
+  * Fixed critical ENOENT error during production deployment due to missing template files
+  * Implemented robust template path resolution supporting both development and production environments
+  * Added fallback template system preventing application crashes when template files are missing
+  * Created production build script (scripts/build-production.sh) ensuring template files are copied to dist directory
+  * Enhanced PDFService with multiple path resolution strategy and comprehensive error handling
+  * Added template file copying script (scripts/copy-templates.js) for automated deployment preparation
+  * System now handles template file location issues gracefully with detailed logging and fallback mechanisms
 - July 09, 2025. Complete isolated data service implementation for comprehensive PDF dossier generation:
   * Created comprehensive DossieDataService.ts as isolated component for all API data processing
   * Implemented complete data structure with 5 API integrations: Score QUOD, Cadastro PJ Plus, CND, SCR Bacen, Detalhamento Negativo
