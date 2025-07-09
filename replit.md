@@ -955,6 +955,12 @@ Changelog:
   * Enhanced CND badge to show "Possui débitos" or "Sem débitos" based on actual data
   * Fixed inconsistency where successful CND emission still showed error message at bottom
   * System now displays correct CND status with ability to download PDF when available
+- July 09, 2025. System version update and database migration fixes:
+  * Updated system version to v1.0.3 with timestamp 09/07/2025 - 2:45 AM in both avatar dropdown and login page
+  * Fixed database migration issue causing credit details page to fail loading
+  * Added missing cnd_pdf_url column to credit_scores table via SQL ALTER TABLE command
+  * Resolved "column credit_scores.cnd_pdf_url does not exist" error preventing credit application access
+  * System now loads credit details properly with all CND functionality working correctly
 ```
 
 ## User Preferences

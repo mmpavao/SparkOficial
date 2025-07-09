@@ -509,10 +509,10 @@ export default function AuthPage() {
       <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200">
         <div className="flex items-center text-xs text-gray-600">
           <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-          <span className="font-medium">v1.0.2</span>
+          <span className="font-medium">v1.0.3</span>
         </div>
         <div className="text-xs text-gray-400 mt-1">
-          07/07/2025 - 4:42 AM
+          09/07/2025 - 2:45 AM
         </div>
       </div>
     </div>
