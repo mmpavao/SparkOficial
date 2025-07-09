@@ -3144,6 +3144,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('⚠️ SCR Bacen API timeout or error:', error.message);
             scrResponse = null;
           }
+
+          // Call Detalhamento Negativo API with timeout
+          console.log('⚠️ Detalhamento Negativo API call for CNPJ:', cleanCnpj);
+          const detalhamentoController = new AbortController();
+          const detalhamentoTimeout = setTimeout(() => detalhamentoController.abort(), 10000); // 10 seconds timeout
+          
+          let detalhamentoResponse;
+          try {
+            detalhamentoResponse = await fetch(`https://apiv3.directd.com.br/api/DetalhamentoNegativo?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              signal: detalhamentoController.signal
+            });
+            clearTimeout(detalhamentoTimeout);
+          } catch (error) {
+            clearTimeout(detalhamentoTimeout);
+            console.log('⚠️ Detalhamento Negativo API timeout or error:', error.message);
+            detalhamentoResponse = null;
+          }
           
           if (scoreResponse.ok && cadastroResponse.ok) {
             const scoreData = await scoreResponse.json();
@@ -3170,6 +3192,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               console.log('⚠️ SCR Bacen API unavailable or timed out');
             }
+
+            // Process Detalhamento Negativo response
+            let detalhamentoData = null;
+            if (detalhamentoResponse && detalhamentoResponse.ok) {
+              detalhamentoData = await detalhamentoResponse.json();
+              console.log('✅ DirectD Detalhamento Negativo API response received:', JSON.stringify(detalhamentoData, null, 2));
+            } else if (detalhamentoResponse) {
+              console.log('⚠️ Detalhamento Negativo API failed:', detalhamentoResponse.status, detalhamentoResponse.statusText);
+            } else {
+              console.log('⚠️ Detalhamento Negativo API unavailable or timed out');
+            }
             
             console.log('✅ DirectD Score API response received:', JSON.stringify(scoreData, null, 2));
             console.log('✅ DirectD Cadastro API response received:', JSON.stringify(cadastroData, null, 2));
@@ -3191,6 +3224,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Extract data from SCR Bacen API
             const scrRetorno = scrData?.retorno || {};
+            
+            // Extract data from Detalhamento Negativo API
+            const detalhamentoRetorno = detalhamentoData?.retorno || {};
+            const pessoaJuridicaNegativa = detalhamentoRetorno.pessoaJuridica || {};
+            const pendenciaFinanceira = pessoaJuridicaNegativa.pendenciaFinanceira || {};
             
             // Debug logs for data analysis
             console.log('📊 DADOS PRINCIPAIS DO CADASTRO:');
@@ -3323,6 +3361,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               scrPercentualPrazo: scrData ? (scrRetorno.percentualPrazo || {}) : null,
               scrPercentualEvolucao: scrData ? (scrRetorno.percentualEvolucaoCompromisso || {}) : null,
               scrFullResponse: scrData || null,
+              
+              // Detalhamento Negativo - Detailed negative credit information
+              detalhamentoStatus: detalhamentoData ? 'Consultado' : 'Não Consultado',
+              detalhamentoProtestos: detalhamentoData ? (pendenciaFinanceira.protestos?.length || 0) : 0,
+              detalhamentoValorProtestos: detalhamentoData ? (pendenciaFinanceira.protestos?.[0]?.valorTotal?.toString() || null) : null,
+              detalhamentoAcoesJudiciais: detalhamentoData ? (pendenciaFinanceira.acoesJudiciais?.length || 0) : 0,
+              detalhamentoValorAcoes: detalhamentoData ? (pendenciaFinanceira.acoesJudiciais?.reduce((sum, acao) => sum + (acao.valor || 0), 0)?.toString() || null) : null,
+              detalhamentoChequesSemdFundo: detalhamentoData ? (pendenciaFinanceira.chequesSemFundo?.length || 0) : 0,
+              detalhamentoRecuperacoes: detalhamentoData ? (pendenciaFinanceira.recuperacoesJudiciais?.length || 0) : 0,
+              detalhamentoFalencias: detalhamentoData ? (pendenciaFinanceira.falencias?.length || 0) : 0,
+              detalhamentoProtestosDetalhes: detalhamentoData ? (pendenciaFinanceira.protestos || []) : [],
+              detalhamentoAcoesDetalhes: detalhamentoData ? (pendenciaFinanceira.acoesJudiciais || []) : [],
+              detalhamentoChequesDetalhes: detalhamentoData ? (pendenciaFinanceira.chequesSemFundo || []) : [],
+              detalhamentoRecuperacoesDetalhes: detalhamentoData ? (pendenciaFinanceira.recuperacoesJudiciais || []) : [],
+              detalhamentoFalenciasDetalhes: detalhamentoData ? (pendenciaFinanceira.falencias || []) : [],
+              detalhamentoFullResponse: detalhamentoData || null,
               
               lastCheckedAt: new Date()
             };

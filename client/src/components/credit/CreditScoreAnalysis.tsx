@@ -804,6 +804,172 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardContent>
             </Card>
           )}
+
+          {/* Detalhamento Negativo - Detailed negative credit information */}
+          {creditScore.detalhamentoStatus && creditScore.detalhamentoStatus !== 'Não Consultado' && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  Detalhamento Negativo - Pendências Financeiras
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Informações detalhadas sobre protestos, ações judiciais e restrições creditícias
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <h4 className="font-medium text-red-900 mb-2">Protestos</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Quantidade:</span>
+                        <span className="font-bold text-red-600">{creditScore.detalhamentoProtestos || 0}</span>
+                      </div>
+                      {creditScore.detalhamentoValorProtestos && (
+                        <div className="flex justify-between">
+                          <span>Valor Total:</span>
+                          <span className="font-bold text-red-600">R$ {creditScore.detalhamentoValorProtestos}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <h4 className="font-medium text-orange-900 mb-2">Ações Judiciais</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Quantidade:</span>
+                        <span className="font-bold text-orange-600">{creditScore.detalhamentoAcoesJudiciais || 0}</span>
+                      </div>
+                      {creditScore.detalhamentoValorAcoes && (
+                        <div className="flex justify-between">
+                          <span>Valor Total:</span>
+                          <span className="font-bold text-orange-600">R$ {creditScore.detalhamentoValorAcoes}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <h4 className="font-medium text-yellow-900 mb-2">Outras Restrições</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Cheques sem Fundo:</span>
+                        <span className="font-bold text-yellow-600">{creditScore.detalhamentoChequesSemdFundo || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Recuperações:</span>
+                        <span className="font-bold text-yellow-600">{creditScore.detalhamentoRecuperacoes || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Falências:</span>
+                        <span className="font-bold text-yellow-600">{creditScore.detalhamentoFalencias || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detailed Protests */}
+                {creditScore.detalhamentoProtestosDetalhes && (creditScore.detalhamentoProtestosDetalhes as any[]).length > 0 && (
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <h4 className="font-medium text-red-900 mb-3">Detalhes dos Protestos</h4>
+                    <div className="space-y-3">
+                      {(creditScore.detalhamentoProtestosDetalhes as any[]).map((protesto, index) => (
+                        <div key={index} className="border-l-4 border-red-500 pl-4 space-y-2">
+                          <div className="text-sm">
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium">Situação:</span>
+                              <span className="text-red-600">{protesto.situacao || 'Não informado'}</span>
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium">Valor:</span>
+                              <span className="text-red-600">R$ {protesto.valorTotal || 'Não informado'}</span>
+                            </div>
+                            {protesto.cartorios && protesto.cartorios.length > 0 && (
+                              <div className="mt-2">
+                                <span className="font-medium">Cartórios:</span>
+                                {protesto.cartorios.map((cartorio: any, cIndex: number) => (
+                                  <div key={cIndex} className="ml-2 text-xs text-gray-600">
+                                    {cartorio.nome} - {cartorio.cidade}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Detailed Judicial Actions */}
+                {creditScore.detalhamentoAcoesDetalhes && (creditScore.detalhamentoAcoesDetalhes as any[]).length > 0 && (
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <h4 className="font-medium text-orange-900 mb-3">Detalhes das Ações Judiciais</h4>
+                    <div className="space-y-3">
+                      {(creditScore.detalhamentoAcoesDetalhes as any[]).map((acao, index) => (
+                        <div key={index} className="border-l-4 border-orange-500 pl-4 space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Processo:</span>
+                            <span className="text-orange-600 font-mono text-xs">{acao.numeroProcessoPrincipal || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Valor:</span>
+                            <span className="text-orange-600">R$ {acao.valor || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Tipo:</span>
+                            <span className="text-orange-600">{acao.tipoProcesso || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Comarca:</span>
+                            <span className="text-orange-600">{acao.comarca || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Status:</span>
+                            <span className="text-orange-600">{acao.status || 'Não informado'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Detailed Bounced Checks */}
+                {creditScore.detalhamentoChequesDetalhes && (creditScore.detalhamentoChequesDetalhes as any[]).length > 0 && (
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <h4 className="font-medium text-yellow-900 mb-3">Detalhes dos Cheques sem Fundo</h4>
+                    <div className="space-y-3">
+                      {(creditScore.detalhamentoChequesDetalhes as any[]).map((cheque, index) => (
+                        <div key={index} className="border-l-4 border-yellow-500 pl-4 space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Banco:</span>
+                            <span className="text-yellow-600">{cheque.codigoBanco || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Agência:</span>
+                            <span className="text-yellow-600">{cheque.nomeAgencia || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Ocorrências:</span>
+                            <span className="text-yellow-600">{cheque.quantidadeOcorrencia || 'Não informado'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Última Ocorrência:</span>
+                            <span className="text-yellow-600">{cheque.dataUltimaOcorrencia || 'Não informado'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

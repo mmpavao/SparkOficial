@@ -731,6 +731,22 @@ export const creditScores = pgTable("credit_scores", {
   scrPercentualEvolucao: jsonb("scr_percentual_evolucao"), // Evolution percentage
   scrFullResponse: jsonb("scr_full_response"), // Complete SCR API response
   
+  // Detalhamento Negativo - Detailed negative credit information
+  detalhamentoStatus: text("detalhamento_status").default('Não Consultado'), // "Consultado", "Não Consultado", "Erro"
+  detalhamentoProtestos: integer("detalhamento_protestos").default(0), // Total number of protests
+  detalhamentoValorProtestos: text("detalhamento_valor_protestos"), // Total value of protests
+  detalhamentoAcoesJudiciais: integer("detalhamento_acoes_judiciais").default(0), // Total judicial actions
+  detalhamentoValorAcoes: text("detalhamento_valor_acoes"), // Total value of judicial actions
+  detalhamentoChequesSemdFundo: integer("detalhamento_cheques_sem_fundo").default(0), // Total bounced checks
+  detalhamentoRecuperacoes: integer("detalhamento_recuperacoes").default(0), // Total judicial recoveries
+  detalhamentoFalencias: integer("detalhamento_falencias").default(0), // Total bankruptcies
+  detalhamentoProtestosDetalhes: jsonb("detalhamento_protestos_detalhes"), // Detailed protests with registries
+  detalhamentoAcoesDetalhes: jsonb("detalhamento_acoes_detalhes"), // Detailed judicial actions
+  detalhamentoChequesDetalhes: jsonb("detalhamento_cheques_detalhes"), // Detailed bounced checks
+  detalhamentoRecuperacoesDetalhes: jsonb("detalhamento_recuperacoes_detalhes"), // Detailed judicial recoveries
+  detalhamentoFalenciasDetalhes: jsonb("detalhamento_falencias_detalhes"), // Detailed bankruptcies
+  detalhamentoFullResponse: jsonb("detalhamento_full_response"), // Complete Detalhamento Negativo API response
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
