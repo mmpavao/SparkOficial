@@ -709,6 +709,28 @@ export const creditScores = pgTable("credit_scores", {
   cndState: text("cnd_state"), // State where CND was consulted
   cndFullResponse: jsonb("cnd_full_response"), // Complete API response
   
+  // SCR Bacen - Sistema de Informações de Crédito (Banking Credit Information System)
+  scrStatus: text("scr_status"), // "Consultado", "Não Consultado", "Erro"
+  scrQuantidadeInstituicoes: integer("scr_quantidade_instituicoes"), // Number of financial institutions
+  scrQuantidadeOperacoes: integer("scr_quantidade_operacoes"), // Total credit operations
+  scrRelacionamentos: text("scr_relacionamentos"), // Banking relationships
+  scrVolume: text("scr_volume"), // Total operation volume
+  scrSituacao: text("scr_situacao"), // Current situation
+  scrPerfil: text("scr_perfil"), // Credit profile
+  scrScore: text("scr_score"), // SCR credit score
+  scrClasseRisco: text("scr_classe_risco"), // Risk classification
+  scrValorVencer: text("scr_valor_vencer"), // Amount to mature
+  scrValorVencido: text("scr_valor_vencido"), // Overdue amount
+  scrIndiceTotal: text("scr_indice_total"), // Total index
+  scrIndiceCartao: text("scr_indice_cartao"), // Card index
+  scrIndiceCreditoPessoal: text("scr_indice_credito_pessoal"), // Personal credit index
+  scrIndiceChequeEspecial: text("scr_indice_cheque_especial"), // Overdraft index
+  scrPercentualCategoria: jsonb("scr_percentual_categoria"), // Percentage by category
+  scrPercentualVencido: jsonb("scr_percentual_vencido"), // Overdue percentage
+  scrPercentualPrazo: jsonb("scr_percentual_prazo"), // Term percentage (short/medium/long)
+  scrPercentualEvolucao: jsonb("scr_percentual_evolucao"), // Evolution percentage
+  scrFullResponse: jsonb("scr_full_response"), // Complete SCR API response
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

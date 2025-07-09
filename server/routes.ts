@@ -3122,6 +3122,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('⚠️ CND API timeout or error:', error.message);
             cndResponse = null;
           }
+
+          // Call SCR Bacen API with timeout
+          console.log('🏦 SCR Bacen API call for CNPJ:', cleanCnpj);
+          const scrController = new AbortController();
+          const scrTimeout = setTimeout(() => scrController.abort(), 10000); // 10 seconds timeout
+          
+          let scrResponse;
+          try {
+            scrResponse = await fetch(`https://apiv3.directd.com.br/api/SCRBacen?CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              signal: scrController.signal
+            });
+            clearTimeout(scrTimeout);
+          } catch (error) {
+            clearTimeout(scrTimeout);
+            console.log('⚠️ SCR Bacen API timeout or error:', error.message);
+            scrResponse = null;
+          }
           
           if (scoreResponse.ok && cadastroResponse.ok) {
             const scoreData = await scoreResponse.json();
@@ -3136,6 +3158,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log('⚠️ CND API failed:', cndResponse.status, cndResponse.statusText);
             } else {
               console.log('⚠️ CND API unavailable or timed out');
+            }
+
+            // Process SCR Bacen response
+            let scrData = null;
+            if (scrResponse && scrResponse.ok) {
+              scrData = await scrResponse.json();
+              console.log('✅ DirectD SCR Bacen API response received:', JSON.stringify(scrData, null, 2));
+            } else if (scrResponse) {
+              console.log('⚠️ SCR Bacen API failed:', scrResponse.status, scrResponse.statusText);
+            } else {
+              console.log('⚠️ SCR Bacen API unavailable or timed out');
             }
             
             console.log('✅ DirectD Score API response received:', JSON.stringify(scoreData, null, 2));
@@ -3155,6 +3188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Extract data from CND API
             const cndRetorno = cndData?.retorno || {};
+            
+            // Extract data from SCR Bacen API
+            const scrRetorno = scrData?.retorno || {};
             
             // Debug logs for data analysis
             console.log('📊 DADOS PRINCIPAIS DO CADASTRO:');
@@ -3265,6 +3301,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
               cndStateRegistration: cndData ? (cndRetorno.inscricaoEstadual || null) : null,
               cndState: cndData ? (cndRetorno.uf || 'SP') : 'SP',
               cndFullResponse: cndData || null,
+              
+              // SCR Bacen - Sistema de Informações de Crédito data
+              scrStatus: scrData ? 'Consultado' : 'Não Consultado',
+              scrQuantidadeInstituicoes: scrData ? (scrRetorno.quantidadeInstituicoes || 0) : null,
+              scrQuantidadeOperacoes: scrData ? (scrRetorno.quantidadeOperacoes || 0) : null,
+              scrRelacionamentos: scrData ? (scrRetorno.relacionamentos || null) : null,
+              scrVolume: scrData ? (scrRetorno.volume || null) : null,
+              scrSituacao: scrData ? (scrRetorno.situacao || null) : null,
+              scrPerfil: scrData ? (scrRetorno.perfil || null) : null,
+              scrScore: scrData ? (scrRetorno.score || null) : null,
+              scrClasseRisco: scrData ? (scrRetorno.classeRisco || null) : null,
+              scrValorVencer: scrData ? (scrRetorno.carteiraCredito?.valorVencer || null) : null,
+              scrValorVencido: scrData ? (scrRetorno.carteiraCredito?.valorVencida || null) : null,
+              scrIndiceTotal: scrData ? (scrRetorno.indice?.total || null) : null,
+              scrIndiceCartao: scrData ? (scrRetorno.indice?.cartao || null) : null,
+              scrIndiceCreditoPessoal: scrData ? (scrRetorno.indice?.creditoPessoal || null) : null,
+              scrIndiceChequeEspecial: scrData ? (scrRetorno.indice?.chequeEspecial || null) : null,
+              scrPercentualCategoria: scrData ? (scrRetorno.percentualCategoria || {}) : null,
+              scrPercentualVencido: scrData ? (scrRetorno.percentualVencido || {}) : null,
+              scrPercentualPrazo: scrData ? (scrRetorno.percentualPrazo || {}) : null,
+              scrPercentualEvolucao: scrData ? (scrRetorno.percentualEvolucaoCompromisso || {}) : null,
+              scrFullResponse: scrData || null,
               
               lastCheckedAt: new Date()
             };

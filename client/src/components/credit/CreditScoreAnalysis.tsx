@@ -695,6 +695,115 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
               </CardContent>
             </Card>
           )}
+
+          {/* SCR Bacen - Sistema de Informações de Crédito */}
+          {creditScore.scrStatus && creditScore.scrStatus !== 'Não Consultado' && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  SCR Bacen - Sistema de Informações de Crédito
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Dados bancários do Sistema de Informações de Crédito do Banco Central
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                
+                {/* Banking Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Relacionamentos Bancários</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Instituições:</span>
+                        <span className="font-medium">{creditScore.scrQuantidadeInstituicoes || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Operações:</span>
+                        <span className="font-medium">{creditScore.scrQuantidadeOperacoes || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Volume:</span>
+                        <span className="font-medium">{creditScore.scrVolume || 'Não informado'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <h4 className="font-medium text-green-900 mb-2">Perfil Creditício</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Situação:</span>
+                        <span className="font-medium">{creditScore.scrSituacao || 'Não informado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Perfil:</span>
+                        <span className="font-medium">{creditScore.scrPerfil || 'Não informado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Classe de Risco:</span>
+                        <span className="font-medium">{creditScore.scrClasseRisco || 'Não informado'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Credit Portfolio */}
+                {(creditScore.scrValorVencer || creditScore.scrValorVencido) && (
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <h4 className="font-medium text-yellow-900 mb-3">Carteira de Crédito</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span>Valor a Vencer:</span>
+                        <span className="font-medium">{creditScore.scrValorVencer || 'Não informado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Valor Vencido:</span>
+                        <span className="font-medium">{creditScore.scrValorVencido || 'Não informado'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Credit Indices */}
+                {(creditScore.scrIndiceTotal || creditScore.scrIndiceCartao || creditScore.scrIndiceCreditoPessoal || creditScore.scrIndiceChequeEspecial) && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-3">Índices de Crédito</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span>Índice Total:</span>
+                        <span className="font-medium">{creditScore.scrIndiceTotal || 'Não informado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Cartão:</span>
+                        <span className="font-medium">{creditScore.scrIndiceCartao || 'Não informado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Crédito Pessoal:</span>
+                        <span className="font-medium">{creditScore.scrIndiceCreditoPessoal || 'Não informado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Cheque Especial:</span>
+                        <span className="font-medium">{creditScore.scrIndiceChequeEspecial || 'Não informado'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SCR Score */}
+                {creditScore.scrScore && (
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Score SCR Bacen</h4>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {creditScore.scrScore}
+                    </div>
+                  </div>
+                )}
+
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>
