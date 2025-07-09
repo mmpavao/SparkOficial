@@ -3103,12 +3103,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Call CND API for state tax certificate with timeout
           console.log('📞 CND API call for CNPJ:', cleanCnpj);
+          console.log('🔑 Using API token:', process.env.DIRECTD_API_TOKEN ? 'Token configured' : 'Token missing');
           const cndController = new AbortController();
-          const cndTimeout = setTimeout(() => cndController.abort(), 10000); // 10 seconds timeout
+          const cndTimeout = setTimeout(() => cndController.abort(), 15000); // 15 seconds timeout
           
           let cndResponse;
           try {
-            cndResponse = await fetch(`https://apiv3.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`, {
+            const cndUrl = `https://apiv3.directd.com.br/api/CertidaoNegativaDebitos?UF=SP&CNPJ=${cleanCnpj}&TOKEN=${process.env.DIRECTD_API_TOKEN}`;
+            console.log('🌐 CND API URL:', cndUrl);
+            
+            cndResponse = await fetch(cndUrl, {
               method: 'GET',
               headers: {
                 'Accept': 'application/json',
@@ -3117,9 +3121,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               signal: cndController.signal
             });
             clearTimeout(cndTimeout);
+            console.log('✅ CND API response status:', cndResponse.status, cndResponse.statusText);
           } catch (error) {
             clearTimeout(cndTimeout);
             console.log('⚠️ CND API timeout or error:', error.message);
+            console.log('🔄 CND API error details:', error);
             cndResponse = null;
           }
 
@@ -3176,8 +3182,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (cndResponse && cndResponse.ok) {
               cndData = await cndResponse.json();
               console.log('✅ DirectD CND API response received:', JSON.stringify(cndData, null, 2));
+              console.log('🔍 CND Status from API:', cndData.retorno?.status);
+              console.log('🔍 CND Has Debts:', cndData.retorno?.possuiDebito);
             } else if (cndResponse) {
               console.log('⚠️ CND API failed:', cndResponse.status, cndResponse.statusText);
+              const errorText = await cndResponse.text();
+              console.log('❌ CND API error response:', errorText);
             } else {
               console.log('⚠️ CND API unavailable or timed out');
             }
@@ -3221,6 +3231,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Extract data from CND API
             const cndRetorno = cndData?.retorno || {};
+            
+            // Debug CND data processing
+            console.log('🔍 CND DEBUG:');
+            console.log('  - cndData exists:', !!cndData);
+            console.log('  - cndRetorno:', cndRetorno);
+            console.log('  - Final cndStatus:', cndData ? (cndRetorno.status || 'Consultado') : 'Não Consultado');
             
             // Extract data from SCR Bacen API
             const scrRetorno = scrData?.retorno || {};
