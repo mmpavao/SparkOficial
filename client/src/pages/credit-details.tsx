@@ -16,7 +16,7 @@ import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";
 import CreditStatusTracker from "@/components/credit/CreditStatusTracker";
 
-import CreditScoreAnalysis from "@/components/credit/CreditScoreAnalysis";
+import CreditAnalysisPanel from "@/components/credit/CreditAnalysisPanel";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { formatCompactCurrency } from "@/lib/numberFormat";
@@ -116,6 +116,8 @@ export default function CreditDetailsPage() {
     downPaymentPercentage: 30,
     adminFee: 0
   });
+  const [creditScore, setCreditScore] = useState<any>(null);
+  const [isLoadingCreditScore, setIsLoadingCreditScore] = useState(false);
 
   const applicationId = params?.id ? parseInt(params.id) : null;
 
@@ -307,6 +309,49 @@ export default function CreditDetailsPage() {
       adminFee: 0
     });
   };
+
+  // Fetch credit score data
+  const fetchCreditScore = async () => {
+    if (!applicationId) return;
+    
+    try {
+      const response = await apiRequest(`/api/credit/applications/${applicationId}/credit-score`, 'GET');
+      setCreditScore(response);
+    } catch (error) {
+      console.log('No existing credit score found');
+      setCreditScore(null);
+    }
+  };
+
+  const refreshCreditScore = async () => {
+    if (!applicationId) return;
+    
+    setIsLoadingCreditScore(true);
+    try {
+      const response = await apiRequest(`/api/credit/applications/${applicationId}/credit-score`, 'POST');
+      setCreditScore(response);
+      toast({
+        title: "Análise atualizada",
+        description: "Credit Score atualizado com sucesso",
+      });
+    } catch (error: any) {
+      console.error('Credit Score API error:', error);
+      toast({
+        title: "Erro na consulta",
+        description: error.message || "Não foi possível atualizar o Credit Score",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingCreditScore(false);
+    }
+  };
+
+  // Load credit score on mount
+  useEffect(() => {
+    if (applicationId) {
+      fetchCreditScore();
+    }
+  }, [applicationId]);
 
   // Update editCreditData defaults when financial settings are loaded
   useEffect(() => {
@@ -863,7 +908,11 @@ export default function CreditDetailsPage() {
           />
           
           {/* Credit Score Analysis */}
-          <CreditScoreAnalysis application={application} />
+          <CreditAnalysisPanel 
+            creditScore={creditScore} 
+            onRefresh={refreshCreditScore}
+            isLoading={isLoadingCreditScore}
+          />
 
           {/* Credit Limit Display for Approved Applications */}{application.financialStatus === 'approved' && application.creditLimit && (
             <Card>
