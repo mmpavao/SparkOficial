@@ -3668,15 +3668,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Análise de crédito não encontrada. Execute a consulta de Credit Score primeiro." });
       }
       
-      // Generate PDF data
-      const dossieData = pdfService.generateDossieDataFromCreditScore(creditScore);
-      
-      // Generate PDF buffer
-      const pdfBuffer = await pdfService.generateDossiePDF(dossieData);
+      // Generate PDF buffer using the isolated service
+      const pdfBuffer = await pdfService.generateDossiePDFFromCreditScore(creditScore);
       
       // Set response headers for PDF inline viewing
+      const companyName = creditScore.companyName || 'empresa';
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="dossie-${dossieData.companyName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf"`);
+      res.setHeader('Content-Disposition', `inline; filename="dossie-${companyName.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');

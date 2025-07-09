@@ -3,6 +3,7 @@ import handlebars from 'handlebars';
 import { readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { DossieDataService, DossieDataComplete } from './dossieDataService';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -191,6 +192,56 @@ export class PDFService {
   }
 
   async generateDossiePDF(data: DossieData): Promise<Buffer> {
+    return await this.generatePDFFromData(data);
+  }
+  
+  /**
+   * Gera PDF usando o serviço isolado de dados das APIs
+   */
+  async generateDossiePDFFromCreditScore(creditScore: any): Promise<Buffer> {
+    // Use the isolated service to process all API data
+    const completeData = DossieDataService.processApiData(creditScore);
+    
+    // Convert to the format expected by the PDF template
+    const data = this.convertToTemplateFormat(completeData);
+    
+    return await this.generatePDFFromData(data);
+  }
+  
+  /**
+   * Converte dados completos para formato do template
+   */
+  private convertToTemplateFormat(completeData: DossieDataComplete): DossieData {
+    return {
+      companyName: completeData.companyName,
+      companyLegalName: completeData.companyName,
+      cnpj: completeData.cnpj,
+      emissionDate: completeData.emissionDate,
+      emissionTime: completeData.emissionTime,
+      totalConsultations: completeData.totalConsultations,
+      availableConsultations: completeData.availableConsultations,
+      unavailableConsultations: completeData.unavailableConsultations,
+      consultations: [
+        { name: 'Score QUOD', available: !!completeData.scoreQuod },
+        { name: 'Cadastro - Pessoa Jurídica - Plus', available: !!completeData.cadastroPjPlus },
+        { name: 'CND - Secretaria da Fazenda', available: !!completeData.cndData },
+        { name: 'Detalhamento Negativo', available: !!completeData.negativeDetails },
+        { name: 'Protestos - SP', available: true },
+        { name: 'Receita Federal - Pessoa Jurídica', available: !!completeData.additionalData?.receitaFederal },
+        { name: 'Simples Nacional', available: !!completeData.additionalData?.simplesNacional },
+        { name: 'TCU - Consulta Consolidada', available: !!completeData.additionalData?.tcu },
+        { name: 'FGTS - Regularidade do Empregador', available: !!completeData.additionalData?.fgts },
+        { name: 'Protestos - Nacional', available: false },
+        { name: 'SCR Analítico - Resumo BACEN', available: !!completeData.scrBacen }
+      ],
+      scoreData: completeData.scoreQuod,
+      companyData: completeData.cadastroPjPlus,
+      cndData: completeData.cndData,
+      negativeData: completeData.negativeDetails
+    };
+  }
+
+  private async generatePDFFromData(data: DossieData): Promise<Buffer> {
     const browser = await puppeteer.launch({
       headless: 'new',
       executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',

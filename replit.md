@@ -961,6 +961,14 @@ Changelog:
   * Added missing cnd_pdf_url column to credit_scores table via SQL ALTER TABLE command
   * Resolved "column credit_scores.cnd_pdf_url does not exist" error preventing credit application access
   * System now loads credit details properly with all CND functionality working correctly
+- July 09, 2025. Complete isolated data service implementation for comprehensive PDF dossier generation:
+  * Created comprehensive DossieDataService.ts as isolated component for all API data processing
+  * Implemented complete data structure with 5 API integrations: Score QUOD, Cadastro PJ Plus, CND, SCR Bacen, Detalhamento Negativo
+  * Added processApiData method handling all JSON parsing, data formatting, and risk calculations
+  * Integrated new generateDossiePDFFromCreditScore method in PDFService using isolated data service
+  * Updated PDF generation endpoint to use isolated service without affecting existing interface
+  * Maintained existing PDF design quality while enhancing data completeness and structure
+  * System now generates comprehensive PDFs with all available API data in professional format
 ```
 
 ## User Preferences
