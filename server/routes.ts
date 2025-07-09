@@ -2992,34 +2992,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean CNPJ for API call
       const cleanCnpj = application.cnpj.replace(/\D/g, '');
       
-      // Helper function to analyze indicators
-      const analyzeIndicator = (indicadores: any[], keywords: string[]): boolean => {
-        if (!indicadores || !Array.isArray(indicadores)) return false;
+      // Helper function to analyze indicators - RESPECTING ACTUAL API DATA
+      const analyzeIndicator = (indicadores: any[], keywords: string[], indicatorType: string): boolean => {
+        console.log(`\n🔍 ANALYZING ${indicatorType.toUpperCase()}:`);
+        console.log('📊 Raw indicators:', JSON.stringify(indicadores, null, 2));
         
-        return indicadores.some(indicator => {
+        if (!indicadores || !Array.isArray(indicadores)) {
+          console.log('❌ No indicators found');
+          return false;
+        }
+        
+        // Find relevant indicators
+        const relevantIndicators = indicadores.filter(indicator => {
+          const indicadorText = (indicator.indicador || '').toUpperCase();
+          return keywords.some(keyword => indicadorText.includes(keyword));
+        });
+        
+        console.log(`📋 Relevant indicators for ${indicatorType}:`, relevantIndicators.length);
+        
+        if (relevantIndicators.length === 0) {
+          console.log(`✅ No ${indicatorType} indicators found = NO PROBLEM`);
+          return false;
+        }
+        
+        // Analyze each relevant indicator
+        for (const indicator of relevantIndicators) {
           const indicadorText = (indicator.indicador || '').toUpperCase();
           const statusText = (indicator.status || '').toUpperCase();
           const riscoText = (indicator.risco || '').toUpperCase();
           
-          // Check if indicator matches keywords
-          const matchesKeyword = keywords.some(keyword => indicadorText.includes(keyword));
+          console.log(`\n📝 Analyzing indicator: ${indicadorText}`);
+          console.log(`📝 Status: ${statusText}`);
+          console.log(`📝 Risk: ${riscoText}`);
           
-          if (!matchesKeyword) return false;
+          // Check if status indicates a problem
+          // Look for negative indicators like "NÃO APRESENTA", "NÃO POSSUI", "NADA CONSTA"
+          const hasNegativeStatus = statusText && (
+            statusText.includes('NÃO APRESENTA') || 
+            statusText.includes('NÃO POSSUI') ||
+            statusText.includes('NADA CONSTA') ||
+            statusText.includes('SEM OCORRÊNCIA') ||
+            statusText.includes('SEM REGISTRO')
+          );
           
-          // If indicator matches keyword, check if status indicates a problem
-          // Status like "A empresa não apresenta..." = NO problem
-          // Status like "A empresa apresenta..." = HAS problem
-          const hasProblematicStatus = statusText && 
-            !statusText.includes('NÃO APRESENTA') && 
-            !statusText.includes('NÃO POSSUI') &&
-            statusText.includes('APRESENTA');
+          // Check for positive indicators (problems)
+          const hasPositiveStatus = statusText && (
+            statusText.includes('APRESENTA') ||
+            statusText.includes('POSSUI') ||
+            statusText.includes('CONSTA') ||
+            statusText.includes('OCORRÊNCIA') ||
+            statusText.includes('REGISTRO')
+          );
           
           // High/medium risk indicates problem
-          const hasProblematicRisk = riscoText && 
-            (riscoText.includes('ALTO') || riscoText.includes('MÉDIO') || riscoText.includes('MEDIO'));
+          const hasHighRisk = riscoText && (
+            riscoText.includes('ALTO') || 
+            riscoText.includes('MÉDIO') || 
+            riscoText.includes('MEDIO')
+          );
           
-          return hasProblematicStatus || hasProblematicRisk;
-        });
+          console.log(`🔍 Analysis: negative=${hasNegativeStatus}, positive=${hasPositiveStatus}, highRisk=${hasHighRisk}`);
+          
+          if (hasNegativeStatus && !hasPositiveStatus && !hasHighRisk) {
+            console.log(`✅ ${indicatorType}: NO PROBLEM (negative status)`);
+            continue;
+          }
+          
+          if (hasPositiveStatus || hasHighRisk) {
+            console.log(`⚠️ ${indicatorType}: PROBLEM FOUND`);
+            return true;
+          }
+        }
+        
+        console.log(`✅ ${indicatorType}: NO PROBLEMS FOUND`);
+        return false;
       };
       
       let creditScoreData: any;
@@ -3136,15 +3182,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })) || [],
               // Score QUOD specific data
               companyData: { score: scoreData, cadastro: cadastroData }, // Store both API responses
-              hasDebts: (() => {
-                const result = analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['DEBITO', 'DIVIDA', 'INADIMPLENCIA']);
-                console.log('🔍 DEBT ANALYSIS:', result);
-                console.log('📊 INDICADORES NEGOCIO:', JSON.stringify(pessoaJuridica.indicadoresNegocio, null, 2));
-                return result;
-              })(),
-              hasProtests: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['PROTESTO', 'PROTESTOS']),
-              hasBankruptcy: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['FALENCIA', 'CONCORDATA', 'RECUPERACAO']),
-              hasLawsuits: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['JUDICIAL', 'PROCESSO', 'ACAO']),
+              hasDebts: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['DEBITO', 'DIVIDA', 'INADIMPLENCIA'], 'DEBTS'),
+              hasProtests: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['PROTESTO', 'PROTESTOS'], 'PROTESTS'),
+              hasBankruptcy: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['FALENCIA', 'CONCORDATA', 'RECUPERACAO'], 'BANKRUPTCY'),
+              hasLawsuits: analyzeIndicator(pessoaJuridica.indicadoresNegocio, ['JUDICIAL', 'PROCESSO', 'ACAO'], 'LAWSUITS'),
               creditAnalysis: scoreData, // Complete Score response for detailed analysis
               
               // Score QUOD specific fields - Removed per user request for young companies
