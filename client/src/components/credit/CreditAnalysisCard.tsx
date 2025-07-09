@@ -56,6 +56,9 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
           )}
         </div>
         <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Análise de Crédito 360°</CardTitle>
+          </CardHeader>
           <CardContent className="p-8 text-center">
             <div className="text-gray-500">
               <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -68,6 +71,18 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
               </p>
             </div>
           </CardContent>
+          {onRefresh && permissions.isAdmin && (
+            <div className="p-6 border-t">
+              <Button
+                variant="outline"
+                onClick={onRefresh}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
+              </Button>
+            </div>
+          )}
         </Card>
       </div>
     );
@@ -132,6 +147,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
         <div className={`h-2 ${getScoreColor(score)}`}></div>
         
         <CardHeader className="pb-4">
+          <CardTitle className="text-2xl font-bold mb-4">Análise de Crédito 360°</CardTitle>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -225,6 +241,20 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading }
             </Button>
           </div>
         </CardContent>
+        
+        {/* Botão Consultar Credit Score no rodapé */}
+        {onRefresh && permissions.isAdmin && (
+          <div className="p-6 border-t">
+            <Button
+              variant="outline"
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
+            </Button>
+          </div>
+        )}
       </Card>
 
       {/* Detalhes Expandidos */}
