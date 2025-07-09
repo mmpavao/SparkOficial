@@ -181,6 +181,13 @@ export class PDFService {
       if (!cnpj) return '';
       return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
     });
+
+    // Helper to format currency
+    handlebars.registerHelper('formatCurrency', (value: string | number) => {
+      if (!value) return 'R$ 0,00';
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+      return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    });
   }
 
   async generateDossiePDF(data: DossieData): Promise<Buffer> {
@@ -293,35 +300,56 @@ export class PDFService {
       consultations
     };
 
+    // Parse partners if it's a string
+    let partners = null;
+    if (creditScore.partners) {
+      try {
+        partners = typeof creditScore.partners === 'string' ? JSON.parse(creditScore.partners) : creditScore.partners;
+      } catch (e) {
+        partners = null;
+      }
+    }
+
+    // Parse activities if it's a string
+    let activities = null;
+    if (creditScore.activities) {
+      try {
+        activities = typeof creditScore.activities === 'string' ? JSON.parse(creditScore.activities) : creditScore.activities;
+      } catch (e) {
+        activities = null;
+      }
+    }
+
     // Add Score QUOD data
     if (creditScore.score) {
       data.scoreData = {
         score: creditScore.score,
-        consultationDate: creditScore.consultationDate || emissionDate,
-        riskLevel: creditScore.riskLevel || 'Médio',
-        companyName: creditScore.companyName,
-        cnpj: creditScore.cnpj
+        faixaScore: creditScore.faixaScore,
+        scoreMotivos: creditScore.scoreMotivos,
+        scorePercentage: Math.round((creditScore.score / 1000) * 100),
+        riskLevel: this.calculateRiskLevel(creditScore.score),
+        riskClass: this.getRiskClass(creditScore.score)
       };
     }
 
     // Add company data
     if (creditScore.companyName) {
       data.companyData = {
-        cnpj: creditScore.cnpj,
         companyName: creditScore.companyName,
-        fantasyName: creditScore.fantasyName || creditScore.companyName,
-        foundationDate: creditScore.foundationDate || '15/01/2025',
-        registrationStatus: creditScore.registrationStatus || 'Ativa',
-        companySize: creditScore.companySize || 'Pequena',
-        legalNature: creditScore.legalNature || 'Sociedade Empresária Limitada',
-        addresses: creditScore.addresses || [{
+        cnpj: creditScore.cnpj,
+        isActive: creditScore.isActive !== false,
+        openingDate: creditScore.openingDate ? new Date(creditScore.openingDate).toLocaleDateString('pt-BR') : 'Não informado',
+        capital: creditScore.capital ? `R$ ${parseFloat(creditScore.capital).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Não informado',
+        size: creditScore.size || 'Não informado',
+        address: {
           street: creditScore.street || 'Não informado',
-          number: creditScore.number || 'S/N',
-          neighborhood: creditScore.neighborhood || 'Não informado',
+          district: creditScore.district || 'Não informado',
           city: creditScore.city || 'Não informado',
+          state: creditScore.state || 'Não informado',
           zipCode: creditScore.zipCode || 'Não informado'
-        }],
-        partners: creditScore.partners || []
+        },
+        activities: activities || [],
+        partners: partners || []
       };
     }
 
@@ -329,22 +357,34 @@ export class PDFService {
     if (creditScore.cndStatus) {
       data.cndData = {
         hasDebts: creditScore.cndHasDebts || false,
-        consultationDate: creditScore.cndConsultationDate || emissionDate,
-        certificateNumber: creditScore.cndCertificateNumber || 'Não informado',
-        status: creditScore.cndStatus
+        certificateNumber: creditScore.cndNumber || 'Não informado',
+        emissionDate: creditScore.cndEmissionDate ? new Date(creditScore.cndEmissionDate).toLocaleDateString('pt-BR') : 'Não informado',
+        validityDate: creditScore.cndValidityDate ? new Date(creditScore.cndValidityDate).toLocaleDateString('pt-BR') : 'Não informado',
+        debtAmount: creditScore.cndDebtAmount ? `R$ ${parseFloat(creditScore.cndDebtAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : null
       };
     }
 
     // Add negative data
-    if (creditScore.negativeStatus) {
-      data.negativeData = {
-        document: creditScore.cnpj,
-        consultationDate: creditScore.negativeConsultationDate || emissionDate,
-        status: creditScore.negativeStatus
-      };
-    }
+    data.negativeData = {
+      hasProtests: creditScore.hasProtests || false,
+      hasBankruptcy: creditScore.hasBankruptcy || false,
+      hasLawsuits: creditScore.hasLawsuits || false,
+      hasBouncedChecks: creditScore.hasBouncedChecks || false
+    };
 
     return data;
+  }
+
+  private calculateRiskLevel(score: number): string {
+    if (score >= 700) return 'Baixo';
+    if (score >= 500) return 'Médio';
+    return 'Alto';
+  }
+
+  private getRiskClass(score: number): string {
+    if (score >= 700) return 'risk-low';
+    if (score >= 500) return 'risk-medium';
+    return 'risk-high';
   }
 }
 
