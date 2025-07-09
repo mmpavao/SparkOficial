@@ -146,12 +146,58 @@ export class PDFService {
   constructor() {
     const templatePath = path.join(__dirname, '../templates/dossie-template.html');
     this.template = readFileSync(templatePath, 'utf8');
+    
+    // Register Handlebars helpers
+    this.registerHandlebarsHelpers();
+  }
+
+  private registerHandlebarsHelpers() {
+    // Helper to format CNPJ
+    handlebars.registerHelper('formatCNPJ', (cnpj: string) => {
+      if (!cnpj) return '';
+      return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    });
+
+    // Helper to format date
+    handlebars.registerHelper('formatDate', (date: string) => {
+      if (!date) return '';
+      return new Date(date).toLocaleDateString('pt-BR');
+    });
+
+    // Helper to format date and time
+    handlebars.registerHelper('formatDateTime', (date: string) => {
+      if (!date) return '';
+      return new Date(date).toLocaleString('pt-BR');
+    });
+
+    // Helper to mask CPF
+    handlebars.registerHelper('maskCPF', (cpf: string) => {
+      if (!cpf) return '';
+      return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+    });
+
+    // Helper to mask CNPJ
+    handlebars.registerHelper('maskCNPJ', (cnpj: string) => {
+      if (!cnpj) return '';
+      return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    });
   }
 
   async generateDossiePDF(data: DossieData): Promise<Buffer> {
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-extensions',
+        '--disable-plugins'
+      ]
     });
 
     try {

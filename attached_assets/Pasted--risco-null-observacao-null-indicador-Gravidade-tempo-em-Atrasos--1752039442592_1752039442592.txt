@@ -1,0 +1,191 @@
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for DEBTS: 1
+
+📝 Analyzing indicator: ENDIVIDAMENTO CONTRATO E CREDORES
+📝 Status: 
+📝 Risk: 
+🔍 Analysis: negative=, positive=, highRisk=
+✅ DEBTS: NO PROBLEMS FOUND
+
+🔍 ANALYZING PROTESTS:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for PROTESTS: 0
+✅ No PROTESTS indicators found = NO PROBLEM
+
+🔍 ANALYZING BANKRUPTCY:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for BANKRUPTCY: 0
+✅ No BANKRUPTCY indicators found = NO PROBLEM
+
+🔍 ANALYZING LAWSUITS:
+📊 Raw indicators: [
+  {
+    "indicador": "Pontualidade de Pagamento",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Gravidade (tempo) em Atrasos",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Uso Emergencial",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Endividamento Contrato e Credores",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Risco do Perfil de Contratação",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  },
+  {
+    "indicador": "Busca por Crédito Mensal (Quantidade de Novas Contratações)",
+    "status": null,
+    "risco": null,
+    "observacao": null
+  }
+]
+📋 Relevant indicators for LAWSUITS: 0
+✅ No LAWSUITS indicators found = NO PROBLEM
+5:35:55 AM [express] POST /api/credit/applications/61/credit-score 200 in 6314ms :: {"id":28,"credit…
+[Session Debug] GET /api/notifications/unread-count - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+5:36:41 AM [express] GET /api/notifications/unread-count 200 in 475ms
+[Session Debug] GET /api/credit/applications/61/dossie-pdf - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+Auth check - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh User ID: 22
+Authentication successful for user: 22 Role: admin
+Error generating PDF dossie: Error: Failed to launch the browser process!
+/home/runner/.cache/puppeteer/chrome/linux-138.0.7204.92/chrome-linux64/chrome: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+
+TROUBLESHOOTING: https://pptr.dev/troubleshooting
+
+    at Interface.onClose (/home/runner/workspace/node_modules/@puppeteer/browsers/src/launch.ts:507:11)
+    at Interface.emit (node:events:530:35)
+    at Interface.close (node:internal/readline/interface:527:10)
+    at Socket.onend (node:internal/readline/interface:253:10)
+    at Socket.emit (node:events:530:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+5:36:49 AM [express] GET /api/credit/applications/61/dossie-pdf 500 in 1293ms :: {"message":"Erro ao…
+[Session Debug] GET /api/notifications/unread-count - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+[Session Debug] GET /api/notifications - Session ID: K1nOfaMbTDP7aNtQFbL2TFCX053DwdFh, User ID: 22
+5:37:08 AM [express] GET /api/notifications/unread-count 200 in 479ms
+5:37:08 AM [express] GET /api/notifications 200 in 490ms
