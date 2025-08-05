@@ -454,7 +454,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       products: req.body.products || [],
       totalValue: totalValue.toString(),
       currency: req.body.currency || "USD",
-      incoterms: req.body.incoterms || "FOB",
+      incoterms: req.body.incoterm || req.body.incoterms || "FOB",
       shippingMethod: req.body.shippingMethod || "sea",
       containerType: req.body.containerType || null,
       estimatedDelivery: req.body.estimatedDelivery ? new Date(req.body.estimatedDelivery) : null,

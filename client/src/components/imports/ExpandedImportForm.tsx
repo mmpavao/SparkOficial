@@ -1050,9 +1050,21 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                   type="button" 
                   disabled={createImportMutation.isPending}
                   className="min-w-32"
-                  onClick={() => {
+                  onClick={async () => {
                     console.log("Button clicked manually");
-                    form.handleSubmit(onSubmit)();
+                    console.log("Form state:", form.formState);
+                    console.log("Form values:", form.getValues());
+                    
+                    const isValid = await form.trigger();
+                    console.log("Form is valid:", isValid);
+                    
+                    if (isValid) {
+                      const data = form.getValues();
+                      console.log("Calling onSubmit with data:", data);
+                      onSubmit(data);
+                    } else {
+                      console.log("Form validation failed:", form.formState.errors);
+                    }
                   }}
                 >
                   {createImportMutation.isPending 
