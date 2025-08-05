@@ -22,6 +22,10 @@ interface Product {
   hsCode?: string;
   description?: string;
   weight?: number;
+  currency?: string;
+  unitOfMeasure?: string;
+  brand?: string;
+  material?: string;
 }
 
 interface ProductManagerProps {
@@ -49,13 +53,17 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
       productId: masterProduct.id,
       productName: masterProduct.productName,
       quantity: 1,
-      unitPrice: 0,
-      totalValue: 0,
+      unitPrice: masterProduct.unitPrice || 0,
+      totalValue: masterProduct.unitPrice || 0,
       supplierId: undefined,
       ncmCode: masterProduct.ncmCode,
       hsCode: masterProduct.hsCode,
       description: masterProduct.description,
-      weight: masterProduct.weight
+      weight: masterProduct.weight,
+      currency: masterProduct.currency,
+      unitOfMeasure: masterProduct.unitOfMeasure,
+      brand: masterProduct.brand,
+      material: masterProduct.material
     };
     onProductsChange([...products, newProduct]);
     setEditingIndex(products.length);
@@ -173,6 +181,7 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                     <span className="font-medium">{product.productName}</span>
                     <span className="text-xs text-gray-500">
                       NCM: {product.ncmCode} | {product.description}
+                      {product.unitPrice && ` | ${formatCurrency(product.unitPrice, product.currency || 'USD')}`}
                     </span>
                   </div>
                 </SelectItem>
@@ -252,9 +261,16 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                       disabled={!!product.productId}
                     />
                     {product.productId && (
-                      <p className="text-xs text-blue-600 mt-1">
-                        📦 Produto do catálogo - NCM: {product.ncmCode}
-                      </p>
+                      <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
+                        <p className="text-blue-800 font-medium">📦 Produto do Catálogo</p>
+                        <div className="grid grid-cols-2 gap-1 mt-1 text-blue-600">
+                          {product.ncmCode && <span>NCM: {product.ncmCode}</span>}
+                          {product.brand && <span>Marca: {product.brand}</span>}
+                          {product.weight && <span>Peso: {product.weight}kg</span>}
+                          {product.material && <span>Material: {product.material}</span>}
+                          {product.currency && <span>Preço base: {formatCurrency(product.unitPrice, product.currency)}</span>}
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -335,7 +351,12 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                       }
                     </p>
                     {product.productId && (
-                      <p className="text-xs text-blue-600">📦 Do catálogo</p>
+                      <div className="text-xs text-blue-600 mt-1">
+                        <p>📦 Do catálogo</p>
+                        {product.brand && <p>Marca: {product.brand}</p>}
+                        {product.unitOfMeasure && <p>Unidade: {product.unitOfMeasure}</p>}
+                        {product.currency && product.currency !== 'USD' && <p>Moeda base: {product.currency}</p>}
+                      </div>
                     )}
                   </div>
                 </div>
