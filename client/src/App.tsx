@@ -74,9 +74,9 @@ function Router() {
         <Route path="/credit/edit/:id" component={CreditEditPage} />
 
         <Route path="/imports" component={ImportsPageIntegrated} />
-        <Route path="/imports/new" component={ImportNewEnhancedPage} />
+        <Route path="/imports/new" component={() => <ImportNewEnhancedPage isEditing={false} />} />
         <Route path="/imports/new-form" component={ImportsNewFormPage} />
-        <Route path="/imports/new-enhanced" component={ImportNewEnhancedPage} />
+        <Route path="/imports/new-enhanced" component={() => <ImportNewEnhancedPage isEditing={false} />} />
         <Route path="/imports/new-expanded" component={ImportNewExpandedPage} />
         <Route path="/imports/:id" component={ImportDetailsPage} />
         <Route path="/imports/:id/edit" component={ImportEdit} />

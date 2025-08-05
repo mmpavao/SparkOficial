@@ -204,10 +204,20 @@ export default function ImportsPageIntegrated() {
         </div>
         
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
-          <Button onClick={handleNewImport} className="bg-[#22c55d] hover:bg-[#16a34a]">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Importação
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleNewImport} className="bg-[#22c55d] hover:bg-[#16a34a]">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Importação (Crédito)
+            </Button>
+            <Button 
+              onClick={() => setLocation('/imports/new-expanded')} 
+              variant="outline" 
+              className="border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Importação (Operacional)
+            </Button>
+          </div>
         )}
       </div>
 
@@ -246,10 +256,20 @@ export default function ImportsPageIntegrated() {
                 }
               </p>
               {!permissions.isFinanceira && !permissions.canViewAllApplications && (
-                <Button onClick={handleNewImport} variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Importação
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={handleNewImport} variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Importação (Crédito)
+                  </Button>
+                  <Button 
+                    onClick={() => setLocation('/imports/new-expanded')} 
+                    variant="outline"
+                    className="border-emerald-600 text-emerald-600"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Importação (Operacional)
+                  </Button>
+                </div>
               )}
             </div>
           ) : (
