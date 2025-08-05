@@ -1535,39 +1535,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = { ...req.body, userId };
       
       console.log('💾 Import creation data:', JSON.stringify(data, null, 2));
-      console.log(`🔍 Starting credit validation for user ${userId}`);
 
-      // Get user's approved credit application
-      try {
-        console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+      // Check payment method - skip credit validation for own funds
+      let creditApp = null;
+      if (data.paymentMethod === 'own_funds') {
+        console.log('💰 Using own funds - skipping credit validation');
+      } else {
+        console.log(`🔍 Starting credit validation for user ${userId}`);
+
+        // Get user's approved credit application
+        try {
+          console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+          const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+          console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
+        } catch (error) {
+          console.error(`❌ Error getting credit applications:`, error);
+          throw error;
+        }
         const userCreditApps = await storage.getCreditApplicationsByUser(userId);
-        console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
-      } catch (error) {
-        console.error(`❌ Error getting credit applications:`, error);
-        throw error;
-      }
-      const userCreditApps = await storage.getCreditApplicationsByUser(userId);
-      console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
-        id: app.id,
-        status: app.status,
-        financialStatus: app.financialStatus,
-        adminStatus: app.adminStatus
-      })));
-      
-      const approvedCredits = userCreditApps.filter(app => 
-        app.status === 'approved' || 
-        (app.status === 'admin_finalized' && app.financialStatus === 'approved')
-      );
-      
-      console.log(`✅ Approved credits found: ${approvedCredits.length}`);
+        console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
+          id: app.id,
+          status: app.status,
+          financialStatus: app.financialStatus,
+          adminStatus: app.adminStatus
+        })));
+        
+        const approvedCredits = userCreditApps.filter(app => 
+          app.status === 'approved' || 
+          (app.status === 'admin_finalized' && app.financialStatus === 'approved')
+        );
+        
+        console.log(`✅ Approved credits found: ${approvedCredits.length}`);
 
-      if (!approvedCredits.length) {
-        return res.status(400).json({ 
-          message: "Você precisa ter um crédito aprovado para criar importações" 
-        });
-      }
+        if (!approvedCredits.length) {
+          return res.status(400).json({ 
+            message: "Você precisa ter um crédito aprovado para criar importações" 
+          });
+        }
 
-      const creditApp = approvedCredits[0];
+        creditApp = approvedCredits[0];
+      }
       
       // Calculate total value from products if not provided
       let totalValue = parseFloat(data.totalValue) || 0;
@@ -1588,12 +1595,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check available credit
-      const creditData = await storage.calculateAvailableCredit(creditApp.id);
-      if (totalValue > creditData.available) {
-        return res.status(400).json({ 
-          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
-        });
+      // Only check available credit if using credit payment method
+      if (data.paymentMethod !== 'own_funds' && creditApp) {
+        const creditData = await storage.calculateAvailableCredit(creditApp.id);
+        if (totalValue > creditData.available) {
+          return res.status(400).json({ 
+            message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+          });
+        }
       }
 
       // Get admin fee for user
@@ -1608,7 +1617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean and convert data to match the new schema
       const cleanedData: any = {
         userId,
-        creditApplicationId: creditApp.id,
+        creditApplicationId: creditApp?.id || null,
         importName: data.importName,
         cargoType: data.cargoType || "FCL",
         containerNumber: data.containerNumber || null,
@@ -1625,28 +1634,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })() : null,
         status: "planning",
         currentStage: "estimativa",
-        // Credit management fields
-        creditUsed: totalValue.toString(),
+        // Credit management fields - only set if using credit
+        creditUsed: data.paymentMethod === 'own_funds' ? "0" : totalValue.toString(),
         adminFeeRate: feeRate.toString(),
         adminFeeAmount: feeAmount.toString(),
         totalWithFees: totalWithFees.toString(),
-        downPaymentRequired: downPaymentAmount.toString(),
-        downPaymentStatus: "pending",
-        paymentStatus: "pending",
-        paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
+        downPaymentRequired: data.paymentMethod === 'own_funds' ? "0" : downPaymentAmount.toString(),
+        downPaymentStatus: data.paymentMethod === 'own_funds' ? "not_required" : "pending",
+        paymentStatus: data.paymentMethod === 'own_funds' ? "paid" : "pending",
+        paymentTermsDays: creditApp ? parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30") : 0,
+        paymentMethod: data.paymentMethod || 'credit'
       };
 
       const importRecord = await storage.createImport(cleanedData);
 
-      // Reserve credit for this import
-      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+      // Only reserve credit and generate payment schedule if using credit
+      if (data.paymentMethod !== 'own_funds' && creditApp) {
+        // Reserve credit for this import
+        await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
 
-      // Generate correct payment schedule using the advanced logic
-      await storage.generatePaymentSchedule(
-        importRecord.id,
-        totalWithFees.toString(),
-        creditApp.id
-      );
+        // Generate correct payment schedule using the advanced logic
+        await storage.generatePaymentSchedule(
+          importRecord.id,
+          totalWithFees.toString(),
+          creditApp.id
+        );
+      }
 
       res.status(201).json(importRecord);
     } catch (error) {

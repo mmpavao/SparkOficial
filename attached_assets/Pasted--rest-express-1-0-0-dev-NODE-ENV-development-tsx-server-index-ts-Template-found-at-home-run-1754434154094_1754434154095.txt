@@ -1,0 +1,243 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+✅ Template found at: /home/runner/workspace/server/templates/dossie-template.html
+Registering imports routes...
+Imports routes registered successfully
+10:42:55 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: hM7rrRiXGjOCUcgOKnn-2qpgqZRiUiCb, User ID: undefined
+10:43:05 PM [express] GET /api/auth/user 200 in 135ms :: {"user":null,"authenticated":false}
+[Session Debug] GET /api/auth/user - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:43:09 PM [express] GET /api/auth/user 304 in 765ms :: {"user":{"id":20,"companyName":"Empresa do I…
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:43:09 PM [express] GET /api/notifications 200 in 141ms
+10:43:09 PM [express] GET /api/notifications/unread-count 200 in 146ms
+[Session Debug] GET /api/dashboard/importer - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🔍 Storage: Getting imports for user 20
+📊 Storage: Query executed successfully - Found 0 imports for user 20
+⚠️ No imports found for user 20 - checking if user exists in any imports
+🔍 User 20 found in any imports: false
+10:43:10 PM [express] GET /api/dashboard/importer 304 in 992ms :: {"creditMetrics":{"approvedAmount":…
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:43:25 PM [express] GET /api/notifications/unread-count 200 in 547ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:43:40 PM [express] GET /api/notifications 200 in 537ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:43:40 PM [express] GET /api/notifications/unread-count 200 in 143ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:43:56 PM [express] GET /api/notifications/unread-count 200 in 557ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:44:11 PM [express] GET /api/notifications 200 in 546ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:44:11 PM [express] GET /api/notifications/unread-count 200 in 139ms
+[Session Debug] GET /api/auth/user - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:44:40 PM [express] GET /api/auth/user 304 in 734ms :: {"user":{"id":20,"companyName":"Empresa do I…
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+[Session Debug] GET /api/dashboard/importer - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:44:40 PM [express] GET /api/notifications 200 in 143ms
+10:44:40 PM [express] GET /api/notifications/unread-count 200 in 141ms
+Authentication successful for user: 20 Role: importer
+🔍 Storage: Getting imports for user 20
+📊 Storage: Query executed successfully - Found 0 imports for user 20
+⚠️ No imports found for user 20 - checking if user exists in any imports
+🔍 User 20 found in any imports: false
+10:44:41 PM [express] GET /api/dashboard/importer 304 in 622ms :: {"creditMetrics":{"approvedAmount":…
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:44:56 PM [express] GET /api/notifications/unread-count 200 in 534ms
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🔍 IMPORTS REQUEST - User 20, Role: importer
+🔗 Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe
+👤 Fetching imports for importer user 20
+🔍 Storage: Getting imports for user 20
+📊 Storage: Query executed successfully - Found 0 imports for user 20
+⚠️ No imports found for user 20 - checking if user exists in any imports
+🔍 User 20 found in any imports: false
+📊 Found 0 imports for user 20
+🔍 ZERO IMPORTS DEBUG:
+🗄️ Total imports in DB: 0
+🎯 Imports for user 20: 0
+✅ Sending 0 imports to frontend
+10:45:08 PM [express] GET /api/imports 304 in 1431ms :: []
+[Session Debug] GET /api/suppliers - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+10:45:09 PM [express] GET /api/suppliers 304 in 279ms :: [{"id":10,"userId":20,"companyName":"OferPix…
+[Session Debug] GET /api/user/credit-info - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+Found 0 credit applications for user 20
+No approved credits found for user 20
+10:45:10 PM [express] GET /api/user/credit-info 304 in 413ms :: {"totalCredit":0,"usedCredit":0,"avai…
+[Session Debug] GET /api/user/admin-fee - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+[Session Debug] GET /api/user/financial-settings - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+[Session Debug] GET /api/user/financial-settings - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+🔍 Fetching financial settings for user: 20
+[Session Debug] GET /api/credit/applications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+10:45:10 PM [express] GET /api/user/admin-fee 304 in 691ms :: {"feePercentage":"10"}
+👤 User data: {
+  id: 20,
+  defaultAdminFeeRate: 15,
+  defaultDownPaymentRate: 20,
+  defaultPaymentTerms: '30,90'
+}
+💰 Final settings being sent: {
+  adminFeePercentage: 15,
+  downPaymentPercentage: 20,
+  paymentTerms: '30,90'
+}
+Authentication successful for user: 20 Role: importer
+Fetching fresh credit applications for user 20
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:45:11 PM [express] GET /api/user/financial-settings 304 in 1143ms :: {"adminFeePercentage":15,"dow…
+10:45:11 PM [express] GET /api/notifications 200 in 138ms
+10:45:11 PM [express] GET /api/credit/applications 304 in 1217ms :: []
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:45:11 PM [express] GET /api/notifications/unread-count 200 in 141ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:45:27 PM [express] GET /api/notifications/unread-count 200 in 538ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:45:41 PM [express] GET /api/notifications 200 in 546ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:45:42 PM [express] GET /api/notifications/unread-count 200 in 136ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:45:58 PM [express] GET /api/notifications/unread-count 200 in 539ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:46:12 PM [express] GET /api/notifications 200 in 527ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:46:13 PM [express] GET /api/notifications/unread-count 200 in 136ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:46:29 PM [express] GET /api/notifications/unread-count 200 in 533ms
+[Session Debug] GET /api/products - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:46:30 PM [express] GET /api/products 304 in 1196ms :: [{"id":1,"userId":20,"productName":"Produto …
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:46:43 PM [express] GET /api/notifications 200 in 531ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:46:44 PM [express] GET /api/notifications/unread-count 200 in 137ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:47:00 PM [express] GET /api/notifications/unread-count 200 in 544ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:47:13 PM [express] GET /api/notifications 200 in 537ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:47:15 PM [express] GET /api/notifications/unread-count 200 in 135ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:47:31 PM [express] GET /api/notifications/unread-count 200 in 531ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:47:44 PM [express] GET /api/notifications 200 in 537ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:47:46 PM [express] GET /api/notifications/unread-count 200 in 133ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:48:02 PM [express] GET /api/notifications/unread-count 200 in 528ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:48:15 PM [express] GET /api/notifications 200 in 537ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:48:17 PM [express] GET /api/notifications/unread-count 200 in 136ms
+[Session Debug] GET /api/customs-broker/verify-email/despachante%40sparkcomex.com - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+🔍 Verifying customs broker email: despachante@sparkcomex.com
+Searching for user with email: despachante@sparkcomex.com
+User found - ID: 42 Email: despachante@sparkcomex.com Status: active
+Password hash exists: true
+10:48:23 PM [express] GET /api/customs-broker/verify-email/despachante%40sparkcomex.com 304 in 795ms …
+[Session Debug] POST /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+💾 Import creation data: {
+  "importName": "Nova importacao",
+  "importCode": "imp345667",
+  "cargoType": "FCL",
+  "transportMethod": "maritimo",
+  "origin": "Hong Kong, CHINA",
+  "destination": "Brasil",
+  "totalValue": "95190",
+  "currency": "USD",
+  "status": "planejamento",
+  "supplierId": 10,
+  "incoterms": "FOB",
+  "containerNumber": "",
+  "sealNumber": "",
+  "customsBrokerEmail": "despachante@sparkcomex.com",
+  "customsBrokerId": 42,
+  "customsBrokerStatus": "assigned",
+  "paymentMethod": "own_funds",
+  "riskCategory": "normal",
+  "estimatedDeparture": "2025-08-05T19:47",
+  "estimatedArrival": "2025-10-05T19:47",
+  "products": [
+    {
+      "productName": "Produto teste",
+      "quantity": 501,
+      "unitPrice": 190,
+      "totalValue": 95190
+    }
+  ],
+  "notes": "",
+  "userId": 20
+}
+🔍 Starting credit validation for user 20
+📞 Calling storage.getCreditApplicationsByUser(20)
+✅ Successfully retrieved 0 credit applications
+📊 User 20 credit applications: []
+✅ Approved credits found: 0
+10:48:27 PM [express] POST /api/imports 400 in 663ms :: {"message":"Você precisa ter um crédito aprov…
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:48:32 PM [express] GET /api/notifications/unread-count 200 in 135ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:48:45 PM [express] GET /api/notifications 200 in 536ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:48:47 PM [express] GET /api/notifications/unread-count 200 in 133ms
+[Session Debug] POST /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+💾 Import creation data: {
+  "importName": "Nova importacao",
+  "importCode": "imp345667",
+  "cargoType": "FCL",
+  "transportMethod": "maritimo",
+  "origin": "Hong Kong, CHINA",
+  "destination": "Brasil",
+  "totalValue": "95190",
+  "currency": "USD",
+  "status": "planejamento",
+  "supplierId": 10,
+  "incoterms": "FOB",
+  "containerNumber": "",
+  "sealNumber": "",
+  "customsBrokerEmail": "despachante@sparkcomex.com",
+  "customsBrokerId": 42,
+  "customsBrokerStatus": "assigned",
+  "paymentMethod": "own_funds",
+  "riskCategory": "normal",
+  "estimatedDeparture": "2025-08-05T19:47",
+  "estimatedArrival": "2025-10-05T19:47",
+  "products": [
+    {
+      "productName": "Produto teste",
+      "quantity": 501,
+      "unitPrice": 190,
+      "totalValue": 95190
+    }
+  ],
+  "notes": "",
+  "userId": 20
+}
+🔍 Starting credit validation for user 20
+📞 Calling storage.getCreditApplicationsByUser(20)
+✅ Successfully retrieved 0 credit applications
+📊 User 20 credit applications: []
+✅ Approved credits found: 0
+10:48:57 PM [express] POST /api/imports 400 in 878ms :: {"message":"Você precisa ter um crédito aprov…
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+10:49:03 PM [express] GET /api/notifications/unread-count 200 in 135ms
