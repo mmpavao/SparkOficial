@@ -1528,7 +1528,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Import routes
+  // Operational import routes (no credit validation)
+  app.post('/api/imports/operational', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const data = { ...req.body, userId };
+      
+      console.log('💾 Operational import creation data:', JSON.stringify(data, null, 2));
+
+      // Calculate total value from products if not provided
+      let totalValue = parseFloat(data.totalValue) || 0;
+      if (!totalValue && data.products && Array.isArray(data.products)) {
+        totalValue = data.products.reduce((sum: number, product: any) => {
+          const quantity = parseFloat(product.quantity) || 0;
+          const unitPrice = parseFloat(product.unitPrice) || 0;
+          return sum + (quantity * unitPrice);
+        }, 0);
+      }
+
+      console.log('Calculated total value:', totalValue);
+
+      // Ensure we have a valid total value
+      if (!totalValue || totalValue <= 0) {
+        return res.status(400).json({ 
+          message: "Valor total da importação deve ser maior que zero" 
+        });
+      }
+
+      // Get admin fee for user (still calculate for tracking purposes)
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 2.5; // Default 2.5%
+      const feeAmount = (totalValue * feeRate) / 100;
+      const totalWithFees = totalValue + feeAmount;
+
+      // Clean and convert data for operational import
+      const cleanedData: any = {
+        userId,
+        creditApplicationId: null, // No credit application for operational
+        importName: data.importName,
+        cargoType: data.cargoType || "FCL",
+        containerNumber: data.containerNumber || null,
+        sealNumber: data.sealNumber || null,
+        products: data.products || [],
+        totalValue: totalValue.toString(),
+        currency: data.currency || "USD",
+        incoterms: data.incoterms,
+        shippingMethod: data.shippingMethod,
+        containerType: data.containerType || null,
+        estimatedDelivery: data.estimatedDelivery ? (() => {
+          const date = new Date(data.estimatedDelivery);
+          return isNaN(date.getTime()) ? null : date;
+        })() : null,
+        status: "planning",
+        currentStage: "estimativa",
+        // Operational import fields - no credit management
+        creditUsed: "0",
+        adminFeeRate: feeRate.toString(),
+        adminFeeAmount: feeAmount.toString(),
+        totalWithFees: totalWithFees.toString(),
+        downPaymentRequired: "0",
+        downPaymentStatus: "not_required",
+        paymentStatus: "paid", // Already paid with own funds
+        paymentTermsDays: 0,
+        paymentMethod: 'own_funds'
+      };
+
+      const importRecord = await storage.createImport(cleanedData);
+
+      res.status(201).json(importRecord);
+    } catch (error) {
+      console.error("Error creating operational import:", error);
+      res.status(500).json({ message: "Erro ao criar importação operacional" });
+    }
+  });
+
+  // Credit-based import routes (with credit validation)
   app.post('/api/imports', requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;

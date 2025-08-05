@@ -200,7 +200,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       incoterms: initialData?.incoterms || "FOB",
       creditApplicationId: initialData?.creditApplicationId,
       supplierId: initialData?.supplierId,
-      paymentMethod: initialData?.paymentMethod || 'credit',
+      paymentMethod: initialData?.paymentMethod || 'own_funds',
       customsBrokerEmail: initialData?.customsBrokerEmail || "",
       customsBrokerId: initialData?.customsBrokerId,
       customsBrokerStatus: initialData?.customsBrokerStatus || "pending",
@@ -222,9 +222,11 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
 
   const createImportMutation = useMutation({
     mutationFn: async (data: ExpandedImportFormData) => {
+      // Use dedicated operational imports API for own funds
+      const baseUrl = data.paymentMethod === 'own_funds' ? '/api/imports/operational' : '/api/imports';
       const url = isEditing && initialData && 'id' in initialData 
-        ? `/api/imports/${initialData.id}` 
-        : '/api/imports';
+        ? `${baseUrl}/${initialData.id}` 
+        : baseUrl;
       const method = isEditing ? 'PUT' : 'POST';
       return apiRequest(url, method, data);
     },
