@@ -107,28 +107,51 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     const allImportsCount = await db.select({ count: count() }).from(imports);
     console.log(`🗄️ Total imports in database: ${allImportsCount[0].count}`);
 
-    // CRITICAL FIX: Always filter by user for importers, show all for admin/financeira
-    let sqlQuery = `
-      SELECT 
-        i.*,
-        s.company_name as supplier_company_name,
-        s.contact_person as supplier_contact_person,
-        u.company_name as importer_company_name,
-        u.full_name as importer_full_name
-      FROM imports i
-      LEFT JOIN suppliers s ON i.supplier_id = s.id
-      LEFT JOIN users u ON i.user_id = u.id
-    `;
+    // Use Drizzle ORM for safe query building
+    let query = db
+      .select({
+        id: imports.id,
+        userId: imports.userId,
+        creditApplicationId: imports.creditApplicationId,
+        supplierId: imports.supplierId,
+        importName: imports.importName,
+        cargoType: imports.cargoType,
+        containerNumber: imports.containerNumber,
+        sealNumber: imports.sealNumber,
+        products: imports.products,
+        totalValue: imports.totalValue,
+        currency: imports.currency,
+        incoterms: imports.incoterms,
+        shippingMethod: imports.shippingMethod,
+        containerType: imports.containerType,
+        estimatedDelivery: imports.estimatedDelivery,
+        status: imports.status,
+        currentStage: imports.currentStage,
+        creditUsed: imports.creditUsed,
+        adminFeeRate: imports.adminFeeRate,
+        adminFeeAmount: imports.adminFeeAmount,
+        totalWithFees: imports.totalWithFees,
+        downPaymentRequired: imports.downPaymentRequired,
+        downPaymentStatus: imports.downPaymentStatus,
+        paymentStatus: imports.paymentStatus,
+        paymentTermsDays: imports.paymentTermsDays,
+        createdAt: imports.createdAt,
+        updatedAt: imports.updatedAt,
+        supplierCompanyName: suppliers.companyName,
+        supplierContactPerson: suppliers.contactPerson,
+        importerCompanyName: users.companyName,
+        importerFullName: users.fullName
+      })
+      .from(imports)
+      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
+      .leftJoin(users, eq(imports.userId, users.id));
 
-    const queryParams: any[] = [];
-    const whereClauses: string[] = [];
-    let paramIndex = 1;
+    // Build WHERE conditions
+    const whereConditions: any[] = [];
 
     // FIXED: Role-based access control with proper filtering
     if (currentUser.role === 'importer') {
-      whereClauses.push(`i.user_id = $${paramIndex}`);
-      queryParams.push(userId);
-      paramIndex++;
+      whereConditions.push(eq(imports.userId, userId));
       console.log(`🔒 FILTERING imports for importer: ${userId}`);
     } else {
       console.log(`🔓 Admin/Financeira access - showing ALL imports`);
@@ -136,99 +159,74 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
 
     // Apply additional filters
     if (status && status !== 'all') {
-      whereClauses.push(`i.status = $${paramIndex}`);
-      queryParams.push(status);
-      paramIndex++;
+      whereConditions.push(eq(imports.status, status as any));
     }
 
     if (cargoType && cargoType !== 'all') {
-      whereClauses.push(`i.cargo_type = $${paramIndex}`);
-      queryParams.push(cargoType);
-      paramIndex++;
+      whereConditions.push(eq(imports.cargoType, cargoType as any));
     }
 
     if (supplierId && supplierId !== 'all') {
-      whereClauses.push(`i.supplier_id = $${paramIndex}`);
-      queryParams.push(Number(supplierId));
-      paramIndex++;
+      whereConditions.push(eq(imports.supplierId, Number(supplierId)));
     }
 
-    if (search) {
-      whereClauses.push(`(i.import_name ILIKE $${paramIndex} OR i.import_code ILIKE $${paramIndex})`);
-      queryParams.push(`%${search}%`);
-      paramIndex++;
+    // Apply WHERE conditions
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
     }
 
-    // Add WHERE clause if we have conditions
-    if (whereClauses.length > 0) {
-      sqlQuery += ' WHERE ' + whereClauses.join(' AND ');
-    }
+    console.log(`📝 Executing Drizzle query for role ${currentUser.role}`);
+    console.log(`🔧 Filtering conditions: ${whereConditions.length} conditions`);
 
-    // Add ordering and pagination
-    sqlQuery += ` ORDER BY i.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(Number(limit), offset);
+    // Execute query with pagination
+    const importsData = await query
+      .orderBy(desc(imports.createdAt))
+      .limit(Number(limit))
+      .offset(offset);
 
-    console.log(`📝 Executing SQL query for role ${currentUser.role}`);
-    console.log(`🔧 Parameters: [${queryParams.join(', ')}]`);
-
-    const importsResult = await db.execute(sql.raw(sqlQuery, queryParams));
-    const importsData = importsResult.rows || [];
-
-    console.log(`✅ Raw SQL query returned ${importsData.length} imports`);
+    console.log(`✅ Drizzle query returned ${importsData.length} imports`);
 
     // Get total count with same conditions
-    let countQuery = 'SELECT COUNT(*) as count FROM imports i';
-    const countParams: any[] = [];
-    let countParamIndex = 1;
+    let countQuery = db
+      .select({ count: count() })
+      .from(imports);
 
-    // Apply same WHERE conditions for count
-    if (whereClauses.length > 0) {
-      const countWhereClauses = whereClauses.map(clause => {
-        if (clause.includes('ILIKE')) {
-          return clause;
-        }
-        return clause.replace(/\$\d+/, `$${countParamIndex++}`);
-      });
-      countQuery += ' WHERE ' + countWhereClauses.join(' AND ');
-
-      // Add parameters for count query (excluding LIMIT/OFFSET)
-      for (let i = 0; i < queryParams.length - 2; i++) {
-        countParams.push(queryParams[i]);
-      }
+    if (whereConditions.length > 0) {
+      countQuery = countQuery.where(and(...whereConditions));
     }
 
-    const countResult = await db.execute(sql.raw(countQuery, countParams));
-    const totalCount = Number(countResult.rows?.[0]?.count) || 0;
+    const countResult = await countQuery;
+    const totalCount = countResult[0]?.count || 0;
 
     console.log(`📊 Total count: ${totalCount}`);
 
-    // Format the raw SQL results for frontend consumption
+    // Format the Drizzle results for frontend consumption
     const formattedImports = importsData.map((row: any) => ({
       id: row.id,
-      userId: row.user_id,
-      creditApplicationId: row.credit_application_id,
-      importName: row.import_name,
-      importNumber: row.import_number,
-      importCode: row.import_code,
-      cargoType: row.cargo_type,
-      totalValue: row.total_value,
+      userId: row.userId,
+      creditApplicationId: row.creditApplicationId,
+      importName: row.importName,
+      importNumber: row.importNumber || null,
+      importCode: row.importCode || null,
+      cargoType: row.cargoType,
+      totalValue: row.totalValue,
       currency: row.currency,
       status: row.status,
-      paymentStatus: row.payment_status,
-      supplierId: row.supplier_id,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      paymentStatus: row.paymentStatus,
+      supplierId: row.supplierId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
       // Include supplier data if available
-      supplier: row.supplier_company_name ? {
-        companyName: row.supplier_company_name,
-        contactPerson: row.supplier_contact_person
+      supplier: row.supplierCompanyName ? {
+        companyName: row.supplierCompanyName,
+        contactPerson: row.supplierContactPerson
       } : null,
       // Include user data if available  
-      user: row.importer_company_name ? {
-        companyName: row.importer_company_name,
-        fullName: row.importer_full_name
+      user: row.importerCompanyName ? {
+        companyName: row.importerCompanyName,
+        fullName: row.importerFullName
       } : null,
-      products: [] // Will be populated in a separate query if needed
+      products: row.products || [] // Use products from database
     }));
 
     console.log(`✅ Returning ${formattedImports.length} formatted imports to frontend`);
