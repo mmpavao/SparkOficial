@@ -138,10 +138,10 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       currency: initialData?.currency || "USD",
       status: initialData?.status || "planejamento",
       incoterms: initialData?.incoterms || "FOB",
-      creditApplicationId: initialData?.creditApplicationId || undefined,
-      supplierId: initialData?.supplierId || undefined,
-      paymentMethod: 'credit',
-      customsBrokerId: initialData?.customsBrokerId || undefined,
+      creditApplicationId: initialData?.creditApplicationId,
+      supplierId: initialData?.supplierId,
+      paymentMethod: initialData?.paymentMethod || 'credit',
+      customsBrokerId: initialData?.customsBrokerId,
       customsBrokerStatus: initialData?.customsBrokerStatus || "pending",
       riskCategory: initialData?.riskCategory || "normal",
       containerNumber: initialData?.containerNumber || "",
@@ -315,7 +315,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                             field.onChange(parseInt(value));
                             form.setValue("paymentMethod", "credit");
                           }
-                        }} value={field.value ? field.value.toString() : form.watch("paymentMethod") === "own_funds" ? "own_funds" : ""}>
+                        }} value={field.value ? field.value.toString() : form.watch("paymentMethod") === "own_funds" ? "own_funds" : undefined}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione o método de pagamento" />
