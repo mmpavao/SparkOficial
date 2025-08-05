@@ -1,19 +1,27 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, Package, DollarSign } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Minus, Package, DollarSign, Search, ShoppingCart } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 
 interface Product {
+  productId?: number; // ID do produto master cadastrado
   productName: string;
   quantity: number;
   unitPrice: number;
   totalValue: number;
   supplierId?: number;
+  // Campos opcionais do produto master
+  ncmCode?: string;
+  hsCode?: string;
+  description?: string;
+  weight?: number;
 }
 
 interface ProductManagerProps {
@@ -24,8 +32,37 @@ interface ProductManagerProps {
 
 export function ProductManager({ products, suppliers, onProductsChange }: ProductManagerProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedMasterProduct, setSelectedMasterProduct] = useState<any>(null);
+  
+  // Buscar produtos cadastrados no sistema
+  const { data: masterProducts = [] } = useQuery({
+    queryKey: ['/api/products'],
+    queryFn: async () => {
+      const response = await fetch('/api/products');
+      if (!response.ok) throw new Error('Erro ao buscar produtos');
+      return response.json();
+    }
+  });
 
-  const addProduct = () => {
+  const addProductFromMaster = (masterProduct: any) => {
+    const newProduct: Product = {
+      productId: masterProduct.id,
+      productName: masterProduct.productName,
+      quantity: 1,
+      unitPrice: 0,
+      totalValue: 0,
+      supplierId: undefined,
+      ncmCode: masterProduct.ncmCode,
+      hsCode: masterProduct.hsCode,
+      description: masterProduct.description,
+      weight: masterProduct.weight
+    };
+    onProductsChange([...products, newProduct]);
+    setEditingIndex(products.length);
+    setSelectedMasterProduct(null);
+  };
+  
+  const addNewProduct = () => {
     const newProduct: Product = {
       productName: "",
       quantity: 1,
@@ -108,6 +145,75 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
         </div>
       )}
 
+      {/* Add Product Section */}
+      <Card className="border-dashed border-2 border-gray-200">
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-4">
+              <div>
+                <Label htmlFor="master-product-select">Selecionar Produto Cadastrado</Label>
+                <Select value={selectedMasterProduct?.id?.toString() || "new-product"} onValueChange={(value) => {
+                  if (value === "new-product") {
+                    setSelectedMasterProduct(null);
+                  } else {
+                    const product = masterProducts.find((p: any) => p.id.toString() === value);
+                    setSelectedMasterProduct(product);
+                  }
+                }}>
+                  <SelectTrigger className="w-80">
+                    <SelectValue placeholder="Escolha um produto ou crie novo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new-product">
+                      <div className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Criar Produto Novo
+                      </div>
+                    </SelectItem>
+                    {masterProducts.map((product: any, index: number) => (
+                      <SelectItem key={product.id || index} value={product.id?.toString() || `product-${index}`}>
+                        <div className="flex flex-col text-left">
+                          <span className="font-medium">{product.productName}</span>
+                          <span className="text-xs text-gray-500">
+                            NCM: {product.ncmCode} | {product.description}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                onClick={() => {
+                  if (selectedMasterProduct) {
+                    addProductFromMaster(selectedMasterProduct);
+                  } else {
+                    addNewProduct();
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                {selectedMasterProduct ? 'Adicionar Produto' : 'Criar Produto Novo'}
+              </Button>
+            </div>
+            
+            {selectedMasterProduct && (
+              <div className="bg-blue-50 p-4 rounded-lg text-left">
+                <h4 className="font-medium text-blue-900 mb-2">Produto Selecionado:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><strong>Nome:</strong> {selectedMasterProduct.productName}</div>
+                  <div><strong>NCM:</strong> {selectedMasterProduct.ncmCode}</div>
+                  <div><strong>Descrição:</strong> {selectedMasterProduct.description}</div>
+                  <div><strong>Peso:</strong> {selectedMasterProduct.weight}kg</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Products List */}
       <div className="space-y-4">
         {products.map((product, index) => (
@@ -120,6 +226,12 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                     <span className="text-sm font-normal text-gray-600 ml-2">
                       - {product.productName}
                     </span>
+                  )}
+                  {product.productId && (
+                    <Badge variant="secondary" className="ml-2">
+                      <ShoppingCart className="h-3 w-3 mr-1" />
+                      Cadastrado
+                    </Badge>
                   )}
                 </CardTitle>
                 <div className="flex items-center gap-2">
@@ -244,14 +356,9 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
         {/* Add Product Button */}
         <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
           <CardContent className="pt-6">
-            <Button
-              variant="ghost"
-              onClick={addProduct}
-              className="w-full h-16 text-gray-600 hover:text-gray-700"
-            >
-              <Plus className="h-6 w-6 mr-2" />
-              Adicionar Produto
-            </Button>
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-sm">Use a seção acima para adicionar produtos</p>
+            </div>
           </CardContent>
         </Card>
       </div>
