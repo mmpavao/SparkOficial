@@ -414,6 +414,20 @@ export class DatabaseStorage {
     }
   }
 
+  async getImportsByCustomsBroker(customsBrokerId: number): Promise<Import[]> {
+    console.log(`🔍 Storage: Getting imports for customs broker ${customsBrokerId}`);
+    
+    try {
+      // For now, return empty array since customs broker assignment is not yet implemented
+      // In future, we'll query imports where customsBrokerId matches
+      console.log(`📊 Storage: No customs broker assignment system yet - returning empty array`);
+      return [];
+    } catch (error) {
+      console.error(`❌ Storage: Error getting imports for customs broker ${customsBrokerId}:`, error);
+      throw error;
+    }
+  }
+
   async getImport(id: number): Promise<Import | undefined> {
     const result = await db
       .select()

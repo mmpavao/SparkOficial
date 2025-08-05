@@ -212,11 +212,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(passwordToHash, saltRounds);
       console.log("Password hashed successfully for user:", userData.email);
 
-      // Create user (exclude confirmPassword)
-      const { confirmPassword, ...userToCreate } = userData;
+      // Create user (exclude confirmPassword and map userType to role)
+      const { confirmPassword, userType, ...userToCreate } = userData;
       const user = await storage.createUser({
         ...userToCreate,
         password: hashedPassword,
+        role: userType || 'importer', // Map userType to role
       });
 
       console.log("User created with ID:", user.id, "Email:", user.email);
@@ -6110,9 +6111,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const productsRoutes = await import('./products-routes');
   app.use('/api/products', productsRoutes.default);
 
-  // Register customs brokers routes
-  const customsBrokersRoutes = await import('./customs-brokers-routes');
-  app.use('/api/customs-brokers', customsBrokersRoutes.default);
+  // Register customs broker routes
+  const customsBrokerRoutes = await import('./customs-broker-routes');
+  app.use('/api/customs-broker', customsBrokerRoutes.default);
 
   const httpServer = createServer(app);
   return httpServer;

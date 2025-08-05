@@ -38,6 +38,7 @@ import SupportPage from "@/pages/support";
 import SupportNewPage from "@/pages/support-new";
 import SupportTicketPage from "@/pages/support-ticket";
 import ProductsPage from "@/pages/products";
+import CustomsBrokerDashboard from "@/pages/customs-broker-dashboard";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -67,7 +68,7 @@ function Router() {
   return (
     <AuthenticatedLayout>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={user?.role === 'customs_broker' ? CustomsBrokerDashboard : Dashboard} />
         <Route path="/credit" component={CreditPage} />
         <Route path="/credit/new" component={CreditApplicationPage} />
         <Route path="/credit/details/:id" component={CreditDetailsPage} />

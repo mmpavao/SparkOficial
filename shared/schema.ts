@@ -35,6 +35,7 @@ export const users = pgTable("users", {
 
 export const insertUserSchema = z.object({
   companyName: z.string().min(1, "Nome da empresa é obrigatório"),
+  userType: z.enum(["importer", "customs_broker"]).default("importer"),
   cnpj: z.string()
     .min(1, "CNPJ é obrigatório")
     .refine((cnpj) => {

@@ -123,44 +123,71 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const isSuperAdmin = user?.email === "pavaosmart@gmail.com";
   const isAdmin = user?.role === "admin" || user?.role === "super_admin" || isSuperAdmin;
   const isFinanceira = user?.role === "financeira";
-  const isImporter = user?.role === "importer" || (!isAdmin && !isFinanceira);
+  const isCustomsBroker = user?.role === "customs_broker";
+  const isImporter = user?.role === "importer" || (!isAdmin && !isFinanceira && !isCustomsBroker);
 
-  // Navegação unificada - mesmas telas para todos, com funcionalidades condicionais
-  const navigation = [
-    { path: "/", icon: Home, label: navTranslations.dashboard },
-    { 
-      path: "/credit", 
-      icon: CreditCard, 
-      label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
-    },
-    { 
-      path: "/imports", 
-      icon: Package, 
-      label: isFinanceira 
-        ? "Análise de Importações" 
-        : isAdmin 
-          ? "Todas as Importações" 
-          : "Minhas Importações"
-    },
-    { 
-      path: "/suppliers", 
-      icon: Building, 
-      label: isFinanceira 
-        ? "Todos Fornecedores" 
-        : isAdmin 
+  // Navegação adaptada por role
+  const getNavigation = () => {
+    if (isCustomsBroker) {
+      return [
+        { path: "/", icon: Home, label: "Dashboard" },
+        { 
+          path: "/imports", 
+          icon: Package, 
+          label: "Importações Designadas"
+        },
+        { 
+          path: "/suppliers", 
+          icon: Building, 
+          label: "Fornecedores"
+        },
+        { 
+          path: "/products", 
+          icon: Package, 
+          label: "Produtos"
+        },
+        { path: "/reports", icon: BarChart3, label: "Relatórios" },
+      ];
+    }
+
+    return [
+      { path: "/", icon: Home, label: navTranslations.dashboard },
+      { 
+        path: "/credit", 
+        icon: CreditCard, 
+        label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
+      },
+      { 
+        path: "/imports", 
+        icon: Package, 
+        label: isFinanceira 
+          ? "Análise de Importações" 
+          : isAdmin 
+            ? "Todas as Importações" 
+            : "Minhas Importações"
+      },
+      { 
+        path: "/suppliers", 
+        icon: Building, 
+        label: isFinanceira 
           ? "Todos Fornecedores" 
-          : "Fornecedores"
-    },
-    { 
-      path: "/products", 
-      icon: Package, 
-      label: "Produtos"
-    },
-    { path: "/payments", icon: DollarSign, label: "Pagamentos" },
-    // Suporte só aparece para importadores na navegação principal
-    ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: "Suporte" }] : []),
-    { path: "/reports", icon: BarChart3, label: navTranslations.reports },
-  ];
+          : isAdmin 
+            ? "Todos Fornecedores" 
+            : "Fornecedores"
+      },
+      { 
+        path: "/products", 
+        icon: Package, 
+        label: "Produtos"
+      },
+      { path: "/payments", icon: DollarSign, label: "Pagamentos" },
+      // Suporte só aparece para importadores na navegação principal
+      ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: "Suporte" }] : []),
+      { path: "/reports", icon: BarChart3, label: navTranslations.reports },
+    ];
+  };
+
+  const navigation = getNavigation();
 
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
