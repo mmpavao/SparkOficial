@@ -58,6 +58,7 @@ const expandedImportFormSchema = z.object({
   customsBrokerId: z.number().optional(),
   customsBrokerStatus: z.enum(["pending", "assigned", "processing", "completed"]).default("pending"),
   customsProcessingNotes: z.string().optional(),
+  paymentMethod: z.enum(['credit', 'own_funds']).default('credit'),
   
   // Customs documentation (new)
   importDeclarationNumber: z.string().optional(),
@@ -139,6 +140,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       incoterms: initialData?.incoterms || "FOB",
       creditApplicationId: initialData?.creditApplicationId || undefined,
       supplierId: initialData?.supplierId || undefined,
+      paymentMethod: 'credit',
       customsBrokerId: initialData?.customsBrokerId || undefined,
       customsBrokerStatus: initialData?.customsBrokerStatus || "pending",
       riskCategory: initialData?.riskCategory || "normal",
@@ -304,26 +306,49 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="creditApplicationId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Aplicação de Crédito *</FormLabel>
-                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                        <FormLabel>Forma de Pagamento *</FormLabel>
+                        <Select onValueChange={(value) => {
+                          if (value === "own_funds") {
+                            field.onChange(undefined);
+                            form.setValue("paymentMethod", "own_funds");
+                          } else {
+                            field.onChange(parseInt(value));
+                            form.setValue("paymentMethod", "credit");
+                          }
+                        }} value={field.value ? field.value.toString() : form.watch("paymentMethod") === "own_funds" ? "own_funds" : ""}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma aplicação de crédito" />
+                              <SelectValue placeholder="Selecione o método de pagamento" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {creditApplications.map((app: any) => (
-                              <SelectItem key={app.id} value={app.id.toString()}>
-                                <div className="flex flex-col">
-                                  <span className="font-medium">
-                                    US$ {parseInt(app.finalCreditLimit || app.requestedAmount).toLocaleString()}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    Termos: {app.finalApprovedTerms || 'N/A'} dias
-                                  </span>
+                            <SelectItem value="own_funds">
+                              <div className="flex flex-col">
+                                <span className="font-medium">💰 Recursos Próprios</span>
+                                <span className="text-xs text-gray-500">
+                                  Importação financiada com capital próprio
+                                </span>
+                              </div>
+                            </SelectItem>
+                            {creditApplications.length > 0 && (
+                              <>
+                                <div className="px-2 py-1.5 text-xs font-medium text-gray-500 bg-gray-50">
+                                  Créditos Aprovados
                                 </div>
-                              </SelectItem>
-                            ))}
+                                {creditApplications.map((app: any) => (
+                                  <SelectItem key={app.id} value={app.id.toString()}>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">
+                                        🏦 US$ {parseInt(app.finalCreditLimit || app.requestedAmount).toLocaleString()}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        Termos: {app.finalApprovedTerms || 'N/A'} dias
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />

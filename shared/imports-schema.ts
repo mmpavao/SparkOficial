@@ -24,6 +24,7 @@ export const imports = pgTable('imports', {
   totalValue: decimal('total_value', { precision: 12, scale: 2 }).notNull(),
   currency: text('currency').default('USD'),
   incoterms: text('incoterms').notNull(), // 'FOB', 'CIF', 'EXW'
+  paymentMethod: text('payment_method').default('credit'), // 'credit', 'own_funds'
   
   // Status and priority
   status: text('status').default('planejamento'), // planejamento, producao, entregue_agente, transporte_maritimo, transporte_aereo, desembaraco, transporte_nacional, concluido
@@ -347,6 +348,7 @@ export const insertImportSchema = createInsertSchema(imports, {
   destination: z.string().min(1, 'Porto de destino é obrigatório'),
   destinationState: z.string().optional(),
   customsBrokerId: z.number().optional(),
+  paymentMethod: z.enum(['credit', 'own_funds']).default('credit'),
   customsBrokerStatus: z.enum(['pending', 'assigned', 'processing', 'completed']).default('pending'),
   estimatedCustomsCosts: z.any().optional(), // JSON data for customs costs
   actualCustomsCosts: z.any().optional(),
