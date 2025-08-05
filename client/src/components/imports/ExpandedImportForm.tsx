@@ -23,7 +23,7 @@ import { z } from "zod";
 // Expanded import form schema including customs broker fields
 const expandedImportFormSchema = z.object({
   // Basic fields (existing)
-  creditApplicationId: z.number().min(1, "Aplicação de crédito é obrigatória"),
+  creditApplicationId: z.number().optional(),
   importName: z.string().min(1, "Nome da importação é obrigatório"),
   importCode: z.string().optional(),
   cargoType: z.enum(["FCL", "LCL"]),
@@ -84,6 +84,16 @@ const expandedImportFormSchema = z.object({
   })).optional(),
   
   notes: z.string().optional()
+}).refine((data) => {
+  // Se paymentMethod for 'credit', creditApplicationId é obrigatório
+  if (data.paymentMethod === 'credit') {
+    return data.creditApplicationId !== undefined && data.creditApplicationId > 0;
+  }
+  // Se for 'own_funds', creditApplicationId não é necessário
+  return true;
+}, {
+  message: "Aplicação de crédito é obrigatória quando usar créditos aprovados",
+  path: ["creditApplicationId"]
 });
 
 type ExpandedImportFormData = z.infer<typeof expandedImportFormSchema>;
