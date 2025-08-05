@@ -360,6 +360,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
     let creditApp = null;
     if (req.body.paymentMethod === 'own_funds') {
       console.log('💰 Using own funds - skipping credit validation');
+      // Skip credit validation for own funds
     } else {
       // Get user's approved credit applications
       try {
@@ -387,7 +388,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
         if (!approvedCredits.length) {
           console.log(`❌ No approved credit found for user ${userId}`);
           return res.status(400).json({ 
-            message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
+            message: "Você precisa ter um crédito aprovado e disponível para criar importações usando crédito" 
           });
         }
 
@@ -432,14 +433,20 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       }
     }
 
-    // Get admin fee for user
-    const adminFee = await storage.getAdminFeeForUser(userId);
-    const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 10; // Default 10%
-    const feeAmount = (totalValue * feeRate) / 100;
-    const totalWithFees = totalValue + feeAmount;
+    // Get admin fee for user (only if using credit)
+    let feeRate = 0;
+    let feeAmount = 0;
+    let totalWithFees = totalValue;
+    let downPaymentAmount = 0;
 
-    // Calculate down payment (10% of total with fees)
-    const downPaymentAmount = (totalWithFees * 10) / 100;
+    if (req.body.paymentMethod !== 'own_funds') {
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 10; // Default 10%
+      feeAmount = (totalValue * feeRate) / 100;
+      totalWithFees = totalValue + feeAmount;
+      // Calculate down payment (10% of total with fees)
+      downPaymentAmount = (totalWithFees * 10) / 100;
+    }
 
     // Prepare import data using existing imports table schema
     const importData = {
