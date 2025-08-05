@@ -977,85 +977,134 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
 
             {/* Costs Tab */}
             <TabsContent value="costs" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Custos e Seguro
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="insuranceValue"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor do Seguro</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="number" placeholder="0.00" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="insuranceCompany"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Seguradora</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Nome da seguradora" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="md:col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Observações Gerais</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="Observações, instruções especiais ou comentários sobre a importação"
-                              rows={4}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Products Section */}
+              {/* Resumo dos Produtos */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="h-5 w-5" />
-                    Produtos da Importação
+                    Resumo dos Produtos
                   </CardTitle>
+                  <CardDescription>
+                    Produtos selecionados na aba anterior
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ProductManager
-                    products={form.watch("products") || []}
-                    suppliers={Array.isArray(suppliers) ? suppliers : []}
-                    onProductsChange={(products) => form.setValue("products", products)}
-                  />
+                  {form.watch("products") && form.watch("products")!.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Header com totais */}
+                      <div className="grid grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {form.watch("products")!.length}
+                          </div>
+                          <div className="text-sm text-blue-800">Total de Produtos</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">
+                            {form.watch("products")!.reduce((sum, p) => sum + Number(p.quantity || 0), 0)}
+                          </div>
+                          <div className="text-sm text-green-800">Quantidade Total</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-purple-600">
+                            ${form.watch("products")!.reduce((sum, p) => sum + (Number(p.quantity || 0) * Number(p.unitPrice || 0)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                          <div className="text-sm text-purple-800">Valor Total</div>
+                        </div>
+                      </div>
+
+                      {/* Lista de produtos */}
+                      <div className="space-y-3">
+                        {form.watch("products")!.map((product, index) => {
+                          const supplierName = Array.isArray(suppliers) 
+                            ? suppliers.find(s => s.id === product.supplierId)?.companyName || 'Não especificado'
+                            : 'Não especificado';
+                          
+                          return (
+                            <div key={index} className="border rounded-lg p-4 bg-white">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-lg">{product.productName}</h4>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
+                                    <div>
+                                      <span className="text-gray-600">Quantidade:</span>
+                                      <div className="font-medium">{product.quantity}</div>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-600">Preço Unit.:</span>
+                                      <div className="font-medium">${Number(product.unitPrice || 0).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-600">Total:</span>
+                                      <div className="font-medium text-green-600">
+                                        ${(Number(product.quantity || 0) * Number(product.unitPrice || 0)).toFixed(2)}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-600">Fornecedor:</span>
+                                      <div className="font-medium text-blue-600">{supplierName}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Resumo Financeiro */}
+                      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-blue-800">
+                            <Calculator className="h-5 w-5" />
+                            Resumo Financeiro
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-center mb-4">
+                            <div className="text-sm text-gray-600">Preencha o valor total para ver o cálculo dos custos</div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nenhum produto adicionado ainda.</p>
+                      <p className="text-sm">Vá para a aba "Produtos" para adicionar produtos à importação.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Cost Calculator */}
-              <ImportCostCalculator 
-                totalValue={totalValue}
-              />
+              {/* Observações Gerais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Observações e Custos Adicionais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Observações Gerais</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            {...field} 
+                            placeholder="Observações, instruções especiais ou comentários sobre a importação"
+                            rows={4}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
