@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -108,6 +108,17 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("basic");
+  
+  // Definir a ordem das abas
+  const tabOrder = ["basic", "products", "shipping", "customs", "documentation", "costs"];
+  const currentTabIndex = tabOrder.indexOf(activeTab);
+  const isLastTab = currentTabIndex === tabOrder.length - 1;
+  
+  const goToNextTab = () => {
+    if (currentTabIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentTabIndex + 1]);
+    }
+  };
   
   // Get suppliers for dropdown
   const { data: suppliers = [] } = useQuery({
@@ -250,10 +261,14 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 Básico
+              </TabsTrigger>
+              <TabsTrigger value="products" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Produtos
               </TabsTrigger>
               <TabsTrigger value="shipping" className="flex items-center gap-2">
                 <Ship className="h-4 w-4" />
@@ -473,11 +488,49 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                       <FormItem>
                         <FormLabel>Valor Total *</FormLabel>
                         <FormControl>
-                          <Input {...field} type="number" placeholder="0.00" />
+                          <Input 
+                            {...field} 
+                            placeholder="Será calculado automaticamente na aba Produtos" 
+                            type="number" 
+                            disabled={true}
+                            className="bg-gray-50"
+                          />
                         </FormControl>
+                        <p className="text-sm text-gray-500">
+                          O valor será calculado automaticamente baseado nos produtos selecionados
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Products Tab */}
+            <TabsContent value="products" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Gestão de Produtos
+                  </CardTitle>
+                  <CardDescription>
+                    Selecione os produtos e quantidades para calcular automaticamente o valor total da importação
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ProductManager 
+                    products={form.watch("products") || []}
+                    suppliers={suppliers}
+                    onProductsChange={(products) => {
+                      form.setValue("products", products);
+                      // Calcula automaticamente o valor total
+                      const totalValue = products.reduce((sum, product) => 
+                        sum + (product.quantity * product.unitPrice), 0
+                      );
+                      form.setValue("totalValue", totalValue.toString());
+                    }}
                   />
                 </CardContent>
               </Card>
@@ -959,23 +1012,36 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
             </TabsContent>
           </Tabs>
 
-          {/* Submit Button */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-6 border-t">
             <Button type="button" variant="outline" onClick={() => setLocation('/imports')}>
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
-              disabled={createImportMutation.isPending}
-              className="min-w-32"
-            >
-              {createImportMutation.isPending 
-                ? "Salvando..." 
-                : isEditing 
-                  ? "Atualizar" 
-                  : "Criar Importação"
-              }
-            </Button>
+            
+            <div className="flex space-x-4">
+              {!isLastTab ? (
+                <Button 
+                  type="button" 
+                  onClick={goToNextTab}
+                  className="min-w-32"
+                >
+                  Próximo
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  disabled={createImportMutation.isPending}
+                  className="min-w-32"
+                >
+                  {createImportMutation.isPending 
+                    ? "Salvando..." 
+                    : isEditing 
+                      ? "Atualizar" 
+                      : "Criar Importação"
+                  }
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </Form>

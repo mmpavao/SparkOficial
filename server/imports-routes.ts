@@ -351,53 +351,60 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
     }
 
     console.log(`🔍 Import creation for user ${userId}`);
-
-    // Get user's approved credit applications
-    try {
-      console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
-      const userCreditApps = await storage.getCreditApplicationsByUser(userId);
-      console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
-
-      console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
-        id: app.id,
-        status: app.status,
-        financialStatus: app.financialStatus,
-        adminStatus: app.adminStatus
-      })));
-
-      // Updated logic to match working dashboard logic
-      const approvedCredits = userCreditApps.filter(app => {
-        const isApproved = app.financialStatus === 'approved' && 
-                          (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
-        console.log(`App ${app.id}: financialStatus=${app.financialStatus}, adminStatus=${app.adminStatus}, status=${app.status}, isApproved=${isApproved}`);
-        return isApproved;
-      });
-
-      console.log(`✅ Approved credits found: ${approvedCredits.length}`);
-
-      if (!approvedCredits.length) {
-        console.log(`❌ No approved credit found for user ${userId}`);
-        return res.status(400).json({ 
-          message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
-        });
-      }
-    } catch (error) {
-      console.error(`❌ Error getting credit applications:`, error);
-      throw error;
-    }
-
-// Get user's approved credit applications  
-    const userCreditApps = await storage.getCreditApplicationsByUser(userId);
-    const approvedCredits = userCreditApps.filter(app => {
-      return app.financialStatus === 'approved' && 
-             (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
+    console.log('💾 Import creation data:', {
+      ...req.body,
+      userId
     });
 
-    const creditApp = approvedCredits[0];
+    // Check if using own funds (Recursos Próprios)
+    let creditApp = null;
+    if (req.body.paymentMethod === 'own_funds') {
+      console.log('💰 Using own funds - skipping credit validation');
+    } else {
+      // Get user's approved credit applications
+      try {
+        console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+        const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+        console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
 
-    // Calculate total value from request data
+        console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
+          id: app.id,
+          status: app.status,
+          financialStatus: app.financialStatus,
+          adminStatus: app.adminStatus
+        })));
+
+        // Updated logic to match working dashboard logic
+        const approvedCredits = userCreditApps.filter(app => {
+          const isApproved = app.financialStatus === 'approved' && 
+                            (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
+          console.log(`App ${app.id}: financialStatus=${app.financialStatus}, adminStatus=${app.adminStatus}, status=${app.status}, isApproved=${isApproved}`);
+          return isApproved;
+        });
+
+        console.log(`✅ Approved credits found: ${approvedCredits.length}`);
+
+        if (!approvedCredits.length) {
+          console.log(`❌ No approved credit found for user ${userId}`);
+          return res.status(400).json({ 
+            message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
+          });
+        }
+
+        creditApp = approvedCredits[0];
+      } catch (error) {
+        console.error(`❌ Error getting credit applications:`, error);
+        throw error;
+      }
+    }
+
+    // Skip duplicate credit application logic since it's handled above
+
+    // Calculate total value from request data or use provided value
     let totalValue = 0;
-    if (req.body.products && Array.isArray(req.body.products)) {
+    if (req.body.totalValue) {
+      totalValue = parseFloat(req.body.totalValue);
+    } else if (req.body.products && Array.isArray(req.body.products)) {
       totalValue = req.body.products.reduce((sum: number, product: any) => {
         const quantity = parseFloat(product.quantity) || 0;
         const unitPrice = parseFloat(product.unitPrice) || 0;
@@ -414,12 +421,15 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       });
     }
 
-    // Check available credit
-    const creditData = await storage.calculateAvailableCredit(creditApp.id);
-    if (totalValue > creditData.available) {
-      return res.status(400).json({ 
-        message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
-      });
+    // Only check credit if using credit payment method
+    if (req.body.paymentMethod !== 'own_funds' && creditApp) {
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApp.id);
+      if (totalValue > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+        });
+      }
     }
 
     // Get admin fee for user
@@ -434,7 +444,8 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
     // Prepare import data using existing imports table schema
     const importData = {
       userId,
-      creditApplicationId: creditApp.id,
+      creditApplicationId: creditApp?.id || null,
+      paymentMethod: req.body.paymentMethod || 'credit',
       supplierId: req.body.products?.[0]?.supplierId || null,
       importName: req.body.importName || 'Nova Importação',
       cargoType: req.body.cargoType || "FCL",
@@ -465,8 +476,11 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
     };
 
     const importRecord = await storage.createImport(importData);
-// Reserve credit for this import
-    await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+    
+    // Only reserve credit if using credit payment method
+    if (req.body.paymentMethod !== 'own_funds' && creditApp) {
+      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+    }
 
     console.log(`✅ Import created successfully with ID: ${importRecord.id}`);
     res.status(201).json(importRecord);
