@@ -55,6 +55,7 @@ const expandedImportFormSchema = z.object({
   terminalLocation: z.string().optional(),
   
   // Customs broker (new)
+  customsBrokerEmail: z.string().email("Email inválido").optional().or(z.literal("")),
   customsBrokerId: z.number().optional(),
   customsBrokerStatus: z.enum(["pending", "assigned", "processing", "completed"]).default("pending"),
   customsProcessingNotes: z.string().optional(),
@@ -108,6 +109,12 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("basic");
+  const [customsBrokerInfo, setCustomsBrokerInfo] = useState<{
+    valid: boolean;
+    customsBroker?: any;
+    message?: string;
+  } | null>(null);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   
   // Definir a ordem das abas
   const tabOrder = ["basic", "products", "shipping", "customs", "documentation", "costs"];
@@ -132,11 +139,38 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
     enabled: true
   });
 
-  // Get customs brokers for dropdown
-  const { data: customsBrokers = [] } = useQuery({
-    queryKey: ['/api/customs-brokers'],
-    enabled: true
-  });
+  // Function to verify customs broker email
+  const verifyCustomsBrokerEmail = async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setCustomsBrokerInfo(null);
+      return;
+    }
+
+    setIsVerifyingEmail(true);
+    try {
+      const response = await fetch(`/api/customs-broker/verify-email/${encodeURIComponent(email)}`);
+      const result = await response.json();
+      
+      setCustomsBrokerInfo(result);
+      
+      if (result.valid && result.customsBroker) {
+        // Set the customs broker ID in the form
+        form.setValue('customsBrokerId', result.customsBroker.id);
+        form.setValue('customsBrokerStatus', 'assigned');
+      } else {
+        form.setValue('customsBrokerId', undefined);
+        form.setValue('customsBrokerStatus', 'pending');
+      }
+    } catch (error) {
+      console.error('Error verifying customs broker email:', error);
+      setCustomsBrokerInfo({
+        valid: false,
+        message: 'Erro ao verificar email'
+      });
+    } finally {
+      setIsVerifyingEmail(false);
+    }
+  };
 
   // Filter only approved credit applications with type safety
   const creditApplications = Array.isArray(allCreditApplications) 
@@ -162,6 +196,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       creditApplicationId: initialData?.creditApplicationId,
       supplierId: initialData?.supplierId,
       paymentMethod: initialData?.paymentMethod || 'credit',
+      customsBrokerEmail: initialData?.customsBrokerEmail || "",
       customsBrokerId: initialData?.customsBrokerId,
       customsBrokerStatus: initialData?.customsBrokerStatus || "pending",
       riskCategory: initialData?.riskCategory || "normal",
@@ -749,30 +784,40 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="customsBrokerId"
+                    name="customsBrokerEmail"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Despachante</FormLabel>
-                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um despachante" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {Array.isArray(customsBrokers) && customsBrokers.map((broker: any) => (
-                              <SelectItem key={broker.id} value={broker.id?.toString() || `broker-${broker.id}`}>
-                                <div className="flex flex-col">
-                                  <span className="font-medium">{broker.companyName || 'Despachante sem nome'}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {broker.specialization?.slice(0, 2).join(', ') || 'Sem especialização'}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Email do Despachante</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="email"
+                            placeholder="Digite o email do despachante"
+                            onBlur={(e) => {
+                              field.onBlur();
+                              verifyCustomsBrokerEmail(e.target.value);
+                            }}
+                          />
+                        </FormControl>
                         <FormMessage />
+                        {isVerifyingEmail && (
+                          <div className="text-sm text-blue-600">
+                            Verificando email...
+                          </div>
+                        )}
+                        {customsBrokerInfo && (
+                          <div className={`text-sm ${customsBrokerInfo.valid ? 'text-green-600' : 'text-red-600'}`}>
+                            {customsBrokerInfo.valid ? (
+                              <div className="space-y-1">
+                                <div className="font-medium">✓ Despachante encontrado:</div>
+                                <div>{customsBrokerInfo.customsBroker?.fullName}</div>
+                                <div className="text-gray-600">{customsBrokerInfo.customsBroker?.companyName}</div>
+                              </div>
+                            ) : (
+                              <div>⚠ {customsBrokerInfo.message}</div>
+                            )}
+                          </div>
+                        )}
                       </FormItem>
                     )}
                   />

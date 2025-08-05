@@ -399,6 +399,12 @@ export const imports = pgTable("imports", {
   portOfDischarge: text("port_of_discharge"),
   finalDestination: text("final_destination"),
 
+  // Customs Broker Information
+  customsBrokerEmail: text("customs_broker_email"),
+  customsBrokerId: integer("customs_broker_id").references(() => users.id),
+  customsBrokerStatus: text("customs_broker_status").default("pending"), // pending, assigned, processing, completed
+  customsProcessingNotes: text("customs_processing_notes"),
+
   // Customs and Compliance
   customsStatus: text("customs_status"),
   importLicense: text("import_license"),

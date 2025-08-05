@@ -1,6 +1,27 @@
 import { Router } from 'express';
 import { storage } from './storage';
 
+// General auth middleware (for any authenticated user)
+const requireAuth = async (req: any, res: any, next: any) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ message: "Usuário não autenticado" });
+  }
+  
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+    
+    req.user = { id: user.id, email: user.email, role: user.role };
+    next();
+  } catch (error) {
+    console.error("Error in auth middleware:", error);
+    return res.status(500).json({ message: "Erro interno de autenticação" });
+  }
+};
+
 // Auth middleware for customs brokers
 const requireCustomsBrokerAuth = async (req: any, res: any, next: any) => {
   if (!req.session?.userId) {
@@ -101,6 +122,43 @@ router.get('/dashboard', requireCustomsBrokerAuth, async (req, res) => {
     res.json(dashboardData);
   } catch (error) {
     console.error('Error fetching customs broker dashboard:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint to verify if email belongs to a customs broker
+router.get('/verify-email/:email', requireAuth, async (req, res) => {
+  try {
+    const email = req.params.email;
+    console.log(`🔍 Verifying customs broker email: ${email}`);
+    
+    const customsBroker = await storage.getUserByEmail(email);
+    
+    if (!customsBroker) {
+      return res.json({ 
+        valid: false, 
+        message: 'Email não encontrado no sistema' 
+      });
+    }
+
+    if (customsBroker.role !== 'customs_broker') {
+      return res.json({ 
+        valid: false, 
+        message: 'Usuário não é um despachante cadastrado' 
+      });
+    }
+
+    res.json({
+      valid: true,
+      customsBroker: {
+        id: customsBroker.id,
+        fullName: customsBroker.fullName,
+        companyName: customsBroker.companyName,
+        email: customsBroker.email
+      }
+    });
+  } catch (error) {
+    console.error('Error verifying customs broker email:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
