@@ -33,9 +33,45 @@ export const imports = pgTable('imports', {
   containerNumber: text('container_number'),
   sealNumber: text('seal_number'),
   
-  // Dates
+  // Despachante (Customs Broker) information
+  customsBrokerId: integer('customs_broker_id'), // ID do despachante responsável
+  customsBrokerStatus: text('customs_broker_status').default('pending'), // pending, assigned, processing, completed
+  
+  // Detailed customs costs (estimated and actual)
+  estimatedCustomsCosts: jsonb('estimated_customs_costs'), // Custos estimados pelo despachante
+  actualCustomsCosts: jsonb('actual_customs_costs'), // Custos reais após desembaraço
+  customsProcessingNotes: text('customs_processing_notes'), // Observações do despachante
+  
+  // Additional shipping and logistics info
+  shippingLine: text('shipping_line'), // Companhia marítima
+  vesselName: text('vessel_name'), // Nome do navio
+  voyageNumber: text('voyage_number'), // Número da viagem
+  masterBillOfLading: text('master_bill_of_lading'), // Master B/L
+  houseBillOfLading: text('house_bill_of_lading'), // House B/L
+  
+  // Port and terminal details
+  portOfLoading: text('port_of_loading'), // Porto de embarque específico
+  portOfDischarge: text('port_of_discharge'), // Porto de desembarque específico
+  finalDestination: text('final_destination'), // Destino final
+  terminalLocation: text('terminal_location'), // Terminal específico
+  
+  // Customs documentation
+  importDeclarationNumber: text('import_declaration_number'), // Número da DI
+  licenseNumber: text('license_number'), // Número da LI (se aplicável)
+  exchangeRate: decimal('exchange_rate', { precision: 10, scale: 4 }), // Taxa de câmbio usada
+  
+  // Enhanced dates
+  estimatedDeparture: timestamp('estimated_departure'),
+  actualDeparture: timestamp('actual_departure'),
   estimatedArrival: timestamp('estimated_arrival'),
   actualArrival: timestamp('actual_arrival'),
+  customsClearanceDate: timestamp('customs_clearance_date'),
+  deliveryDate: timestamp('delivery_date'),
+  
+  // Insurance and risk
+  insuranceValue: decimal('insurance_value', { precision: 12, scale: 2 }),
+  insuranceCompany: text('insurance_company'),
+  riskCategory: text('risk_category').default('normal'), // low, normal, high
   
   // Timestamps
   createdAt: timestamp('created_at').defaultNow(),
@@ -130,6 +166,72 @@ export const importProducts = pgTable('import_products', {
   supplierId: integer('supplier_id'),
   
   createdAt: timestamp('created_at').defaultNow()
+});
+
+// Customs Brokers table
+export const customsBrokers = pgTable('customs_brokers', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  userId: integer('user_id').notNull(), // O despachante é um usuário no sistema
+  
+  // Company information
+  companyName: text('company_name').notNull(),
+  cnpj: text('cnpj').notNull(),
+  registrationNumber: text('registration_number'), // Registro na Receita Federal
+  licenseNumber: text('license_number'), // Licença de despachante
+  
+  // Contact information
+  contactName: text('contact_name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  address: text('address'),
+  city: text('city'),
+  state: text('state'),
+  zipCode: text('zip_code'),
+  
+  // Specialization
+  specialization: text('specialization').array(), // Especialidades (ex: eletrônicos, têxtil, etc.)
+  servicesOffered: text('services_offered').array(), // Serviços oferecidos
+  portsOfOperation: text('ports_of_operation').array(), // Portos onde atua
+  
+  // Pricing and terms
+  standardFeeStructure: jsonb('standard_fee_structure'), // Estrutura de taxas padrão
+  minimumOrderValue: decimal('minimum_order_value', { precision: 12, scale: 2 }),
+  averageProcessingTime: integer('average_processing_time'), // Tempo médio em dias
+  
+  // Ratings and performance
+  rating: decimal('rating', { precision: 3, scale: 2 }).default('0'), // 0-5 stars
+  totalImportsProcessed: integer('total_imports_processed').default(0),
+  successRate: decimal('success_rate', { precision: 5, scale: 2 }).default('0'), // Percentage
+  
+  // Status
+  isActive: boolean('is_active').default(true),
+  isVerified: boolean('is_verified').default(false), // Verificado pela plataforma
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// Client-Broker relationships table
+export const clientBrokerRelationships = pgTable('client_broker_relationships', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  importerId: integer('importer_id').notNull(), // ID do importador
+  customsBrokerId: integer('customs_broker_id').notNull(), // ID do despachante
+  
+  // Relationship details
+  relationshipType: text('relationship_type').default('preferred'), // preferred, contracted, trial
+  status: text('status').default('active'), // active, inactive, suspended
+  
+  // Contract terms
+  preferredFeeStructure: jsonb('preferred_fee_structure'), // Estrutura de taxas negociada
+  contractStartDate: timestamp('contract_start_date'),
+  contractEndDate: timestamp('contract_end_date'),
+  
+  // Performance tracking
+  totalImportsHandled: integer('total_imports_handled').default(0),
+  averageRating: decimal('average_rating', { precision: 3, scale: 2 }).default('0'),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
 });
 
 // Documents table
@@ -243,7 +345,35 @@ export const insertImportSchema = createInsertSchema(imports, {
   incoterms: z.enum(['FOB', 'CIF', 'EXW'], { required_error: 'Incoterms é obrigatório' }),
   origin: z.string().min(1, 'Porto de origem é obrigatório'),
   destination: z.string().min(1, 'Porto de destino é obrigatório'),
-  destinationState: z.string().optional()
+  destinationState: z.string().optional(),
+  customsBrokerId: z.number().optional(),
+  customsBrokerStatus: z.enum(['pending', 'assigned', 'processing', 'completed']).default('pending'),
+  estimatedCustomsCosts: z.any().optional(), // JSON data for customs costs
+  actualCustomsCosts: z.any().optional(),
+  customsProcessingNotes: z.string().optional(),
+  shippingLine: z.string().optional(),
+  vesselName: z.string().optional(),
+  voyageNumber: z.string().optional(),
+  masterBillOfLading: z.string().optional(),
+  houseBillOfLading: z.string().optional(),
+  portOfLoading: z.string().optional(),
+  portOfDischarge: z.string().optional(),
+  finalDestination: z.string().optional(),
+  terminalLocation: z.string().optional(),
+  importDeclarationNumber: z.string().optional(),
+  licenseNumber: z.string().optional(),
+  exchangeRate: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
+  insuranceValue: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
+  insuranceCompany: z.string().optional(),
+  riskCategory: z.enum(['low', 'normal', 'high']).default('normal')
 }).omit({
   id: true,
   createdAt: true,
@@ -281,6 +411,10 @@ export type ImportPayment = typeof importPayments.$inferSelect;
 // Product types
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+// Customs Broker types  
+export type CustomsBroker = typeof customsBrokers.$inferSelect;
+export type ClientBrokerRelationship = typeof clientBrokerRelationships.$inferSelect;
 
 // Status workflow constants
 export const IMPORT_STATUSES = {

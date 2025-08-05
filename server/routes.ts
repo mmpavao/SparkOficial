@@ -6110,6 +6110,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const productsRoutes = await import('./products-routes');
   app.use('/api/products', productsRoutes.default);
 
+  // Register customs brokers routes
+  const customsBrokersRoutes = await import('./customs-brokers-routes');
+  app.use('/api/customs-brokers', customsBrokersRoutes.default);
+
   const httpServer = createServer(app);
   return httpServer;
 }

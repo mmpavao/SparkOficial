@@ -31,6 +31,12 @@ import {
   type Product,
   type InsertProduct
 } from "@shared/imports-schema";
+import { 
+  customsBrokers,
+  clientBrokerRelationships,
+  type CustomsBroker,
+  type ClientBrokerRelationship
+} from "@shared/imports-schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -2148,6 +2154,131 @@ export class DatabaseStorage {
       .where(and(eq(products.ncmCode, ncmCode), eq(products.userId, userId), eq(products.isActive, true)))
       .limit(1);
     return product;
+  }
+
+  // ===== CUSTOMS BROKERS OPERATIONS =====
+
+  async getCustomsBrokers(): Promise<CustomsBroker[]> {
+    const result = await db
+      .select()
+      .from(customsBrokers)
+      .where(eq(customsBrokers.isActive, true))
+      .orderBy(desc(customsBrokers.rating), desc(customsBrokers.createdAt));
+    return result;
+  }
+
+  async getCustomsBrokerById(id: number): Promise<CustomsBroker | undefined> {
+    const result = await db
+      .select()
+      .from(customsBrokers)
+      .where(eq(customsBrokers.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getCustomsBrokerByUserId(userId: number): Promise<CustomsBroker | undefined> {
+    const result = await db
+      .select()
+      .from(customsBrokers)
+      .where(eq(customsBrokers.userId, userId))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCustomsBroker(data: Omit<CustomsBroker, 'id' | 'createdAt' | 'updatedAt'>): Promise<CustomsBroker> {
+    const [broker] = await db
+      .insert(customsBrokers)
+      .values(data)
+      .returning();
+    return broker;
+  }
+
+  async updateCustomsBroker(id: number, data: Partial<CustomsBroker>): Promise<CustomsBroker> {
+    const [broker] = await db
+      .update(customsBrokers)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(customsBrokers.id, id))
+      .returning();
+    return broker;
+  }
+
+  // ===== CLIENT-BROKER RELATIONSHIPS =====
+
+  async getImporterBrokers(importerId: number): Promise<CustomsBroker[]> {
+    const result = await db
+      .select({
+        ...getTableColumns(customsBrokers),
+        relationshipStatus: clientBrokerRelationships.status,
+        relationshipType: clientBrokerRelationships.relationshipType,
+        averageRating: clientBrokerRelationships.averageRating
+      })
+      .from(clientBrokerRelationships)
+      .innerJoin(customsBrokers, eq(customsBrokers.id, clientBrokerRelationships.customsBrokerId))
+      .where(
+        and(
+          eq(clientBrokerRelationships.importerId, importerId),
+          eq(clientBrokerRelationships.status, 'active')
+        )
+      )
+      .orderBy(desc(clientBrokerRelationships.averageRating));
+    return result as CustomsBroker[];
+  }
+
+  async getBrokerClients(customsBrokerId: number): Promise<User[]> {
+    const result = await db
+      .select({
+        ...getTableColumns(users),
+        relationshipStatus: clientBrokerRelationships.status,
+        relationshipType: clientBrokerRelationships.relationshipType,
+        totalImportsHandled: clientBrokerRelationships.totalImportsHandled
+      })
+      .from(clientBrokerRelationships)
+      .innerJoin(users, eq(users.id, clientBrokerRelationships.importerId))
+      .where(
+        and(
+          eq(clientBrokerRelationships.customsBrokerId, customsBrokerId),
+          eq(clientBrokerRelationships.status, 'active')
+        )
+      )
+      .orderBy(desc(clientBrokerRelationships.totalImportsHandled));
+    return result as User[];
+  }
+
+  async createClientBrokerRelationship(data: Omit<ClientBrokerRelationship, 'id' | 'createdAt' | 'updatedAt'>): Promise<ClientBrokerRelationship> {
+    const [relationship] = await db
+      .insert(clientBrokerRelationships)
+      .values(data)
+      .returning();
+    return relationship;
+  }
+
+  async updateClientBrokerRelationship(id: number, data: Partial<ClientBrokerRelationship>): Promise<ClientBrokerRelationship> {
+    const [relationship] = await db
+      .update(clientBrokerRelationships)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(clientBrokerRelationships.id, id))
+      .returning();
+    return relationship;
+  }
+
+  async getImportCustomsBroker(importId: number): Promise<CustomsBroker | undefined> {
+    const importData = await this.getImportById(importId);
+    if (!importData?.customsBrokerId) return undefined;
+    
+    return this.getCustomsBrokerById(importData.customsBrokerId);
+  }
+
+  async assignCustomsBrokerToImport(importId: number, customsBrokerId: number, userId: number): Promise<Import> {
+    const [updatedImport] = await db
+      .update(imports)
+      .set({ 
+        customsBrokerId,
+        customsBrokerStatus: 'assigned',
+        updatedAt: new Date()
+      })
+      .where(and(eq(imports.id, importId), eq(imports.userId, userId)))
+      .returning();
+    return updatedImport;
   }
 }
 

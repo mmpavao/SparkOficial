@@ -169,12 +169,20 @@ export default function ImportsPage() {
           </p>
         </div>
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
-          <Link href="/imports/new">
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Importação
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/imports/new">
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Importação (Crédito)
+              </Button>
+            </Link>
+            <Link href="/imports/new-expanded">
+              <Button variant="outline" className="border-emerald-600 text-emerald-600 hover:bg-emerald-50">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Importação (Operacional)
+              </Button>
+            </Link>
+          </div>
         )}
       </div>
 
