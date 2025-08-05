@@ -125,6 +125,11 @@ export const products = pgTable('products', {
   minimumOrderQuantity: integer('minimum_order_quantity').default(1),
   standardPackSize: integer('standard_pack_size').default(1),
   
+  // Pricing information
+  unitPrice: decimal('unit_price', { precision: 10, scale: 2 }), // Preço unitário
+  currency: text('currency').default('USD'), // Moeda (USD, CNY, EUR, etc.)
+  lastUpdatedPrice: timestamp('last_updated_price'), // Última atualização do preço
+  
   // Tax and duty information (estimativas)
   estimatedImportTax: decimal('estimated_import_tax', { precision: 5, scale: 2 }), // % II
   estimatedIpi: decimal('estimated_ipi', { precision: 5, scale: 2 }), // % IPI
@@ -335,6 +340,12 @@ export const insertProductSchema = createInsertSchema(products).omit({
     const num = typeof val === 'string' ? parseFloat(val) : val;
     return isNaN(num) ? undefined : num;
   }),
+  unitPrice: z.union([z.string(), z.number(), z.undefined()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
+  currency: z.string().default('USD'),
 });
 
 // Insert schemas using drizzle-zod

@@ -57,17 +57,17 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       ncmCode: product?.ncmCode || '',
       hsCode: product?.hsCode || '',
       productOrigin: product?.productOrigin || 'China',
-      weight: product?.weight || 0,
-      length: product?.length || undefined,
-      width: product?.width || undefined,
-      height: product?.height || undefined,
+      weight: product?.weight ? Number(product.weight) : 0,
+      length: product?.length ? Number(product.length) : undefined,
+      width: product?.width ? Number(product.width) : undefined,
+      height: product?.height ? Number(product.height) : undefined,
       material: product?.material || '',
       composition: product?.composition || '',
       brand: product?.brand || '',
       model: product?.model || '',
       packagingType: product?.packagingType || '',
       unitsPerPackage: product?.unitsPerPackage || 1,
-      packageWeight: product?.packageWeight || undefined,
+      packageWeight: product?.packageWeight ? Number(product.packageWeight) : undefined,
       packageDimensions: product?.packageDimensions || '',
       dangerousGoods: product?.dangerousGoods || false,
       requiresSpecialHandling: product?.requiresSpecialHandling || false,
@@ -76,6 +76,8 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       unitOfMeasure: product?.unitOfMeasure || 'PCS',
       minimumOrderQuantity: product?.minimumOrderQuantity || 1,
       standardPackSize: product?.standardPackSize || 1,
+      unitPrice: product?.unitPrice ? Number(product.unitPrice) : undefined,
+      currency: product?.currency || 'USD',
       estimatedImportTax: product?.estimatedImportTax || undefined,
       estimatedIpi: product?.estimatedIpi || undefined,
       estimatedPis: product?.estimatedPis || undefined,
@@ -536,6 +538,53 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Pricing Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="unitPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preço Unitário</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        placeholder="Ex: 25.50" 
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Moeda</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a moeda" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                        <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                        <SelectItem value="EUR">EUR - Euro</SelectItem>
+                        <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
