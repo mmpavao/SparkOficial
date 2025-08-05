@@ -227,6 +227,11 @@ export const insertProductSchema = createInsertSchema(products).omit({
     const num = typeof val === 'string' ? parseFloat(val) : val;
     return isNaN(num) ? undefined : num;
   }),
+  volume: z.union([z.string(), z.number(), z.undefined()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
 });
 
 // Insert schemas using drizzle-zod
