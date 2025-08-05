@@ -356,50 +356,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       userId
     });
 
-    // Check if using own funds (Recursos Próprios)
-    let creditApp = null;
-    if (req.body.paymentMethod === 'own_funds') {
-      console.log('💰 Using own funds - skipping credit validation');
-      // Skip credit validation for own funds
-    } else {
-      // Get user's approved credit applications
-      try {
-        console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
-        const userCreditApps = await storage.getCreditApplicationsByUser(userId);
-        console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
-
-        console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
-          id: app.id,
-          status: app.status,
-          financialStatus: app.financialStatus,
-          adminStatus: app.adminStatus
-        })));
-
-        // Updated logic to match working dashboard logic
-        const approvedCredits = userCreditApps.filter(app => {
-          const isApproved = app.financialStatus === 'approved' && 
-                            (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
-          console.log(`App ${app.id}: financialStatus=${app.financialStatus}, adminStatus=${app.adminStatus}, status=${app.status}, isApproved=${isApproved}`);
-          return isApproved;
-        });
-
-        console.log(`✅ Approved credits found: ${approvedCredits.length}`);
-
-        if (!approvedCredits.length) {
-          console.log(`❌ No approved credit found for user ${userId}`);
-          return res.status(400).json({ 
-            message: "Você precisa ter um crédito aprovado e disponível para criar importações usando crédito" 
-          });
-        }
-
-        creditApp = approvedCredits[0];
-      } catch (error) {
-        console.error(`❌ Error getting credit applications:`, error);
-        throw error;
-      }
-    }
-
-    // Skip duplicate credit application logic since it's handled above
+    console.log('💰 Creating standalone import (no credit system dependency)');
 
     // Calculate total value from request data or use provided value
     let totalValue = 0;
@@ -413,7 +370,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       }, 0);
     }
 
-    console.log('Calculated total value:', totalValue);
+    console.log('💰 Calculated total value:', totalValue);
 
     // Ensure we have a valid total value
     if (!totalValue || totalValue <= 0) {
@@ -422,38 +379,11 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       });
     }
 
-    // Only check credit if using credit payment method
-    if (req.body.paymentMethod !== 'own_funds' && creditApp) {
-      // Check available credit
-      const creditData = await storage.calculateAvailableCredit(creditApp.id);
-      if (totalValue > creditData.available) {
-        return res.status(400).json({ 
-          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
-        });
-      }
-    }
-
-    // Get admin fee for user (only if using credit)
-    let feeRate = 0;
-    let feeAmount = 0;
-    let totalWithFees = totalValue;
-    let downPaymentAmount = 0;
-
-    if (req.body.paymentMethod !== 'own_funds') {
-      const adminFee = await storage.getAdminFeeForUser(userId);
-      feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 10; // Default 10%
-      feeAmount = (totalValue * feeRate) / 100;
-      totalWithFees = totalValue + feeAmount;
-      // Calculate down payment (10% of total with fees)
-      downPaymentAmount = (totalWithFees * 10) / 100;
-    }
-
-    // Prepare import data using existing imports table schema
+    // Prepare import data using existing imports table schema (standalone - no credit dependency)
     const importData = {
       userId,
-      creditApplicationId: creditApp?.id || null,
-      paymentMethod: req.body.paymentMethod || 'credit',
-      supplierId: req.body.products?.[0]?.supplierId || null,
+      creditApplicationId: null, // Always null for standalone module
+      supplierId: req.body.supplierId || req.body.products?.[0]?.supplierId || null,
       importName: req.body.importName || 'Nova Importação',
       cargoType: req.body.cargoType || "FCL",
       containerNumber: req.body.containerNumber || null,
@@ -462,34 +392,34 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       totalValue: totalValue.toString(),
       currency: req.body.currency || "USD",
       incoterms: req.body.incoterm || req.body.incoterms || "FOB",
-      shippingMethod: req.body.shippingMethod || "sea",
+      shippingMethod: req.body.transportMethod || req.body.shippingMethod || "sea",
       containerType: req.body.containerType || null,
-      estimatedDelivery: req.body.estimatedDelivery ? new Date(req.body.estimatedDelivery) : null,
+      estimatedDelivery: req.body.estimatedArrival ? new Date(req.body.estimatedArrival) : null,
       status: "planejamento",
       currentStage: "estimativa",
-      // Credit management fields
-      creditUsed: totalValue.toString(),
-      adminFeeRate: feeRate.toString(),
-      adminFeeAmount: feeAmount.toString(),
-      totalWithFees: totalWithFees.toString(),
-      downPaymentRequired: downPaymentAmount.toString(),
-      paymentStatus: "pending",
-      paymentTermsDays: creditApp ? parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30") : 30,
+      // No credit fields - standalone module
+      creditUsed: null,
+      adminFeeRate: null,
+      adminFeeAmount: null,
+      totalWithFees: totalValue.toString(),
+      downPaymentRequired: null,
+      paymentStatus: "n/a", // Not applicable for standalone
+      paymentTermsDays: null,
       // Additional fields from form
       portOfLoading: req.body.portOfLoading,
       portOfDischarge: req.body.portOfDischarge,
       finalDestination: req.body.finalDestination,
+      // Customs broker fields
+      customsBrokerEmail: req.body.customsBrokerEmail,
+      customsBrokerId: req.body.customsBrokerId,
+      customsBrokerStatus: req.body.customsBrokerStatus || "pending",
+      customsProcessingNotes: req.body.customsProcessingNotes,
       notes: req.body.notes
     };
 
-    console.log('🚀 ATTEMPTING TO CREATE IMPORT WITH DATA:', JSON.stringify(importData, null, 2));
+    console.log('🚀 Creating standalone import with data:', JSON.stringify(importData, null, 2));
     const importRecord = await storage.createImport(importData);
-    console.log('✅ Import created successfully:', importRecord);
-    
-    // Only reserve credit if using credit payment method
-    if (req.body.paymentMethod !== 'own_funds' && creditApp) {
-      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
-    }
+    console.log('✅ Standalone import created successfully:', importRecord);
 
     console.log(`✅ Import created successfully with ID: ${importRecord.id}`);
     res.status(201).json(importRecord);

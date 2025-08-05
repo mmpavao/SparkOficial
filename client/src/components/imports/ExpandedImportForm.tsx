@@ -59,7 +59,6 @@ const expandedImportFormSchema = z.object({
   customsBrokerId: z.number().optional(),
   customsBrokerStatus: z.enum(["pending", "assigned", "processing", "completed"]).default("pending"),
   customsProcessingNotes: z.string().optional(),
-  paymentMethod: z.enum(['credit', 'own_funds']).default('credit'),
   
   // Customs documentation (new)
   importDeclarationNumber: z.string().optional(),
@@ -94,16 +93,6 @@ const expandedImportFormSchema = z.object({
   })).optional(),
   
   notes: z.string().optional()
-}).refine((data) => {
-  // Se paymentMethod for 'credit', creditApplicationId é obrigatório
-  if (data.paymentMethod === 'credit') {
-    return data.creditApplicationId !== undefined && data.creditApplicationId > 0;
-  }
-  // Se for 'own_funds', creditApplicationId não é necessário
-  return true;
-}, {
-  message: "Aplicação de crédito é obrigatória quando usar créditos aprovados",
-  path: ["creditApplicationId"]
 });
 
 type ExpandedImportFormData = z.infer<typeof expandedImportFormSchema>;
@@ -204,7 +193,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       incoterm: initialData?.incoterm || "FOB",
       creditApplicationId: initialData?.creditApplicationId,
       supplierId: initialData?.supplierId,
-      paymentMethod: initialData?.paymentMethod || 'credit',
+
       customsBrokerEmail: initialData?.customsBrokerEmail || "",
       customsBrokerId: initialData?.customsBrokerId,
       customsBrokerStatus: initialData?.customsBrokerStatus || "pending",
