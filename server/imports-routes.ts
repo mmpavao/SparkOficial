@@ -467,7 +467,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       totalWithFees: totalWithFees.toString(),
       downPaymentRequired: downPaymentAmount.toString(),
       paymentStatus: "pending",
-      paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
+      paymentTermsDays: creditApp ? parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30") : 30,
       // Additional fields from form
       portOfLoading: req.body.portOfLoading,
       portOfDischarge: req.body.portOfDischarge,
@@ -475,7 +475,9 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       notes: req.body.notes
     };
 
+    console.log('🚀 ATTEMPTING TO CREATE IMPORT WITH DATA:', JSON.stringify(importData, null, 2));
     const importRecord = await storage.createImport(importData);
+    console.log('✅ Import created successfully:', importRecord);
     
     // Only reserve credit if using credit payment method
     if (req.body.paymentMethod !== 'own_funds' && creditApp) {
@@ -485,8 +487,14 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
     console.log(`✅ Import created successfully with ID: ${importRecord.id}`);
     res.status(201).json(importRecord);
   } catch (error) {
-    console.error('Error creating import:', error);
-    res.status(400).json({ error: 'Failed to create import' });
+    console.error('❌ DETAILED ERROR creating import:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    res.status(400).json({ 
+      error: 'Failed to create import',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
