@@ -35,7 +35,7 @@ const expandedImportFormSchema = z.object({
   currency: z.string().default("USD"),
   status: z.string().default("planejamento"),
   supplierId: z.number().optional(),
-  incoterms: z.enum(["FOB", "CIF", "EXW"]),
+  incoterm: z.enum(["FOB", "CIF", "EXW"]),
   
   // Container info (existing) 
   containerNumber: z.string().optional(),
@@ -192,7 +192,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       totalValue: initialData?.totalValue || "0",
       currency: initialData?.currency || "USD",
       status: initialData?.status || "planejamento",
-      incoterms: initialData?.incoterms || "FOB",
+      incoterm: initialData?.incoterm || "FOB",
       creditApplicationId: initialData?.creditApplicationId,
       supplierId: initialData?.supplierId,
       paymentMethod: initialData?.paymentMethod || 'credit',
@@ -241,10 +241,13 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   });
 
   const onSubmit = (data: ExpandedImportFormData) => {
+    console.log("Form submission attempted with data:", data);
+    console.log("Form errors:", form.formState.errors);
+    
     // Calculate total value for LCL based on products
     if (cargoType === 'LCL' && data.products && data.products.length > 0) {
       const calculatedTotal = data.products.reduce((sum, product) => 
-        sum + (product.quantity * product.unitPrice), 0
+        sum + (Number(product.quantity || 0) * Number(product.unitPrice || 0)), 0
       );
       data.totalValue = calculatedTotal.toString();
     }
@@ -495,7 +498,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
 
                   <FormField
                     control={form.control}
-                    name="incoterms"
+                    name="incoterm"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Incoterms *</FormLabel>
@@ -558,13 +561,13 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 </CardHeader>
                 <CardContent>
                   <ProductManager 
-                    products={(form.watch("products") as any[]) || []}
-                    suppliers={suppliers || []}
+                    products={form.watch("products") as any[] || []}
+                    suppliers={Array.isArray(suppliers) ? suppliers : []}
                     onProductsChange={(products: any[]) => {
                       form.setValue("products", products);
                       // Calcula automaticamente o valor total
                       const totalValue = products.reduce((sum, product) => 
-                        sum + (product.quantity * product.unitPrice), 0
+                        sum + (Number(product.quantity || 0) * Number(product.unitPrice || 0)), 0
                       );
                       form.setValue("totalValue", totalValue.toString());
                     }}
