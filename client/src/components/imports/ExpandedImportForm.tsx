@@ -78,11 +78,16 @@ const expandedImportFormSchema = z.object({
   // Products
   products: z.array(z.object({
     productName: z.string().min(1, "Nome do produto é obrigatório"),
-    quantity: z.number().min(1, "Quantidade deve ser maior que zero"),
-    unitPrice: z.number().min(0, "Preço unitário deve ser maior ou igual a zero"),
-    totalValue: z.number().min(0),
+    quantity: z.coerce.number().min(1, "Quantidade deve ser maior que zero"),
+    unitPrice: z.coerce.number().min(0, "Preço unitário deve ser maior ou igual a zero"),
+    totalValue: z.coerce.number().min(0),
     supplierId: z.number().optional()
-  })).optional(),
+  }).transform((data) => ({
+    ...data,
+    quantity: Number(data.quantity),
+    unitPrice: Number(data.unitPrice),
+    totalValue: Number(data.totalValue)
+  }))).optional(),
   
   notes: z.string().optional()
 }).refine((data) => {
@@ -241,15 +246,10 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   });
 
   const onSubmit = (data: ExpandedImportFormData) => {
-    console.log("🚀 Form submission started", data);
-    console.log("📋 Form errors:", form.formState.errors);
-    console.log("💰 Payment method:", data.paymentMethod);
-    console.log("🏦 Credit Application ID:", data.creditApplicationId);
-    
     // Calculate total value for LCL based on products
     if (cargoType === 'LCL' && data.products && data.products.length > 0) {
       const calculatedTotal = data.products.reduce((sum, product) => 
-        sum + (product.quantity * product.unitPrice), 0
+        sum + (Number(product.quantity) * Number(product.unitPrice)), 0
       );
       data.totalValue = calculatedTotal.toString();
     }
@@ -259,7 +259,6 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       data.creditApplicationId = undefined;
     }
 
-    console.log("📦 Final data being sent:", data);
     createImportMutation.mutate(data);
   };
 
@@ -572,10 +571,18 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     products={(form.watch("products") as any[]) || []}
                     suppliers={suppliers || []}
                     onProductsChange={(products: any[]) => {
-                      form.setValue("products", products);
+                      // Converter strings para números antes de salvar
+                      const convertedProducts = products.map(product => ({
+                        ...product,
+                        quantity: Number(product.quantity || 0),
+                        unitPrice: Number(product.unitPrice || 0),
+                        totalValue: Number(product.totalValue || 0)
+                      }));
+                      
+                      form.setValue("products", convertedProducts);
                       // Calcula automaticamente o valor total
-                      const totalValue = products.reduce((sum, product) => 
-                        sum + (product.quantity * product.unitPrice), 0
+                      const totalValue = convertedProducts.reduce((sum, product) => 
+                        sum + (Number(product.quantity) * Number(product.unitPrice)), 0
                       );
                       form.setValue("totalValue", totalValue.toString());
                     }}
@@ -1049,11 +1056,6 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                   type="submit" 
                   disabled={createImportMutation.isPending}
                   className="min-w-32"
-                  onClick={() => {
-                    console.log("🔄 Button clicked, form validation:", form.formState.isValid);
-                    console.log("❌ Form errors:", form.formState.errors);
-                    console.log("📝 Current form values:", form.getValues());
-                  }}
                 >
                   {createImportMutation.isPending 
                     ? "Salvando..." 
