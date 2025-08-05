@@ -77,11 +77,20 @@ const expandedImportFormSchema = z.object({
   
   // Products
   products: z.array(z.object({
+    productId: z.number().optional(),
     productName: z.string().min(1, "Nome do produto é obrigatório"),
     quantity: z.number().min(1, "Quantidade deve ser maior que zero"),
-    unitPrice: z.number().min(0, "Preço unitário deve ser maior ou igual a zero"),
+    unitPrice: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) || 0 : val),
     totalValue: z.number().min(0),
-    supplierId: z.number().optional()
+    supplierId: z.number().optional(),
+    ncmCode: z.string().optional(),
+    hsCode: z.string().optional(),
+    description: z.string().optional(),
+    weight: z.string().optional(),
+    currency: z.string().optional(),
+    unitOfMeasure: z.string().optional(),
+    brand: z.string().optional(),
+    material: z.string().optional()
   })).optional(),
   
   notes: z.string().optional()
