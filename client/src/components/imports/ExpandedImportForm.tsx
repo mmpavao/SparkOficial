@@ -243,6 +243,14 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   const onSubmit = (data: ExpandedImportFormData) => {
     console.log("Form submission attempted with data:", data);
     console.log("Form errors:", form.formState.errors);
+    console.log("Form valid:", form.formState.isValid);
+    
+    // Verificar se há erros de validação
+    if (!form.formState.isValid) {
+      console.log("Form has validation errors, triggering validation...");
+      form.trigger(); // Força a validação
+      return;
+    }
     
     // Calculate total value for LCL based on products
     if (cargoType === 'LCL' && data.products && data.products.length > 0) {
@@ -252,6 +260,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       data.totalValue = calculatedTotal.toString();
     }
 
+    console.log("Sending data to API:", data);
     createImportMutation.mutate(data);
   };
 
@@ -1038,9 +1047,13 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 </Button>
               ) : (
                 <Button 
-                  type="submit" 
+                  type="button" 
                   disabled={createImportMutation.isPending}
                   className="min-w-32"
+                  onClick={() => {
+                    console.log("Button clicked manually");
+                    form.handleSubmit(onSubmit)();
+                  }}
                 >
                   {createImportMutation.isPending 
                     ? "Salvando..." 
