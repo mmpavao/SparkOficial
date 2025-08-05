@@ -161,17 +161,17 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                   <div>
                     <Label htmlFor={`supplier-${index}`}>Fornecedor</Label>
                     <Select
-                      value={product.supplierId?.toString() || ""}
-                      onValueChange={(value) => updateProduct(index, 'supplierId', value ? parseInt(value) : undefined)}
+                      value={product.supplierId?.toString() || "no-supplier"}
+                      onValueChange={(value) => updateProduct(index, 'supplierId', value === "no-supplier" ? undefined : parseInt(value))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione um fornecedor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum fornecedor</SelectItem>
-                        {suppliers.map((supplier: any) => (
-                          <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                            {supplier.companyName}
+                        <SelectItem value="no-supplier">Nenhum fornecedor</SelectItem>
+                        {suppliers.map((supplier: any, index: number) => (
+                          <SelectItem key={supplier.id || index} value={supplier.id?.toString() || `supplier-${index}`}>
+                            {supplier.companyName || 'Fornecedor sem nome'}
                           </SelectItem>
                         ))}
                       </SelectContent>
