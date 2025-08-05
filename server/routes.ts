@@ -6106,6 +6106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', importRoutes);
   console.log('Imports routes registered successfully');
 
+  // Register products routes
+  const productsRoutes = await import('./products-routes');
+  app.use('/api/products', productsRoutes.default);
+
   const httpServer = createServer(app);
   return httpServer;
 }

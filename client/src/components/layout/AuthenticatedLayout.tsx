@@ -151,6 +151,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           ? "Todos Fornecedores" 
           : "Fornecedores"
     },
+    { 
+      path: "/products", 
+      icon: Package, 
+      label: "Produtos"
+    },
     { path: "/payments", icon: DollarSign, label: "Pagamentos" },
     // Suporte só aparece para importadores na navegação principal
     ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: "Suporte" }] : []),

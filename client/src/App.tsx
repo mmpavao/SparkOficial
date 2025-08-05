@@ -36,6 +36,7 @@ import AdminSupportPage from "@/pages/admin-support";
 import SupportPage from "@/pages/support";
 import SupportNewPage from "@/pages/support-new";
 import SupportTicketPage from "@/pages/support-ticket";
+import ProductsPage from "@/pages/products";
 
 import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
@@ -82,6 +83,8 @@ function Router() {
         <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />
         <Route path="/suppliers/edit/:id" component={SupplierEditPage} />
         <Route path="/suppliers/new" component={SupplierNewPage} />
+        
+        <Route path="/products" component={ProductsPage} />
         
         <Route path="/payments" component={PaymentsPage} />
         <Route path="/payments/:id" component={PaymentDetailsPage} />

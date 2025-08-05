@@ -26,6 +26,11 @@ import {
   type SupportTicket,
   type TicketMessage,
 } from "@shared/schema";
+import { 
+  products,
+  type Product,
+  type InsertProduct
+} from "@shared/imports-schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, getTableColumns, or, sql, isNull, isNotNull, gte, lte, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -2084,6 +2089,65 @@ export class DatabaseStorage {
       .returning();
 
     return ticket;
+  }
+
+  // ===== PRODUCT OPERATIONS =====
+  
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const [product] = await db
+      .insert(products)
+      .values({
+        ...insertProduct,
+        userId: insertProduct.userId || 0, // This will be set by the route handler
+      })
+      .returning();
+    return product;
+  }
+
+  async getProductsByUserId(userId: number): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.userId, userId))
+      .orderBy(desc(products.createdAt));
+  }
+
+  async getProductById(id: number, userId: number): Promise<Product | undefined> {
+    const [product] = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.id, id), eq(products.userId, userId)))
+      .limit(1);
+    return product;
+  }
+
+  async updateProduct(id: number, userId: number, updateData: Partial<InsertProduct>): Promise<Product | undefined> {
+    const [product] = await db
+      .update(products)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(products.id, id), eq(products.userId, userId)))
+      .returning();
+    return product;
+  }
+
+  async deleteProduct(id: number, userId: number): Promise<boolean> {
+    const result = await db
+      .update(products)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(and(eq(products.id, id), eq(products.userId, userId)));
+    return result.rowCount > 0;
+  }
+
+  async getProductByNCM(ncmCode: string, userId: number): Promise<Product | undefined> {
+    const [product] = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.ncmCode, ncmCode), eq(products.userId, userId), eq(products.isActive, true)))
+      .limit(1);
+    return product;
   }
 }
 

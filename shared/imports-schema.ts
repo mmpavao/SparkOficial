@@ -42,22 +42,92 @@ export const imports = pgTable('imports', {
   updatedAt: timestamp('updated_at').defaultNow()
 });
 
-// Products table for LCL imports
+// Master products catalog table
+export const products = pgTable('products', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  userId: integer('user_id').notNull(),
+  
+  // Basic product information
+  productName: text('product_name').notNull(),
+  description: text('description').notNull(),
+  category: text('category'), // Categoria do produto
+  subCategory: text('sub_category'), // Subcategoria
+  
+  // Classification and customs
+  ncmCode: text('ncm_code').notNull(), // Código NCM brasileiro (8 dígitos)
+  hsCode: text('hs_code'), // Código HS internacional (6 dígitos)
+  productOrigin: text('product_origin').default('China'), // País de origem
+  
+  // Physical specifications
+  weight: decimal('weight', { precision: 8, scale: 3 }).notNull(), // Peso unitário em kg
+  length: decimal('length', { precision: 8, scale: 2 }), // Comprimento em cm
+  width: decimal('width', { precision: 8, scale: 2 }), // Largura em cm
+  height: decimal('height', { precision: 8, scale: 2 }), // Altura em cm
+  volume: decimal('volume', { precision: 8, scale: 4 }), // Volume em m³
+  
+  // Material and composition
+  material: text('material'), // Material principal
+  composition: text('composition'), // Composição detalhada
+  brand: text('brand'), // Marca
+  model: text('model'), // Modelo
+  
+  // Packaging information
+  packagingType: text('packaging_type'), // Tipo de embalagem
+  unitsPerPackage: integer('units_per_package').default(1), // Unidades por embalagem
+  packageWeight: decimal('package_weight', { precision: 8, scale: 3 }), // Peso da embalagem
+  packageDimensions: text('package_dimensions'), // Dimensões da embalagem
+  
+  // Safety and compliance
+  dangerousGoods: boolean('dangerous_goods').default(false), // Mercadoria perigosa
+  requiresSpecialHandling: boolean('requires_special_handling').default(false),
+  certifications: text('certifications').array(), // Certificações necessárias
+  restrictions: text('restrictions'), // Restrições de importação
+  
+  // Commercial information
+  unitOfMeasure: text('unit_of_measure').notNull().default('PCS'), // PCS, KG, M, M2, M3, etc
+  minimumOrderQuantity: integer('minimum_order_quantity').default(1),
+  standardPackSize: integer('standard_pack_size').default(1),
+  
+  // Tax and duty information (estimativas)
+  estimatedImportTax: decimal('estimated_import_tax', { precision: 5, scale: 2 }), // % II
+  estimatedIpi: decimal('estimated_ipi', { precision: 5, scale: 2 }), // % IPI
+  estimatedPis: decimal('estimated_pis', { precision: 5, scale: 2 }), // % PIS
+  estimatedCofins: decimal('estimated_cofins', { precision: 5, scale: 2 }), // % COFINS
+  estimatedIcms: decimal('estimated_icms', { precision: 5, scale: 2 }), // % ICMS
+  
+  // Additional information
+  notes: text('notes'), // Observações adicionais
+  isActive: boolean('is_active').default(true),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// Products table for LCL imports - referencia os produtos master
 export const importProducts = pgTable('import_products', {
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   importId: integer('import_id').notNull(),
+  productId: integer('product_id').references(() => products.id), // Referência ao produto master
   
-  // Product information
+  // Product information (pode sobrescrever dados do master)
   productName: text('product_name').notNull(),
   description: text('description'),
   quantity: integer('quantity').notNull(),
   unitPrice: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
   totalValue: decimal('total_value', { precision: 12, scale: 2 }).notNull(),
   
-  // Classification
+  // Classification (herdada do master mas pode ser sobrescrita)
+  ncmCode: text('ncm_code'),
   hsCode: text('hs_code'),
-  weight: decimal('weight', { precision: 8, scale: 2 }),
+  
+  // Physical specs for this specific import
+  unitWeight: decimal('unit_weight', { precision: 8, scale: 3 }),
+  totalWeight: decimal('total_weight', { precision: 8, scale: 3 }),
   dimensions: text('dimensions'),
+  totalVolume: decimal('total_volume', { precision: 8, scale: 4 }),
+  
+  // Supplier for this specific import
+  supplierId: integer('supplier_id'),
   
   createdAt: timestamp('created_at').defaultNow()
 });
@@ -124,6 +194,41 @@ export const importPayments = pgTable('import_payments', {
   updatedAt: timestamp('updated_at').defaultNow()
 });
 
+// Zod schemas for validation
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  productName: z.string().min(1, "Nome do produto é obrigatório"),
+  description: z.string().min(1, "Descrição é obrigatória"),
+  ncmCode: z.string()
+    .min(8, "Código NCM deve ter 8 dígitos")
+    .max(10, "Código NCM deve ter no máximo 10 dígitos")
+    .regex(/^\d{8}(\.\d{2})?$/, "Formato de NCM inválido (ex: 84159020 ou 84159020.00)"),
+  weight: z.union([z.string(), z.number()]).transform((val) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? 0 : num;
+  }).refine((val) => val > 0, "Peso deve ser maior que 0"),
+  unitOfMeasure: z.string().min(1, "Unidade de medida é obrigatória"),
+  length: z.union([z.string(), z.number(), z.undefined()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
+  width: z.union([z.string(), z.number(), z.undefined()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
+  height: z.union([z.string(), z.number(), z.undefined()]).optional().transform((val) => {
+    if (val === undefined || val === '') return undefined;
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? undefined : num;
+  }),
+});
+
 // Insert schemas using drizzle-zod
 export const insertImportSchema = createInsertSchema(imports, {
   totalValue: z.string().min(1, 'Valor total é obrigatório'),
@@ -140,7 +245,7 @@ export const insertImportSchema = createInsertSchema(imports, {
   updatedAt: true
 });
 
-export const insertImportProductSchema = createInsertSchema(importProducts, {
+export const insertImportProductSchemaLegacy = createInsertSchema(importProducts, {
   productName: z.string().min(1, 'Nome do produto é obrigatório'),
   quantity: z.number().min(1, 'Quantidade deve ser maior que zero'),
   unitPrice: z.string().min(1, 'Preço unitário é obrigatório'),
@@ -162,7 +267,7 @@ export const insertImportDocumentSchema = createInsertSchema(importDocuments, {
 export type Import = typeof imports.$inferSelect;
 export type NewImport = z.infer<typeof insertImportSchema>;
 export type ImportProduct = typeof importProducts.$inferSelect;
-export type NewImportProduct = z.infer<typeof insertImportProductSchema>;
+export type NewImportProduct = z.infer<typeof insertImportProductSchemaLegacy>;
 export type ImportDocument = typeof importDocuments.$inferSelect;
 export type NewImportDocument = z.infer<typeof insertImportDocumentSchema>;
 export type ImportTimeline = typeof importTimeline.$inferSelect;
