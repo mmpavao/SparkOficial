@@ -273,6 +273,10 @@ export type NewImportDocument = z.infer<typeof insertImportDocumentSchema>;
 export type ImportTimeline = typeof importTimeline.$inferSelect;
 export type ImportPayment = typeof importPayments.$inferSelect;
 
+// Product types
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+
 // Status workflow constants
 export const IMPORT_STATUSES = {
   PLANEJAMENTO: 'planejamento',

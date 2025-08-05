@@ -67,9 +67,13 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     
+    // Log the request body for debugging
+    console.log('🔍 Product creation request body:', JSON.stringify(req.body, null, 2));
+    
     // Validate request body
     const validationResult = insertProductSchema.safeParse(req.body);
     if (!validationResult.success) {
+      console.log('❌ Validation failed:', JSON.stringify(validationResult.error.errors, null, 2));
       return res.status(400).json({ 
         message: 'Dados inválidos',
         errors: validationResult.error.errors
