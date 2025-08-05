@@ -146,73 +146,55 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
       )}
 
       {/* Add Product Section */}
-      <Card className="border-dashed border-2 border-gray-200">
-        <CardContent className="p-6">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-4">
-              <div>
-                <Label htmlFor="master-product-select">Selecionar Produto Cadastrado</Label>
-                <Select value={selectedMasterProduct?.id?.toString() || "new-product"} onValueChange={(value) => {
-                  if (value === "new-product") {
-                    setSelectedMasterProduct(null);
-                  } else {
-                    const product = masterProducts.find((p: any) => p.id.toString() === value);
-                    setSelectedMasterProduct(product);
-                  }
-                }}>
-                  <SelectTrigger className="w-80">
-                    <SelectValue placeholder="Escolha um produto ou crie novo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new-product">
-                      <div className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Criar Produto Novo
-                      </div>
-                    </SelectItem>
-                    {masterProducts.map((product: any, index: number) => (
-                      <SelectItem key={product.id || index} value={product.id?.toString() || `product-${index}`}>
-                        <div className="flex flex-col text-left">
-                          <span className="font-medium">{product.productName}</span>
-                          <span className="text-xs text-gray-500">
-                            NCM: {product.ncmCode} | {product.description}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button 
-                onClick={() => {
-                  if (selectedMasterProduct) {
-                    addProductFromMaster(selectedMasterProduct);
-                  } else {
-                    addNewProduct();
-                  }
-                }}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                {selectedMasterProduct ? 'Adicionar Produto' : 'Criar Produto Novo'}
-              </Button>
-            </div>
-            
-            {selectedMasterProduct && (
-              <div className="bg-blue-50 p-4 rounded-lg text-left">
-                <h4 className="font-medium text-blue-900 mb-2">Produto Selecionado:</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><strong>Nome:</strong> {selectedMasterProduct.productName}</div>
-                  <div><strong>NCM:</strong> {selectedMasterProduct.ncmCode}</div>
-                  <div><strong>Descrição:</strong> {selectedMasterProduct.description}</div>
-                  <div><strong>Peso:</strong> {selectedMasterProduct.weight}kg</div>
+      <div className="flex items-center gap-4 mb-4">
+        <div className="flex-1">
+          <Label htmlFor="master-product-select">Selecionar Produto</Label>
+          <Select value={selectedMasterProduct?.id?.toString() || "new-product"} onValueChange={(value) => {
+            if (value === "new-product") {
+              setSelectedMasterProduct(null);
+            } else {
+              const product = masterProducts.find((p: any) => p.id.toString() === value);
+              setSelectedMasterProduct(product);
+            }
+          }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Escolha um produto ou crie novo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new-product">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Criar Produto Novo
                 </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              </SelectItem>
+              {masterProducts.map((product: any, index: number) => (
+                <SelectItem key={product.id || index} value={product.id?.toString() || `product-${index}`}>
+                  <div className="flex flex-col text-left">
+                    <span className="font-medium">{product.productName}</span>
+                    <span className="text-xs text-gray-500">
+                      NCM: {product.ncmCode} | {product.description}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <Button 
+          onClick={() => {
+            if (selectedMasterProduct) {
+              addProductFromMaster(selectedMasterProduct);
+            } else {
+              addNewProduct();
+            }
+          }}
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Adicionar Produto
+        </Button>
+      </div>
 
       {/* Products List */}
       <div className="space-y-4">
@@ -267,7 +249,13 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                       value={product.productName}
                       onChange={(e) => updateProduct(index, 'productName', e.target.value)}
                       placeholder="Ex: Smartphone Samsung Galaxy"
+                      disabled={!!product.productId}
                     />
+                    {product.productId && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        📦 Produto do catálogo - NCM: {product.ncmCode}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -346,6 +334,9 @@ export function ProductManager({ products, suppliers, onProductsChange }: Produc
                         : 'Não especificado'
                       }
                     </p>
+                    {product.productId && (
+                      <p className="text-xs text-blue-600">📦 Do catálogo</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
