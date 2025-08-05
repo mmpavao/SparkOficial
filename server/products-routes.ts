@@ -3,12 +3,26 @@ import { storage } from './storage';
 import { insertProductSchema, type InsertProduct } from '@shared/imports-schema';
 import { z } from 'zod';
 
-// Auth middleware - same as in routes.ts
-const requireAuth = (req: any, res: any, next: any) => {
+// Auth middleware - enhanced version that attaches user to request
+const requireAuth = async (req: any, res: any, next: any) => {
   if (!req.session?.userId) {
     return res.status(401).json({ message: "Usuário não autenticado" });
   }
-  next();
+  
+  try {
+    // Get user data and attach to request
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {}); // Clear invalid session
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+    
+    req.user = { id: user.id, email: user.email, role: user.role };
+    next();
+  } catch (error) {
+    console.error("Error in products auth middleware:", error);
+    return res.status(500).json({ message: "Erro interno de autenticação" });
+  }
 };
 
 const router = Router();

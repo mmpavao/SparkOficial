@@ -90,7 +90,13 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     mutationFn: async (data: InsertProduct) => {
       const url = product ? `/api/products/${product.id}` : '/api/products';
       const method = product ? 'PUT' : 'POST';
-      return await apiRequest(url, { method, body: JSON.stringify(data) });
+      return await apiRequest(url, { 
+        method, 
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
     },
     onSuccess: () => {
       toast({
