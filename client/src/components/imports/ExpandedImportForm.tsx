@@ -241,6 +241,11 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   });
 
   const onSubmit = (data: ExpandedImportFormData) => {
+    console.log("🚀 Form submission started", data);
+    console.log("📋 Form errors:", form.formState.errors);
+    console.log("💰 Payment method:", data.paymentMethod);
+    console.log("🏦 Credit Application ID:", data.creditApplicationId);
+    
     // Calculate total value for LCL based on products
     if (cargoType === 'LCL' && data.products && data.products.length > 0) {
       const calculatedTotal = data.products.reduce((sum, product) => 
@@ -249,6 +254,12 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       data.totalValue = calculatedTotal.toString();
     }
 
+    // Se for recurso próprio, garantir que creditApplicationId seja undefined
+    if (data.paymentMethod === 'own_funds') {
+      data.creditApplicationId = undefined;
+    }
+
+    console.log("📦 Final data being sent:", data);
     createImportMutation.mutate(data);
   };
 
@@ -1038,6 +1049,11 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                   type="submit" 
                   disabled={createImportMutation.isPending}
                   className="min-w-32"
+                  onClick={() => {
+                    console.log("🔄 Button clicked, form validation:", form.formState.isValid);
+                    console.log("❌ Form errors:", form.formState.errors);
+                    console.log("📝 Current form values:", form.getValues());
+                  }}
                 >
                   {createImportMutation.isPending 
                     ? "Salvando..." 
