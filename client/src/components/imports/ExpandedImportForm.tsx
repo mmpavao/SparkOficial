@@ -362,8 +362,8 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                                     Créditos Aprovados
                                   </div>
                                 </SelectItem>
-                                {creditApplications.map((app: any) => (
-                                  <SelectItem key={app.id} value={app.id?.toString() || `app-${app.id}`}>
+                                {creditApplications.map((app: any, index: number) => (
+                                  <SelectItem key={app.id || index} value={app.id?.toString() || `credit-app-${index}`}>
                                     <div className="flex flex-col">
                                       <span className="font-medium">
                                         🏦 US$ {parseInt(app.finalCreditLimit || app.requestedAmount || '0').toLocaleString()}
@@ -396,8 +396,8 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {Array.isArray(suppliers) && suppliers.map((supplier: any) => (
-                              <SelectItem key={supplier.id} value={supplier.id?.toString() || `supplier-${supplier.id}`}>
+                            {Array.isArray(suppliers) && suppliers.map((supplier: any, index: number) => (
+                              <SelectItem key={supplier.id || index} value={supplier.id?.toString() || `supplier-${index}`}>
                                 {supplier.companyName || 'Fornecedor sem nome'}
                               </SelectItem>
                             ))}
@@ -443,8 +443,8 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {transportOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value || `transport-${option.label}`}>
+                            {transportOptions.map((option, index) => (
+                              <SelectItem key={option.value || index} value={option.value || `transport-${index}`}>
                                 <div className="flex items-center gap-2">
                                   <option.icon className="h-4 w-4" />
                                   {option.label}
@@ -472,7 +472,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                           </FormControl>
                           <SelectContent>
                             {incotermOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value || ""}>
+                              <SelectItem key={option.value} value={option.value || `incoterm-${option.label}`}>
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -761,11 +761,11 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                           </FormControl>
                           <SelectContent>
                             {Array.isArray(customsBrokers) && customsBrokers.map((broker: any) => (
-                              <SelectItem key={broker.id} value={broker.id.toString()}>
+                              <SelectItem key={broker.id} value={broker.id?.toString() || `broker-${broker.id}`}>
                                 <div className="flex flex-col">
-                                  <span className="font-medium">{broker.companyName}</span>
+                                  <span className="font-medium">{broker.companyName || 'Despachante sem nome'}</span>
                                   <span className="text-xs text-gray-500">
-                                    {broker.specialization?.slice(0, 2).join(', ')}
+                                    {broker.specialization?.slice(0, 2).join(', ') || 'Sem especialização'}
                                   </span>
                                 </div>
                               </SelectItem>
