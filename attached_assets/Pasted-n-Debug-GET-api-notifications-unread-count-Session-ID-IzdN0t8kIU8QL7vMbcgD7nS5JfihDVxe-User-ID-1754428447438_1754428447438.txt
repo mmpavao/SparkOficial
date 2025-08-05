@@ -1,0 +1,179 @@
+n Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:10:41 PM [express] GET /api/notifications/unread-count 200 in 560ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:10:52 PM [express] GET /api/notifications 200 in 532ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:10:56 PM [express] GET /api/notifications/unread-count 200 in 134ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:11:12 PM [express] GET /api/notifications/unread-count 200 in 550ms
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🚀 IMPORTS ENDPOINT - User: 20, Role: importer
+🗄️ Total imports in database: 0
+🔒 FILTERING imports for importer: 20
+📝 Executing Drizzle query for role importer
+🔧 Filtering conditions: 1 conditions
+Error fetching imports: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+9:11:14 PM [express] GET /api/imports 500 in 899ms :: {"error":"Failed to fetch imports"}
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🚀 IMPORTS ENDPOINT - User: 20, Role: importer
+🗄️ Total imports in database: 0
+🔒 FILTERING imports for importer: 20
+📝 Executing Drizzle query for role importer
+🔧 Filtering conditions: 1 conditions
+Error fetching imports: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+9:11:16 PM [express] GET /api/imports 500 in 610ms :: {"error":"Failed to fetch imports"}
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🚀 IMPORTS ENDPOINT - User: 20, Role: importer
+🗄️ Total imports in database: 0
+🔒 FILTERING imports for importer: 20
+📝 Executing Drizzle query for role importer
+🔧 Filtering conditions: 1 conditions
+Error fetching imports: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+9:11:19 PM [express] GET /api/imports 500 in 735ms :: {"error":"Failed to fetch imports"}
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:11:23 PM [express] GET /api/notifications 200 in 137ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:11:27 PM [express] GET /api/notifications/unread-count 200 in 139ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:11:43 PM [express] GET /api/notifications/unread-count 200 in 566ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:11:53 PM [express] GET /api/notifications 200 in 566ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:11:58 PM [express] GET /api/notifications/unread-count 200 in 139ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:12:14 PM [express] GET /api/notifications/unread-count 200 in 547ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:12:24 PM [express] GET /api/notifications 200 in 137ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:12:29 PM [express] GET /api/notifications/unread-count 200 in 140ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:12:45 PM [express] GET /api/notifications/unread-count 200 in 701ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:12:54 PM [express] GET /api/notifications 200 in 137ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:13:00 PM [express] GET /api/notifications/unread-count 200 in 138ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:13:16 PM [express] GET /api/notifications/unread-count 200 in 534ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:13:24 PM [express] GET /api/notifications 200 in 133ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:13:31 PM [express] GET /api/notifications/unread-count 200 in 135ms
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🚀 IMPORTS ENDPOINT - User: 20, Role: importer
+🗄️ Total imports in database: 0
+🔒 FILTERING imports for importer: 20
+📝 Executing Drizzle query for role importer
+🔧 Filtering conditions: 1 conditions
+Error fetching imports: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+9:13:37 PM [express] GET /api/imports 500 in 889ms :: {"error":"Failed to fetch imports"}
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🚀 IMPORTS ENDPOINT - User: 20, Role: importer
+🗄️ Total imports in database: 0
+🔒 FILTERING imports for importer: 20
+📝 Executing Drizzle query for role importer
+🔧 Filtering conditions: 1 conditions
+Error fetching imports: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+9:13:39 PM [express] GET /api/imports 500 in 610ms :: {"error":"Failed to fetch imports"}
+[Session Debug] GET /api/imports - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+Auth check - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe User ID: 20
+Authentication successful for user: 20 Role: importer
+🚀 IMPORTS ENDPOINT - User: 20, Role: importer
+🗄️ Total imports in database: 0
+🔒 FILTERING imports for importer: 20
+📝 Executing Drizzle query for role importer
+🔧 Filtering conditions: 1 conditions
+Error fetching imports: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+9:13:42 PM [express] GET /api/imports 500 in 729ms :: {"error":"Failed to fetch imports"}
+[Session Debug] GET /api/notifications/unread-count - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:13:46 PM [express] GET /api/notifications/unread-count 200 in 139ms
+[Session Debug] GET /api/notifications - Session ID: IzdN0t8kIU8QL7vMbcgD7nS5JfihDVxe, User ID: 20
+9:13:54 PM [express] GET /api/notifications 200 in 137ms
+[Session Debug] GET /api/notifications/unread-count - Session

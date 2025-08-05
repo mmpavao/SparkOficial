@@ -1,0 +1,50 @@
+📊 Final imports array: 0 items
+Import loading error: 
+Error {}
+
+at t.value (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+📊 Raw response: undefined
+📊 Final imports array: 0 items
+❌ Import fetch error: 500 {"error":"Failed to fetch imports"}
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+❌ Import fetch error: 500 {"error":"Failed to fetch imports"}
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+❌ Import fetch error: 500 {"error":"Failed to fetch imports"}
+📊 Raw response: undefined
+📊 Final imports array: 0 items
+Import loading error: 
+Error {}
+message: "Failed to fetch imports: 500 {"error":"Failed to fetch imports"}"
+stack: "Error: Failed to fetch imports: 500 {"error":"Failed to fetch imports"}↵ at queryFn (https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/src/pages/imports-new-integrated.tsx:56:15)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+📊 Raw response: undefined
+📊 Final imports array: 0 items
+❌ Import fetch error: 500 {"error":"Failed to fetch imports"}
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+❌ Import fetch error: 500 {"error":"Failed to fetch imports"}
+🔍 Fetching imports with filters: 
+Object {}
+🌐 Request URL: https://ffd5248e-e106-4f74-ae53-67205fcf0bb9-00-14h5161s5ivct.kirk.replit.dev/api/imports
+❌ Import fetch error: 500 {"error":"Failed to fetch imports"}
+📊 Raw response: undefined
+📊 Final imports array: 0 items
+Import loading error: 
+Error {}

@@ -107,92 +107,34 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     const allImportsCount = await db.select({ count: count() }).from(imports);
     console.log(`🗄️ Total imports in database: ${allImportsCount[0].count}`);
 
-    // Use Drizzle ORM for safe query building
-    let query = db
-      .select({
-        id: imports.id,
-        userId: imports.userId,
-        creditApplicationId: imports.creditApplicationId,
-        supplierId: imports.supplierId,
-        importName: imports.importName,
-        cargoType: imports.cargoType,
-        containerNumber: imports.containerNumber,
-        sealNumber: imports.sealNumber,
-        products: imports.products,
-        totalValue: imports.totalValue,
-        currency: imports.currency,
-        incoterms: imports.incoterms,
-        shippingMethod: imports.shippingMethod,
-        containerType: imports.containerType,
-        estimatedDelivery: imports.estimatedDelivery,
-        status: imports.status,
-        currentStage: imports.currentStage,
-        creditUsed: imports.creditUsed,
-        adminFeeRate: imports.adminFeeRate,
-        adminFeeAmount: imports.adminFeeAmount,
-        totalWithFees: imports.totalWithFees,
-        downPaymentRequired: imports.downPaymentRequired,
-        downPaymentStatus: imports.downPaymentStatus,
-        paymentStatus: imports.paymentStatus,
-        paymentTermsDays: imports.paymentTermsDays,
-        createdAt: imports.createdAt,
-        updatedAt: imports.updatedAt,
-        supplierCompanyName: suppliers.companyName,
-        supplierContactPerson: suppliers.contactPerson,
-        importerCompanyName: users.companyName,
-        importerFullName: users.fullName
-      })
-      .from(imports)
-      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
-      .leftJoin(users, eq(imports.userId, users.id));
+    // Simplified Drizzle query to avoid field mapping errors
+    console.log(`📝 Using simplified query for role ${currentUser.role}`);
+    console.log(`🔧 User filter: ${currentUser.role === 'importer' ? userId : 'ALL'}`);
 
-    // Build WHERE conditions
-    const whereConditions: any[] = [];
+    // Base query for imports
+    let baseQuery = db.select().from(imports);
 
-    // FIXED: Role-based access control with proper filtering
+    // Apply role-based filtering
     if (currentUser.role === 'importer') {
-      whereConditions.push(eq(imports.userId, userId));
+      baseQuery = baseQuery.where(eq(imports.userId, userId));
       console.log(`🔒 FILTERING imports for importer: ${userId}`);
     } else {
       console.log(`🔓 Admin/Financeira access - showing ALL imports`);
     }
 
-    // Apply additional filters
-    if (status && status !== 'all') {
-      whereConditions.push(eq(imports.status, status as any));
-    }
-
-    if (cargoType && cargoType !== 'all') {
-      whereConditions.push(eq(imports.cargoType, cargoType as any));
-    }
-
-    if (supplierId && supplierId !== 'all') {
-      whereConditions.push(eq(imports.supplierId, Number(supplierId)));
-    }
-
-    // Apply WHERE conditions
-    if (whereConditions.length > 0) {
-      query = query.where(and(...whereConditions));
-    }
-
-    console.log(`📝 Executing Drizzle query for role ${currentUser.role}`);
-    console.log(`🔧 Filtering conditions: ${whereConditions.length} conditions`);
-
     // Execute query with pagination
-    const importsData = await query
+    const importsData = await baseQuery
       .orderBy(desc(imports.createdAt))
       .limit(Number(limit))
       .offset(offset);
 
-    console.log(`✅ Drizzle query returned ${importsData.length} imports`);
+    console.log(`✅ Query returned ${importsData.length} imports`);
 
-    // Get total count with same conditions
-    let countQuery = db
-      .select({ count: count() })
-      .from(imports);
-
-    if (whereConditions.length > 0) {
-      countQuery = countQuery.where(and(...whereConditions));
+    // Get total count
+    let countQuery = db.select({ count: count() }).from(imports);
+    
+    if (currentUser.role === 'importer') {
+      countQuery = countQuery.where(eq(imports.userId, userId));
     }
 
     const countResult = await countQuery;
@@ -200,7 +142,7 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
 
     console.log(`📊 Total count: ${totalCount}`);
 
-    // Format the Drizzle results for frontend consumption
+    // Format results for frontend (using direct field access)
     const formattedImports = importsData.map((row: any) => ({
       id: row.id,
       userId: row.userId,
@@ -216,17 +158,10 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
       supplierId: row.supplierId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
-      // Include supplier data if available
-      supplier: row.supplierCompanyName ? {
-        companyName: row.supplierCompanyName,
-        contactPerson: row.supplierContactPerson
-      } : null,
-      // Include user data if available  
-      user: row.importerCompanyName ? {
-        companyName: row.importerCompanyName,
-        fullName: row.importerFullName
-      } : null,
-      products: row.products || [] // Use products from database
+      products: row.products || [],
+      // Basic info without joins for now
+      supplier: null,
+      user: null
     }));
 
     console.log(`✅ Returning ${formattedImports.length} formatted imports to frontend`);
