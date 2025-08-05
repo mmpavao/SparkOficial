@@ -357,14 +357,16 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                             </SelectItem>
                             {creditApplications.length > 0 && (
                               <>
-                                <div className="px-2 py-1.5 text-xs font-medium text-gray-500 bg-gray-50">
-                                  Créditos Aprovados
-                                </div>
+                                <SelectItem value="credits-header" disabled>
+                                  <div className="px-2 py-1.5 text-xs font-medium text-gray-500 bg-gray-50">
+                                    Créditos Aprovados
+                                  </div>
+                                </SelectItem>
                                 {creditApplications.map((app: any) => (
-                                  <SelectItem key={app.id} value={app.id.toString()}>
+                                  <SelectItem key={app.id} value={app.id?.toString() || `app-${app.id}`}>
                                     <div className="flex flex-col">
                                       <span className="font-medium">
-                                        🏦 US$ {parseInt(app.finalCreditLimit || app.requestedAmount).toLocaleString()}
+                                        🏦 US$ {parseInt(app.finalCreditLimit || app.requestedAmount || '0').toLocaleString()}
                                       </span>
                                       <span className="text-xs text-gray-500">
                                         Termos: {app.finalApprovedTerms || 'N/A'} dias
@@ -395,8 +397,8 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                           </FormControl>
                           <SelectContent>
                             {Array.isArray(suppliers) && suppliers.map((supplier: any) => (
-                              <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                                {supplier.companyName}
+                              <SelectItem key={supplier.id} value={supplier.id?.toString() || `supplier-${supplier.id}`}>
+                                {supplier.companyName || 'Fornecedor sem nome'}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -442,7 +444,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                           </FormControl>
                           <SelectContent>
                             {transportOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem key={option.value} value={option.value || `transport-${option.label}`}>
                                 <div className="flex items-center gap-2">
                                   <option.icon className="h-4 w-4" />
                                   {option.label}
@@ -470,7 +472,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                           </FormControl>
                           <SelectContent>
                             {incotermOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem key={option.value} value={option.value || ""}>
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -521,9 +523,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 </CardHeader>
                 <CardContent>
                   <ProductManager 
-                    products={form.watch("products") || []}
-                    suppliers={suppliers}
-                    onProductsChange={(products) => {
+                    products={(form.watch("products") as any[]) || []}
+                    suppliers={suppliers || []}
+                    onProductsChange={(products: any[]) => {
                       form.setValue("products", products);
                       // Calcula automaticamente o valor total
                       const totalValue = products.reduce((sum, product) => 
