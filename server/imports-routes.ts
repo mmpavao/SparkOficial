@@ -107,61 +107,128 @@ importRoutes.get('/imports', requireAuth, async (req, res) => {
     const allImportsCount = await db.select({ count: count() }).from(imports);
     console.log(`🗄️ Total imports in database: ${allImportsCount[0].count}`);
 
-    // Simplified Drizzle query to avoid field mapping errors
-    console.log(`📝 Using simplified query for role ${currentUser.role}`);
-    console.log(`🔧 User filter: ${currentUser.role === 'importer' ? userId : 'ALL'}`);
+    // CRITICAL FIX: Always filter by user for importers, show all for admin/financeira
+    let sqlQuery = `
+      SELECT 
+        i.*,
+        s.company_name as supplier_company_name,
+        s.contact_person as supplier_contact_person,
+        u.company_name as importer_company_name,
+        u.full_name as importer_full_name
+      FROM imports i
+      LEFT JOIN suppliers s ON i.supplier_id = s.id
+      LEFT JOIN users u ON i.user_id = u.id
+    `;
 
-    // Base query for imports
-    let baseQuery = db.select().from(imports);
+    const queryParams: any[] = [];
+    const whereClauses: string[] = [];
+    let paramIndex = 1;
 
-    // Apply role-based filtering
+    // FIXED: Role-based access control with proper filtering
     if (currentUser.role === 'importer') {
-      baseQuery = baseQuery.where(eq(imports.userId, userId));
+      whereClauses.push(`i.user_id = $${paramIndex}`);
+      queryParams.push(userId);
+      paramIndex++;
       console.log(`🔒 FILTERING imports for importer: ${userId}`);
     } else {
       console.log(`🔓 Admin/Financeira access - showing ALL imports`);
     }
 
-    // Execute query with pagination
-    const importsData = await baseQuery
-      .orderBy(desc(imports.createdAt))
-      .limit(Number(limit))
-      .offset(offset);
-
-    console.log(`✅ Query returned ${importsData.length} imports`);
-
-    // Get total count
-    let countQuery = db.select({ count: count() }).from(imports);
-    
-    if (currentUser.role === 'importer') {
-      countQuery = countQuery.where(eq(imports.userId, userId));
+    // Apply additional filters
+    if (status && status !== 'all') {
+      whereClauses.push(`i.status = $${paramIndex}`);
+      queryParams.push(status);
+      paramIndex++;
     }
 
-    const countResult = await countQuery;
-    const totalCount = countResult[0]?.count || 0;
+    if (cargoType && cargoType !== 'all') {
+      whereClauses.push(`i.cargo_type = $${paramIndex}`);
+      queryParams.push(cargoType);
+      paramIndex++;
+    }
+
+    if (supplierId && supplierId !== 'all') {
+      whereClauses.push(`i.supplier_id = $${paramIndex}`);
+      queryParams.push(Number(supplierId));
+      paramIndex++;
+    }
+
+    if (search) {
+      whereClauses.push(`(i.import_name ILIKE $${paramIndex} OR i.import_code ILIKE $${paramIndex})`);
+      queryParams.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    // Add WHERE clause if we have conditions
+    if (whereClauses.length > 0) {
+      sqlQuery += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    // Add ordering and pagination
+    sqlQuery += ` ORDER BY i.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    queryParams.push(Number(limit), offset);
+
+    console.log(`📝 Executing SQL query for role ${currentUser.role}`);
+    console.log(`🔧 Parameters: [${queryParams.join(', ')}]`);
+
+    const importsResult = await db.execute(sql.raw(sqlQuery, queryParams));
+    const importsData = importsResult.rows || [];
+
+    console.log(`✅ Raw SQL query returned ${importsData.length} imports`);
+
+    // Get total count with same conditions
+    let countQuery = 'SELECT COUNT(*) as count FROM imports i';
+    const countParams: any[] = [];
+    let countParamIndex = 1;
+
+    // Apply same WHERE conditions for count
+    if (whereClauses.length > 0) {
+      const countWhereClauses = whereClauses.map(clause => {
+        if (clause.includes('ILIKE')) {
+          return clause;
+        }
+        return clause.replace(/\$\d+/, `$${countParamIndex++}`);
+      });
+      countQuery += ' WHERE ' + countWhereClauses.join(' AND ');
+
+      // Add parameters for count query (excluding LIMIT/OFFSET)
+      for (let i = 0; i < queryParams.length - 2; i++) {
+        countParams.push(queryParams[i]);
+      }
+    }
+
+    const countResult = await db.execute(sql.raw(countQuery, countParams));
+    const totalCount = Number(countResult.rows?.[0]?.count) || 0;
 
     console.log(`📊 Total count: ${totalCount}`);
 
-    // Format results for frontend (using direct field access)
+    // Format the raw SQL results for frontend consumption
     const formattedImports = importsData.map((row: any) => ({
       id: row.id,
-      userId: row.userId,
-      creditApplicationId: row.creditApplicationId,
-      importName: row.importName,
-      importNumber: row.importNumber || null,
-      importCode: row.importCode || null,
-      cargoType: row.cargoType,
-      totalValue: row.totalValue,
+      userId: row.user_id,
+      creditApplicationId: row.credit_application_id,
+      importName: row.import_name,
+      importNumber: row.import_number,
+      importCode: row.import_code,
+      cargoType: row.cargo_type,
+      totalValue: row.total_value,
       currency: row.currency,
       status: row.status,
-      paymentStatus: row.paymentStatus,
-      supplierId: row.supplierId,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      products: row.products || [],
-      // Basic info without joins for now
-      supplier: null,
-      user: null
+      paymentStatus: row.payment_status,
+      supplierId: row.supplier_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      // Include supplier data if available
+      supplier: row.supplier_company_name ? {
+        companyName: row.supplier_company_name,
+        contactPerson: row.supplier_contact_person
+      } : null,
+      // Include user data if available  
+      user: row.importer_company_name ? {
+        companyName: row.importer_company_name,
+        fullName: row.importer_full_name
+      } : null,
+      products: [] // Will be populated in a separate query if needed
     }));
 
     console.log(`✅ Returning ${formattedImports.length} formatted imports to frontend`);
@@ -289,7 +356,49 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       userId
     });
 
-    console.log('💰 Creating standalone import (no credit system dependency)');
+    // Check if using own funds (Recursos Próprios)
+    let creditApp = null;
+    if (req.body.paymentMethod === 'own_funds') {
+      console.log('💰 Using own funds - skipping credit validation');
+    } else {
+      // Get user's approved credit applications
+      try {
+        console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+        const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+        console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
+
+        console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
+          id: app.id,
+          status: app.status,
+          financialStatus: app.financialStatus,
+          adminStatus: app.adminStatus
+        })));
+
+        // Updated logic to match working dashboard logic
+        const approvedCredits = userCreditApps.filter(app => {
+          const isApproved = app.financialStatus === 'approved' && 
+                            (app.adminStatus === 'admin_finalized' || app.status === 'admin_finalized');
+          console.log(`App ${app.id}: financialStatus=${app.financialStatus}, adminStatus=${app.adminStatus}, status=${app.status}, isApproved=${isApproved}`);
+          return isApproved;
+        });
+
+        console.log(`✅ Approved credits found: ${approvedCredits.length}`);
+
+        if (!approvedCredits.length) {
+          console.log(`❌ No approved credit found for user ${userId}`);
+          return res.status(400).json({ 
+            message: "Você precisa ter um crédito aprovado e disponível para criar importações" 
+          });
+        }
+
+        creditApp = approvedCredits[0];
+      } catch (error) {
+        console.error(`❌ Error getting credit applications:`, error);
+        throw error;
+      }
+    }
+
+    // Skip duplicate credit application logic since it's handled above
 
     // Calculate total value from request data or use provided value
     let totalValue = 0;
@@ -303,7 +412,7 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       }, 0);
     }
 
-    console.log('💰 Calculated total value:', totalValue);
+    console.log('Calculated total value:', totalValue);
 
     // Ensure we have a valid total value
     if (!totalValue || totalValue <= 0) {
@@ -312,11 +421,32 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       });
     }
 
-    // Prepare import data using existing imports table schema (standalone - no credit dependency)
+    // Only check credit if using credit payment method
+    if (req.body.paymentMethod !== 'own_funds' && creditApp) {
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApp.id);
+      if (totalValue > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+        });
+      }
+    }
+
+    // Get admin fee for user
+    const adminFee = await storage.getAdminFeeForUser(userId);
+    const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 10; // Default 10%
+    const feeAmount = (totalValue * feeRate) / 100;
+    const totalWithFees = totalValue + feeAmount;
+
+    // Calculate down payment (10% of total with fees)
+    const downPaymentAmount = (totalWithFees * 10) / 100;
+
+    // Prepare import data using existing imports table schema
     const importData = {
       userId,
-      creditApplicationId: null, // Always null for standalone module
-      supplierId: req.body.supplierId || req.body.products?.[0]?.supplierId || null,
+      creditApplicationId: creditApp?.id || null,
+      paymentMethod: req.body.paymentMethod || 'credit',
+      supplierId: req.body.products?.[0]?.supplierId || null,
       importName: req.body.importName || 'Nova Importação',
       cargoType: req.body.cargoType || "FCL",
       containerNumber: req.body.containerNumber || null,
@@ -324,47 +454,39 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
       products: req.body.products || [],
       totalValue: totalValue.toString(),
       currency: req.body.currency || "USD",
-      incoterms: req.body.incoterm || req.body.incoterms || "FOB",
-      shippingMethod: req.body.transportMethod || req.body.shippingMethod || "sea",
+      incoterms: req.body.incoterms || "FOB",
+      shippingMethod: req.body.shippingMethod || "sea",
       containerType: req.body.containerType || null,
-      estimatedDelivery: req.body.estimatedArrival ? new Date(req.body.estimatedArrival) : null,
+      estimatedDelivery: req.body.estimatedDelivery ? new Date(req.body.estimatedDelivery) : null,
       status: "planejamento",
       currentStage: "estimativa",
-      // No credit fields - standalone module
-      creditUsed: null,
-      adminFeeRate: null,
-      adminFeeAmount: null,
-      totalWithFees: totalValue.toString(),
-      downPaymentRequired: null,
-      paymentStatus: "n/a", // Not applicable for standalone
-      paymentTermsDays: null,
+      // Credit management fields
+      creditUsed: totalValue.toString(),
+      adminFeeRate: feeRate.toString(),
+      adminFeeAmount: feeAmount.toString(),
+      totalWithFees: totalWithFees.toString(),
+      downPaymentRequired: downPaymentAmount.toString(),
+      paymentStatus: "pending",
+      paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
       // Additional fields from form
       portOfLoading: req.body.portOfLoading,
       portOfDischarge: req.body.portOfDischarge,
       finalDestination: req.body.finalDestination,
-      // Customs broker fields
-      customsBrokerEmail: req.body.customsBrokerEmail,
-      customsBrokerId: req.body.customsBrokerId,
-      customsBrokerStatus: req.body.customsBrokerStatus || "pending",
-      customsProcessingNotes: req.body.customsProcessingNotes,
       notes: req.body.notes
     };
 
-    console.log('🚀 Creating standalone import with data:', JSON.stringify(importData, null, 2));
     const importRecord = await storage.createImport(importData);
-    console.log('✅ Standalone import created successfully:', importRecord);
+    
+    // Only reserve credit if using credit payment method
+    if (req.body.paymentMethod !== 'own_funds' && creditApp) {
+      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+    }
 
     console.log(`✅ Import created successfully with ID: ${importRecord.id}`);
     res.status(201).json(importRecord);
   } catch (error) {
-    console.error('❌ DETAILED ERROR creating import:', error);
-    console.error('❌ Error message:', error.message);
-    console.error('❌ Error stack:', error.stack);
-    res.status(400).json({ 
-      error: 'Failed to create import',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('Error creating import:', error);
+    res.status(400).json({ error: 'Failed to create import' });
   }
 });
 

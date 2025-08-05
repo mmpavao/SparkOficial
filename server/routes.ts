@@ -1528,19 +1528,351 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Import routes - REMOVED (moved to imports-routes.ts)
+  // Import routes
+  app.post('/api/imports', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const data = { ...req.body, userId };
+      
+      console.log('💾 Import creation data:', JSON.stringify(data, null, 2));
+      console.log(`🔍 Starting credit validation for user ${userId}`);
 
-  // GET /api/imports - REMOVED (moved to imports-routes.ts)
+      // Get user's approved credit application
+      try {
+        console.log(`📞 Calling storage.getCreditApplicationsByUser(${userId})`);
+        const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+        console.log(`✅ Successfully retrieved ${userCreditApps.length} credit applications`);
+      } catch (error) {
+        console.error(`❌ Error getting credit applications:`, error);
+        throw error;
+      }
+      const userCreditApps = await storage.getCreditApplicationsByUser(userId);
+      console.log(`📊 User ${userId} credit applications:`, userCreditApps.map(app => ({
+        id: app.id,
+        status: app.status,
+        financialStatus: app.financialStatus,
+        adminStatus: app.adminStatus
+      })));
+      
+      const approvedCredits = userCreditApps.filter(app => 
+        app.status === 'approved' || 
+        (app.status === 'admin_finalized' && app.financialStatus === 'approved')
+      );
+      
+      console.log(`✅ Approved credits found: ${approvedCredits.length}`);
 
-  // GET /api/imports/:id - REMOVED (moved to imports-routes.ts)
+      if (!approvedCredits.length) {
+        return res.status(400).json({ 
+          message: "Você precisa ter um crédito aprovado para criar importações" 
+        });
+      }
 
-  // PUT /api/imports/:id - REMOVED (moved to imports-routes.ts)
+      const creditApp = approvedCredits[0];
+      
+      // Calculate total value from products if not provided
+      let totalValue = parseFloat(data.totalValue) || 0;
+      if (!totalValue && data.products && Array.isArray(data.products)) {
+        totalValue = data.products.reduce((sum: number, product: any) => {
+          const quantity = parseFloat(product.quantity) || 0;
+          const unitPrice = parseFloat(product.unitPrice) || 0;
+          return sum + (quantity * unitPrice);
+        }, 0);
+      }
 
-  // DELETE /api/imports/:id - REMOVED (moved to imports-routes.ts)
+      console.log('Calculated total value:', totalValue);
 
-  // PATCH /api/imports/:id/status - REMOVED (moved to imports-routes.ts)
+      // Ensure we have a valid total value
+      if (!totalValue || totalValue <= 0) {
+        return res.status(400).json({ 
+          message: "Valor total da importação deve ser maior que zero" 
+        });
+      }
 
-  // PUT /api/imports/:id - REMOVED (moved to imports-routes.ts)
+      // Check available credit
+      const creditData = await storage.calculateAvailableCredit(creditApp.id);
+      if (totalValue > creditData.available) {
+        return res.status(400).json({ 
+          message: `Crédito insuficiente. Disponível: US$ ${creditData.available.toLocaleString()}. Solicitado: US$ ${totalValue.toLocaleString()}` 
+        });
+      }
+
+      // Get admin fee for user
+      const adminFee = await storage.getAdminFeeForUser(userId);
+      const feeRate = adminFee ? parseFloat(adminFee.feePercentage) : 2.5; // Default 2.5%
+      const feeAmount = (totalValue * feeRate) / 100;
+      const totalWithFees = totalValue + feeAmount;
+
+      // Calculate down payment (30% of total with fees)
+      const downPaymentAmount = (totalWithFees * 30) / 100;
+
+      // Clean and convert data to match the new schema
+      const cleanedData: any = {
+        userId,
+        creditApplicationId: creditApp.id,
+        importName: data.importName,
+        cargoType: data.cargoType || "FCL",
+        containerNumber: data.containerNumber || null,
+        sealNumber: data.sealNumber || null,
+        products: data.products || [],
+        totalValue: totalValue.toString(),
+        currency: data.currency || "USD",
+        incoterms: data.incoterms,
+        shippingMethod: data.shippingMethod,
+        containerType: data.containerType || null,
+        estimatedDelivery: data.estimatedDelivery ? (() => {
+          const date = new Date(data.estimatedDelivery);
+          return isNaN(date.getTime()) ? null : date;
+        })() : null,
+        status: "planning",
+        currentStage: "estimativa",
+        // Credit management fields
+        creditUsed: totalValue.toString(),
+        adminFeeRate: feeRate.toString(),
+        adminFeeAmount: feeAmount.toString(),
+        totalWithFees: totalWithFees.toString(),
+        downPaymentRequired: downPaymentAmount.toString(),
+        downPaymentStatus: "pending",
+        paymentStatus: "pending",
+        paymentTermsDays: parseInt(creditApp.finalApprovedTerms || creditApp.approvedTerms || "30"),
+      };
+
+      const importRecord = await storage.createImport(cleanedData);
+
+      // Reserve credit for this import
+      await storage.reserveCredit(creditApp.id, importRecord.id, totalValue.toString());
+
+      // Generate correct payment schedule using the advanced logic
+      await storage.generatePaymentSchedule(
+        importRecord.id,
+        totalWithFees.toString(),
+        creditApp.id
+      );
+
+      res.status(201).json(importRecord);
+    } catch (error) {
+      console.error("Error creating import:", error);
+      res.status(500).json({ message: "Erro ao criar importação" });
+    }
+  });
+
+  app.get('/api/imports', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      
+      console.log(`🔍 IMPORTS REQUEST - User ${userId}, Role: ${currentUser?.role}`);
+      console.log(`🔗 Session ID: ${req.sessionID}`);
+      
+      if (!currentUser) {
+        console.log(`❌ User ${userId} not found in database`);
+        return res.status(401).json({ message: "Usuário não encontrado" });
+      }
+      
+      let imports;
+      if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'financeira') {
+        imports = await storage.getAllImports();
+        console.log(`👑 Admin/Financeira fetched ${imports.length} total imports`);
+      } else {
+        // Get user imports with detailed logging
+        console.log(`👤 Fetching imports for importer user ${userId}`);
+        imports = await storage.getImportsByUser(userId);
+        console.log(`📊 Found ${imports.length} imports for user ${userId}`);
+        
+        // Enhanced debugging for empty results
+        if (imports.length === 0) {
+          console.log(`🔍 ZERO IMPORTS DEBUG:`);
+          const allImports = await storage.getAllImports();
+          console.log(`🗄️ Total imports in DB: ${allImports.length}`);
+          const userImports = allImports.filter(imp => imp.userId === userId);
+          console.log(`🎯 Imports for user ${userId}: ${userImports.length}`);
+          if (userImports.length > 0) {
+            console.log(`📋 User import details:`, userImports.map(imp => ({
+              id: imp.id, 
+              name: imp.importName, 
+              userId: imp.userId
+            })));
+          }
+        }
+      }
+      
+      console.log(`✅ Sending ${imports.length} imports to frontend`);
+      res.json(imports);
+    } catch (error) {
+      console.error("❌ CRITICAL ERROR in imports endpoint:", error);
+      console.error("❌ Stack trace:", error.stack);
+      res.status(500).json({ message: "Erro ao buscar importações", error: error.message });
+    }
+  });
+
+  app.get('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+      const isFinanceira = currentUser?.role === "financeira";
+
+      const importRecord = await storage.getImport(id);
+
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import, is admin, or is financeira
+      if (!isAdmin && !isFinanceira && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      res.json(importRecord);
+    } catch (error) {
+      console.error("Error fetching import:", error);
+      res.status(500).json({ message: "Erro ao buscar importação" });
+    }
+  });
+
+  // Update import (for editing)
+  app.put('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow editing if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Check if this is just a status change (single field update)
+      const isStatusChangeOnly = Object.keys(req.body).length === 1 && req.body.status;
+      
+      if (isStatusChangeOnly) {
+        // Allow status changes for any import status
+        console.log(`🔄 Status change request: ${importRecord.status} → ${req.body.status}`);
+        const updatedImport = await storage.updateImportStatus(id, req.body.status, {
+          status: req.body.status,
+          updatedAt: new Date()
+        });
+        res.json(updatedImport);
+      } else {
+        // For full edits, only allow if status is 'planejamento'
+        if (importRecord.status !== 'planejamento') {
+          return res.status(400).json({ message: "Só é possível editar importações em planejamento" });
+        }
+        
+        const updatedImport = await storage.updateImportStatus(id, importRecord.status, req.body);
+        res.json(updatedImport);
+      }
+    } catch (error) {
+      console.error("Error updating import:", error);
+      res.status(500).json({ message: "Erro ao atualizar importação" });
+    }
+  });
+
+  // Cancel import (soft delete)
+  app.delete('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow canceling if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Don't allow canceling already finished or cancelled imports
+      if (importRecord.status === 'cancelada' || importRecord.status === 'concluida') {
+        return res.status(400).json({ message: "Esta importação não pode ser cancelada" });
+      }
+
+      const cancelledImport = await storage.updateImportStatus(id, 'cancelada', {
+        cancelledAt: new Date().toISOString(),
+        cancelledBy: userId
+      });
+
+      res.json(cancelledImport);
+    } catch (error) {
+      console.error("Error cancelling import:", error);
+      res.status(500).json({ message: "Erro ao cancelar importação" });
+    }
+  });
+
+  app.patch('/api/imports/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, ...updateData } = req.body;
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      if (importRecord.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const updatedImport = await storage.updateImportStatus(id, status, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status da importação" });
+    }
+  });
+
+  // Update import (PUT)
+  app.put('/api/imports/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId;
+      const currentUser = await storage.getUser(userId);
+      const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+
+      const importRecord = await storage.getImport(id);
+      if (!importRecord) {
+        return res.status(404).json({ message: "Importação não encontrada" });
+      }
+
+      // Allow access if user owns the import or is admin
+      if (!isAdmin && importRecord.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Only allow editing if import is in planning status
+      if (importRecord.status !== 'planning') {
+        return res.status(400).json({ 
+          message: "Apenas importações em planejamento podem ser editadas" 
+        });
+      }
+
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+
+      // Remove fields that shouldn't be updated directly
+      delete updateData.id;
+      delete updateData.userId;
+      delete updateData.createdAt;
+
+      const updatedImport = await storage.updateImport(id, updateData);
+      res.json(updatedImport);
+    } catch (error) {
+      console.error("Error updating import:", error);
+      res.status(500).json({ message: "Erro ao atualizar importação" });
+    }
+  });
 
   // Delete/Cancel import (DELETE)
   app.delete('/api/imports/:id', requireAuth, async (req: any, res) => {

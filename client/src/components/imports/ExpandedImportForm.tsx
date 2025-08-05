@@ -35,7 +35,7 @@ const expandedImportFormSchema = z.object({
   currency: z.string().default("USD"),
   status: z.string().default("planejamento"),
   supplierId: z.number().optional(),
-  incoterm: z.enum(["FOB", "CIF", "EXW"]),
+  incoterms: z.enum(["FOB", "CIF", "EXW"]),
   
   // Container info (existing) 
   containerNumber: z.string().optional(),
@@ -59,6 +59,7 @@ const expandedImportFormSchema = z.object({
   customsBrokerId: z.number().optional(),
   customsBrokerStatus: z.enum(["pending", "assigned", "processing", "completed"]).default("pending"),
   customsProcessingNotes: z.string().optional(),
+  paymentMethod: z.enum(['credit', 'own_funds']).default('credit'),
   
   // Customs documentation (new)
   importDeclarationNumber: z.string().optional(),
@@ -76,23 +77,24 @@ const expandedImportFormSchema = z.object({
   
   // Products
   products: z.array(z.object({
-    productId: z.number().optional(),
     productName: z.string().min(1, "Nome do produto é obrigatório"),
     quantity: z.number().min(1, "Quantidade deve ser maior que zero"),
-    unitPrice: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) || 0 : val),
+    unitPrice: z.number().min(0, "Preço unitário deve ser maior ou igual a zero"),
     totalValue: z.number().min(0),
-    supplierId: z.number().optional(),
-    ncmCode: z.string().optional(),
-    hsCode: z.string().optional(),
-    description: z.string().optional(),
-    weight: z.string().optional(),
-    currency: z.string().optional(),
-    unitOfMeasure: z.string().optional(),
-    brand: z.string().optional(),
-    material: z.string().optional()
+    supplierId: z.number().optional()
   })).optional(),
   
   notes: z.string().optional()
+}).refine((data) => {
+  // Se paymentMethod for 'credit', creditApplicationId é obrigatório
+  if (data.paymentMethod === 'credit') {
+    return data.creditApplicationId !== undefined && data.creditApplicationId > 0;
+  }
+  // Se for 'own_funds', creditApplicationId não é necessário
+  return true;
+}, {
+  message: "Aplicação de crédito é obrigatória quando usar créditos aprovados",
+  path: ["creditApplicationId"]
 });
 
 type ExpandedImportFormData = z.infer<typeof expandedImportFormSchema>;
@@ -190,10 +192,10 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       totalValue: initialData?.totalValue || "0",
       currency: initialData?.currency || "USD",
       status: initialData?.status || "planejamento",
-      incoterm: initialData?.incoterm || "FOB",
+      incoterms: initialData?.incoterms || "FOB",
       creditApplicationId: initialData?.creditApplicationId,
       supplierId: initialData?.supplierId,
-
+      paymentMethod: initialData?.paymentMethod || 'credit',
       customsBrokerEmail: initialData?.customsBrokerEmail || "",
       customsBrokerId: initialData?.customsBrokerId,
       customsBrokerStatus: initialData?.customsBrokerStatus || "pending",
@@ -239,26 +241,14 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   });
 
   const onSubmit = (data: ExpandedImportFormData) => {
-    console.log("Form submission attempted with data:", data);
-    console.log("Form errors:", form.formState.errors);
-    console.log("Form valid:", form.formState.isValid);
-    
-    // Verificar se há erros de validação
-    if (!form.formState.isValid) {
-      console.log("Form has validation errors, triggering validation...");
-      form.trigger(); // Força a validação
-      return;
-    }
-    
     // Calculate total value for LCL based on products
     if (cargoType === 'LCL' && data.products && data.products.length > 0) {
       const calculatedTotal = data.products.reduce((sum, product) => 
-        sum + (Number(product.quantity || 0) * Number(product.unitPrice || 0)), 0
+        sum + (product.quantity * product.unitPrice), 0
       );
       data.totalValue = calculatedTotal.toString();
     }
 
-    console.log("Sending data to API:", data);
     createImportMutation.mutate(data);
   };
 
@@ -505,7 +495,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
 
                   <FormField
                     control={form.control}
-                    name="incoterm"
+                    name="incoterms"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Incoterms *</FormLabel>
@@ -568,13 +558,13 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 </CardHeader>
                 <CardContent>
                   <ProductManager 
-                    products={form.watch("products") as any[] || []}
-                    suppliers={Array.isArray(suppliers) ? suppliers : []}
+                    products={(form.watch("products") as any[]) || []}
+                    suppliers={suppliers || []}
                     onProductsChange={(products: any[]) => {
                       form.setValue("products", products);
                       // Calcula automaticamente o valor total
                       const totalValue = products.reduce((sum, product) => 
-                        sum + (Number(product.quantity || 0) * Number(product.unitPrice || 0)), 0
+                        sum + (product.quantity * product.unitPrice), 0
                       );
                       form.setValue("totalValue", totalValue.toString());
                     }}
@@ -1045,25 +1035,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 </Button>
               ) : (
                 <Button 
-                  type="button" 
+                  type="submit" 
                   disabled={createImportMutation.isPending}
                   className="min-w-32"
-                  onClick={async () => {
-                    console.log("Button clicked manually");
-                    console.log("Form state:", form.formState);
-                    console.log("Form values:", form.getValues());
-                    
-                    const isValid = await form.trigger();
-                    console.log("Form is valid:", isValid);
-                    
-                    if (isValid) {
-                      const data = form.getValues();
-                      console.log("Calling onSubmit with data:", data);
-                      onSubmit(data);
-                    } else {
-                      console.log("Form validation failed:", form.formState.errors);
-                    }
-                  }}
                 >
                   {createImportMutation.isPending 
                     ? "Salvando..." 
