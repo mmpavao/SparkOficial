@@ -17,6 +17,7 @@ import ImportsNewFormPage from "@/pages/imports-new-form";
 import ImportNewEnhancedPage from "@/pages/import-new-enhanced";
 import ImportDetailsPage from "@/pages/import-details";
 import ImportEdit from "@/pages/import-edit";
+import ImportEditOperationalPage from "@/pages/import-edit-operational";
 import ImportNewExpandedPage from "@/pages/import-new-expanded";
 import PipelineDemoPage from "@/pages/pipeline-demo";
 import PipelineSimplePage from "@/pages/pipeline-simple";
@@ -81,6 +82,8 @@ function Router() {
         <Route path="/imports/new-expanded" component={ImportNewExpandedPage} />
         <Route path="/imports/:id" component={ImportDetailsPage} />
         <Route path="/imports/:id/edit" component={ImportEdit} />
+        <Route path="/imports/operational/:id" component={ImportDetailsPage} />
+        <Route path="/imports/operational/:id/edit" component={ImportEditOperationalPage} />
 
         <Route path="/suppliers" component={SuppliersPage} />
         <Route path="/suppliers/details/:id" component={SupplierDetailsPage} />

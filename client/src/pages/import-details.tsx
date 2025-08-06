@@ -409,7 +409,11 @@ export default function ImportDetailsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Link href={`/imports/${id}/edit`}>
+                    <Link href={
+                      importData.creditApplicationId 
+                        ? `/imports/${id}/edit` 
+                        : `/imports/operational/${id}/edit`
+                    }>
                       <Button className="w-full" variant="outline">
                         <Edit className="w-4 h-4 mr-2" />
                         Editar Importação

@@ -72,8 +72,132 @@ const requireAdminOrFinanceira = async (req: any, res: any, next: any) => {
 
 export const importRoutes = Router();
 
+// ===== OPERATIONAL IMPORTS ROUTES (Separate from Credit System) =====
+// These routes handle imports that use own funds (not credit-based)
+
+// GET /api/imports/operational/:id - Get operational import details
+importRoutes.get('/operational/:id', requireAuth, async (req: any, res) => {
+  try {
+    const importId = parseInt(req.params.id);
+    const userId = req.user.id;
+    
+    // Get import with products
+    const importData = await db
+      .select()
+      .from(imports)
+      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
+      .where(and(
+        eq(imports.id, importId),
+        eq(imports.userId, userId)
+      ))
+      .limit(1);
+
+    if (!importData.length) {
+      return res.status(404).json({ message: 'Importação não encontrada' });
+    }
+
+    const importRecord = importData[0];
+    
+    // Get products for this import
+    const products = await db
+      .select()
+      .from(importProducts)
+      .where(eq(importProducts.importId, importId));
+
+    // Construct response
+    const response = {
+      ...importRecord.imports,
+      products: products || [],
+      supplier: importRecord.suppliers,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching operational import:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
+// PUT /api/imports/operational/:id - Update operational import
+importRoutes.put('/operational/:id', requireAuth, async (req: any, res) => {
+  try {
+    const importId = parseInt(req.params.id);
+    const userId = req.user.id;
+    const updateData = req.body;
+
+    // Verify ownership
+    const existingImport = await db
+      .select({ id: imports.id })
+      .from(imports)
+      .where(and(
+        eq(imports.id, importId),
+        eq(imports.userId, userId)
+      ))
+      .limit(1);
+
+    if (!existingImport.length) {
+      return res.status(404).json({ message: 'Importação não encontrada' });
+    }
+
+    // Update import record
+    const importUpdate = {
+      importName: updateData.importName,
+      cargoType: updateData.cargoType,
+      containerNumber: updateData.containerNumber,
+      sealNumber: updateData.sealNumber,
+      totalValue: updateData.totalValue,
+      currency: updateData.currency,
+      weight: updateData.weight ? parseFloat(updateData.weight) : null,
+      volume: updateData.volume ? parseFloat(updateData.volume) : null,
+      dimensions: updateData.dimensions,
+      shippingMethod: updateData.transportMethod,
+      containerType: updateData.containerType,
+      incoterms: updateData.incoterms,
+      portOfLoading: updateData.portOfLoading,
+      portOfDischarge: updateData.portOfDischarge,
+      estimatedDelivery: updateData.estimatedDelivery ? new Date(updateData.estimatedDelivery) : null,
+      notes: updateData.notes,
+      updatedAt: new Date(),
+    };
+
+    await db
+      .update(imports)
+      .set(importUpdate)
+      .where(eq(imports.id, importId));
+
+    // Update products if provided
+    if (updateData.products && Array.isArray(updateData.products)) {
+      // Delete existing products
+      await db
+        .delete(importProducts)
+        .where(eq(importProducts.importId, importId));
+
+      // Insert new products
+      if (updateData.products.length > 0) {
+        const productsToInsert = updateData.products.map((product: any) => ({
+          importId,
+          productName: product.productName,
+          quantity: product.quantity,
+          unitPrice: product.unitPrice,
+          totalValue: product.totalValue,
+          supplierId: product.supplierId || null,
+        }));
+
+        await db
+          .insert(importProducts)
+          .values(productsToInsert);
+      }
+    }
+
+    res.json({ message: 'Importação atualizada com sucesso' });
+  } catch (error) {
+    console.error('Error updating operational import:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 // GET /api/imports - List imports with filtering and pagination
-importRoutes.get('/imports', requireAuth, async (req, res) => {
+importRoutes.get('/', requireAuth, async (req, res) => {
   try {
     const { 
       page = 1, 
@@ -490,8 +614,8 @@ importRoutes.post('/imports', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/imports/:id - Get import details
-importRoutes.get('/imports/:id', requireAuth, async (req, res) => {
+// GET /api/imports/:id - Get import details  
+importRoutes.get('/:id', requireAuth, async (req, res) => {
   try {
     const importId = Number(req.params.id);
     const currentUser = req.session.user;
