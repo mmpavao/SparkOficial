@@ -239,87 +239,128 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product: Product) => (
-            <Card key={product.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-1">{product.productName}</CardTitle>
-                    <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
-                  </div>
-                  <div className="flex gap-1 ml-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(product)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+            <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
+              {/* Product Image */}
+              <div className="relative h-48 bg-gray-100 overflow-hidden">
+                {(product as any).imageUrl ? (
+                  <img 
+                    src={(product as any).imageUrl} 
+                    alt={product.productName}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                      const placeholder = target.parentElement?.querySelector('.placeholder-icon') as HTMLElement;
+                      if (placeholder) placeholder.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                
+                <div 
+                  className="placeholder-icon absolute inset-0 flex items-center justify-center bg-gray-100" 
+                  style={{ display: (product as any).imageUrl ? 'none' : 'flex' }}
+                >
+                  <Package className="h-16 w-16 text-gray-400" />
                 </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {/* Category and NCM */}
-                  <div className="flex flex-wrap gap-2">
-                    {product.category && (
-                      <Badge variant="secondary">{product.category}</Badge>
-                    )}
-                    {product.ncmCode && (
-                      <Badge variant="outline">NCM: {product.ncmCode}</Badge>
-                    )}
-                  </div>
+                
+                {/* Category Badge */}
+                {product.category && (
+                  <Badge className="absolute top-3 left-3 bg-white/90 text-gray-800 hover:bg-white shadow-sm">
+                    {product.category}
+                  </Badge>
+                )}
 
-                  {/* Physical specs */}
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Weight className="w-3 h-3 text-gray-500" />
-                      <span className="text-gray-600">Peso:</span>
-                      <span className="font-medium">{Number(product.weight)}kg</span>
-                    </div>
-                    
-                    {(product.length && product.width && product.height) && (
-                      <div className="flex items-center gap-1">
-                        <Ruler className="w-3 h-3 text-gray-500" />
-                        <span className="text-gray-600">Dim:</span>
-                        <span className="font-medium text-xs">
-                          {Number(product.length)}×{Number(product.width)}×{Number(product.height)}cm
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-1">
-                      <span className="text-gray-600">Unidade:</span>
-                      <span className="font-medium">{product.unitOfMeasure}</span>
-                    </div>
-                    
-                    {product.material && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Material:</span>
-                        <span className="font-medium text-xs">{product.material}</span>
-                      </div>
-                    )}
-                  </div>
+                {/* Action Buttons Overlay */}
+                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleEdit(product)}
+                    className="h-8 w-8 p-0 bg-white/90 hover:bg-white shadow-sm"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleDelete(product.id)}
+                    className="h-8 w-8 p-0 bg-white/90 hover:bg-red-50 text-red-600 hover:text-red-700 shadow-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
 
-                  {/* Additional info */}
-                  {(product.brand || product.productOrigin) && (
-                    <div className="pt-2 border-t text-xs text-gray-600">
-                      {product.brand && <div>Marca: {product.brand}</div>}
-                      {product.productOrigin && <div>Origem: {product.productOrigin}</div>}
+              <CardContent className="p-4">
+                {/* Product Name & Description */}
+                <div className="mb-3">
+                  <h3 className="font-semibold text-lg text-gray-900 mb-1 line-clamp-1">
+                    {product.productName}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {product.description || 'Sem descrição'}
+                  </p>
+                </div>
+
+                {/* NCM Code */}
+                {product.ncmCode && (
+                  <div className="flex items-center text-sm text-gray-500 mb-3">
+                    <Hash className="h-4 w-4 mr-2" />
+                    <span>NCM: {product.ncmCode}</span>
+                  </div>
+                )}
+
+                {/* Specs Grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                  {product.weight && (
+                    <div className="flex items-center">
+                      <Weight className="h-4 w-4 text-gray-400 mr-2" />
+                      <div>
+                        <span className="text-gray-500">Peso</span>
+                        <p className="font-medium">{parseFloat(product.weight).toFixed(2)} kg</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {product.unitOfMeasure && (
+                    <div>
+                      <span className="text-gray-500">Unidade</span>
+                      <p className="font-medium">{product.unitOfMeasure}</p>
+                    </div>
+                  )}
+
+                  {product.material && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500">Material</span>
+                      <p className="font-medium">{product.material}</p>
                     </div>
                   )}
                 </div>
+
+                {/* Price */}
+                {product.unitPrice && (
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Preço unitário</span>
+                      <span className="text-lg font-bold text-emerald-600">
+                        {product.currency || 'USD'} {parseFloat(product.unitPrice).toLocaleString('pt-BR', { 
+                          minimumFractionDigits: 2, 
+                          maximumFractionDigits: 2 
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Brand & Origin */}
+                {(product.brand || product.productOrigin) && (
+                  <div className="mt-3 pt-3 border-t text-xs text-gray-500 space-y-1">
+                    {product.brand && <div>Marca: {product.brand}</div>}
+                    {product.productOrigin && <div>Origem: {product.productOrigin}</div>}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

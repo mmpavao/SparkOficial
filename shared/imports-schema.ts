@@ -139,6 +139,7 @@ export const products = pgTable('products', {
   
   // Additional information
   notes: text('notes'), // Observações adicionais
+  imageUrl: text('image_url'), // URL da imagem do produto
   isActive: boolean('is_active').default(true),
   
   createdAt: timestamp('created_at').defaultNow(),
