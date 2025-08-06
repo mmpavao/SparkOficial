@@ -81,37 +81,24 @@ importRoutes.get('/operational/:id', requireAuth, async (req: any, res) => {
     const importId = parseInt(req.params.id);
     const userId = req.user.id;
     
-    // Get import with products
-    const importData = await db
-      .select()
-      .from(imports)
-      .leftJoin(suppliers, eq(imports.supplierId, suppliers.id))
-      .where(and(
-        eq(imports.id, importId),
-        eq(imports.userId, userId)
-      ))
-      .limit(1);
-
-    if (!importData.length) {
+    console.log(`🔍 OPERATIONAL IMPORT REQUEST - Import ID: ${importId}, User ID: ${userId}`);
+    
+    // Use storage.getImport to get the complete import data with consistent structure
+    const importData = await storage.getImport(importId);
+    
+    if (!importData) {
+      console.log(`❌ Import not found - ID: ${importId}`);
       return res.status(404).json({ message: 'Importação não encontrada' });
     }
 
-    const importRecord = importData[0];
-    
-    // Get products for this import
-    const products = await db
-      .select()
-      .from(importProducts)
-      .where(eq(importProducts.importId, importId));
+    // Check if user owns this import
+    if (importData.userId !== userId) {
+      console.log(`❌ Access denied - Import ${importId} does not belong to user ${userId}`);
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
 
-    // Construct response
-    const response = {
-      ...importRecord.imports,
-      products: products || [],
-      supplier: importRecord.suppliers,
-    };
-
-    res.json(response);
+    console.log(`✅ Operational import found - ID: ${importId}, Name: ${importData.importName}`);
+    res.json(importData);
   } catch (error) {
     console.error('Error fetching operational import:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
@@ -125,71 +112,23 @@ importRoutes.put('/operational/:id', requireAuth, async (req: any, res) => {
     const userId = req.user.id;
     const updateData = req.body;
 
-    // Verify ownership
-    const existingImport = await db
-      .select({ id: imports.id })
-      .from(imports)
-      .where(and(
-        eq(imports.id, importId),
-        eq(imports.userId, userId)
-      ))
-      .limit(1);
+    console.log(`🔄 UPDATING OPERATIONAL IMPORT - ID: ${importId}, User: ${userId}`);
 
-    if (!existingImport.length) {
+    // Verify ownership using storage
+    const existingImport = await storage.getImport(importId);
+    if (!existingImport) {
       return res.status(404).json({ message: 'Importação não encontrada' });
     }
 
-    // Update import record
-    const importUpdate = {
-      importName: updateData.importName,
-      cargoType: updateData.cargoType,
-      containerNumber: updateData.containerNumber,
-      sealNumber: updateData.sealNumber,
-      totalValue: updateData.totalValue,
-      currency: updateData.currency,
-      weight: updateData.weight ? parseFloat(updateData.weight) : null,
-      volume: updateData.volume ? parseFloat(updateData.volume) : null,
-      dimensions: updateData.dimensions,
-      shippingMethod: updateData.transportMethod,
-      containerType: updateData.containerType,
-      incoterms: updateData.incoterms,
-      portOfLoading: updateData.portOfLoading,
-      portOfDischarge: updateData.portOfDischarge,
-      estimatedDelivery: updateData.estimatedDelivery ? new Date(updateData.estimatedDelivery) : null,
-      notes: updateData.notes,
-      updatedAt: new Date(),
-    };
-
-    await db
-      .update(imports)
-      .set(importUpdate)
-      .where(eq(imports.id, importId));
-
-    // Update products if provided
-    if (updateData.products && Array.isArray(updateData.products)) {
-      // Delete existing products
-      await db
-        .delete(importProducts)
-        .where(eq(importProducts.importId, importId));
-
-      // Insert new products
-      if (updateData.products.length > 0) {
-        const productsToInsert = updateData.products.map((product: any) => ({
-          importId,
-          productName: product.productName,
-          quantity: product.quantity,
-          unitPrice: product.unitPrice,
-          totalValue: product.totalValue,
-          supplierId: product.supplierId || null,
-        }));
-
-        await db
-          .insert(importProducts)
-          .values(productsToInsert);
-      }
+    if (existingImport.userId !== userId) {
+      return res.status(403).json({ message: 'Acesso negado' });
     }
 
-    res.json({ message: 'Importação atualizada com sucesso' });
+    // Use storage.updateImport for consistent updating
+    const updatedImport = await storage.updateImport(importId, updateData);
+
+    console.log(`✅ Operational import updated - ID: ${importId}`);
+    res.json({ message: 'Importação atualizada com sucesso', import: updatedImport });
   } catch (error) {
     console.error('Error updating operational import:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });

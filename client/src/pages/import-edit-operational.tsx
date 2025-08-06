@@ -71,7 +71,7 @@ export default function ImportEditOperationalPage() {
   
   // Fetch import data
   const { data: importData, isLoading: isLoadingImport } = useQuery({
-    queryKey: ['/api/imports/operational', id],
+    queryKey: [`/api/imports/operational/${id}`],
     enabled: !!id,
   });
 
