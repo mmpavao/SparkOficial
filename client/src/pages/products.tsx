@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, Package, Weight, Ruler, Hash } from 'lucide-react';
+import { Trash2, Edit, Plus, Package, Weight, Ruler, Hash, Grid3X3, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Product } from '@shared/imports-schema';
 import { apiRequest } from '@/lib/queryClient';
@@ -20,6 +20,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Fetch products
   const { data: products = [], isLoading } = useQuery({
@@ -193,24 +194,47 @@ export default function ProductsPage() {
                 className="w-full"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory('all')}
-                size="sm"
-              >
-                Todas
-              </Button>
-              {categories.map((category) => (
+            <div className="flex items-center gap-4">
+              {/* View Mode Toggle */}
+              <div className="flex gap-1 border rounded-md p-1">
                 <Button
-                  key={category}
-                  variant={selectedCategory === category ? 'default' : 'outline'}
-                  onClick={() => setSelectedCategory(category)}
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 w-8 p-0"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="h-8 w-8 p-0"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Category Filters */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory('all')}
                   size="sm"
                 >
-                  {category}
+                  Todas
                 </Button>
-              ))}
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory(category)}
+                    size="sm"
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -238,7 +262,7 @@ export default function ProductsPage() {
             )}
           </CardContent>
         </Card>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product: Product) => (
             <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
@@ -364,6 +388,121 @@ export default function ProductsPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      ) : (
+        /* List View */
+        <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Produto
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    NCM
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Categoria
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Peso (kg)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Preço
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredProducts.map((product: Product) => (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0 mr-4">
+                          {(product as any).imageUrl ? (
+                            <img 
+                              src={(product as any).imageUrl} 
+                              alt={product.productName}
+                              className="h-10 w-10 rounded object-cover"
+                              onError={(e) => {
+                                const target = e.currentTarget as HTMLImageElement;
+                                target.style.display = 'none';
+                                const placeholder = target.parentElement?.querySelector('.placeholder-icon') as HTMLElement;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className="placeholder-icon h-10 w-10 bg-gray-100 rounded flex items-center justify-center" 
+                            style={{ display: (product as any).imageUrl ? 'none' : 'flex' }}
+                          >
+                            <Package className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.productName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {product.description || 'Sem descrição'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Hash className="h-4 w-4 text-gray-400 mr-1" />
+                        <span className="text-sm text-gray-900">{product.ncmCode}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge variant="secondary">
+                        {product.category || 'Sem categoria'}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Weight className="h-4 w-4 text-gray-400 mr-1" />
+                        <span className="text-sm text-gray-900">
+                          {product.weight ? parseFloat(product.weight).toFixed(2) : 'N/A'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {product.unitPrice 
+                          ? `${product.currency || 'USD'} ${parseFloat(product.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : 'N/A'
+                        }
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(product.id)}
+                          className="text-red-600 hover:text-red-700 hover:border-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
