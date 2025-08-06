@@ -14,11 +14,11 @@ export const imports = pgTable('imports', {
   importNumber: text('import_number'),
   cargoType: text('cargo_type').notNull(), // 'FCL' or 'LCL'
   
-  // Origin and destination (ports)
-  origin: text('origin').notNull(), // Porto de origem (China)
-  destination: text('destination').notNull(), // Porto de destino (Brasil)
+  // Origin and destination (ports) - using existing columns
+  portOfLoading: text('port_of_loading'), // Porto de origem (China)
+  portOfDischarge: text('port_of_discharge'), // Porto de destino (Brasil)
   destinationState: text('destination_state'), // Estado de destino no Brasil
-  transportMethod: text('transport_method').notNull(), // 'maritimo' or 'aereo'
+  transportMethod: text('transport_method'), // 'maritimo' or 'aereo'
   
   // Financial information
   totalValue: decimal('total_value', { precision: 12, scale: 2 }).notNull(),
@@ -50,9 +50,7 @@ export const imports = pgTable('imports', {
   masterBillOfLading: text('master_bill_of_lading'), // Master B/L
   houseBillOfLading: text('house_bill_of_lading'), // House B/L
   
-  // Port and terminal details
-  portOfLoading: text('port_of_loading'), // Porto de embarque específico
-  portOfDischarge: text('port_of_discharge'), // Porto de desembarque específico
+  // Port and terminal details (already defined above)
   finalDestination: text('final_destination'), // Destino final
   terminalLocation: text('terminal_location'), // Terminal específico
   

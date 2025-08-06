@@ -102,8 +102,8 @@ export default function ImportEditOperationalPage() {
         weight: data.weight?.toString() || "",
         volume: data.volume?.toString() || "",
         transportMethod: data.transportMethod || "maritimo",
-        origin: data.origin || "",
-        destination: data.destination || "",
+        origin: data.portOfLoading || "",
+        destination: data.portOfDischarge || "",
         notes: data.notes || "",
       });
     }
