@@ -11,7 +11,7 @@ export const imports = pgTable('imports', {
   
   // Basic information
   importName: text('import_name').notNull(),
-  importCode: text('import_code'),
+  importNumber: text('import_number'),
   cargoType: text('cargo_type').notNull(), // 'FCL' or 'LCL'
   
   // Origin and destination (ports)

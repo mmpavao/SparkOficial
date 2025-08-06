@@ -32,33 +32,22 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 
-// Schema de validação para importação operacional
+// Schema de validação simplificado para importação operacional
 const operationalImportSchema = z.object({
   importName: z.string().min(1, "Nome da importação é obrigatório"),
   cargoType: z.string().min(1, "Tipo de carga é obrigatório"),
-  containerNumber: z.string().optional(),
-  sealNumber: z.string().optional(),
   totalValue: z.string().min(1, "Valor total é obrigatório"),
   currency: z.string().min(1, "Moeda é obrigatória"),
+  incoterms: z.string().min(1, "Incoterms é obrigatório"),
+  // Campos opcionais
+  containerNumber: z.string().optional(),
+  sealNumber: z.string().optional(),
   weight: z.string().optional(),
   volume: z.string().optional(),
-  dimensions: z.string().optional(),
   transportMethod: z.string().optional(),
-  containerType: z.string().optional(),
-  incoterms: z.string().optional(),
   origin: z.string().optional(),
   destination: z.string().optional(),
-  portOfLoading: z.string().optional(),
-  portOfDischarge: z.string().optional(),
-  estimatedDelivery: z.string().optional(),
   notes: z.string().optional(),
-  products: z.array(z.object({
-    productName: z.string().min(1, "Nome do produto é obrigatório"),
-    quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
-    unitPrice: z.number().min(0, "Preço unitário deve ser maior ou igual a 0"),
-    totalValue: z.number().min(0, "Valor total deve ser maior ou igual a 0"),
-    supplierId: z.number().optional(),
-  })).min(1, "Pelo menos um produto é obrigatório"),
 });
 
 type OperationalImportForm = z.infer<typeof operationalImportSchema>;
@@ -70,734 +59,450 @@ export default function ImportEditOperationalPage() {
   const queryClient = useQueryClient();
   
   // Fetch import data
-  const { data: importData, isLoading: isLoadingImport } = useQuery({
+  const { data: importData, isLoading: isLoadingImport, error } = useQuery({
     queryKey: [`/api/imports/operational/${id}`],
     enabled: !!id,
   });
 
-  // Fetch suppliers for dropdown
-  const { data: suppliers = [] } = useQuery({
-    queryKey: ['/api/suppliers'],
-  });
+  console.log("📋 Import data received:", importData);
 
   const form = useForm<OperationalImportForm>({
     resolver: zodResolver(operationalImportSchema),
     defaultValues: {
       importName: "",
-      cargoType: "",
-      containerNumber: "",
-      sealNumber: "",
+      cargoType: "FCL",
       totalValue: "",
       currency: "USD",
+      incoterms: "FOB",
+      containerNumber: "",
+      sealNumber: "",
       weight: "",
       volume: "",
-      dimensions: "",
-      transportMethod: "",
-      containerType: "",
-      incoterms: "FOB",
+      transportMethod: "maritimo",
       origin: "",
       destination: "",
-      portOfLoading: "",
-      portOfDischarge: "",
-      estimatedDelivery: "",
       notes: "",
-      products: [],
     },
   });
 
   // Update form when import data is loaded
   useEffect(() => {
-    if (importData) {
-      const formData = {
-        importName: importData.importName || "",
-        cargoType: importData.cargoType || "",
-        containerNumber: importData.containerNumber || "",
-        sealNumber: importData.sealNumber || "",
-        totalValue: importData.totalValue?.toString() || "",
-        currency: importData.currency || "USD",
-        weight: importData.weight?.toString() || "",
-        volume: importData.volume?.toString() || "",
-        dimensions: importData.dimensions || "",
-        transportMethod: importData.transportMethod || "",
-        containerType: importData.containerType || "",
-        incoterms: importData.incoterms || "FOB",
-        origin: importData.origin || "",
-        destination: importData.destination || "",
-        portOfLoading: importData.portOfLoading || "",
-        portOfDischarge: importData.portOfDischarge || "",
-        estimatedDelivery: importData.estimatedDelivery 
-          ? new Date(importData.estimatedDelivery).toISOString().split('T')[0] 
-          : "",
-        notes: importData.notes || "",
-        products: importData.products?.map((p: any) => ({
-          productName: p.productName || "",
-          quantity: p.quantity || 0,
-          unitPrice: p.unitPrice || 0,
-          totalValue: p.totalValue || 0,
-          supplierId: p.supplierId || undefined,
-        })) || [],
-      };
-      form.reset(formData);
+    if (importData && importData.fullData) {
+      const data = importData.fullData;
+      console.log("🔄 Setting form data:", data);
+      
+      form.reset({
+        importName: data.importName || "",
+        cargoType: data.cargoType || "FCL",
+        totalValue: data.totalValue?.toString() || "",
+        currency: data.currency || "USD",
+        incoterms: data.incoterms || "FOB",
+        containerNumber: data.containerNumber || "",
+        sealNumber: data.sealNumber || "",
+        weight: data.weight?.toString() || "",
+        volume: data.volume?.toString() || "",
+        transportMethod: data.transportMethod || "maritimo",
+        origin: data.origin || "",
+        destination: data.destination || "",
+        notes: data.notes || "",
+      });
     }
   }, [importData, form]);
 
   // Update mutation
   const updateImportMutation = useMutation({
     mutationFn: async (data: OperationalImportForm) => {
-      return apiRequest(`/api/imports/operational/${id}`, 'PUT', data);
+      return apiRequest(`/api/imports/operational/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: () => {
       toast({
-        title: "Importação atualizada",
-        description: "As alterações foram salvas com sucesso.",
+        title: "Sucesso",
+        description: "Importação operacional atualizada com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/imports/operational', id] });
-      navigate(`/imports/operational/${id}`);
+      queryClient.invalidateQueries({ queryKey: [`/api/imports/operational/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
+      navigate("/imports");
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar",
-        description: error.message || "Ocorreu um erro ao salvar as alterações.",
+        title: "Erro",
+        description: error.message || "Erro ao atualizar importação",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: OperationalImportForm) => {
+    console.log("📤 Submitting operational import data:", data);
     updateImportMutation.mutate(data);
-  };
-
-  // Product management functions
-  const addProduct = () => {
-    const currentProducts = form.getValues("products");
-    form.setValue("products", [
-      ...currentProducts,
-      {
-        productName: "",
-        quantity: 1,
-        unitPrice: 0,
-        totalValue: 0,
-        supplierId: undefined,
-      },
-    ]);
-  };
-
-  const removeProduct = (index: number) => {
-    const currentProducts = form.getValues("products");
-    form.setValue("products", currentProducts.filter((_, i) => i !== index));
-  };
-
-  const updateProductTotal = (index: number) => {
-    const products = form.getValues("products");
-    const product = products[index];
-    if (product) {
-      const total = product.quantity * product.unitPrice;
-      form.setValue(`products.${index}.totalValue`, total);
-      
-      // Update overall total
-      const allProducts = form.getValues("products");
-      const overallTotal = allProducts.reduce((sum, p) => sum + (p.totalValue || 0), 0);
-      form.setValue("totalValue", overallTotal.toString());
-    }
   };
 
   if (isLoadingImport) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
         <span className="ml-2">Carregando dados da importação...</span>
       </div>
     );
   }
 
-  if (!importData) {
+  if (error) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-xl font-semibold mb-2">Importação não encontrada</h2>
-        <p className="text-gray-600 mb-4">A importação solicitada não existe ou você não tem permissão para editá-la.</p>
-        <Link href="/imports">
-          <Button>Voltar para Importações</Button>
-        </Link>
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Erro ao carregar importação</h2>
+          <p className="text-muted-foreground mb-4">
+            Não foi possível carregar os dados da importação operacional.
+          </p>
+          <Button asChild>
+            <Link href="/imports">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para Importações
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!importData || !importData.fullData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Importação não encontrada</h2>
+          <p className="text-muted-foreground mb-4">
+            A importação operacional solicitada não foi encontrada.
+          </p>
+          <Button asChild>
+            <Link href="/imports">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para Importações
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="container mx-auto p-6 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link href={`/imports/operational/${id}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/imports">
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div>
             <h1 className="text-2xl font-bold">Editar Importação Operacional</h1>
-            <p className="text-gray-600">
-              Atualize as informações da importação #{importData.id}
+            <p className="text-muted-foreground">
+              Edite os dados da importação com recursos próprios
             </p>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">
-            {importData.status === 'planning' ? 'Planejamento' : 
-             importData.status === 'producao' ? 'Produção' : importData.status}
-          </Badge>
-        </div>
+        <Badge variant="secondary" className="flex items-center gap-2">
+          <Package className="h-4 w-4" />
+          Operacional
+        </Badge>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+          {/* Informações Básicas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
                 Informações Básicas
-              </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Produtos
-              </TabsTrigger>
-              <TabsTrigger value="shipping" className="flex items-center gap-2">
-                <Ship className="w-4 h-4" />
-                Logística
-              </TabsTrigger>
-              <TabsTrigger value="financial" className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Financeiro
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Basic Information Tab */}
-            <TabsContent value="basic" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações Gerais</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="importName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome da Importação</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: Equipamentos Eletrônicos Q1 2024" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="cargoType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Carga</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo de carga" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="FCL">FCL - Full Container Load</SelectItem>
-                            <SelectItem value="LCL">LCL - Less Container Load</SelectItem>
-                            <SelectItem value="Break Bulk">Break Bulk</SelectItem>
-                            <SelectItem value="Air Cargo">Air Cargo</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="containerNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Número do Container</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: ABCD1234567" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sealNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Número do Lacre</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: SL123456" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="md:col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Observações</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="Informações adicionais sobre a importação..."
-                              rows={3}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Products Tab */}
-            <TabsContent value="products" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Produtos da Importação</CardTitle>
-                    <Button type="button" onClick={addProduct} size="sm">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Produto
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {form.watch("products")?.map((product, index) => (
-                    <div key={index} className="space-y-4 p-4 border rounded-lg mb-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Produto #{index + 1}</h4>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeProduct(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.productName`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome do Produto</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Ex: Smartphone Galaxy" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Quantidade</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  onChange={(e) => {
-                                    field.onChange(parseInt(e.target.value) || 0);
-                                    updateProductTotal(index);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.unitPrice`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Preço Unitário</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => {
-                                    field.onChange(parseFloat(e.target.value) || 0);
-                                    updateProductTotal(index);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.totalValue`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Valor Total</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  readOnly
-                                  className="bg-gray-50"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {suppliers.length > 0 && (
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.supplierId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fornecedor (Opcional)</FormLabel>
-                              <Select 
-                                onValueChange={(value) => field.onChange(parseInt(value))} 
-                                value={field.value?.toString()}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione um fornecedor" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {suppliers.map((supplier: any) => (
-                                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                                      {supplier.companyName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-                  ))}
-
-                  {(!form.watch("products") || form.watch("products").length === 0) && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                      <p>Nenhum produto adicionado</p>
-                      <p className="text-sm">Clique em "Adicionar Produto" para começar</p>
-                    </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="importName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Importação *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Eletrônicos Q1 2024" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Shipping Tab */}
-            <TabsContent value="shipping" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações de Transporte</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="transportMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Método de Transporte</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o método" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="maritimo">Marítimo</SelectItem>
-                            <SelectItem value="aereo">Aéreo</SelectItem>
-                            <SelectItem value="terrestre">Terrestre</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="incoterms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Incoterms</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione os incoterms" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="FOB">FOB - Free on Board</SelectItem>
-                            <SelectItem value="CIF">CIF - Cost, Insurance and Freight</SelectItem>
-                            <SelectItem value="CFR">CFR - Cost and Freight</SelectItem>
-                            <SelectItem value="EXW">EXW - Ex Works</SelectItem>
-                            <SelectItem value="FCA">FCA - Free Carrier</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="origin"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Origem</FormLabel>
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="cargoType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Carga *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Shenzhen, China" />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          <SelectItem value="FCL">FCL (Container Completo)</SelectItem>
+                          <SelectItem value="LCL">LCL (Carga Fracionada)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-                  <FormField
-                    control={form.control}
-                    name="destination"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Destino</FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="totalValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor Total *</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Moeda *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Santos, SP, Brasil" />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="portOfLoading"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Porto de Embarque</FormLabel>
+                        <SelectContent>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="BRL">BRL</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="CNY">CNY</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="incoterms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Incoterms *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Port of Shenzhen" />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          <SelectItem value="FOB">FOB</SelectItem>
+                          <SelectItem value="CIF">CIF</SelectItem>
+                          <SelectItem value="EXW">EXW</SelectItem>
+                          <SelectItem value="DDP">DDP</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-                  <FormField
-                    control={form.control}
-                    name="portOfDischarge"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Porto de Descarga</FormLabel>
+          {/* Detalhes do Container */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ship className="h-5 w-5" />
+                Detalhes do Container
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="containerNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número do Container</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: MSKU1234567" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="sealNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número do Lacre</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: 123456" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="volume"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Volume (m³)</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="transportMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Método de Transporte</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Porto de Santos" />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          <SelectItem value="maritimo">Marítimo</SelectItem>
+                          <SelectItem value="aereo">Aéreo</SelectItem>
+                          <SelectItem value="rodoviario">Rodoviário</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-                  <FormField
-                    control={form.control}
-                    name="estimatedDelivery"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data Estimada de Entrega</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          {/* Localização */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Origem e Destino
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="origin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Porto de Origem</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Shanghai, China" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="destination"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Porto de Destino</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Santos, Brasil" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-                  <FormField
-                    control={form.control}
-                    name="containerType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Container</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo de container" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="20GP">20" GP - General Purpose</SelectItem>
-                            <SelectItem value="40GP">40" GP - General Purpose</SelectItem>
-                            <SelectItem value="40HC">40" HC - High Cube</SelectItem>
-                            <SelectItem value="20RF">20" RF - Refrigerado</SelectItem>
-                            <SelectItem value="40RF">40" RF - Refrigerado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+          {/* Observações */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Observações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notas Internas</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder="Observações sobre a importação..."
+                        rows={4}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Dimensões e Peso</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-3">
-                  <FormField
-                    control={form.control}
-                    name="weight"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Peso (kg)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} placeholder="Ex: 15000" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="volume"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Volume (m³)</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" {...field} placeholder="Ex: 67.5" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="dimensions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dimensões</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: 12m x 2.4m x 2.6m" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Financial Tab */}
-            <TabsContent value="financial" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações Financeiras</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="totalValue"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor Total</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            step="0.01" 
-                            {...field} 
-                            placeholder="Ex: 50000.00"
-                            readOnly
-                            className="bg-gray-50"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="currency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Moeda</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a moeda" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                            <SelectItem value="EUR">EUR - Euro</SelectItem>
-                            <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
-                            <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t">
-            <Link href={`/imports/operational/${id}`}>
-              <Button type="button" variant="outline">
-                Cancelar
-              </Button>
-            </Link>
-            
+          {/* Ações */}
+          <div className="flex justify-end space-x-4">
+            <Button variant="outline" type="button" asChild>
+              <Link href="/imports">Cancelar</Link>
+            </Button>
             <Button 
               type="submit" 
               disabled={updateImportMutation.isPending}
-              className="min-w-[120px]"
+              className="flex items-center gap-2"
             >
               {updateImportMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Salvar Alterações
-                </>
+                <Save className="h-4 w-4" />
               )}
+              {updateImportMutation.isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </div>
         </form>

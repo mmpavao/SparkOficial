@@ -272,7 +272,6 @@ importRoutes.get('/', requireAuth, async (req, res) => {
       creditApplicationId: row.credit_application_id,
       importName: row.import_name,
       importNumber: row.import_number,
-      importCode: row.import_name, // Using import_name since import_code doesn't exist
       cargoType: row.cargo_type,
       totalValue: row.total_value,
       currency: row.currency,
