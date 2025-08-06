@@ -1,0 +1,303 @@
+
+> rest-express@1.0.0 dev
+✅ Template found at: /home/runner/workspace/server/templates/dossie-template.html
+Registering imports routes...
+Imports routes registered successfully
+1:21:03 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Session Debug] GET /api/auth/user - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+[Session Debug] GET /api/auth/user - Session ID: 1k6ll-cY4DLPGApW_GT8NH9UfGUW4DQP, User ID: undefined
+1:21:20 AM [express] GET /api/auth/user 200 in 136ms :: {"user":null,"authenticated":false}
+1:21:21 AM [express] GET /api/auth/user 304 in 762ms :: {"user":{"id":20,"companyName":"Empresa do I…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+[Session Debug] GET /api/notifications/unread-count - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+[Session Debug] GET /api/dashboard/importer - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+1:21:21 AM [express] GET /api/notifications/unread-count 200 in 151ms
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:21:21 AM [express] GET /api/notifications 500 in 357ms :: {"error":"Failed to fetch import details…
+Authentication successful for user: 20 Role: importer
+🔍 Storage: Getting imports for user 20
+📊 Storage: Query executed successfully - Found 2 imports for user 20
+📋 Import IDs: [ 16, 15 ]
+📋 First import sample: { id: 16, name: 'Nova importacao', userId: 20, status: 'planning' }
+1:21:22 AM [express] GET /api/dashboard/importer 304 in 1097ms :: {"creditMetrics":{"approvedAmount"…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:21:23 AM [express] GET /api/notifications 500 in 341ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:21:26 AM [express] GET /api/notifications 500 in 812ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications/unread-count - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:21:37 AM [express] GET /api/notifications/unread-count 200 in 548ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:21:52 AM [express] GET /api/notifications/unread-count 200 in 544ms
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:21:57 AM [express] GET /api/notifications 500 in 813ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:21:59 AM [express] GET /api/notifications 500 in 819ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:22:02 AM [express] GET /api/notifications 500 in 825ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/imports - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+🔍 IMPORTS REQUEST - User 20, Role: importer
+🔗 Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ
+👤 Fetching imports for importer user 20
+🔍 Storage: Getting imports for user 20
+📊 Storage: Query executed successfully - Found 2 imports for user 20
+📋 Import IDs: [ 16, 15 ]
+📋 First import sample: { id: 16, name: 'Nova importacao', userId: 20, status: 'planning' }
+📊 Found 2 imports for user 20
+✅ Sending 2 imports to frontend
+1:22:05 AM [express] GET /api/imports 304 in 899ms :: [{"id":16,"userId":20,"creditApplicationId":nu…
+[Session Debug] GET /api/suppliers - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+1:22:06 AM [express] GET /api/suppliers 304 in 277ms :: [{"id":10,"userId":20,"companyName":"OferPix…
+[Session Debug] GET /api/notifications/unread-count - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:22:08 AM [express] GET /api/notifications/unread-count 200 in 134ms
+[Session Debug] GET /api/imports/16 - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+1:22:10 AM [express] GET /api/imports/16 304 in 735ms :: {"id":16,"userId":20,"creditApplicationId":…
+[Session Debug] GET /api/imports/operational/16 - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:22:14 AM [express] GET /api/imports/operational/16 200 in 135ms
+[Session Debug] GET /api/imports/operational/16 - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:22:15 AM [express] GET /api/imports/operational/16 200 in 137ms
+[Session Debug] GET /api/imports/operational/16 - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:22:18 AM [express] GET /api/imports/operational/16 200 in 136ms
+[Session Debug] GET /api/notifications/unread-count - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:22:23 AM [express] GET /api/notifications/unread-count 200 in 136ms
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:22:33 AM [express] GET /api/notifications 500 in 814ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:22:35 AM [express] GET /api/notifications 500 in 802ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+Auth check - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ User ID: 20
+Authentication successful for user: 20 Role: importer
+Error fetching import details: error: column imports.import_code does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async <anonymous> (/home/runner/workspace/server/imports-routes.ts:578:26) {
+  length: 184,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "imports.import_name".',
+  position: '130',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+1:22:38 AM [express] GET /api/notifications 500 in 810ms :: {"error":"Failed to fetch import details…
+[Session Debug] GET /api/notifications/unread-count - Session ID: 5lxkBl8M7BgGVfO_O9kZuOFcrXnBuGkZ, User ID: 20
+1:22:38 AM [express] GET /api/notifications/unread-count 200 in 140ms
