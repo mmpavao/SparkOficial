@@ -8,6 +8,7 @@ import connectPg from "connect-pg-simple";
 import { db } from "./db";
 import { importRoutes } from "./imports-routes";
 import { pdfService } from "./services/pdfService";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
 // Extend the session interface
 declare module "express-session" {
@@ -6201,6 +6202,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register customs broker routes
   const customsBrokerRoutes = await import('./customs-broker-routes');
   app.use('/api/customs-broker', customsBrokerRoutes.default);
+
+  // Object Storage routes for image uploads
+  app.post("/api/objects/upload", requireAuth, async (req: any, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error generating upload URL:", error);
+      res.status(500).json({ error: "Failed to generate upload URL" });
+    }
+  });
+
+  // Serve public objects for product images
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Serve private objects (requires authentication)
+  app.get("/objects/:objectPath(*)", requireAuth, async (req: any, res) => {
+    const userId = req.session.userId?.toString();
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

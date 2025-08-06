@@ -13,6 +13,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { insertProductSchema, type Product, type InsertProduct } from '@shared/imports-schema';
 import { apiRequest } from '@/lib/queryClient';
+import { ObjectUploader } from '@/components/ObjectUploader';
+import { Upload, Image as ImageIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductFormProps {
   product?: Product | null;
@@ -46,6 +49,7 @@ const PACKAGING_OPTIONS = [
 export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [imageUrl, setImageUrl] = useState<string>(product?.imageUrl || '');
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
@@ -85,6 +89,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       estimatedIcms: product?.estimatedIcms || undefined,
       notes: product?.notes || '',
       isActive: product?.isActive ?? true,
+      imageUrl: product?.imageUrl || '',
     },
   });
 
@@ -118,7 +123,39 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
       data.volume = (data.length * data.width * data.height) / 1000000; // Convert cm³ to m³
     }
 
+    // Include the uploaded image URL
+    if (imageUrl) {
+      data.imageUrl = imageUrl;
+    }
+
     createProductMutation.mutate(data);
+  };
+
+  const handleImageUpload = async () => {
+    try {
+      const response = await apiRequest('/api/objects/upload', 'POST');
+      return {
+        method: 'PUT' as const,
+        url: response.uploadURL,
+      };
+    } catch (error) {
+      console.error('Error getting upload URL:', error);
+      throw error;
+    }
+  };
+
+  const handleUploadComplete = (result: any) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      const imageUrl = uploadedFile.uploadURL.split('?')[0]; // Remove query parameters
+      setImageUrl(imageUrl);
+      form.setValue('imageUrl', imageUrl);
+      
+      toast({
+        title: 'Imagem enviada',
+        description: 'A imagem do produto foi enviada com sucesso.',
+      });
+    }
   };
 
   return (
@@ -177,6 +214,64 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
                 </FormItem>
               )}
             />
+
+            {/* Image Upload Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                <span className="font-medium">Imagem do Produto</span>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="flex-1">
+                  <ObjectUploader
+                    maxNumberOfFiles={1}
+                    maxFileSize={5242880} // 5MB
+                    onGetUploadParameters={handleImageUpload}
+                    onComplete={handleUploadComplete}
+                    buttonClassName="w-full md:w-auto"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      <span>Enviar Imagem</span>
+                    </div>
+                  </ObjectUploader>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Formatos suportados: JPG, PNG, WebP. Tamanho máximo: 5MB
+                  </p>
+                </div>
+                
+                {imageUrl && (
+                  <div className="flex-shrink-0">
+                    <div className="w-24 h-24 border rounded-lg overflow-hidden bg-muted">
+                      <img 
+                        src={imageUrl} 
+                        alt="Preview do produto" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full"
+                      onClick={() => {
+                        setImageUrl('');
+                        form.setValue('imageUrl', '');
+                      }}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
