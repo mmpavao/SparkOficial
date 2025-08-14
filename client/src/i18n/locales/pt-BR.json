@@ -73,6 +73,8 @@
     "tooShort": "Muito curto",
     "tooLong": "Muito longo"
   },
+  "language": "Idioma",
+  "languageChanged": "Idioma alterado para {{language}}",
   "auth": {
     "platformDescription": "Plataforma completa de crédito e importação para empresas brasileiras",
     "secure": "Seguro",

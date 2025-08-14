@@ -73,6 +73,8 @@
     "tooShort": "Too short",
     "tooLong": "Too long"
   },
+  "language": "Language",
+  "languageChanged": "Language changed to {{language}}",
   "auth": {
     "platformDescription": "Complete credit and import platform for Brazilian businesses",
     "secure": "Secure",

@@ -45,6 +45,7 @@ import NotFound from "@/pages/not-found";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import AdminRoute from "@/components/AdminRoute";
 import { ModuleProvider } from "./contexts/ModuleContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -116,12 +117,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <ModuleProvider module="IMPORTER">
-          <Router />
-        </ModuleProvider>
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <ModuleProvider module="IMPORTER">
+            <Router />
+          </ModuleProvider>
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

@@ -73,6 +73,8 @@
     "tooShort": "太短",
     "tooLong": "太长"
   },
+  "language": "语言",
+  "languageChanged": "语言已更改为{{language}}",
   "auth": {
     "platformDescription": "巴西企业完整的信贷和进口平台",
     "secure": "安全",

@@ -7,12 +7,14 @@ import translationPT from './locales/pt-BR.json';
 import translationEN from './locales/en.json';
 import translationZH from './locales/zh.json';
 import translationES from './locales/es.json';
+import translationRU from './locales/ru.json';
 
 const resources = {
   'pt-BR': { translation: translationPT },
   'en': { translation: translationEN },
   'zh': { translation: translationZH },
   'es': { translation: translationES },
+  'ru': { translation: translationRU }
 };
 
 i18n
@@ -22,7 +24,7 @@ i18n
     resources,
     fallbackLng: 'pt-BR', // Brazilian Portuguese as default
     interpolation: { escapeValue: false },
-    supportedLngs: ['pt-BR', 'en', 'zh', 'es'],
+    supportedLngs: ['pt-BR', 'en', 'zh', 'es', 'ru'],
     detection: { 
       order: ['localStorage', 'navigator'], 
       caches: ['localStorage'] 

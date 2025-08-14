@@ -1,0 +1,717 @@
+# PROMPT: DESENVOLVIMENTO DO SELETOR DE IDIOMAS - ÁREA DE CLIENTE
+
+## Objetivo
+Desenvolver um seletor de idiomas profissional e funcional baseado na implementação comprovada do projeto Spark Comex, com integração completa ao sistema react-i18next.
+
+---
+
+## CARACTERÍSTICAS DO SELETOR SPARK COMEX
+
+### ✅ Funcionalidades Implementadas
+- **5 idiomas suportados**: Português 🇧🇷, English 🇺🇸, 中文 🇨🇳, Русский 🇷🇺, Français 🇫🇷
+- **Estado de loading**: Indicador visual durante mudança
+- **Persistência**: Salva escolha no localStorage  
+- **Responsivo**: Nome do idioma oculto em telas pequenas
+- **Acessibilidade**: Screen reader support
+- **Design profissional**: Integrado com shadcn/ui
+- **Cores da marca**: Tema Spark (emerald/green)
+
+---
+
+## FASE 1: DEPENDÊNCIAS E ESTRUTURA BASE
+
+### 1.1 Verificar Dependências Instaladas
+
+```bash
+# Verificar se estão instaladas
+npm list react-i18next i18next i18next-browser-languagedetector
+
+# Se não estiver instalado:
+npm install react-i18next i18next i18next-browser-languagedetector
+```
+
+### 1.2 Verificar Componentes UI Disponíveis
+
+```bash
+# Verificar se existe componente Select (shadcn/ui)
+ls src/components/ui/select.tsx
+
+# Se não existir, instalar:
+npx shadcn-ui@latest add select
+
+# Verificar ícones Lucide
+npm list lucide-react
+```
+
+---
+
+## FASE 2: CONFIGURAÇÃO I18N BASE
+
+### 2.1 Configuração Principal
+
+**Arquivo: `src/i18n/index.ts`**
+
+```typescript
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+// Importar traduções básicas
+import translationPT from './pt-BR.json';
+import translationEN from './en.json';
+import translationZH from './zh.json';
+import translationRU from './ru.json';
+import translationFR from './fr.json';
+
+const resources = {
+  'pt-BR': { translation: translationPT },
+  en: { translation: translationEN },
+  zh: { translation: translationZH },
+  ru: { translation: translationRU },
+  fr: { translation: translationFR },
+};
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'pt-BR', // Idioma padrão
+    interpolation: { escapeValue: false },
+    supportedLngs: ['pt-BR', 'en', 'zh', 'ru', 'fr'],
+    detection: { 
+      order: ['localStorage', 'navigator'], 
+      caches: ['localStorage'] 
+    },
+    debug: process.env.NODE_ENV === 'development',
+  });
+
+export default i18n;
+```
+
+### 2.2 Traduções Básicas Necessárias
+
+**Arquivo: `src/i18n/pt-BR.json`**
+
+```json
+{
+  "welcome": "Bem-vindo",
+  "language": "Idioma",
+  "languageChanged": "Idioma alterado para {{language}}",
+  "common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar"
+  }
+}
+```
+
+**Arquivo: `src/i18n/en.json`**
+
+```json
+{
+  "welcome": "Welcome",
+  "language": "Language",
+  "languageChanged": "Language changed to {{language}}",
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
+```
+
+**Arquivo: `src/i18n/zh.json`**
+
+```json
+{
+  "welcome": "欢迎",
+  "language": "语言",
+  "languageChanged": "语言已更改为{{language}}",
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消"
+  }
+}
+```
+
+**Arquivo: `src/i18n/ru.json`**
+
+```json
+{
+  "welcome": "Добро пожаловать",
+  "language": "Язык",
+  "languageChanged": "Язык изменен на {{language}}",
+  "common": {
+    "loading": "Загрузка...",
+    "save": "Сохранить",
+    "cancel": "Отмена"
+  }
+}
+```
+
+**Arquivo: `src/i18n/fr.json`**
+
+```json
+{
+  "welcome": "Bienvenue",
+  "language": "Langue",
+  "languageChanged": "Langue changée en {{language}}",
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler"
+  }
+}
+```
+
+---
+
+## FASE 3: CONTEXT PROVIDER
+
+### 3.1 LanguageContext Moderno
+
+**Arquivo: `src/contexts/LanguageContext.tsx`**
+
+```typescript
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+interface LanguageContextType {
+  currentLanguage: string;
+  changeLanguage: (language: string) => void;
+  isChanging: boolean;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+interface LanguageProviderProps {
+  children: React.ReactNode;
+}
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+  const { i18n } = useTranslation();
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+  const [isChanging, setIsChanging] = useState(false);
+
+  useEffect(() => {
+    setCurrentLanguage(i18n.language);
+  }, [i18n.language]);
+
+  const changeLanguage = async (language: string) => {
+    if (language === currentLanguage || isChanging) return;
+    
+    setIsChanging(true);
+    
+    try {
+      // Alterar o idioma no i18next
+      await i18n.changeLanguage(language);
+      
+      // Atualizar o estado local
+      setCurrentLanguage(language);
+      
+      // Salvar no localStorage
+      localStorage.setItem('i18nextLng', language);
+      
+      // Forçar re-render global (opcional)
+      window.dispatchEvent(new CustomEvent('languageChanged', { 
+        detail: { language } 
+      }));
+      
+      console.log(`✅ Idioma alterado globalmente para: ${language}`);
+      
+    } catch (error) {
+      console.error('❌ Erro ao alterar idioma:', error);
+    } finally {
+      setIsChanging(false);
+    }
+  };
+
+  return (
+    <LanguageContext.Provider value={{ 
+      currentLanguage, 
+      changeLanguage, 
+      isChanging 
+    }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
+```
+
+---
+
+## FASE 4: COMPONENTE LANGUAGE SELECTOR
+
+### 4.1 Seletor Principal (com shadcn/ui)
+
+**Arquivo: `src/components/ui/language-selector.tsx`**
+
+```typescript
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Globe, Loader2 } from "lucide-react";
+
+// Configuração dos idiomas disponíveis
+const languages = [
+  { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' }
+];
+
+export default function LanguageSelector() {
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage, isChanging } = useLanguage();
+
+  const handleLanguageChange = (languageCode: string) => {
+    if (languageCode !== currentLanguage && !isChanging) {
+      changeLanguage(languageCode);
+    }
+  };
+
+  const getCurrentLanguage = () => {
+    return languages.find(lang => lang.code === currentLanguage) || languages[0];
+  };
+
+  return (
+    <div className="relative">
+      <Select 
+        value={currentLanguage} 
+        onValueChange={handleLanguageChange}
+        disabled={isChanging}
+      >
+        <SelectTrigger className="w-auto min-w-[120px] h-9 border border-gray-200 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-3 disabled:opacity-50 transition-all duration-200">
+          <SelectValue>
+            <div className="flex items-center gap-2">
+              {isChanging ? (
+                <Loader2 className="w-4 h-4 text-gray-600 animate-spin" />
+              ) : (
+                <Globe className="w-4 h-4 text-gray-600" />
+              )}
+              <span className="text-base">{getCurrentLanguage().flag}</span>
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                {getCurrentLanguage().name}
+              </span>
+            </div>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent className="min-w-[160px] bg-white border border-gray-200 shadow-lg rounded-md">
+          {languages.map((lang) => (
+            <SelectItem 
+              key={lang.code} 
+              value={lang.code}
+              className="cursor-pointer hover:bg-emerald-50 focus:bg-emerald-50 px-3 py-2 transition-colors duration-150"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-base">{lang.flag}</span>
+                <span className="text-sm font-medium">{lang.name}</span>
+                {lang.code === currentLanguage && (
+                  <span className="text-xs text-emerald-600 font-medium ml-auto">✓</span>
+                )}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      {/* Acessibilidade - Screen Reader */}
+      <div className="sr-only">
+        {t('language')} - {getCurrentLanguage().name} - Status: {isChanging ? t('common.loading') : 'Pronto'}
+      </div>
+    </div>
+  );
+}
+```
+
+### 4.2 Versão Alternativa (sem shadcn/ui)
+
+**Arquivo: `src/components/ui/simple-language-selector.tsx`**
+
+```typescript
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useState, useRef, useEffect } from "react";
+
+const languages = [
+  { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' }
+];
+
+export default function SimpleLanguageSelector() {
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage, isChanging } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fechar dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getCurrentLanguage = () => {
+    return languages.find(lang => lang.code === currentLanguage) || languages[0];
+  };
+
+  const handleLanguageChange = (languageCode: string) => {
+    if (languageCode !== currentLanguage && !isChanging) {
+      changeLanguage(languageCode);
+      setIsOpen(false);
+    }
+  };
+
+  const toggleDropdown = () => {
+    if (!isChanging) {
+      setIsOpen(!isOpen);
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={toggleDropdown}
+        disabled={isChanging}
+        className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:opacity-50 transition-all duration-200"
+        aria-label={`${t('language')}: ${getCurrentLanguage().name}`}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+      >
+        {isChanging ? (
+          <div className="w-4 h-4 border-2 border-gray-300 border-t-emerald-600 rounded-full animate-spin"></div>
+        ) : (
+          <span className="w-4 h-4 text-gray-600">🌐</span>
+        )}
+        <span className="text-base">{getCurrentLanguage().flag}</span>
+        <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+          {getCurrentLanguage().name}
+        </span>
+        <span className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          ▼
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 min-w-[160px] bg-white border border-gray-200 rounded-md shadow-lg z-50">
+          <ul role="listbox" className="py-1">
+            {languages.map((lang) => (
+              <li key={lang.code} role="option" aria-selected={lang.code === currentLanguage}>
+                <button
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none transition-colors duration-150 text-left"
+                >
+                  <span className="text-base">{lang.flag}</span>
+                  <span className="text-sm font-medium">{lang.name}</span>
+                  {lang.code === currentLanguage && (
+                    <span className="text-xs text-emerald-600 font-medium ml-auto">✓</span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## FASE 5: INTEGRAÇÃO NO APP PRINCIPAL
+
+### 5.1 Atualizar App.tsx
+
+```typescript
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+
+// ✅ ADICIONAR: Imports do i18n
+import "@/i18n";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/i18n";
+import { LanguageProvider } from "./contexts/LanguageContext";
+
+// Outros imports...
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {/* ✅ ADICIONAR: Providers do i18n */}
+      <I18nextProvider i18n={i18n}>
+        <LanguageProvider>
+          {/* Seu conteúdo da aplicação */}
+          <div className="App">
+            {/* Componentes da aplicação */}
+          </div>
+        </LanguageProvider>
+      </I18nextProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+```
+
+### 5.2 Integrar no Header/Layout
+
+```typescript
+// No seu componente de Header
+import LanguageSelector from '@/components/ui/language-selector';
+import { useTranslation } from 'react-i18next';
+
+export default function Header() {
+  const { t } = useTranslation();
+
+  return (
+    <header className="flex justify-between items-center p-4 bg-white shadow-sm">
+      <h1 className="text-xl font-semibold">{t('welcome')}</h1>
+      
+      <div className="flex items-center gap-4">
+        {/* Outros elementos do header */}
+        <LanguageSelector />
+        
+        {/* Menu do usuário, logout, etc. */}
+      </div>
+    </header>
+  );
+}
+```
+
+---
+
+## FASE 6: CUSTOMIZAÇÃO E TEMA
+
+### 6.1 Cores Personalizadas (Spark Theme)
+
+Se você quiser usar as cores do tema Spark:
+
+```typescript
+// No seu tailwind.config.js, adicione:
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        spark: {
+          50: '#f0fdfa',
+          100: '#ccfbf1',
+          200: '#99f6e4',
+          300: '#5eead4',
+          400: '#2dd4bf',
+          500: '#14b8a6', // Cor principal Spark
+          600: '#0d9488',
+          700: '#0f766e',
+          800: '#115e59',
+          900: '#134e4a',
+        },
+      },
+    },
+  },
+  // ...
+}
+```
+
+### 6.2 Versão com Cores Spark
+
+```typescript
+// Substituir as classes do seletor:
+className="focus:ring-2 focus:ring-spark-500 focus:border-spark-500"
+className="hover:bg-spark-50 focus:bg-spark-50"
+className="text-spark-600"
+```
+
+---
+
+## FASE 7: FUNCIONALIDADES AVANÇADAS
+
+### 7.1 Hook Personalizado para Idioma
+
+**Arquivo: `src/hooks/useGlobalLanguage.ts`**
+
+```typescript
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
+
+export function useGlobalLanguage() {
+  const { currentLanguage, changeLanguage, isChanging } = useLanguage();
+  const { t } = useTranslation();
+  
+  const languages = [
+    { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' }
+  ];
+
+  const getCurrentLanguage = () => {
+    return languages.find(lang => lang.code === currentLanguage) || languages[0];
+  };
+
+  const notifyLanguageChange = (language: string) => {
+    const langName = languages.find(l => l.code === language)?.name || language;
+    console.log(t('languageChanged', { language: langName }));
+  };
+
+  const setLanguage = async (language: string) => {
+    await changeLanguage(language);
+    notifyLanguageChange(language);
+  };
+
+  return {
+    language: currentLanguage,
+    setLanguage,
+    isChanging,
+    isReady: !isChanging,
+    availableLanguages: languages,
+    currentLanguageInfo: getCurrentLanguage(),
+    
+    // Helper methods
+    isPortuguese: () => currentLanguage === 'pt-BR',
+    isEnglish: () => currentLanguage === 'en',
+    isChinese: () => currentLanguage === 'zh',
+    isRussian: () => currentLanguage === 'ru',
+    isFrench: () => currentLanguage === 'fr',
+  };
+}
+```
+
+### 7.2 Componente de Notificação de Mudança
+
+```typescript
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from '@/hooks/use-toast'; // Se usando shadcn/ui toast
+
+export function LanguageChangeNotifier() {
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    const handleLanguageChange = (event: CustomEvent) => {
+      const { language } = event.detail;
+      const languages = {
+        'pt-BR': 'Português',
+        'en': 'English', 
+        'zh': '中文',
+        'ru': 'Русский',
+        'fr': 'Français'
+      };
+      
+      toast({
+        title: t('language'),
+        description: t('languageChanged', { language: languages[language as keyof typeof languages] }),
+        duration: 2000,
+      });
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, [t]);
+
+  return null; // Componente invisível
+}
+```
+
+---
+
+## FASE 8: TESTES E VALIDAÇÃO
+
+### 8.1 Checklist de Implementação
+
+- [ ] Dependências instaladas (react-i18next, i18next, i18next-browser-languagedetector)
+- [ ] Componentes UI disponíveis (Select ou versão custom)
+- [ ] Configuração i18n criada (/src/i18n/index.ts)
+- [ ] 5 arquivos de tradução criados (pt-BR, en, zh, ru, fr)
+- [ ] LanguageContext implementado
+- [ ] LanguageSelector component funcionando
+- [ ] Integração no App.tsx concluída
+- [ ] Seletor adicionado ao Header/Layout
+- [ ] Troca de idioma funcionando
+- [ ] Persistência no localStorage ativa
+- [ ] Estado de loading visível durante troca
+- [ ] Responsividade funcionando (nome oculto em mobile)
+- [ ] Acessibilidade implementada (screen reader)
+
+### 8.2 Teste Manual
+
+1. **Carregar aplicação**: Deve detectar idioma do navegador ou usar pt-BR
+2. **Trocar idioma**: Clicar no seletor deve alterar textos instantaneamente
+3. **Recarregar página**: Deve manter idioma selecionado 
+4. **Testar mobile**: Nome do idioma deve ficar oculto em telas pequenas
+5. **Estado de loading**: Spinner deve aparecer durante troca
+6. **Console**: Deve mostrar logs de confirmação da troca
+
+### 8.3 Comandos de Verificação
+
+```bash
+# Verificar se não há erros TypeScript
+npm run build
+
+# Verificar se aplicação inicia
+npm run dev
+
+# Verificar se localStorage está salvando
+# (No DevTools: Application > Local Storage > i18nextLng)
+```
+
+---
+
+## RESULTADO FINAL
+
+Após implementar todas as fases, você terá:
+
+✅ **Seletor profissional de idiomas**  
+✅ **5 idiomas com bandeiras visuais** 🇧🇷🇺🇸🇨🇳🇷🇺🇫🇷  
+✅ **Estado de loading durante mudança**  
+✅ **Persistência da escolha do usuário**  
+✅ **Design responsivo e acessível**  
+✅ **Integração completa com react-i18next**  
+✅ **Tema customizável (cores Spark)**  
+✅ **Hooks personalizados para uso avançado**  
+✅ **Notificações de mudança (opcional)**  
+
+### 🎨 **Visual do Seletor:**
+
+```
+┌─────────────────────────────────┐
+│ 🌐 🇧🇷 Português            ▼  │ ← Trigger
+└─────────────────────────────────┘
+┌─────────────────────────────────┐
+│ 🇧🇷 Português              ✓  │ ← Opções
+│ 🇺🇸 English                   │
+│ 🇨🇳 中文                      │  
+│ 🇷🇺 Русский                   │
+│ 🇫🇷 Français                   │
+└─────────────────────────────────┘
+```
+
+### 🔧 **Personalização Fácil:**
+- Adicionar/remover idiomas editando array `languages`
+- Alterar cores mudando classes Tailwind
+- Customizar posição e tamanho conforme layout
+- Adicionar novos idiomas criando arquivos JSON correspondentes
+
+O seletor está pronto para produção e totalmente baseado na implementação comprovada do Spark Comex!
