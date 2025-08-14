@@ -25,6 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import sparkLogo from "@assets/logo-spark_1751323949667.png";
 import sparkIcon from "@assets/APP-ICON_1751299739129.png";
+import LanguageSelector from "@/components/ui/language-selector";
 import { 
   Menu, 
   X, 
@@ -286,26 +287,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       </span>
                     </Button>
 
-                    {/* Submenu */}
-                    {item.submenu && !sidebarCollapsed && (
-                      <div className="ml-6 mt-1 space-y-1">
-                        {item.submenu.map((subItem) => (
-                          <Button
-                            key={subItem.path}
-                            variant="ghost"
-                            size="sm"
-                            className={`w-full justify-start text-sm ${
-                              isActiveRoute(subItem.path)
-                                ? "text-spark-600 bg-spark-50 hover:bg-spark-100"
-                                : "text-gray-600 hover:bg-gray-50"
-                            }`}
-                            onClick={() => setLocation(subItem.path)}
-                          >
-                            {subItem.label}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
+
                   </div>
                 );
               })}
@@ -494,6 +476,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
             <NotificationCenter />
           </div>
         </div>
