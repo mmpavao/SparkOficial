@@ -298,5 +298,7 @@
   "imports.allTypes": "所有类型",
   "imports.update": "更新",
   "imports.noImportsFound": "未找到进口记录",
-  "imports.startCreating": "开始创建您的第一个进口"
+  "imports.startCreating": "开始创建您的第一个进口",
+  "imports.adjustFilters": "尝试调整筛选条件以查看更多结果",
+  "imports.adjustSearchFilters": "尝试调整搜索筛选器"
 }

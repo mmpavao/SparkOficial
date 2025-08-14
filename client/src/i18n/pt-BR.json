@@ -298,5 +298,7 @@
   "imports.allTypes": "Todos os Tipos",
   "imports.update": "Atualizar",
   "imports.noImportsFound": "Nenhuma importação encontrada",
-  "imports.startCreating": "Comece criando sua primeira importação"
+  "imports.startCreating": "Comece criando sua primeira importação",
+  "imports.adjustFilters": "Tente ajustar os filtros para ver mais resultados",
+  "imports.adjustSearchFilters": "Tente ajustar os filtros de busca"
 }

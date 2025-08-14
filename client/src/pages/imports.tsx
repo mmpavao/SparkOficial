@@ -294,8 +294,8 @@ export default function ImportsPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t('imports.noImportsFound')}</h3>
               <p className="text-gray-600 mb-4">
                 {searchTerm || statusFilter !== "all" || cargoFilter !== "all"
-                  ? "Tente ajustar os filtros de busca."
-                  : "Comece criando sua primeira importação."}
+                  ? t('imports.adjustSearchFilters')
+                  : t('imports.startCreating')}
               </p>
               {!permissions.isFinanceira && (
                 <Link href="/imports/new">

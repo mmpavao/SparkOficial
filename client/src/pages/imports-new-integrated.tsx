@@ -253,8 +253,8 @@ export default function ImportsPageIntegrated() {
               </div>
               <p className="text-gray-400 mb-4">
                 {Object.keys(filters).some(key => filters[key as keyof typeof filters] && filters[key as keyof typeof filters] !== 'all')
-                  ? "Tente ajustar os filtros para ver mais resultados"
-                  : "Comece criando sua primeira importação"
+                  ? t('imports.adjustFilters')
+                  : t('imports.startCreating')
                 }
               </p>
               {!permissions.isFinanceira && !permissions.canViewAllApplications && (

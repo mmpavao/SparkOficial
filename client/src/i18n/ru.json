@@ -298,5 +298,7 @@
   "imports.allTypes": "Все типы",
   "imports.update": "Обновить",
   "imports.noImportsFound": "Импорт не найден",
-  "imports.startCreating": "Начните с создания первого импорта"
+  "imports.startCreating": "Начните с создания первого импорта",
+  "imports.adjustFilters": "Попробуйте изменить фильтры для отображения большего количества результатов",
+  "imports.adjustSearchFilters": "Попробуйте изменить поисковые фильтры"
 }
