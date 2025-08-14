@@ -25,7 +25,7 @@
     "remove": "Eliminar",
     "add": "Agregar"
   },
-  "nav": {
+  "navigation": {
     "dashboard": "Panel",
     "home": "Inicio",
     "profile": "Perfil",
@@ -35,11 +35,20 @@
     "menu": "Menú",
     "imports": "Importaciones",
     "credit": "Crédito",
+    "creditAnalysis": "Análisis de Crédito",
+    "importsAnalysis": "Análisis de Importaciones",
+    "allImports": "Todas las Importaciones",
+    "myImports": "Mis Importaciones",
     "suppliers": "Proveedores",
+    "allSuppliers": "Todos los Proveedores",
+    "assignedImports": "Importaciones Asignadas",
     "products": "Productos",
+    "payments": "Pagos",
     "reports": "Informes",
     "support": "Soporte",
-    "admin": "Administración"
+    "admin": "Administración",
+    "manageUsers": "Gestionar Usuarios",
+    "importers": "Importadores"
   },
   "dashboard": {
     "welcome": "Bienvenido",

@@ -25,7 +25,7 @@
     "remove": "Remove",
     "add": "Add"
   },
-  "nav": {
+  "navigation": {
     "dashboard": "Dashboard",
     "home": "Home",
     "profile": "Profile",
@@ -35,11 +35,20 @@
     "menu": "Menu",
     "imports": "Imports",
     "credit": "Credit",
+    "creditAnalysis": "Credit Analysis",
+    "importsAnalysis": "Import Analysis",
+    "allImports": "All Imports",
+    "myImports": "My Imports",
     "suppliers": "Suppliers",
+    "allSuppliers": "All Suppliers",
+    "assignedImports": "Assigned Imports",
     "products": "Products",
+    "payments": "Payments",
     "reports": "Reports",
     "support": "Support",
-    "admin": "Administration"
+    "admin": "Administration",
+    "manageUsers": "Manage Users",
+    "importers": "Importers"
   },
   "dashboard": {
     "welcome": "Welcome",

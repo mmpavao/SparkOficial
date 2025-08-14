@@ -25,7 +25,7 @@
     "remove": "删除",
     "add": "添加"
   },
-  "nav": {
+  "navigation": {
     "dashboard": "仪表板",
     "home": "首页",
     "profile": "个人资料",
@@ -35,11 +35,20 @@
     "menu": "菜单",
     "imports": "进口",
     "credit": "信贷",
+    "creditAnalysis": "信贷分析",
+    "importsAnalysis": "进口分析",
+    "allImports": "所有进口",
+    "myImports": "我的进口",
     "suppliers": "供应商",
+    "allSuppliers": "所有供应商",
+    "assignedImports": "指定进口",
     "products": "产品",
+    "payments": "付款",
     "reports": "报告",
     "support": "支持",
-    "admin": "管理"
+    "admin": "管理",
+    "manageUsers": "管理用户",
+    "importers": "进口商"
   },
   "dashboard": {
     "welcome": "欢迎",
