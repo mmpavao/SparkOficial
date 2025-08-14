@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/contexts/I18nContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,8 +81,8 @@ export default function SettingsPage() {
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
-          title: t("errors.fileTooBig"),
-          description: t("settings.profile.fileSizeLimit"),
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter menos de 5MB.",
           variant: "destructive",
         });
         return;
@@ -103,8 +103,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: t("settings.profile.profileUpdated"),
-        description: t("settings.profile.profileSaved"),
+        title: "Perfil atualizado!",
+        description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
       setAvatarPreview(null);
@@ -112,8 +112,8 @@ export default function SettingsPage() {
     onError: (error: any) => {
       console.error("Profile update error:", error);
       toast({
-        title: t("settings.profile.saveError"),
-        description: error?.message || t("settings.profile.updateError"),
+        title: "Erro ao salvar",
+        description: error?.message || "Erro ao atualizar perfil.",
         variant: "destructive",
       });
     },
@@ -135,16 +135,16 @@ export default function SettingsPage() {
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: value }));
     toast({
-      title: t("settings.notifications.preferenceSaved"),
-      description: t("settings.notifications.preferenceUpdated"),
+      title: "Preferência salva",
+      description: "Sua preferência de notificação foi atualizada.",
     });
   };
 
   const handleSecurityChange = (key: string, value: boolean | number) => {
     setSecurity(prev => ({ ...prev, [key]: value }));
     toast({
-      title: t("settings.security.configurationUpdated"),
-      description: t("settings.security.securitySaved"),
+      title: "Configuração atualizada",
+      description: "Sua configuração de segurança foi salva.",
     });
   };
 
@@ -152,16 +152,16 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">{t("settings.title")}</h1>
-        <p className="text-gray-600">{t("settings.subtitle")}</p>
+        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
+        <p className="text-gray-600">Gerencie sua conta e preferências</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">{t("settings.tabs.profile")}</TabsTrigger>
-          <TabsTrigger value="preferences">{t("settings.tabs.preferences")}</TabsTrigger>
-          <TabsTrigger value="notifications">{t("settings.tabs.notifications")}</TabsTrigger>
-          <TabsTrigger value="security">{t("settings.tabs.security")}</TabsTrigger>
+          <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="preferences">Preferências</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -171,7 +171,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5" />
-                  <CardTitle>{t("settings.profile.personalInfo")}</CardTitle>
+                  <CardTitle>Informações Pessoais</CardTitle>
                 </div>
                 <Button
                   variant="outline"

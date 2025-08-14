@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+// Navigation labels - using Portuguese for Brazilian users
+const navTranslations = {
+  dashboard: 'Dashboard',
+  credit: 'Crédito',
+  reports: 'Relatórios',
+  settings: 'Configurações',
+  logout: 'Sair'
+};
 
 import NotificationCenter from "@/components/NotificationCenter";
 import {
@@ -18,7 +25,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import sparkLogo from "@assets/logo-spark_1751323949667.png";
 import sparkIcon from "@assets/APP-ICON_1751299739129.png";
-import LanguageSelector from "@/components/ui/language-selector";
 import { 
   Menu, 
   X, 
@@ -53,7 +59,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -125,60 +130,60 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const getNavigation = () => {
     if (isCustomsBroker) {
       return [
-        { path: "/", icon: Home, label: t("navigation.dashboard") },
+        { path: "/", icon: Home, label: "Dashboard" },
         { 
           path: "/imports", 
           icon: Package, 
-          label: t("navigation.assignedImports")
+          label: "Importações Designadas"
         },
         { 
           path: "/suppliers", 
           icon: Building, 
-          label: t("navigation.suppliers")
+          label: "Fornecedores"
         },
         { 
           path: "/products", 
           icon: Package, 
-          label: t("navigation.products")
+          label: "Produtos"
         },
-        { path: "/reports", icon: BarChart3, label: t("navigation.reports") },
+        { path: "/reports", icon: BarChart3, label: "Relatórios" },
       ];
     }
 
     return [
-      { path: "/", icon: Home, label: t("navigation.dashboard") },
+      { path: "/", icon: Home, label: navTranslations.dashboard },
       { 
         path: "/credit", 
         icon: CreditCard, 
-        label: (isAdmin || isFinanceira) ? t("navigation.creditAnalysis") : t("navigation.credit") 
+        label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
       },
       { 
         path: "/imports", 
         icon: Package, 
         label: isFinanceira 
-          ? t("navigation.importsAnalysis")
+          ? "Análise de Importações" 
           : isAdmin 
-            ? t("navigation.allImports")
-            : t("navigation.myImports")
+            ? "Todas as Importações" 
+            : "Minhas Importações"
       },
       { 
         path: "/suppliers", 
         icon: Building, 
         label: isFinanceira 
-          ? t("navigation.allSuppliers")
+          ? "Todos Fornecedores" 
           : isAdmin 
-            ? t("navigation.allSuppliers")
-            : t("navigation.suppliers")
+            ? "Todos Fornecedores" 
+            : "Fornecedores"
       },
       { 
         path: "/products", 
         icon: Package, 
-        label: t("navigation.products")
+        label: "Produtos"
       },
-      { path: "/payments", icon: DollarSign, label: t("navigation.payments") },
+      { path: "/payments", icon: DollarSign, label: "Pagamentos" },
       // Suporte só aparece para importadores na navegação principal
-      ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: t("navigation.support") }] : []),
-      { path: "/reports", icon: BarChart3, label: t("navigation.reports") },
+      ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: "Suporte" }] : []),
+      { path: "/reports", icon: BarChart3, label: navTranslations.reports },
     ];
   };
 
@@ -186,9 +191,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
-    { path: "/users", icon: Users, label: t("navigation.manageUsers") },
-    { path: "/importers", icon: UserCog, label: t("navigation.importers") },
-    { path: "/admin/support", icon: MessageSquare, label: t("navigation.support") },
+    { path: "/users", icon: Users, label: "Gerenciar Usuários" },
+    { path: "/importers", icon: UserCog, label: "Importadores" },
+    { path: "/admin/support", icon: MessageSquare, label: "Suporte" },
   ];
 
   const isActiveRoute = (path: string) => {
@@ -281,7 +286,26 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                       </span>
                     </Button>
 
-
+                    {/* Submenu */}
+                    {item.submenu && !sidebarCollapsed && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {item.submenu.map((subItem) => (
+                          <Button
+                            key={subItem.path}
+                            variant="ghost"
+                            size="sm"
+                            className={`w-full justify-start text-sm ${
+                              isActiveRoute(subItem.path)
+                                ? "text-spark-600 bg-spark-50 hover:bg-spark-100"
+                                : "text-gray-600 hover:bg-gray-50"
+                            }`}
+                            onClick={() => setLocation(subItem.path)}
+                          >
+                            {subItem.label}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -411,7 +435,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex items-center w-full px-3 py-2">
                     <Settings className="w-4 h-4 mr-3" />
-                    {t("navigation.settings")}
+                    {navTranslations.settings}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -439,7 +463,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className="text-red-600 focus:text-red-600 px-3 py-2"
                 >
                   <LogOut className="w-4 h-4 mr-3" />
-                  {logoutMutation.isPending ? `${t("navigation.logout")}...` : t("navigation.logout")}
+                  {logoutMutation.isPending ? `${navTranslations.logout}...` : navTranslations.logout}
                 </DropdownMenuItem>
               </div>
             </DropdownMenuContent>
@@ -470,7 +494,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
-            <LanguageSelector />
             <NotificationCenter />
           </div>
         </div>

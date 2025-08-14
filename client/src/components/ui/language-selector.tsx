@@ -1,67 +1,36 @@
-import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Loader2 } from "lucide-react";
+import { useTranslation, Language } from "@/contexts/I18nContext";
+
+const languages = [
+  { code: 'pt' as Language, name: 'Português', flag: '🇧🇷' },
+  { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
+  { code: 'zh' as Language, name: '中文', flag: '🇨🇳' },
+  { code: 'es' as Language, name: 'Español', flag: '🇪🇸' }
+];
 
 export default function LanguageSelector() {
-  const { t } = useTranslation();
-  const { currentLanguage, changeLanguage, isChanging, availableLanguages } = useLanguage();
-
-  const handleLanguageChange = (languageCode: string) => {
-    if (languageCode !== currentLanguage && !isChanging) {
-      changeLanguage(languageCode);
-    }
-  };
-
-  const getCurrentLanguage = () => {
-    return availableLanguages.find(lang => lang.code === currentLanguage) || availableLanguages[0];
-  };
+  const { language, setLanguage } = useTranslation();
 
   return (
-    <div className="relative">
-      <Select 
-        value={currentLanguage} 
-        onValueChange={handleLanguageChange}
-        disabled={isChanging}
-      >
-        <SelectTrigger className="w-auto min-w-[120px] h-9 border border-gray-200 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-3 disabled:opacity-50 transition-all duration-200">
-          <SelectValue>
+    <Select value={language} onValueChange={(value: Language) => setLanguage(value)}>
+      <SelectTrigger className="w-full">
+        <SelectValue>
+          <div className="flex items-center gap-2">
+            <span>{languages.find(lang => lang.code === language)?.flag}</span>
+            <span>{languages.find(lang => lang.code === language)?.name}</span>
+          </div>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {languages.map((lang) => (
+          <SelectItem key={lang.code} value={lang.code}>
             <div className="flex items-center gap-2">
-              {isChanging ? (
-                <Loader2 className="w-4 h-4 text-gray-600 animate-spin" />
-              ) : (
-                <Globe className="w-4 h-4 text-gray-600" />
-              )}
-              <span className="text-base">{getCurrentLanguage().flag}</span>
-              <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                {getCurrentLanguage().name}
-              </span>
+              <span>{lang.flag}</span>
+              <span>{lang.name}</span>
             </div>
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="min-w-[160px] bg-white border border-gray-200 shadow-lg rounded-md">
-          {availableLanguages.map((lang) => (
-            <SelectItem 
-              key={lang.code} 
-              value={lang.code}
-              className="cursor-pointer hover:bg-emerald-50 focus:bg-emerald-50 px-3 py-2 transition-colors duration-150"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-base">{lang.flag}</span>
-                <span className="text-sm font-medium">{lang.name}</span>
-                {lang.code === currentLanguage && (
-                  <span className="text-xs text-emerald-600 font-medium ml-auto">✓</span>
-                )}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      {/* Accessibility - Screen Reader */}
-      <div className="sr-only">
-        {t('language')} - {getCurrentLanguage().name} - Status: {isChanging ? t('common.loading') : 'Ready'}
-      </div>
-    </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

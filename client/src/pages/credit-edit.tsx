@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/contexts/I18nContext";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSDInput, parseUSDInput, validateUSDRange } from "@/lib/currency";
 import { formatCnpj, validateCnpj } from "@/lib/cnpj";

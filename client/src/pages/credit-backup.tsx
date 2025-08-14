@@ -20,7 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/contexts/I18nContext";
 import AdminFilters from "@/components/AdminFilters";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSDInput, parseUSDInput, validateUSDRange, getUSDRangeDescription } from "@/lib/currency";

@@ -40,9 +40,9 @@ export default function AdminPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <Shield className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-            <h2 className="text-xl font-semibold mb-2">{t("auth.accessDenied")}</h2>
+            <h2 className="text-xl font-semibold mb-2">Acesso Negado</h2>
             <p className="text-gray-600">
-              {t("auth.noPermission")}
+              Você não tem permissão para acessar esta área.
             </p>
           </CardContent>
         </Card>
@@ -56,12 +56,12 @@ export default function AdminPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("dashboard.adminPanel")}</h1>
-            <p className="text-gray-600">{t("dashboard.adminDescription")}</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Administrativo</h1>
+            <p className="text-gray-600">Visão geral completa do sistema Spark Comex</p>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-600">{t("dashboard.systemActive")}</span>
+            <span className="text-sm text-gray-600">Sistema Ativo</span>
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <Users className="h-10 w-10 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t("dashboard.registeredImporters")}</p>
+                <p className="text-sm font-medium text-gray-600">Importadores Registrados</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {allUsers.filter(user => user.role === 'importer').length}
                 </p>
@@ -89,7 +89,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <CreditCard className="h-10 w-10 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t("dashboard.creditApplications")}</p>
+                <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
                 <p className="text-2xl font-bold text-gray-900">{allCreditApplications.length}</p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <Package className="h-10 w-10 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t("dashboard.totalImports")}</p>
+                <p className="text-sm font-medium text-gray-600">Total de Importações</p>
                 <p className="text-2xl font-bold text-gray-900">{allImports.length}</p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function AdminPage() {
             <div className="flex items-center">
               <TrendingUp className="h-10 w-10 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{t("dashboard.financialVolume")}</p>
+                <p className="text-sm font-medium text-gray-600">Volume Financeiro</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatCurrency(
                     allImports.reduce((sum, imp) => sum + Number(imp.totalValue || 0), 0)
@@ -132,7 +132,7 @@ export default function AdminPage() {
         {/* Status das Aplicações de Crédito */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("dashboard.creditApplicationsStatus")}</CardTitle>
+            <CardTitle>Status das Aplicações de Crédito</CardTitle>
           </CardHeader>
           <CardContent>
             {(() => {

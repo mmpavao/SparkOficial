@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useAdminMetrics } from "@/hooks/useAdminMetrics";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/contexts/I18nContext";
 import { useCreditUsage } from "@/hooks/useCreditManagement";
 import MetricsCard from "@/components/common/MetricsCard";
 import StatusBadge from "@/components/common/StatusBadge";

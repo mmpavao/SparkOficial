@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SmartDocumentValidator } from "@/components/SmartDocumentValidator";
 import { DocumentValidationPanel } from "@/components/DocumentValidationPanel";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/contexts/I18nContext";
 import { 
   FileCheck,
   Brain,
