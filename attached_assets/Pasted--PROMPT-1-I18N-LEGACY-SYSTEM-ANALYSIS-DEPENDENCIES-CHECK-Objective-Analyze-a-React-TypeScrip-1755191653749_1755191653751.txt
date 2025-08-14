@@ -1,0 +1,251 @@
+# PROMPT 1: I18N LEGACY SYSTEM ANALYSIS & DEPENDENCIES CHECK
+
+## Objective
+Analyze a React/TypeScript project to identify legacy internationalization systems and verify necessary dependencies for implementing a modern i18n system.
+
+## Analysis Instructions
+
+### 1. LEGACY I18N SYSTEM IDENTIFICATION
+
+First, run a comprehensive analysis to identify potential duplicated or legacy internationalization systems:
+
+```bash
+# Search for custom i18n contexts
+find . -name "*.tsx" -o -name "*.ts" | xargs grep -l "I18nContext\|TranslationContext\|LanguageContext"
+
+# Search for custom system imports
+grep -r "useTranslation.*contexts" --include="*.tsx" --include="*.ts" .
+
+# Search for custom providers
+grep -r "I18nProvider\|TranslationProvider" --include="*.tsx" --include="*.ts" .
+
+# Check if react-i18next already exists
+grep -r "react-i18next" --include="*.tsx" --include="*.ts" --include="*.json" .
+```
+
+**Analyze the results and identify:**
+- [ ] Are there custom i18n contexts?
+- [ ] Are there duplicate translation system implementations?
+- [ ] Is react-i18next already installed and configured?
+- [ ] Are there organized translation files (*.json)?
+
+### 2. REQUIRED DEPENDENCIES VERIFICATION
+
+Check if the project has the correct dependencies in `package.json`:
+
+```json
+{
+  "dependencies": {
+    "react-i18next": "^13.x.x",
+    "i18next": "^23.x.x",
+    "i18next-browser-languagedetector": "^7.x.x"
+  }
+}
+```
+
+**Run verification:**
+```bash
+# Check installed dependencies
+npm list react-i18next i18next i18next-browser-languagedetector
+
+# If not installed, run:
+npm install react-i18next i18next i18next-browser-languagedetector
+```
+
+### 3. CURRENT STRUCTURE ANALYSIS
+
+Examine folder structure and identify:
+
+```bash
+# Check i18n structure
+ls -la src/i18n/ 2>/dev/null || echo "i18n folder doesn't exist"
+ls -la src/locales/ 2>/dev/null || echo "locales folder doesn't exist"
+ls -la src/translations/ 2>/dev/null || echo "translations folder doesn't exist"
+
+# Check existing translation files
+find . -name "*.json" | grep -E "(pt|en|es|fr|zh|ru)" | head -10
+```
+
+### 4. TRANSLATION-USING COMPONENTS ANALYSIS
+
+Identify components already implementing translation:
+
+```bash
+# Search for components using translation
+grep -r "useTranslation\|\.t(" --include="*.tsx" --include="*.ts" src/ | head -20
+
+# Check usage patterns
+grep -r "t\('.*'\)" --include="*.tsx" src/ | head -10
+```
+
+### 5. ANALYSIS REPORT
+
+Based on the results above, generate a report answering:
+
+#### A. Legacy System Detected?
+- [ ] **YES** - Custom contexts exist that need removal
+- [ ] **NO** - Clean project, ready for implementation
+
+#### B. Dependencies
+- [ ] **COMPLETE** - All react-i18next dependencies are installed
+- [ ] **INCOMPLETE** - Missing dependencies (list which ones)
+- [ ] **ABSENT** - No i18n dependencies found
+
+#### C. File Structure
+- [ ] **ORGANIZED** - i18n folder exists with structured JSON files
+- [ ] **PARTIAL** - Structure exists but needs reorganization
+- [ ] **NON-EXISTENT** - Need to create complete structure
+
+#### D. Current Implementation
+- [ ] **FUNCTIONAL** - i18n system already works correctly
+- [ ] **CONFLICTING** - Multiple systems coexisting
+- [ ] **NON-EXISTENT** - No system implemented
+
+### 6. PREREQUISITES CHECKLIST
+
+Before implementing the modern system, confirm:
+
+- [ ] Node.js version 16+ installed
+- [ ] React version 18+ in project
+- [ ] TypeScript configured (if applicable)
+- [ ] `src/` folder structure present
+- [ ] Package.json exists and is modifiable
+- [ ] No conflicts with other state management systems
+
+### 7. REQUIRED LANGUAGES IDENTIFICATION
+
+Analyze the project to determine which languages to implement:
+
+```bash
+# Check for language indicators in code
+grep -r "pt-BR\|pt_BR\|en-US\|en_US\|zh-CN\|es-ES\|fr-FR" --include="*.tsx" --include="*.ts" src/
+
+# Check locale configurations
+grep -r "locale\|language\|lang" --include="*.json" --include="*.js" --include="*.ts" .
+```
+
+**Recommended languages based on Spark Comex project:**
+- `pt-BR` (Portuguese Brazil - default)
+- `en` (English - international)
+- `zh` (Chinese - suppliers)
+- `es` (Spanish - Latin America)
+- `fr` (French - Europe)
+
+### 8. FRAMEWORK COMPATIBILITY CHECK
+
+Verify compatibility with existing frameworks:
+
+```bash
+# Check React version
+npm list react
+
+# Check if using Next.js
+ls next.config.* 2>/dev/null && echo "Next.js detected"
+
+# Check if using Vite
+ls vite.config.* 2>/dev/null && echo "Vite detected"
+
+# Check TypeScript configuration
+ls tsconfig.json 2>/dev/null && echo "TypeScript configured"
+```
+
+### 9. EXISTING UI COMPONENTS VERIFICATION
+
+Check for existing UI component library:
+
+```bash
+# Check for common UI libraries
+grep -r "antd\|@mui\|chakra-ui\|mantine" package.json
+grep -r "shadcn\|radix" package.json
+
+# Check for custom Select/Dropdown components
+find src/ -name "*select*" -o -name "*dropdown*" | head -5
+```
+
+---
+
+## EXPECTED OUTPUT EXAMPLE
+
+```
+📊 I18N ANALYSIS REPORT
+=====================
+
+✅ LEGACY SYSTEM: Detected I18nContext.tsx in src/contexts/
+❌ DEPENDENCIES: Missing react-i18next and i18next-browser-languagedetector
+⚠️  STRUCTURE: src/i18n/ folder exists but incomplete
+✅ PREREQUISITES: React 18.3.1, TypeScript 5.6.3, Node 18+
+✅ UI COMPONENTS: shadcn/ui Select component available
+
+REQUIRED ACTIONS:
+1. Remove legacy I18nContext.tsx
+2. Install missing dependencies
+3. Reorganize translation files
+4. Implement modern LanguageProvider
+5. Update components to use react-i18next
+
+IMPLEMENTATION READINESS: ✅ (after corrections above)
+
+RECOMMENDED LANGUAGES:
+- pt-BR (Primary - Brazilian market)
+- en (International business)
+- zh (Chinese suppliers)
+- es (Latin America expansion)
+- fr (European market)
+
+ESTIMATED IMPLEMENTATION TIME: 2-4 hours
+```
+
+---
+
+## DETAILED ANALYSIS COMMANDS
+
+### Legacy Context Detection
+```bash
+# Find all context files
+find src/ -name "*Context.tsx" -o -name "*Context.ts"
+
+# Check for custom translation hooks
+grep -r "useTranslation\|useI18n\|useLang" --include="*.ts" --include="*.tsx" src/hooks/
+
+# Look for hardcoded translation objects
+grep -r "translations\s*=" --include="*.ts" --include="*.tsx" src/
+```
+
+### Dependency Deep Check
+```bash
+# Check package-lock.json for i18n related packages
+grep -A5 -B5 "i18next\|react-i18next" package-lock.json
+
+# Verify React version compatibility
+npm list react react-dom
+
+# Check for conflicting i18n libraries
+npm list | grep -E "react-intl|lingui|polyglot"
+```
+
+### Code Quality Assessment
+```bash
+# Check TypeScript configuration
+cat tsconfig.json | jq '.compilerOptions.strict // false'
+
+# Look for existing translation usage patterns
+grep -r "\.t(" --include="*.tsx" src/ | wc -l
+
+# Check for existing language switching logic
+grep -r "changeLanguage\|setLanguage\|language.*=" --include="*.tsx" --include="*.ts" src/
+```
+
+---
+
+## SUCCESS CRITERIA
+
+The project is ready for modern i18n implementation when:
+
+✅ **Clean State**: No conflicting legacy systems
+✅ **Dependencies**: All required packages installed  
+✅ **Structure**: Organized folder structure exists or can be created
+✅ **Compatibility**: React 18+, modern build tools
+✅ **UI Components**: Select/Dropdown components available
+✅ **TypeScript**: Properly configured (if used)
+
+**Next Step**: Proceed to Implementation Prompt 2
