@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import { I18nProvider } from "@/contexts/I18nContext";
+// Removed legacy I18nProvider - now using react-i18next
 
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
@@ -116,14 +116,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>
-        <TooltipProvider>
-          <Toaster />
-          <ModuleProvider module="IMPORTER">
-            <Router />
-          </ModuleProvider>
-        </TooltipProvider>
-      </I18nProvider>
+      <TooltipProvider>
+        <Toaster />
+        <ModuleProvider module="IMPORTER">
+          <Router />
+        </ModuleProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

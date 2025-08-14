@@ -1,23 +1,25 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTranslation, Language } from "@/contexts/I18nContext";
+import { useTranslation } from 'react-i18next';
 
 const languages = [
-  { code: 'pt' as Language, name: 'Português', flag: '🇧🇷' },
-  { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
-  { code: 'zh' as Language, name: '中文', flag: '🇨🇳' },
-  { code: 'es' as Language, name: 'Español', flag: '🇪🇸' }
+  { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' }
 ];
 
 export default function LanguageSelector() {
-  const { language, setLanguage } = useTranslation();
+  const { i18n } = useTranslation();
+
+  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   return (
-    <Select value={language} onValueChange={(value: Language) => setLanguage(value)}>
+    <Select value={i18n.language} onValueChange={(value: string) => i18n.changeLanguage(value)}>
       <SelectTrigger className="w-full">
         <SelectValue>
           <div className="flex items-center gap-2">
-            <span>{languages.find(lang => lang.code === language)?.flag}</span>
-            <span>{languages.find(lang => lang.code === language)?.name}</span>
+            <span>{currentLanguage.flag}</span>
+            <span>{currentLanguage.name}</span>
           </div>
         </SelectValue>
       </SelectTrigger>
