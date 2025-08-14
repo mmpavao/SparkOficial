@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
 import { MoreHorizontal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Database structure for imports
 interface Import {
@@ -81,6 +82,7 @@ export default function ImportsPage() {
   const [cargoFilter, setCargoFilter] = useState("all");
   const { toast } = useToast();
   const permissions = useUserPermissions();
+  const { t } = useTranslation();
 
   // Fetch real imports data from API
   const { data: imports = [], isLoading, error } = useQuery({
@@ -160,7 +162,7 @@ export default function ImportsPage() {
               ? "Análise de Importações" 
               : permissions.isAdmin 
                 ? "Todas as Importações" 
-                : "Minhas Importações"}
+                : t('imports.title')}
           </h1>
           <p className="text-gray-600 mt-1">
             {permissions.isAdmin || permissions.isFinanceira 
@@ -173,13 +175,13 @@ export default function ImportsPage() {
             <Link href="/imports/new">
               <Button className="bg-emerald-600 hover:bg-emerald-700">
                 <Plus className="w-4 h-4 mr-2" />
-                Nova Importação (Crédito)
+                {t('imports.newCredit')}
               </Button>
             </Link>
             <Link href="/imports/new-expanded">
               <Button variant="outline" className="border-emerald-600 text-emerald-600 hover:bg-emerald-50">
                 <Plus className="w-4 h-4 mr-2" />
-                Nova Importação (Operacional)
+                {t('imports.newOperational')}
               </Button>
             </Link>
           </div>
@@ -192,7 +194,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total de Importações</p>
+                <p className="text-sm font-medium text-gray-600">{t('imports.totalImports')}</p>
                 <p className="text-2xl font-bold text-gray-900">{metrics.totalImports}</p>
               </div>
               <Package className="w-8 h-8 text-blue-600" />
@@ -204,7 +206,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Importações Ativas</p>
+                <p className="text-sm font-medium text-gray-600">{t('imports.activeImports')}</p>
                 <p className="text-2xl font-bold text-gray-900">{metrics.activeImports}</p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
@@ -289,7 +291,7 @@ export default function ImportsPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma importação encontrada</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('imports.noImportsFound')}</h3>
               <p className="text-gray-600 mb-4">
                 {searchTerm || statusFilter !== "all" || cargoFilter !== "all"
                   ? "Tente ajustar os filtros de busca."
@@ -299,7 +301,7 @@ export default function ImportsPage() {
                 <Link href="/imports/new">
                   <Button className="bg-emerald-600 hover:bg-emerald-700">
                     <Plus className="w-4 h-4 mr-2" />
-                    Nova Importação
+                    {t('dashboard.newImport')}
                   </Button>
                 </Link>
               )}

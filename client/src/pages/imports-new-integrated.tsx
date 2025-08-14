@@ -12,12 +12,14 @@ import { ImportCard } from "@/components/imports/ImportCard";
 import { ImportFilters } from "@/components/imports/ImportFilters";
 import { ImportMetrics } from "@/components/imports/ImportMetrics";
 import { Import } from "@shared/imports-schema";
+import { useTranslation } from "react-i18next";
 
 export default function ImportsPageIntegrated() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const permissions = useUserPermissions();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [filters, setFilters] = useState({});
   const [cancelImportId, setCancelImportId] = useState<number | null>(null);
@@ -193,12 +195,12 @@ export default function ImportsPageIntegrated() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {permissions.canViewAllApplications ? 'Todas as Importações' : 'Minhas Importações'}
+            {permissions.canViewAllApplications ? t('nav.imports') : t('imports.title')}
           </h1>
           <p className="text-gray-600 mt-1">
             {permissions.canViewAllApplications 
-              ? 'Gerencie todas as importações do sistema'
-              : 'Gerencie suas importações e acompanhe o progresso'
+              ? t('nav.imports')
+              : t('imports.subtitle')
             }
           </p>
         </div>
@@ -207,7 +209,7 @@ export default function ImportsPageIntegrated() {
           <div className="flex gap-2">
             <Button onClick={handleNewImport} className="bg-[#22c55d] hover:bg-[#16a34a]">
               <Plus className="h-4 w-4 mr-2" />
-              Nova Importação (Crédito)
+              {t('imports.newCredit')}
             </Button>
             <Button 
               onClick={() => setLocation('/imports/new-expanded')} 
@@ -215,7 +217,7 @@ export default function ImportsPageIntegrated() {
               className="border-emerald-600 text-emerald-600 hover:bg-emerald-50"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Nova Importação (Operacional)
+              {t('imports.newOperational')}
             </Button>
           </div>
         )}
@@ -247,7 +249,7 @@ export default function ImportsPageIntegrated() {
           {imports.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-500 text-lg mb-2">
-                Nenhuma importação encontrada
+                {t('imports.noImportsFound')}
               </div>
               <p className="text-gray-400 mb-4">
                 {Object.keys(filters).some(key => filters[key as keyof typeof filters] && filters[key as keyof typeof filters] !== 'all')
@@ -259,7 +261,7 @@ export default function ImportsPageIntegrated() {
                 <div className="flex gap-2">
                   <Button onClick={handleNewImport} variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
-                    Nova Importação (Crédito)
+                    {t('imports.newCredit')}
                   </Button>
                   <Button 
                     onClick={() => setLocation('/imports/new-expanded')} 
@@ -267,7 +269,7 @@ export default function ImportsPageIntegrated() {
                     className="border-emerald-600 text-emerald-600"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Nova Importação (Operacional)
+                    {t('imports.newOperational')}
                   </Button>
                 </div>
               )}

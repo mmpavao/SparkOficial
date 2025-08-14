@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "@/contexts/I18nContext";
+import { useTranslation } from "react-i18next";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import AdminAnalysisPanel from "@/components/AdminAnalysisPanel";
 import { AdminFinalizationPanel } from "@/components/AdminFinalizationPanel";

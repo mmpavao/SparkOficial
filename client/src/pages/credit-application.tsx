@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "@/contexts/I18nContext";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
 import UnifiedDocumentUpload from "@/components/UnifiedDocumentUpload";
