@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Plus, Package, Ship, Truck, CheckCircle2, XCircle, Clock, AlertCircle, Building2, Eye, Edit, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,20 +35,29 @@ interface Import {
   currentStage?: string;
 }
 
-// Status mapping for display
-const getStatusInfo = (status: string, currentStage: string) => {
-  const statusMap: Record<string, { label: string; color: string; bgColor: string }> = {
-    planning: { label: "Planejamento", color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
-    production: { label: "Produção", color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
-    shipped: { label: "Embarcado", color: "text-indigo-600", bgColor: "bg-indigo-50 border-indigo-200" },
-    in_transit: { label: "Em Trânsito", color: "text-yellow-600", bgColor: "bg-yellow-50 border-yellow-200" },
-    customs: { label: "Desembaraço", color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
-    delivered: { label: "Entregue", color: "text-green-600", bgColor: "bg-green-50 border-green-200" },
-    completed: { label: "Concluído", color: "text-green-700", bgColor: "bg-green-100 border-green-300" },
-    cancelled: { label: "Cancelado", color: "text-red-600", bgColor: "bg-red-50 border-red-200" },
+// Status mapping for display with internationalization support
+const getStatusInfo = (status: string, currentStage: string, t: (key: string) => string) => {
+  const statusMap: Record<string, { labelKey: string; color: string; bgColor: string }> = {
+    planning: { labelKey: "imports.status.planning", color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
+    production: { labelKey: "imports.status.production", color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
+    shipped: { labelKey: "imports.status.shipped", color: "text-indigo-600", bgColor: "bg-indigo-50 border-indigo-200" },
+    in_transit: { labelKey: "imports.status.inTransit", color: "text-yellow-600", bgColor: "bg-yellow-50 border-yellow-200" },
+    customs: { labelKey: "imports.status.customs", color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
+    delivered: { labelKey: "imports.status.delivered", color: "text-green-600", bgColor: "bg-green-50 border-green-200" },
+    completed: { labelKey: "imports.status.completed", color: "text-green-700", bgColor: "bg-green-100 border-green-300" },
+    cancelled: { labelKey: "imports.status.cancelled", color: "text-red-600", bgColor: "bg-red-50 border-red-200" },
   };
 
-  return statusMap[status] || { label: status, color: "text-gray-600", bgColor: "bg-gray-50 border-gray-200" };
+  const statusConfig = statusMap[status];
+  if (statusConfig) {
+    return {
+      label: t(statusConfig.labelKey),
+      color: statusConfig.color,
+      bgColor: statusConfig.bgColor
+    };
+  }
+  
+  return { label: status, color: "text-gray-600", bgColor: "bg-gray-50 border-gray-200" };
 };
 
 // Metrics calculation
@@ -104,8 +114,8 @@ export default function ImportsPage() {
     try {
       // API call will be implemented here
       toast({
-        title: "Importação cancelada",
-        description: "A importação foi cancelada com sucesso.",
+        title: t("imports.importCancelled"),
+        description: t("imports.importCancelledDescription"),
       });
     } catch (error) {
       toast({
@@ -138,12 +148,12 @@ export default function ImportsPage() {
           <div className="flex justify-center mb-4">
             <XCircle className="h-12 w-12 text-red-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar importações</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t("errors.loadImportsError")}</h3>
           <p className="text-gray-600 mb-4">
-            Não foi possível carregar os dados das importações.
+            {t("errors.loadImportsErrorDescription")}
           </p>
           <Button onClick={() => window.location.reload()}>
-            Tentar Novamente
+            {t("buttons.tryAgain")}
           </Button>
         </div>
       </div>
@@ -289,17 +299,17 @@ export default function ImportsPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma importação encontrada</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t("imports.noImportsFound")}</h3>
               <p className="text-gray-600 mb-4">
                 {searchTerm || statusFilter !== "all" || cargoFilter !== "all"
-                  ? "Tente ajustar os filtros de busca."
-                  : "Comece criando sua primeira importação."}
+                  ? t("imports.adjustFilters")
+                  : t("imports.createFirstImport")}
               </p>
               {!permissions.isFinanceira && (
                 <Link href="/imports/new">
                   <Button className="bg-emerald-600 hover:bg-emerald-700">
                     <Plus className="w-4 h-4 mr-2" />
-                    Nova Importação
+                    {t("imports.newImport")}
                   </Button>
                 </Link>
               )}
@@ -307,7 +317,7 @@ export default function ImportsPage() {
           </Card>
         ) : (
           filteredImports.map((importItem) => {
-            const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status);
+            const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status, t);
             return (
               <Card key={importItem.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">

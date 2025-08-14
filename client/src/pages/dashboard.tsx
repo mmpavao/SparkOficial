@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/utils/soundEffects';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +48,7 @@ import {
 export default function Dashboard() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isFinanceira = user?.role === 'financeira';
   const isImporter = !isAdmin && !isFinanceira;
@@ -125,14 +127,14 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-1">
-              {isAdmin ? 'Painel Administrativo' : 
-               isFinanceira ? 'Painel Financeiro' : 
-               `Bom dia, ${user?.companyName?.split(' ')[0] || 'Usuário'}!`} 👋
+              {isAdmin ? t("dashboard.adminPanel") : 
+               isFinanceira ? t("dashboard.financePanel") : 
+               `${t("dashboard.goodMorning")}, ${user?.companyName?.split(' ')[0] || t("common.user")}!`} 👋
             </h1>
             <p className="text-spark-100 text-sm">
-              {isAdmin ? 'Visão completa da plataforma Spark Comex' : 
-               isFinanceira ? 'Análise e aprovação de créditos para importações' :
-               'Gerencie seus créditos e importações da China de forma simples e eficiente.'}
+              {isAdmin ? t("dashboard.adminDescription") : 
+               isFinanceira ? t("dashboard.financeDescription") :
+               t("dashboard.importerDescription")}
             </p>
           </div>
           <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center">
@@ -186,9 +188,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Importadores</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.totalImporters")}</p>
                     <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImporters || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Usuários ativos</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.activeUsers")}</p>
                   </div>
                   <Users className="w-8 h-8 text-blue-600" />
                 </div>
@@ -199,9 +201,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Aplicações de Crédito</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.creditApplications")}</p>
                     <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalApplications || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total processadas</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.totalProcessed")}</p>
                   </div>
                   <FileText className="w-8 h-8 text-green-600" />
                 </div>
@@ -212,9 +214,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Volume Total Solicitado</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.totalVolumeRequested")}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(adminMetrics?.totalCreditVolume || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Em pedidos de crédito</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.inCreditRequests")}</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-purple-600" />
                 </div>
@@ -225,9 +227,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Volume Aprovado</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.approvedVolume")}</p>
                     <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(adminMetrics?.approvedCreditVolume || 0)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Crédito concedido</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.creditGranted")}</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-emerald-600" />
                 </div>
@@ -241,9 +243,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Importações</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.totalImports")}</p>
                     <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalImports || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Operações realizadas</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.operationsCompleted")}</p>
                   </div>
                   <Package className="w-8 h-8 text-orange-600" />
                 </div>
@@ -254,9 +256,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Fornecedores</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.totalSuppliers")}</p>
                     <p className="text-2xl font-bold text-gray-900">{adminMetrics?.totalSuppliers || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Cadastrados na plataforma</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.registeredOnPlatform")}</p>
                   </div>
                   <Building2 className="w-8 h-8 text-cyan-600" />
                 </div>
@@ -267,13 +269,13 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
+                    <p className="text-sm font-medium text-gray-600">{t("dashboard.approvalRate")}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {adminMetrics?.totalApplications > 0 
                         ? Math.round((adminMetrics?.approvedCreditVolume / adminMetrics?.totalCreditVolume) * 100) || 0
                         : 0}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Créditos aprovados</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("dashboard.approvedCredits")}</p>
                   </div>
                   <Target className="w-8 h-8 text-yellow-600" />
                 </div>
@@ -319,9 +321,9 @@ export default function Dashboard() {
                           status === 'rejected' ? 'bg-red-500' : 'bg-gray-500'
                         }`}></div>
                         <span className="font-medium">
-                          {status === 'approved' ? 'Aprovadas' :
-                           status === 'under_review' ? 'Em Análise' :
-                           status === 'rejected' ? 'Rejeitadas' : 'Outras'}
+                          {status === 'approved' ? t("status.approved") :
+                           status === 'under_review' ? t("status.underReview") :
+                           status === 'rejected' ? t("status.rejected") : t("status.other")}
                         </span>
                       </div>
                       <span className="text-lg font-bold">{count}</span>

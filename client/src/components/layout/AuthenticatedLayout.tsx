@@ -139,9 +139,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         { 
           path: "/products", 
           icon: Package, 
-          label: "Produtos"
+          label: t("navigation.products")
         },
-        { path: "/reports", icon: BarChart3, label: "Relatórios" },
+        { path: "/reports", icon: BarChart3, label: t("navigation.reports") },
       ];
     }
 

@@ -59,7 +59,33 @@
     "notifications": "Notificações",
     "totalImports": "Total de Importações",
     "pendingApprovals": "Aprovações Pendentes",
-    "activeSuppliers": "Fornecedores Ativos"
+    "activeSuppliers": "Fornecedores Ativos",
+    "totalImporters": "Total de Importadores",
+    "creditApplications": "Aplicações de Crédito",
+    "totalVolumeRequested": "Volume Total Solicitado",
+    "approvedVolume": "Volume Aprovado",
+    "totalSuppliers": "Total de Fornecedores",
+    "approvalRate": "Taxa de Aprovação",
+    "activeUsers": "Usuários ativos",
+    "totalProcessed": "Total processadas",
+    "inCreditRequests": "Em pedidos de crédito",
+    "creditGranted": "Crédito concedido",
+    "operationsCompleted": "Operações realizadas",
+    "registeredOnPlatform": "Cadastrados na plataforma",
+    "averageApproval": "Aprovação média",
+    "adminPanel": "Painel Administrativo",
+    "financePanel": "Painel Financeiro", 
+    "goodMorning": "Bom dia",
+    "adminDescription": "Visão completa da plataforma Spark Comex",
+    "financeDescription": "Análise e aprovação de créditos para importações",
+    "importerDescription": "Gerencie seus créditos e importações da China de forma simples e eficiente",
+    "approvedCredits": "Créditos aprovados",
+    "systemActive": "Sistema Ativo",
+    "registeredImporters": "Importadores Registrados",
+    "creditApplications": "Aplicações de Crédito",
+    "totalImports": "Total de Importações",
+    "financialVolume": "Volume Financeiro",
+    "creditApplicationsStatus": "Status das Aplicações de Crédito"
   },
   "forms": {
     "firstName": "Nome",
@@ -80,11 +106,81 @@
     "required": "Campo obrigatório",
     "invalid": "Campo inválido",
     "tooShort": "Muito curto",
-    "tooLong": "Muito longo"
+    "tooLong": "Muito longo",
+    "placeholder": {
+      "search": "Buscar...",
+      "selectOption": "Selecione uma opção",
+      "enterText": "Digite aqui...",
+      "enterValue": "Insira um valor",
+      "tryAgain": "Tentar Novamente"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "subtitle": "Gerencie sua conta e preferências",
+    "tabs": {
+      "profile": "Perfil",
+      "preferences": "Preferências", 
+      "notifications": "Notificações",
+      "security": "Segurança"
+    },
+    "profile": {
+      "personalInfo": "Informações Pessoais",
+      "edit": "Editar",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "uploadAvatar": "Upload Avatar",
+      "fileSizeLimit": "A imagem deve ter menos de 5MB",
+      "profileUpdated": "Perfil atualizado!",
+      "profileSaved": "Suas informações foram salvas com sucesso",
+      "saveError": "Erro ao salvar",
+      "updateError": "Erro ao atualizar perfil"
+    },
+    "notifications": {
+      "preferenceSaved": "Preferência salva",
+      "preferenceUpdated": "Sua preferência de notificação foi atualizada"
+    },
+    "security": {
+      "configurationUpdated": "Configuração atualizada",
+      "securitySaved": "Sua configuração de segurança foi salva"
+    }
+  },
+  "status": {
+    "approved": "Aprovadas",
+    "underReview": "Em Análise", 
+    "rejected": "Rejeitadas",
+    "other": "Outras",
+    "pending": "Pendente",
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "roles": {
+    "superAdmin": "Super Administrador",
+    "admin": "Administrador",
+    "importer": "Importador",
+    "inactive": "Inativo"
+  },
+  "errors": {
+    "systemError": "Erro no Sistema",
+    "unexpectedError": "Ocorreu um erro inesperado. Tente recarregar a página ou entre em contato com o suporte",
+    "technicalDetails": "Detalhes técnicos",
+    "tryAgain": "Tentar Novamente",
+    "reloadPage": "Recarregar Página",
+    "fileTooBig": "Arquivo muito grande",
+    "loadImportsError": "Erro ao carregar importações",
+    "loadImportsErrorDescription": "Não foi possível carregar os dados das importações"
+  },
+  "toasts": {
+    "success": "Sucesso",
+    "error": "Erro",
+    "warning": "Aviso",
+    "info": "Informação"
   },
   "language": "Idioma",
   "languageChanged": "Idioma alterado para {{language}}",
   "auth": {
+    "accessDenied": "Acesso Negado",
+    "noPermission": "Você não tem permissão para acessar esta área",
     "platformDescription": "Plataforma completa de crédito e importação para empresas brasileiras",
     "secure": "Seguro",
     "fast": "Rápido",
@@ -125,7 +221,9 @@
     "applicationDate": "Data da Aplicação",
     "creditLimit": "Limite de Crédito",
     "availableCredit": "Crédito Disponível",
-    "usedCredit": "Crédito Utilizado"
+    "usedCredit": "Crédito Utilizado",
+    "preAnalysisComplete": "Pré-análise Completa",
+    "finalAnalysis": "Análise Final"
   },
   "imports": {
     "title": "Importações",
@@ -143,7 +241,12 @@
     "shippingMethod": "Método de Envio",
     "containerNumber": "Número do Container",
     "documents": "Documentos",
-    "timeline": "Cronograma"
+    "timeline": "Cronograma",
+    "importCancelled": "Importação cancelada",
+    "importCancelledDescription": "A importação foi cancelada com sucesso",
+    "noImportsFound": "Nenhuma importação encontrada",
+    "adjustFilters": "Tente ajustar os filtros de busca",
+    "createFirstImport": "Comece criando sua primeira importação"
   },
   "suppliers": {
     "title": "Fornecedores",
@@ -182,6 +285,11 @@
     "cancelled": "Cancelado",
     "inProgress": "Em Andamento",
     "planning": "Planejamento",
+    "inTransit": "Em Trânsito",
+    "customs": "Desembaraço",
+    "delivered": "Entregue",
+    "shipped": "Embarcado",
+    "production": "Produção",
     "production": "Produção",
     "shipping": "Envio",
     "delivered": "Entregue"

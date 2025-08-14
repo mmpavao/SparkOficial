@@ -29,13 +29,21 @@ export function canViewAdminPanel(role?: string): boolean {
   return hasAdminAccess(role);
 }
 
-export function getGreeting(): string {
+export function getGreeting(t?: (key: string) => string): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
+  if (!t) {
+    // Fallback for when t is not available
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  }
+  
+  if (hour < 12) return t("common.goodMorning");
+  if (hour < 18) return t("common.goodAfternoon");
+  return t("common.goodEvening");
 }
 
-export function getFirstName(fullName?: string): string {
-  return fullName?.split(' ')[0] || 'Usuário';
+export function getFirstName(fullName?: string, t?: (key: string) => string): string {
+  const fallback = t ? t("common.user") : "Usuário";
+  return fullName?.split(' ')[0] || fallback;
 }
