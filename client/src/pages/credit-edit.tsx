@@ -277,7 +277,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Razão Social *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Nome Empresarial Ltda" />
+                        <Input {...field} placeholder={t('placeholders.businessName')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -291,7 +291,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Nome Fantasia</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Nome comercial" />
+                        <Input {...field} placeholder={t('placeholders.tradeName')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -307,7 +307,7 @@ export default function CreditEditPage() {
                       <FormControl>
                         <Input 
                           {...field} 
-                          placeholder="00.000.000/0000-00"
+                          placeholder={t('placeholders.cnpj')}
                           onChange={(e) => {
                             const formatted = formatCnpj(e.target.value);
                             field.onChange(formatted);
@@ -326,7 +326,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Inscrição Estadual</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="000.000.000.000" />
+                        <Input {...field} placeholder={t('placeholders.stateRegistration')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -340,7 +340,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Inscrição Municipal</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="00000000" />
+                        <Input {...field} placeholder={t('placeholders.municipalRegistration')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -354,7 +354,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Email *</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" placeholder="contato@empresa.com" />
+                        <Input {...field} type="email" placeholder={t('placeholders.email')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -368,7 +368,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Telefone *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="(11) 99999-9999" />
+                        <Input {...field} placeholder={t('placeholders.phone')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -382,7 +382,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Website</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="https://www.empresa.com" />
+                        <Input {...field} placeholder={t('placeholders.website')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -397,7 +397,7 @@ export default function CreditEditPage() {
                   <FormItem>
                     <FormLabel>Endereço *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Rua, Avenida, número, bairro" />
+                      <Input {...field} placeholder={t('placeholders.address')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -412,7 +412,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Cidade *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="São Paulo" />
+                        <Input {...field} placeholder={t('placeholders.city')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -426,7 +426,7 @@ export default function CreditEditPage() {
                     <FormItem>
                       <FormLabel>Estado *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="SP" />
+                        <Input {...field} placeholder={t('placeholders.state')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -442,7 +442,7 @@ export default function CreditEditPage() {
                       <FormControl>
                         <Input 
                           {...field} 
-                          placeholder="00000-000"
+                          placeholder={t('placeholders.zipCode')}
                           onChange={(e) => {
                             const formatted = formatCep(e.target.value);
                             field.onChange(formatted);
@@ -476,7 +476,7 @@ export default function CreditEditPage() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o setor" />
+                            <SelectValue placeholder={t('select.chooseSector')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -505,7 +505,7 @@ export default function CreditEditPage() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a faixa" />
+                            <SelectValue placeholder={t('select.chooseRange')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -531,7 +531,7 @@ export default function CreditEditPage() {
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="Descreva os principais produtos que sua empresa importa"
+                        placeholder={t('placeholders.productDescription')}
                         rows={3}
                       />
                     </FormControl>
@@ -549,7 +549,7 @@ export default function CreditEditPage() {
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="Informe os principais países/regiões de onde sua empresa importa"
+                        placeholder={t('placeholders.mainMarkets')}
                         rows={3}
                       />
                     </FormControl>
@@ -601,7 +601,7 @@ export default function CreditEditPage() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o volume" />
+                            <SelectValue placeholder={t('select.chooseVolume')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -625,7 +625,7 @@ export default function CreditEditPage() {
                     <Input
                       value={currentProduct}
                       onChange={(e) => setCurrentProduct(e.target.value)}
-                      placeholder="Digite um produto e pressione Enter"
+                      placeholder={t('placeholders.enterProduct')}
                       onKeyPress={handleKeyPress}
                     />
                     <Button 
@@ -665,7 +665,7 @@ export default function CreditEditPage() {
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="Explique como o crédito será utilizado e o propósito das importações"
+                        placeholder={t('placeholders.creditJustification')}
                         rows={4}
                       />
                     </FormControl>

@@ -31,6 +31,7 @@ import {
   Edit3
 } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
 // Schema de validação simplificado para importação operacional
 const operationalImportSchema = z.object({
@@ -57,6 +58,7 @@ export default function ImportEditOperationalPage() {
   const [, navigate] = useRoute();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   
   // Fetch import data
   const { data: importData, isLoading: isLoadingImport, error } = useQuery({
@@ -230,7 +232,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Nome da Importação *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: Eletrônicos Q1 2024" />
+                        <Input {...field} placeholder={t('placeholders.importNameExample')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -246,7 +248,7 @@ export default function ImportEditOperationalPage() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder={t('select.chooseType')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -268,7 +270,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Valor Total *</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                        <Input {...field} type="number" step="0.01" placeholder={t('placeholders.weight')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -343,7 +345,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Número do Container</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: MSKU1234567" />
+                        <Input {...field} placeholder={t('placeholders.containerNumber')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -357,7 +359,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Número do Lacre</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: 123456" />
+                        <Input {...field} placeholder={t('placeholders.sealNumber')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -373,7 +375,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Peso (kg)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                        <Input {...field} type="number" step="0.01" placeholder={t('placeholders.weight')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -387,7 +389,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Volume (m³)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                        <Input {...field} type="number" step="0.01" placeholder={t('placeholders.volume')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -437,7 +439,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Porto de Origem</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: Shanghai, China" />
+                        <Input {...field} placeholder={t('placeholders.portOfLoading')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -451,7 +453,7 @@ export default function ImportEditOperationalPage() {
                     <FormItem>
                       <FormLabel>Porto de Destino</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: Santos, Brasil" />
+                        <Input {...field} placeholder={t('placeholders.portOfDischarge')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -476,7 +478,7 @@ export default function ImportEditOperationalPage() {
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="Observações sobre a importação..."
+                        placeholder={t('placeholders.importNotes')}
                         rows={4}
                       />
                     </FormControl>

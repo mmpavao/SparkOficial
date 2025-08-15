@@ -9,10 +9,12 @@ import { Product } from '@shared/imports-schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { ProductForm } from '@/components/products/ProductForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -38,14 +40,14 @@ export default function ProductsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       toast({
-        title: 'Produto deletado',
-        description: 'O produto foi removido com sucesso.',
+        title: t("products.productDeleted"),
+        description: t("products.productDeletedDesc"),
       });
     },
     onError: () => {
       toast({
         title: 'Erro',
-        description: 'Não foi possível deletar o produto.',
+        description: t("products.cannotDeleteProduct"),
         variant: 'destructive',
       });
     },
@@ -71,7 +73,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = (productId: number) => {
-    if (confirm('Tem certeza que deseja deletar este produto?')) {
+    if (confirm(t("products.deleteConfirmation"))) {
       deleteProductMutation.mutate(productId);
     }
   };
@@ -101,21 +103,21 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Catálogo de Produtos</h1>
-          <p className="text-gray-600">Gerencie seus produtos para importação</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t("products.title")}</h1>
+          <p className="text-gray-600">{t("products.subtitle")}</p>
         </div>
         
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditingProduct(null)} className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Novo Produto
+              {t("products.newProduct")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingProduct ? 'Editar Produto' : 'Novo Produto'}
+                {editingProduct ? t("products.editProduct") : t("products.newProduct")}
               </DialogTitle>
             </DialogHeader>
             <ProductForm
@@ -159,7 +161,7 @@ export default function ProductsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Categorias</p>
+                <p className="text-sm font-medium text-gray-600">{t("products.categories")}</p>
                 <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
               </div>
               <Hash className="w-8 h-8 text-purple-600" />
@@ -171,7 +173,7 @@ export default function ProductsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Com NCM</p>
+                <p className="text-sm font-medium text-gray-600">{t("products.withNCM")}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {products.filter((p: Product) => p.ncmCode).length}
                 </p>
@@ -188,7 +190,7 @@ export default function ProductsPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Buscar por nome, NCM ou categoria..."
+                placeholder={t("products.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -222,7 +224,7 @@ export default function ProductsPage() {
                   onClick={() => setSelectedCategory('all')}
                   size="sm"
                 >
-                  Todas
+                  {t("products.allCategories")}
                 </Button>
                 {categories.map((category) => (
                   <Button
@@ -246,18 +248,18 @@ export default function ProductsPage() {
           <CardContent className="p-12 text-center">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm || selectedCategory !== 'all' ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
+              {searchTerm || selectedCategory !== 'all' ? t("products.noProductsFound") : t("products.noProductsRegistered")}
             </h3>
             <p className="text-gray-600 mb-4">
               {searchTerm || selectedCategory !== 'all' 
-                ? 'Tente ajustar os filtros de busca.' 
-                : 'Comece cadastrando seu primeiro produto para importação.'
+                ? t("products.adjustFilters") 
+                : t("products.startRegistering")
               }
             </p>
             {!searchTerm && selectedCategory === 'all' && (
               <Button onClick={() => setIsFormOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Cadastrar Produto
+                {t("products.registerProduct")}
               </Button>
             )}
           </CardContent>
@@ -324,7 +326,7 @@ export default function ProductsPage() {
                     {product.productName}
                   </h3>
                   <p className="text-sm text-gray-600 line-clamp-2">
-                    {product.description || 'Sem descrição'}
+                    {product.description || t("products.noDescription")}
                   </p>
                 </div>
 
@@ -332,7 +334,7 @@ export default function ProductsPage() {
                 {product.ncmCode && (
                   <div className="flex items-center text-sm text-gray-500 mb-3">
                     <Hash className="h-4 w-4 mr-2" />
-                    <span>NCM: {product.ncmCode}</span>
+                    <span>{t("products.ncm")}: {product.ncmCode}</span>
                   </div>
                 )}
 
@@ -342,7 +344,7 @@ export default function ProductsPage() {
                     <div className="flex items-center">
                       <Weight className="h-4 w-4 text-gray-400 mr-2" />
                       <div>
-                        <span className="text-gray-500">Peso</span>
+                        <span className="text-gray-500">{t("products.weight")}</span>
                         <p className="font-medium">{parseFloat(product.weight).toFixed(2)} kg</p>
                       </div>
                     </div>
@@ -397,22 +399,22 @@ export default function ProductsPage() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Produto
+                    {t("products.product")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    NCM
+                    {t("products.ncm")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoria
+                    {t("products.category")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Peso (kg)
+                    {t("products.weightKg")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Preço
+                    {t("products.price")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
+                    {t("products.actions")}
                   </th>
                 </tr>
               </thead>
@@ -447,7 +449,7 @@ export default function ProductsPage() {
                             {product.productName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {product.description || 'Sem descrição'}
+                            {product.description || t("products.noDescription")}
                           </div>
                         </div>
                       </div>
@@ -460,7 +462,7 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge variant="secondary">
-                        {product.category || 'Sem categoria'}
+                        {product.category || t("products.noCategory")}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

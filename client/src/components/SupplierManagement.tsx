@@ -316,7 +316,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
                         <FormItem className="md:col-span-2">
                           <FormLabel>Endereço Completo *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Rua, número, distrito" {...field} />
+                            <Input placeholder={t('placeholders.supplierAddress')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -360,7 +360,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o país" />
+                                <SelectValue placeholder={t('select.chooseCountry')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -486,7 +486,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
                         <FormLabel>Especialização</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Descreva os produtos e serviços especializados do fornecedor..."
+                            placeholder={t('placeholders.supplierSpecialization')}
                             {...field}
                           />
                         </FormControl>
@@ -503,7 +503,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
                         <FormLabel>Observações</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Informações adicionais sobre o fornecedor..."
+                            placeholder={t('placeholders.supplierAdditionalInfo')}
                             {...field}
                           />
                         </FormControl>
@@ -549,7 +549,7 @@ export default function SupplierManagement({ onSelectSupplier, selectedSupplierI
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Buscar fornecedores..."
+              placeholder={t('placeholders.searchSuppliers')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"

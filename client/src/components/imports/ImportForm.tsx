@@ -219,7 +219,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   <FormItem>
                     <FormLabel>Nome da Importação *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Importação Equipamentos Q1 2024" />
+                      <Input {...field} placeholder={t('placeholders.importNameExample')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,7 +249,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                     <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma aplicação de crédito" />
+                          <SelectValue placeholder={t('select.chooseApplication')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -281,7 +281,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o status" />
+                          <SelectValue placeholder={t('select.chooseStatus')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -358,7 +358,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o método" />
+                          <SelectValue placeholder={t('select.chooseMethod')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -389,7 +389,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a moeda" />
+                          <SelectValue placeholder={t('select.chooseCurrency')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -525,7 +525,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                       <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione um fornecedor" />
+                            <SelectValue placeholder={t('select.chooseSupplier')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -575,7 +575,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="Informações adicionais sobre a importação..."
+                        placeholder={t('placeholders.importNotes')}
                         rows={4}
                       />
                     </FormControl>

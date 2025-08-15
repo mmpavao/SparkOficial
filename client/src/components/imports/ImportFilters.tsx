@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, X, Calendar, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 interface ImportFiltersProps {
   onFiltersChange: (filters: any) => void;
@@ -13,6 +14,7 @@ interface ImportFiltersProps {
 }
 
 export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFiltersProps) {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState({
     search: initialFilters.search || "",
     status: initialFilters.status || "all",
@@ -123,7 +125,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Buscar importações..."
+              placeholder={t('placeholders.searchImports')}
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
               className="pl-10"

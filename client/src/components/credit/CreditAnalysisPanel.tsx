@@ -26,6 +26,7 @@ import {
 import { CreditScore } from '@/shared/schema';
 import { formatCurrency } from '@/lib/formatters';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useTranslation } from '@/contexts/I18nContext';
 
 interface CreditAnalysisPanelProps {
   creditScore: CreditScore;
@@ -46,6 +47,7 @@ interface APISection {
 export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading }: CreditAnalysisPanelProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const permissions = useUserPermissions();
+  const { t } = useTranslation();
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => 
@@ -60,7 +62,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Análise de Crédito 360°</h3>
+          <h3 className="text-lg font-semibold">{t('credit.analysis.title')}</h3>
           {onRefresh && permissions.isAdmin && (
             <Button
               variant="outline"
@@ -68,7 +70,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
               onClick={onRefresh}
               disabled={isLoading}
             >
-              {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
+              {isLoading ? t('credit.analysis.consulting') : t('credit.analysis.consultCreditScore')}
             </Button>
           )}
         </div>
@@ -76,11 +78,11 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
           <CardContent className="p-8 text-center">
             <div className="text-gray-500">
               <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium mb-2">Análise de Crédito não realizada</p>
+              <p className="text-lg font-medium mb-2">{t('credit.analysis.notPerformed')}</p>
               <p className="text-sm">
                 {permissions.isAdmin 
-                  ? 'Clique em "Consultar Credit Score" para iniciar a análise completa' 
-                  : 'Análise de crédito disponível apenas para administradores'
+                  ? t('credit.analysis.clickToStartAnalysis')
+                  : t('credit.analysis.onlyForAdmins')
                 }
               </p>
             </div>
@@ -119,16 +121,16 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
   const apiSections: APISection[] = [
     // 1. Score QUOD
     {
-      title: 'Score QUOD - Pontuação de Crédito',
+      title: t('credit.analysis.scoreQuodTitle'),
       icon: <TrendingUp className="w-5 h-5" />,
       status: creditScore.creditScore > 600 ? 'success' : creditScore.creditScore > 400 ? 'warning' : 'error',
-      statusText: `${creditScore.creditScore} pontos`,
+      statusText: t('credit.analysis.points', { score: creditScore.creditScore.toString() }),
       color: 'blue',
       summary: (
         <div className="space-y-2">
           <div className="flex items-center gap-4">
             <div className="text-2xl font-bold text-blue-600">{creditScore.creditScore}</div>
-            <div className="text-sm text-gray-600">de 1000 pontos</div>
+            <div className="text-sm text-gray-600">{t('credit.analysis.outOf1000Points')}</div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -142,40 +144,40 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h4 className="font-semibold text-gray-900">Análise de Risco</h4>
+              <h4 className="font-semibold text-gray-900">{t('credit.analysis.riskAnalysis')}</h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span>Capacidade de Pagamento:</span>
-                  <span className="font-medium">{creditScore.capacidadePagamento || 'Não informado'}</span>
+                  <span>{t('credit.analysis.paymentCapacity')}:</span>
+                  <span className="font-medium">{creditScore.capacidadePagamento || t('common.notInformed')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Possui Débitos:</span>
+                  <span>{t('credit.analysis.hasDebts')}:</span>
                   <span className={creditScore.hasDebts ? 'text-red-600' : 'text-green-600'}>
-                    {creditScore.hasDebts ? 'Sim' : 'Não'}
+                    {creditScore.hasDebts ? t('common.yes') : t('common.no')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Protestos:</span>
+                  <span>{t('credit.analysis.protests')}:</span>
                   <span className={creditScore.hasProtests ? 'text-red-600' : 'text-green-600'}>
-                    {creditScore.hasProtests ? 'Sim' : 'Não'}
+                    {creditScore.hasProtests ? t('common.yes') : t('common.no')}
                   </span>
                 </div>
               </div>
             </div>
             
             <div className="space-y-2">
-              <h4 className="font-semibold text-gray-900">Histórico Financeiro</h4>
+              <h4 className="font-semibold text-gray-900">{t('credit.analysis.financialHistory')}</h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span>Falência/Recuperação:</span>
+                  <span>{t('credit.analysis.bankruptcyRecovery')}:</span>
                   <span className={creditScore.hasBankruptcy ? 'text-red-600' : 'text-green-600'}>
-                    {creditScore.hasBankruptcy ? 'Sim' : 'Não'}
+                    {creditScore.hasBankruptcy ? t('common.yes') : t('common.no')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Ações Judiciais:</span>
+                  <span>{t('credit.analysis.lawsuits')}:</span>
                   <span className={creditScore.hasLawsuits ? 'text-red-600' : 'text-green-600'}>
-                    {creditScore.hasLawsuits ? 'Sim' : 'Não'}
+                    {creditScore.hasLawsuits ? t('common.yes') : t('common.no')}
                   </span>
                 </div>
               </div>
@@ -187,10 +189,10 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
 
     // 2. Cadastro PJ Plus
     {
-      title: 'Cadastro PJ Plus - Dados Empresariais',
+      title: t('credit.analysis.companyRegistrationTitle'),
       icon: <Building className="w-5 h-5" />,
       status: creditScore.status === 'ATIVA' ? 'success' : 'warning',
-      statusText: creditScore.status || 'Não informado',
+      statusText: creditScore.status || t('common.notInformed'),
       color: 'purple',
       summary: (
         <div className="space-y-2">
@@ -205,7 +207,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              {creditScore.openingDate ? new Date(creditScore.openingDate).toLocaleDateString('pt-BR') : 'Não informado'}
+              {creditScore.openingDate ? new Date(creditScore.openingDate).toLocaleDateString('pt-BR') : t('common.notInformed')}
             </span>
           </div>
         </div>
@@ -214,31 +216,31 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900">Dados da Empresa</h4>
+              <h4 className="font-semibold text-gray-900">{t('credit.analysis.companyData')}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Razão Social:</span>
+                  <span>{t('credit.analysis.legalName')}:</span>
                   <span className="font-medium">{creditScore.legalName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Nome Fantasia:</span>
+                  <span>{t('credit.analysis.tradingName')}:</span>
                   <span className="font-medium">{creditScore.tradingName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Situação:</span>
+                  <span>{t('credit.analysis.status')}:</span>
                   <span className={creditScore.status === 'ATIVA' ? 'text-green-600' : 'text-red-600'}>
                     {creditScore.status}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Capital Social:</span>
+                  <span>{t('credit.analysis.shareCapital')}:</span>
                   <span className="font-medium">{creditScore.shareCapital}</span>
                 </div>
               </div>
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900">Contato</h4>
+              <h4 className="font-semibold text-gray-900">{t('credit.analysis.contact')}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-gray-400" />
@@ -258,17 +260,17 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
           
           {/* Atividade Econômica */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-gray-900">Atividade Econômica</h4>
+            <h4 className="font-semibold text-gray-900">{t('credit.analysis.economicActivity')}</h4>
             <div className="space-y-2">
               <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="font-medium text-sm">Atividade Principal</div>
+                <div className="font-medium text-sm">{t('credit.analysis.mainActivity')}</div>
                 <div className="text-sm text-gray-600">
                   {creditScore.mainActivity?.code} - {creditScore.mainActivity?.description}
                 </div>
               </div>
               {creditScore.secondaryActivities && creditScore.secondaryActivities.length > 0 && (
                 <div className="space-y-1">
-                  <div className="font-medium text-sm">Atividades Secundárias</div>
+                  <div className="font-medium text-sm">{t('credit.analysis.secondaryActivities')}</div>
                   {creditScore.secondaryActivities.slice(0, 3).map((activity: any, index: number) => (
                     <div key={index} className="text-sm text-gray-600">
                       {activity.code} - {activity.description}
@@ -276,7 +278,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
                   ))}
                   {creditScore.secondaryActivities.length > 3 && (
                     <div className="text-sm text-gray-500">
-                      +{creditScore.secondaryActivities.length - 3} outras atividades
+                      {t('credit.analysis.otherActivities', { count: (creditScore.secondaryActivities.length - 3).toString() })}
                     </div>
                   )}
                 </div>
@@ -287,7 +289,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
           {/* Sócios */}
           {creditScore.partners && creditScore.partners.length > 0 && (
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900">Sócios</h4>
+              <h4 className="font-semibold text-gray-900">{t('credit.analysis.partners')}</h4>
               <div className="space-y-2">
                 {creditScore.partners.map((partner: any, index: number) => (
                   <div key={index} className="p-3 bg-gray-50 rounded-lg">
@@ -313,28 +315,28 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
 
     // 3. CND - Certidões Negativas
     {
-      title: 'CND - Certidões Negativas de Débitos',
+      title: t('credit.analysis.cndTitle'),
       icon: <Shield className="w-5 h-5" />,
       status: creditScore.cndStatus === 'Consultado' ? 
         (creditScore.cndHasDebts ? 'error' : 'success') : 'neutral',
-      statusText: creditScore.cndStatus || 'Não Consultado',
+      statusText: creditScore.cndStatus || t('credit.analysis.notConsulted'),
       color: 'green',
       summary: (
         <div className="space-y-2">
           {creditScore.cndStatus === 'Consultado' ? (
             <div className="space-y-1">
               <div className={`text-sm font-medium ${creditScore.cndHasDebts ? 'text-red-600' : 'text-green-600'}`}>
-                {creditScore.cndHasDebts ? 'Possui Débitos' : 'Regular - Sem Débitos'}
+                {creditScore.cndHasDebts ? t('credit.analysis.hasDebts') : t('credit.analysis.regularNoDebts')}
               </div>
               {creditScore.cndCertificateNumber && (
                 <div className="text-sm text-gray-600">
-                  Certidão: {creditScore.cndCertificateNumber}
+                  {t('credit.analysis.certificate')}: {creditScore.cndCertificateNumber}
                 </div>
               )}
             </div>
           ) : (
             <div className="text-sm text-gray-600">
-              Consulta não realizada
+              {t('credit.analysis.consultationNotPerformed')}
             </div>
           )}
         </div>
@@ -345,36 +347,36 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900">Informações da Certidão</h4>
+                  <h4 className="font-semibold text-gray-900">{t('credit.analysis.certificateInfo')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Número:</span>
-                      <span className="font-medium">{creditScore.cndCertificateNumber || 'Não informado'}</span>
+                      <span>{t('credit.analysis.number')}:</span>
+                      <span className="font-medium">{creditScore.cndCertificateNumber || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Código Validação:</span>
-                      <span className="font-medium">{creditScore.cndValidationCode || 'Não informado'}</span>
+                      <span>{t('credit.analysis.validationCode')}:</span>
+                      <span className="font-medium">{creditScore.cndValidationCode || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Estado:</span>
-                      <span className="font-medium">{creditScore.cndState || 'Não informado'}</span>
+                      <span>{t('credit.analysis.state')}:</span>
+                      <span className="font-medium">{creditScore.cndState || t('common.notInformed')}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900">Validade</h4>
+                  <h4 className="font-semibold text-gray-900">{t('credit.analysis.validity')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Emissão:</span>
+                      <span>{t('credit.analysis.issueDate')}:</span>
                       <span className="font-medium">
-                        {creditScore.cndIssueDate ? new Date(creditScore.cndIssueDate).toLocaleDateString('pt-BR') : 'Não informado'}
+                        {creditScore.cndIssueDate ? new Date(creditScore.cndIssueDate).toLocaleDateString('pt-BR') : t('common.notInformed')}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Validade:</span>
+                      <span>{t('credit.analysis.expiryDate')}:</span>
                       <span className="font-medium">
-                        {creditScore.cndExpiryDate ? new Date(creditScore.cndExpiryDate).toLocaleDateString('pt-BR') : 'Não informado'}
+                        {creditScore.cndExpiryDate ? new Date(creditScore.cndExpiryDate).toLocaleDateString('pt-BR') : t('common.notInformed')}
                       </span>
                     </div>
                   </div>
@@ -383,16 +385,16 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
               
               {creditScore.cndHasDebts && creditScore.cndDebtsDetails && (creditScore.cndDebtsDetails as any[]).length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900 text-red-600">Débitos Encontrados</h4>
+                  <h4 className="font-semibold text-gray-900 text-red-600">{t('credit.analysis.debtsFound')}</h4>
                   <div className="space-y-2">
                     {(creditScore.cndDebtsDetails as any[]).map((debt: any, index: number) => (
                       <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
                         <div className="text-sm">
-                          <div className="font-medium text-red-900">{debt.tipo || 'Débito'}</div>
-                          <div className="text-red-700">{debt.descricao || 'Descrição não disponível'}</div>
+                          <div className="font-medium text-red-900">{debt.tipo || t('credit.analysis.debt')}</div>
+                          <div className="text-red-700">{debt.descricao || t('credit.analysis.descriptionNotAvailable')}</div>
                           {debt.valor && (
                             <div className="text-red-800 font-medium">
-                              Valor: {formatCurrency(debt.valor)}
+                              {t('credit.analysis.value')}: {formatCurrency(debt.valor)}
                             </div>
                           )}
                         </div>
@@ -405,7 +407,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
           ) : (
             <div className="text-center text-gray-500 py-8">
               <Shield className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p>Consulta CND não realizada</p>
+              <p>{t('credit.analysis.cndConsultationNotPerformed')}</p>
             </div>
           )}
         </div>
@@ -414,10 +416,10 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
 
     // 4. SCR Bacen
     {
-      title: 'SCR Bacen - Histórico Bancário',
+      title: t('credit.analysis.scrBacenTitle'),
       icon: <CreditCard className="w-5 h-5" />,
       status: creditScore.scrStatus === 'Consultado' ? 'success' : 'neutral',
-      statusText: creditScore.scrStatus || 'Não Consultado',
+      statusText: creditScore.scrStatus || t('credit.analysis.notConsulted'),
       color: 'indigo',
       summary: (
         <div className="space-y-2">
@@ -425,19 +427,19 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
             <div className="space-y-1">
               <div className="flex items-center gap-4 text-sm">
                 <span>
-                  <span className="font-medium">{creditScore.scrQuantidadeInstituicoes || 0}</span> instituições
+                  <span className="font-medium">{creditScore.scrQuantidadeInstituicoes || 0}</span> {t('credit.analysis.institutions')}
                 </span>
                 <span>
-                  <span className="font-medium">{creditScore.scrQuantidadeOperacoes || 0}</span> operações
+                  <span className="font-medium">{creditScore.scrQuantidadeOperacoes || 0}</span> {t('credit.analysis.operations')}
                 </span>
               </div>
               <div className="text-sm text-gray-600">
-                Perfil: {creditScore.scrPerfil || 'Não informado'}
+                {t('credit.analysis.profile')}: {creditScore.scrPerfil || t('common.notInformed')}
               </div>
             </div>
           ) : (
             <div className="text-sm text-gray-600">
-              Consulta não realizada
+              {t('credit.analysis.consultationNotPerformed')}
             </div>
           )}
         </div>
@@ -448,67 +450,67 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900">Relacionamento Bancário</h4>
+                  <h4 className="font-semibold text-gray-900">{t('credit.analysis.bankingRelationship')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Instituições:</span>
+                      <span>{t('credit.analysis.institutions')}:</span>
                       <span className="font-medium">{creditScore.scrQuantidadeInstituicoes || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Operações:</span>
+                      <span>{t('credit.analysis.operations')}:</span>
                       <span className="font-medium">{creditScore.scrQuantidadeOperacoes || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Perfil:</span>
-                      <span className="font-medium">{creditScore.scrPerfil || 'Não informado'}</span>
+                      <span>{t('credit.analysis.profile')}:</span>
+                      <span className="font-medium">{creditScore.scrPerfil || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Situação:</span>
-                      <span className="font-medium">{creditScore.scrSituacao || 'Não informado'}</span>
+                      <span>{t('credit.analysis.situation')}:</span>
+                      <span className="font-medium">{creditScore.scrSituacao || t('common.notInformed')}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900">Valores</h4>
+                  <h4 className="font-semibold text-gray-900">{t('credit.analysis.values')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Volume:</span>
-                      <span className="font-medium">{creditScore.scrVolume || 'Não informado'}</span>
+                      <span>{t('credit.analysis.volume')}:</span>
+                      <span className="font-medium">{creditScore.scrVolume || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>A Vencer:</span>
-                      <span className="font-medium">{creditScore.scrValorVencer || 'Não informado'}</span>
+                      <span>{t('credit.analysis.toDue')}:</span>
+                      <span className="font-medium">{creditScore.scrValorVencer || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Vencido:</span>
-                      <span className="font-medium">{creditScore.scrValorVencido || 'Não informado'}</span>
+                      <span>{t('credit.analysis.overdue')}:</span>
+                      <span className="font-medium">{creditScore.scrValorVencido || t('common.notInformed')}</span>
                     </div>
                   </div>
                 </div>
               </div>
               
               <div className="space-y-2">
-                <h4 className="font-semibold text-gray-900">Índices</h4>
+                <h4 className="font-semibold text-gray-900">{t('credit.analysis.indices')}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Total:</span>
-                      <span className="font-medium">{creditScore.scrIndiceTotal || 'Não informado'}</span>
+                      <span>{t('credit.analysis.total')}:</span>
+                      <span className="font-medium">{creditScore.scrIndiceTotal || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Cartão:</span>
-                      <span className="font-medium">{creditScore.scrIndiceCartao || 'Não informado'}</span>
+                      <span>{t('credit.analysis.card')}:</span>
+                      <span className="font-medium">{creditScore.scrIndiceCartao || t('common.notInformed')}</span>
                     </div>
                   </div>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Crédito Pessoal:</span>
-                      <span className="font-medium">{creditScore.scrIndiceCreditoPessoal || 'Não informado'}</span>
+                      <span>{t('credit.analysis.personalCredit')}:</span>
+                      <span className="font-medium">{creditScore.scrIndiceCreditoPessoal || t('common.notInformed')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Cheque Especial:</span>
-                      <span className="font-medium">{creditScore.scrIndiceChequeEspecial || 'Não informado'}</span>
+                      <span>{t('credit.analysis.overdraft')}:</span>
+                      <span className="font-medium">{creditScore.scrIndiceChequeEspecial || t('common.notInformed')}</span>
                     </div>
                   </div>
                 </div>
@@ -517,7 +519,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
           ) : (
             <div className="text-center text-gray-500 py-8">
               <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p>Consulta SCR Bacen não realizada</p>
+              <p>{t('credit.analysis.scrBacenConsultationNotPerformed')}</p>
             </div>
           )}
         </div>
@@ -526,11 +528,11 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
 
     // 5. Detalhamento Negativo
     {
-      title: 'Detalhamento Negativo - Pendências',
+      title: t('credit.analysis.negativeDetailTitle'),
       icon: <AlertTriangle className="w-5 h-5" />,
       status: creditScore.detalhamentoStatus === 'Consultado' ? 
         (creditScore.detalhamentoProtestos > 0 || creditScore.detalhamentoAcoesJudiciais > 0 ? 'error' : 'success') : 'neutral',
-      statusText: creditScore.detalhamentoStatus || 'Não Consultado',
+      statusText: creditScore.detalhamentoStatus || t('credit.analysis.notConsulted'),
       color: 'red',
       summary: (
         <div className="space-y-2">
@@ -538,20 +540,20 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1">
                 <span className="font-medium text-red-600">{creditScore.detalhamentoProtestos || 0}</span>
-                <span>protestos</span>
+                <span>{t('credit.analysis.protestsLower')}</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="font-medium text-orange-600">{creditScore.detalhamentoAcoesJudiciais || 0}</span>
-                <span>ações</span>
+                <span>{t('credit.analysis.actionsLower')}</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="font-medium text-yellow-600">{creditScore.detalhamentoChequesSemdFundo || 0}</span>
-                <span>cheques</span>
+                <span>{t('credit.analysis.checksLower')}</span>
               </span>
             </div>
           ) : (
             <div className="text-sm text-gray-600">
-              Consulta não realizada
+              {t('credit.analysis.consultationNotPerformed')}
             </div>
           )}
         </div>
@@ -563,15 +565,15 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="p-4 bg-red-50 rounded-lg">
-                  <h4 className="font-medium text-red-900 mb-2">Protestos</h4>
+                  <h4 className="font-medium text-red-900 mb-2">{t('credit.analysis.protests')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Quantidade:</span>
+                      <span>{t('credit.analysis.quantity')}:</span>
                       <span className="font-bold text-red-600">{creditScore.detalhamentoProtestos || 0}</span>
                     </div>
                     {creditScore.detalhamentoValorProtestos && (
                       <div className="flex justify-between">
-                        <span>Valor Total:</span>
+                        <span>{t('credit.analysis.totalValue')}:</span>
                         <span className="font-bold text-red-600">R$ {creditScore.detalhamentoValorProtestos}</span>
                       </div>
                     )}
@@ -579,15 +581,15 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
                 </div>
                 
                 <div className="p-4 bg-orange-50 rounded-lg">
-                  <h4 className="font-medium text-orange-900 mb-2">Ações Judiciais</h4>
+                  <h4 className="font-medium text-orange-900 mb-2">{t('credit.analysis.lawsuits')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Quantidade:</span>
+                      <span>{t('credit.analysis.quantity')}:</span>
                       <span className="font-bold text-orange-600">{creditScore.detalhamentoAcoesJudiciais || 0}</span>
                     </div>
                     {creditScore.detalhamentoValorAcoes && (
                       <div className="flex justify-between">
-                        <span>Valor Total:</span>
+                        <span>{t('credit.analysis.totalValue')}:</span>
                         <span className="font-bold text-orange-600">R$ {creditScore.detalhamentoValorAcoes}</span>
                       </div>
                     )}
@@ -595,18 +597,18 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
                 </div>
                 
                 <div className="p-4 bg-yellow-50 rounded-lg">
-                  <h4 className="font-medium text-yellow-900 mb-2">Outras Restrições</h4>
+                  <h4 className="font-medium text-yellow-900 mb-2">{t('credit.analysis.otherRestrictions')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Cheques sem Fundo:</span>
+                      <span>{t('credit.analysis.bouncedChecks')}:</span>
                       <span className="font-bold text-yellow-600">{creditScore.detalhamentoChequesSemdFundo || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Recuperações:</span>
+                      <span>{t('credit.analysis.recoveries')}:</span>
                       <span className="font-bold text-yellow-600">{creditScore.detalhamentoRecuperacoes || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Falências:</span>
+                      <span>{t('credit.analysis.bankruptcies')}:</span>
                       <span className="font-bold text-yellow-600">{creditScore.detalhamentoFalencias || 0}</span>
                     </div>
                   </div>
@@ -616,19 +618,19 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
               {/* Detailed Information */}
               {creditScore.detalhamentoProtestosDetalhes && (creditScore.detalhamentoProtestosDetalhes as any[]).length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900">Detalhes dos Protestos</h4>
+                  <h4 className="font-semibold text-gray-900">{t('credit.analysis.protestDetails')}</h4>
                   <div className="space-y-2">
                     {(creditScore.detalhamentoProtestosDetalhes as any[]).slice(0, 3).map((protesto, index) => (
                       <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
                         <div className="text-sm">
-                          <div className="font-medium text-red-900">{protesto.situacao || 'Protesto'}</div>
-                          <div className="text-red-700">Valor: R$ {protesto.valorTotal || 'Não informado'}</div>
+                          <div className="font-medium text-red-900">{protesto.situacao || t('credit.analysis.protest')}</div>
+                          <div className="text-red-700">{t('credit.analysis.value')}: R$ {protesto.valorTotal || t('common.notInformed')}</div>
                         </div>
                       </div>
                     ))}
                     {(creditScore.detalhamentoProtestosDetalhes as any[]).length > 3 && (
                       <div className="text-sm text-gray-500 text-center">
-                        +{(creditScore.detalhamentoProtestosDetalhes as any[]).length - 3} outros protestos
+                        {t('credit.analysis.otherProtests', { count: ((creditScore.detalhamentoProtestosDetalhes as any[]).length - 3).toString() })}
                       </div>
                     )}
                   </div>
@@ -638,7 +640,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
           ) : (
             <div className="text-center text-gray-500 py-8">
               <AlertTriangle className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p>Consulta de pendências não realizada</p>
+              <p>{t('credit.analysis.pendenciesConsultationNotPerformed')}</p>
             </div>
           )}
         </div>
@@ -649,7 +651,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Análise de Crédito 360°</h3>
+        <h3 className="text-lg font-semibold">{t('credit.analysis.title')}</h3>
         {onRefresh && (
           <Button
             variant="outline"
@@ -657,7 +659,7 @@ export default function CreditAnalysisPanel({ creditScore, onRefresh, isLoading 
             onClick={onRefresh}
             disabled={isLoading}
           >
-            {isLoading ? 'Atualizando...' : 'Atualizar'}
+            {isLoading ? t('credit.analysis.updating') : t('credit.analysis.update')}
           </Button>
         )}
       </div>

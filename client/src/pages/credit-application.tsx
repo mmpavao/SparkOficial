@@ -101,26 +101,26 @@ type CreditInfoForm = {
 };
 
 // Business sectors for dropdown
-const businessSectors = [
-  "Tecnologia",
-  "Máquinas e Equipamentos", 
-  "Automotivo",
-  "Têxtil",
-  "Químico/Farmacêutico",
-  "Alimentos",
-  "Construção Civil",
-  "Eletrônicos",
-  "Outro"
+const getBusinessSectors = (t: any) => [
+  t('credit.sectors.technology'),
+  t('credit.sectors.machinery'), 
+  t('credit.sectors.automotive'),
+  t('credit.sectors.textile'),
+  t('credit.sectors.chemical'),
+  t('credit.sectors.food'),
+  t('credit.sectors.construction'),
+  t('credit.sectors.electronics'),
+  t('credit.sectors.other')
 ];
 
 // Revenue ranges
-const revenueRanges = [
-  "Até R$ 1 milhão",
-  "R$ 1 a 5 milhões", 
-  "R$ 5 a 20 milhões",
-  "R$ 20 a 50 milhões",
-  "R$ 50 a 100 milhões",
-  "Acima de R$ 100 milhões"
+const getRevenueRanges = (t: any) => [
+  t('credit.revenue.upTo1M'),
+  t('credit.revenue.from1to5M'), 
+  t('credit.revenue.from5to20M'),
+  t('credit.revenue.from20to50M'),
+  t('credit.revenue.from50to100M'),
+  t('credit.revenue.above100M')
 ];
 
 // Generate dynamic mandatory documents based on shareholders
@@ -294,7 +294,7 @@ export default function CreditApplicationPage() {
       <div className="max-w-4xl mx-auto p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-2 border-spark-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-gray-600">Carregando formulário...</p>
+          <p className="text-gray-600">{t('credit.loadingForm')}</p>
         </div>
       </div>
     );
@@ -807,8 +807,8 @@ export default function CreditApplicationPage() {
       // Handle duplicate submission (HTTP 429)
       if (error.status === 429) {
         toast({
-          title: "Solicitação já enviada",
-          description: "Sua solicitação já foi processada com sucesso. Aguarde um momento antes de enviar uma nova.",
+          title: t('credit.requestAlreadySent'),
+          description: t('credit.requestAlreadyProcessed'),
           variant: "default",
         });
 
@@ -821,8 +821,8 @@ export default function CreditApplicationPage() {
         }, 2000);
       } else {
         toast({
-          title: "Erro",
-          description: error.message || "Erro ao enviar solicitação",
+          title: t('common.error'),
+          description: error.message || t('credit.submissionError'),
           variant: "destructive",
         });
 
@@ -855,7 +855,7 @@ export default function CreditApplicationPage() {
                       ? 'border-gray-400 text-gray-600 hover:border-spark-400 hover:text-spark-600'
                       : 'border-gray-300 text-gray-400 cursor-not-allowed'
               }`}
-              title={isClickable ? `Ir para ${stepTitles[step - 1]}` : 'Complete a etapa anterior primeiro'}
+              title={isClickable ? `${t('credit.goToStep')} ${t(`credit.stepTitles.step${step}`)}` : t('credit.completePreviousStep')}
             >
               {isCompleted && !isCurrent ? (
                 <CheckCircle className="w-5 h-5" />
@@ -875,10 +875,10 @@ export default function CreditApplicationPage() {
   );
 
   const stepTitles = [
-    "Dados da Empresa",
-    "Informações Comerciais", 
-    "Dados do Crédito",
-    "Documentação"
+    t('credit.stepTitles.step1'),
+    t('credit.stepTitles.step2'), 
+    t('credit.stepTitles.step3'),
+    t('credit.stepTitles.step4')
   ];
 
   return (
@@ -901,8 +901,8 @@ export default function CreditApplicationPage() {
         {/* Header - Following standard pattern */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Solicitação de Crédito</h1>
-            <p className="text-gray-600 mt-1">Preencha todas as informações para solicitar seu crédito de importação</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('credit.title')}</h1>
+            <p className="text-gray-600 mt-1">{t('credit.formDescription')}</p>
           </div>
 
           {/* Requirements Button */}
@@ -912,7 +912,7 @@ export default function CreditApplicationPage() {
             className="border-blue-600 text-blue-600 hover:bg-blue-50 shrink-0"
           >
             <Eye className="w-4 h-4 mr-2" />
-            Ver Todos os Requisitos
+{t('credit.viewAllRequirements')}
           </Button>
         </div>
 
@@ -930,7 +930,7 @@ export default function CreditApplicationPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-blue-600" />
-              Dados da Empresa
+{t('credit.stepTitles.step1')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -943,9 +943,9 @@ export default function CreditApplicationPage() {
                     name="legalCompanyName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Razão Social *</FormLabel>
+                        <FormLabel>{t('credit.legalCompanyName')} *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nome Empresarial Ltda" {...field} />
+                          <Input placeholder={t('placeholders.businessName')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -957,9 +957,9 @@ export default function CreditApplicationPage() {
                     name="tradingName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome Fantasia</FormLabel>
+                        <FormLabel>{t('credit.tradingName')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nome comercial" {...field} />
+                          <Input placeholder={t('placeholders.tradeName')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -995,7 +995,7 @@ export default function CreditApplicationPage() {
                     name="stateRegistration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Inscrição Estadual</FormLabel>
+                        <FormLabel>{t('credit.stateRegistration')}</FormLabel>
                         <FormControl>
                           <Input placeholder="000.000.000.000" {...field} />
                         </FormControl>
@@ -1029,7 +1029,7 @@ export default function CreditApplicationPage() {
                         <FormItem>
                           <FormLabel>Endereço *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Rua, Avenida, número, bairro" {...field} />
+                            <Input placeholder={t('placeholders.address')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1067,7 +1067,7 @@ export default function CreditApplicationPage() {
                       <FormItem>
                         <FormLabel>Cidade *</FormLabel>
                         <FormControl>
-                          <Input placeholder="São Paulo" {...field} />
+                          <Input placeholder={t('placeholders.city')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1081,7 +1081,7 @@ export default function CreditApplicationPage() {
                       <FormItem>
                         <FormLabel>Estado *</FormLabel>
                         <FormControl>
-                          <Input placeholder="SP" {...field} />
+                          <Input placeholder={t('placeholders.state')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1099,7 +1099,7 @@ export default function CreditApplicationPage() {
                         <FormLabel>Telefone *</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="(11) 99999-9999"
+                            placeholder={t('placeholders.phone')}
                             {...field}
                             onChange={(e) => {
                               const formatted = formatPhone(e.target.value);
@@ -1119,7 +1119,7 @@ export default function CreditApplicationPage() {
                       <FormItem>
                         <FormLabel>Email *</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="contato@empresa.com" {...field} />
+                          <Input type="email" placeholder={t('placeholders.email')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1134,7 +1134,7 @@ export default function CreditApplicationPage() {
                         <FormLabel>Website</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="empresa.com, www.empresa.com ou https://www.empresa.com"
+                            placeholder={t('placeholders.website')}
                             {...field}
                             onChange={(e) => {
                               field.onChange(e.target.value);
@@ -1175,7 +1175,7 @@ export default function CreditApplicationPage() {
                           <FormItem>
                             <FormLabel>Nome do Sócio *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nome completo" {...field} />
+                              <Input placeholder={t('placeholders.fullNameComplete')} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1190,7 +1190,7 @@ export default function CreditApplicationPage() {
                             <FormLabel>CPF *</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="000.000.000-00"
+                                placeholder={t('placeholders.cpf')}
                                 {...field}
                                 onChange={(e) => {
                                   const formatted = formatCpf(e.target.value);
@@ -1212,7 +1212,7 @@ export default function CreditApplicationPage() {
                             <FormControl>
                               <Input 
                                 type="number"
-                                placeholder="50"
+                                placeholder={t('placeholders.shareholderPercentage')}
                                 value={field.value || ''}
                                 onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                                 onFocus={(e) => e.target.select()}
@@ -1276,11 +1276,11 @@ export default function CreditApplicationPage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o setor" />
+                              <SelectValue placeholder={t('select.chooseSector')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {businessSectors.map((sector) => (
+                            {getBusinessSectors(t).map((sector) => (
                               <SelectItem key={sector} value={sector}>
                                 {sector}
                               </SelectItem>
@@ -1301,11 +1301,11 @@ export default function CreditApplicationPage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione a faixa" />
+                              <SelectValue placeholder={t('select.chooseRange')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {revenueRanges.map((range) => (
+                            {getRevenueRanges(t).map((range) => (
                               <SelectItem key={range} value={range}>
                                 {range}
                               </SelectItem>
@@ -1326,7 +1326,7 @@ export default function CreditApplicationPage() {
                       <FormLabel>Principais Produtos Importados *</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Ex: Componentes eletrônicos, matérias-primas, etc."
+                          placeholder={t('placeholders.mainProducts')}
                           rows={3}
                           {...field}
                         />
@@ -1344,7 +1344,7 @@ export default function CreditApplicationPage() {
                       <FormLabel>Principais Mercados de Origem *</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Ex: China, EUA, União Europeia, etc."
+                          placeholder={t('placeholders.mainMarkets')}
                           rows={3}
                           {...field}
                         />
@@ -1447,7 +1447,7 @@ export default function CreditApplicationPage() {
                           value={currentProduct}
                           onChange={(e) => setCurrentProduct(e.target.value)}
                           onKeyPress={handleProductKeyPress}
-                          placeholder="Digite um produto e pressione Enter"
+                          placeholder={t('placeholders.enterProduct')}
                           className="flex-1"
                         />
                         <Button 
@@ -1502,7 +1502,7 @@ export default function CreditApplicationPage() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o volume mensal" />
+                            <SelectValue placeholder={t('select.chooseMonthlyVolume')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1528,7 +1528,7 @@ export default function CreditApplicationPage() {
                       <FormLabel>Motivo do Crédito *</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Ex: Preciso de capital para aumentar volume de compras e conseguir melhores preços dos fornecedores chineses. Com maior volume, posso reduzir custos e melhorar margem de lucro..."
+                          placeholder={t('placeholders.justificationCredit')}
                           rows={4}
                           {...field}
                         />
@@ -1679,7 +1679,7 @@ export default function CreditApplicationPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Nome do documento (ex: Certificado ISO, Licença Específica, etc.)"
+                    placeholder={t('placeholders.customDocumentName')}
                     value={newDocumentName}
                     onChange={(e) => setNewDocumentName(e.target.value)}
                     className="flex-1"

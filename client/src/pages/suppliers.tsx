@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useUnifiedEndpoints } from "@/hooks/useUnifiedEndpoints";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from 'react-i18next';
 import { UniversalCard } from "@/components/shared/UniversalCard";
 import { 
   Search, 
@@ -44,6 +45,7 @@ import {
 } from "lucide-react";
 
 export default function SuppliersPage() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteSupplier, setDeleteSupplier] = useState<any>(null);
@@ -92,8 +94,8 @@ export default function SuppliersPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Fornecedor excluído",
-        description: "O fornecedor foi removido com sucesso.",
+        title: t("suppliers.supplierDeleted"),
+        description: t("suppliers.supplierDeletedDesc"),
       });
       invalidateAllRelatedQueries(queryClient, "suppliers");
       setDeleteSupplier(null);
@@ -139,23 +141,23 @@ export default function SuppliersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {isFinanceira 
-              ? "Análise de Fornecedores" 
+              ? t("suppliers.analysisTitle") 
               : isAdmin 
-                ? "Todos os Fornecedores" 
-                : "Fornecedores"}
+                ? t("suppliers.allSuppliersTitle") 
+                : t("suppliers.title")}
           </h1>
           <p className="text-muted-foreground">
             {isFinanceira
-              ? "Analise fornecedores de empresas aprovadas para avaliação de crédito"
+              ? t("suppliers.analysisSubtitle")
               : isAdmin
-                ? "Visualize e gerencie fornecedores de todos os importadores"
-                : "Gerencie seus fornecedores chineses"}
+                ? t("suppliers.allSuppliersSubtitle")
+                : t("suppliers.subtitle")}
           </p>
         </div>
         {!isFinanceira && (
           <Button onClick={() => setLocation('/suppliers/new')} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Novo Fornecedor
+            {t("suppliers.newSupplier")}
           </Button>
         )}
       </div>
@@ -166,7 +168,7 @@ export default function SuppliersPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total de Fornecedores</p>
+                <p className="text-sm font-medium text-gray-600">{t("suppliers.totalSuppliers")}</p>
                 <p className="text-2xl font-bold">{totalSuppliers}</p>
               </div>
               <Building2 className="w-8 h-8 text-blue-600" />
@@ -178,7 +180,7 @@ export default function SuppliersPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Fornecedores Ativos</p>
+                <p className="text-sm font-medium text-gray-600">{t("suppliers.activeSuppliers")}</p>
                 <p className="text-2xl font-bold">{activeSuppliers}</p>
               </div>
               <Users className="w-8 h-8 text-green-600" />
@@ -205,7 +207,7 @@ export default function SuppliersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Buscar fornecedores..."
+              placeholder={t("suppliers.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -217,21 +219,21 @@ export default function SuppliersPage() {
       {/* Suppliers List */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Fornecedores</CardTitle>
-          <p className="text-sm text-gray-600">{filteredSuppliers.length} fornecedores encontrados</p>
+          <CardTitle>{t("suppliers.suppliersList")}</CardTitle>
+          <p className="text-sm text-gray-600">{filteredSuppliers.length} {t("suppliers.suppliersFound")}</p>
         </CardHeader>
         <CardContent>
           {filteredSuppliers.length === 0 ? (
             <div className="text-center py-8">
               <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Nenhum fornecedor encontrado</p>
+              <p className="text-gray-600">{t("suppliers.noSuppliersFound")}</p>
               <Button
                 onClick={() => setLocation('/suppliers/new')}
                 className="mt-4"
                 variant="outline"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Cadastrar primeiro fornecedor
+                {t("suppliers.registerFirstSupplier")}
               </Button>
             </div>
           ) : (
@@ -241,11 +243,11 @@ export default function SuppliersPage() {
                   key={supplier.id}
                   icon={<Factory className="w-6 h-6 text-green-600" />}
                   title={supplier.companyName}
-                  subtitle="Fabricante Chinês"
+                  subtitle={t("suppliers.chineseManufacturer")}
                   applicationNumber={supplier.id.toString()}
                   companyBadge={(isAdmin || isFinanceira) && (supplier as any).importerCompanyName ? (supplier as any).importerCompanyName : undefined}
                   status={{
-                    label: "Ativo",
+                    label: t("status.active"),
                     color: "text-green-600",
                     bgColor: "bg-green-50",
                     borderColor: "border-l-green-500"
@@ -253,7 +255,7 @@ export default function SuppliersPage() {
                   miniCards={[
                     {
                       icon: <Globe className="w-4 h-4 text-blue-600" />,
-                      label: "Localização",
+                      label: t("suppliers.location"),
                       value: `${supplier.city}, ${supplier.country}`,
                       color: "bg-blue-50 border-blue-200"
                     },
@@ -271,7 +273,7 @@ export default function SuppliersPage() {
                     },
                     {
                       icon: <Building2 className="w-4 h-4 text-green-600" />,
-                      label: "Contato",
+                      label: t("suppliers.contact"),
                       value: supplier.contactName || 'N/A',
                       color: "bg-green-50 border-green-200"
                     }
@@ -279,17 +281,17 @@ export default function SuppliersPage() {
                   actions={[
                     {
                       icon: <Eye className="w-4 h-4" />,
-                      label: "Ver Detalhes",
+                      label: t("suppliers.viewDetails"),
                       onClick: () => setLocation(`/suppliers/details/${supplier.id}`)
                     },
                     {
                       icon: <Edit className="w-4 h-4" />,
-                      label: "Editar",
+                      label: t("common.edit"),
                       onClick: () => setLocation(`/suppliers/edit/${supplier.id}`)
                     },
                     {
                       icon: <Trash2 className="w-4 h-4" />,
-                      label: "Excluir",
+                      label: t("common.delete"),
                       onClick: () => handleDeleteSupplier(supplier),
                       variant: 'destructive'
                     }
@@ -308,20 +310,19 @@ export default function SuppliersPage() {
       <AlertDialog open={!!deleteSupplier} onOpenChange={() => setDeleteSupplier(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle>{t("suppliers.confirmDelete")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o fornecedor "{deleteSupplier?.companyName}"? 
-              Esta ação não pode ser desfeita.
+              {t("suppliers.deleteConfirmation", { name: deleteSupplier?.companyName })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
               disabled={deleteSupplierMutation.isPending}
             >
-              {deleteSupplierMutation.isPending ? "Excluindo..." : "Excluir"}
+              {deleteSupplierMutation.isPending ? t("suppliers.deleting") : t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -26,18 +26,19 @@ import { ImportFinancialSummary } from "@/components/imports/ImportFinancialSumm
 import ImportPaymentsList from "@/components/payments/ImportPaymentsList";
 import ImportTimeline from "@/components/imports/ImportTimeline";
 import StageManager from "@/components/imports/StageManager";
+import { useTranslation } from "react-i18next";
 
 // Status mapping for display
-const getStatusInfo = (status: string) => {
+const getStatusInfo = (status: string, t: any) => {
   const statusMap: Record<string, { label: string; color: string; bgColor: string }> = {
-    planejamento: { label: "Planejamento", color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
-    producao: { label: "Produção", color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
-    embarque: { label: "Embarcado", color: "text-indigo-600", bgColor: "bg-indigo-50 border-indigo-200" },
-    transporte: { label: "Em Trânsito", color: "text-yellow-600", bgColor: "bg-yellow-50 border-yellow-200" },
-    desembaraco: { label: "Desembaraço", color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
-    entrega: { label: "Entregue", color: "text-green-600", bgColor: "bg-green-50 border-green-200" },
-    completed: { label: "Concluído", color: "text-green-700", bgColor: "bg-green-100 border-green-300" },
-    cancelled: { label: "Cancelado", color: "text-red-600", bgColor: "bg-red-50 border-red-200" },
+    planejamento: { label: t('status.planning'), color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
+    producao: { label: t('imports.production'), color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
+    embarque: { label: t('status.shipped'), color: "text-indigo-600", bgColor: "bg-indigo-50 border-indigo-200" },
+    transporte: { label: t('imports.inTransit'), color: "text-yellow-600", bgColor: "bg-yellow-50 border-yellow-200" },
+    desembaraco: { label: t('imports.clearance'), color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
+    entrega: { label: t('status.delivered'), color: "text-green-600", bgColor: "bg-green-50 border-green-200" },
+    completed: { label: t('status.completed'), color: "text-green-700", bgColor: "bg-green-100 border-green-300" },
+    cancelled: { label: t('status.cancelled'), color: "text-red-600", bgColor: "bg-red-50 border-red-200" },
   };
 
   return statusMap[status] || { label: status, color: "text-gray-600", bgColor: "bg-gray-50 border-gray-200" };
@@ -45,6 +46,7 @@ const getStatusInfo = (status: string) => {
 
 export default function ImportDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
 
   const { data: importData, isLoading, error } = useQuery({
     queryKey: ['/api/imports', id],
@@ -53,7 +55,7 @@ export default function ImportDetailsPage() {
         credentials: 'include'
       });
       if (!response.ok) {
-        throw new Error('Importação não encontrada');
+        throw new Error('Import not found');
       }
       const data = await response.json();
       console.log('📋 Import data received:', {
@@ -107,15 +109,15 @@ export default function ImportDetailsPage() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Importação não encontrada</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('imports.notFound')}</h1>
         </div>
         <Card>
           <CardContent className="p-12 text-center">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Importação não encontrada</h3>
-            <p className="text-gray-600 mb-4">A importação solicitada não existe ou foi removida.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('imports.notFound')}</h3>
+            <p className="text-gray-600 mb-4">{t('imports.notFoundDesc')}</p>
             <Link href="/imports">
-              <Button>Voltar para Importações</Button>
+              <Button>{t('imports.backToImports')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -123,7 +125,7 @@ export default function ImportDetailsPage() {
     );
   }
 
-  const statusInfo = getStatusInfo(importData.status);
+  const statusInfo = getStatusInfo(importData.status, t);
   const products = importData.products ? 
     (typeof importData.products === 'string' ? JSON.parse(importData.products) : importData.products) : [];
 
@@ -184,27 +186,27 @@ export default function ImportDetailsPage() {
         <TabsList className="grid w-full grid-cols-6 mb-6">
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Info className="w-4 h-4" />
-            Geral
+            {t('imports.general')}
           </TabsTrigger>
           <TabsTrigger value="custos" className="flex items-center gap-2">
             <Calculator className="w-4 h-4" />
-            Custos
+            {t('imports.costs')}
           </TabsTrigger>
           <TabsTrigger value="timeline" className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            Timeline
+            {t('imports.timeline')}
           </TabsTrigger>
           <TabsTrigger value="documentos" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            Documentos
+            {t('imports.documents')}
           </TabsTrigger>
           <TabsTrigger value="fornecedor" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
-            Fornecedor
+            {t('imports.supplier')}
           </TabsTrigger>
           <TabsTrigger value="logistica" className="flex items-center gap-2">
             <Truck className="w-4 h-4" />
-            Logística
+            {t('imports.logistics')}
           </TabsTrigger>
         </TabsList>
 
@@ -218,7 +220,7 @@ export default function ImportDetailsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-800">
                     <Package className="w-5 h-5" />
-                    Resumo da Importação
+                    {t('imports.importSummary')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -226,7 +228,7 @@ export default function ImportDetailsPage() {
                     <div className="p-4 bg-white rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <DollarSign className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-gray-600">Valor Total</span>
+                        <span className="text-sm font-medium text-gray-600">{t('imports.totalValue')}</span>
                       </div>
                       <p className="text-2xl font-bold text-green-600">
                         {formatCurrency(totalValue, importData.currency)}
@@ -235,18 +237,18 @@ export default function ImportDetailsPage() {
                     <div className="p-4 bg-white rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Package className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-gray-600">Produtos</span>
+                        <span className="text-sm font-medium text-gray-600">{t('nav.products')}</span>
                       </div>
                       <p className="text-2xl font-bold text-blue-600">{products.length}</p>
                     </div>
                     <div className="p-4 bg-white rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Ship className="w-4 h-4 text-purple-600" />
-                        <span className="text-sm font-medium text-gray-600">Transporte</span>
+                        <span className="text-sm font-medium text-gray-600">{t('imports.transport')}</span>
                       </div>
                       <p className="text-lg font-semibold text-purple-600">
-                        {importData.transportMethod === 'maritimo' ? 'Marítimo' : 
-                         importData.transportMethod === 'aereo' ? 'Aéreo' : 'Terrestre'}
+                        {importData.transportMethod === 'maritimo' ? t('imports.maritime') : 
+                         importData.transportMethod === 'aereo' ? t('imports.air') : t('imports.land')}
                       </p>
                     </div>
                   </div>

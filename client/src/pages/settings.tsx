@@ -81,8 +81,8 @@ export default function SettingsPage() {
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
-          title: "Arquivo muito grande",
-          description: "A imagem deve ter menos de 5MB.",
+          title: t('settings.fileTooLarge'),
+          description: t('settings.imageSizeLimit'),
           variant: "destructive",
         });
         return;
@@ -103,8 +103,8 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
+        title: t('settings.profileUpdated'),
+        description: t('settings.profileSaved'),
       });
       setIsEditing(false);
       setAvatarPreview(null);
@@ -112,8 +112,8 @@ export default function SettingsPage() {
     onError: (error: any) => {
       console.error("Profile update error:", error);
       toast({
-        title: "Erro ao salvar",
-        description: error?.message || "Erro ao atualizar perfil.",
+        title: t('settings.saveError'),
+        description: error?.message || t('settings.profileUpdateError'),
         variant: "destructive",
       });
     },
@@ -135,16 +135,16 @@ export default function SettingsPage() {
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: value }));
     toast({
-      title: "Preferência salva",
-      description: "Sua preferência de notificação foi atualizada.",
+      title: t('settings.preferenceSaved'),
+      description: t('settings.notificationUpdated'),
     });
   };
 
   const handleSecurityChange = (key: string, value: boolean | number) => {
     setSecurity(prev => ({ ...prev, [key]: value }));
     toast({
-      title: "Configuração atualizada",
-      description: "Sua configuração de segurança foi salva.",
+      title: t('settings.configurationUpdated'),
+      description: t('settings.securitySaved'),
     });
   };
 
@@ -152,16 +152,16 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-600">Gerencie sua conta e preferências</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('settings.title')}</h1>
+        <p className="text-gray-600">{t('settings.description')}</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="preferences">Preferências</TabsTrigger>
-          <TabsTrigger value="notifications">Notificações</TabsTrigger>
-          <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="profile">{t('settings.tabs.profile')}</TabsTrigger>
+          <TabsTrigger value="preferences">{t('settings.tabs.preferences')}</TabsTrigger>
+          <TabsTrigger value="notifications">{t('settings.tabs.notifications')}</TabsTrigger>
+          <TabsTrigger value="security">{t('settings.tabs.security')}</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -171,7 +171,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5" />
-                  <CardTitle>Informações Pessoais</CardTitle>
+                  <CardTitle>{t('settings.personalInfo')}</CardTitle>
                 </div>
                 <Button
                   variant="outline"

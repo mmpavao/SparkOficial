@@ -1,4 +1,6 @@
 // Status centralizados para importações - Portuguese workflow
+import { TFunction } from 'i18next';
+
 export const IMPORT_STATUS = {
   PLANEJAMENTO: 'planejamento',
   PRODUCAO: 'producao',
@@ -13,18 +15,23 @@ export const IMPORT_STATUS = {
 
 export type ImportStatus = typeof IMPORT_STATUS[keyof typeof IMPORT_STATUS];
 
-// Labels em português para os status
-export const IMPORT_STATUS_LABELS: Record<ImportStatus, string> = {
-  [IMPORT_STATUS.PLANEJAMENTO]: "Planejamento",
-  [IMPORT_STATUS.PRODUCAO]: "Produção",
-  [IMPORT_STATUS.ENTREGUE_AGENTE]: "Entregue ao Agente",
-  [IMPORT_STATUS.TRANSPORTE_MARITIMO]: "Transporte Marítimo",
-  [IMPORT_STATUS.TRANSPORTE_AEREO]: "Transporte Aéreo",
-  [IMPORT_STATUS.DESEMBARACO]: "Desembaraço",
-  [IMPORT_STATUS.TRANSPORTE_NACIONAL]: "Transporte Nacional",
-  [IMPORT_STATUS.CONCLUIDO]: "Concluído",
-  [IMPORT_STATUS.CANCELADO]: "Cancelado"
-};
+// Function to get labels with translations
+export function getImportStatusLabels(t?: TFunction): Record<ImportStatus, string> {
+  return {
+    [IMPORT_STATUS.PLANEJAMENTO]: t?.('pipeline.planning') || "Planejamento",
+    [IMPORT_STATUS.PRODUCAO]: t?.('pipeline.production') || "Produção",
+    [IMPORT_STATUS.ENTREGUE_AGENTE]: t?.('pipeline.deliveredAgent') || "Entregue ao Agente",
+    [IMPORT_STATUS.TRANSPORTE_MARITIMO]: t?.('pipeline.seaTransport') || "Transporte Marítimo",
+    [IMPORT_STATUS.TRANSPORTE_AEREO]: t?.('pipeline.airTransport') || "Transporte Aéreo",
+    [IMPORT_STATUS.DESEMBARACO]: t?.('pipeline.clearance') || "Desembaraço",
+    [IMPORT_STATUS.TRANSPORTE_NACIONAL]: t?.('pipeline.nationalTransport') || "Transporte Nacional",
+    [IMPORT_STATUS.CONCLUIDO]: t?.('pipeline.completed') || "Concluído",
+    [IMPORT_STATUS.CANCELADO]: t?.('pipeline.cancelled') || "Cancelado"
+  };
+}
+
+// Legacy labels for backward compatibility
+export const IMPORT_STATUS_LABELS: Record<ImportStatus, string> = getImportStatusLabels();
 
 // Cores para os status
 export const IMPORT_STATUS_COLORS: Record<ImportStatus, string> = {
@@ -40,8 +47,9 @@ export const IMPORT_STATUS_COLORS: Record<ImportStatus, string> = {
 };
 
 // Função para obter o label do status
-export function getImportStatusLabel(status: string): string {
-  return IMPORT_STATUS_LABELS[status as ImportStatus] || status;
+export function getImportStatusLabel(status: string, t?: TFunction): string {
+  const labels = getImportStatusLabels(t);
+  return labels[status as ImportStatus] || status;
 }
 
 // Função para obter a cor do status
@@ -105,18 +113,20 @@ export function getTransportStatusForShippingMethod(shippingMethod: string): Imp
 }
 
 // Função para obter lista de status dinâmica baseada no shipping method
-export function getImportStatusLabelsForShippingMethod(shippingMethod: string): Record<string, string> {
+export function getImportStatusLabelsForShippingMethod(shippingMethod: string, t?: TFunction): Record<string, string> {
   const transportStatus = getTransportStatusForShippingMethod(shippingMethod);
-  const transportLabel = shippingMethod === 'air' ? 'Transporte Aéreo' : 'Transporte Marítimo';
+  const transportLabel = shippingMethod === 'air' 
+    ? (t?.('pipeline.airTransport') || 'Transporte Aéreo')
+    : (t?.('pipeline.seaTransport') || 'Transporte Marítimo');
   
   return {
-    [IMPORT_STATUS.PLANEJAMENTO]: "Planejamento",
-    [IMPORT_STATUS.PRODUCAO]: "Produção",
-    [IMPORT_STATUS.ENTREGUE_AGENTE]: "Entregue ao Agente",
+    [IMPORT_STATUS.PLANEJAMENTO]: t?.('pipeline.planning') || "Planejamento",
+    [IMPORT_STATUS.PRODUCAO]: t?.('pipeline.production') || "Produção",
+    [IMPORT_STATUS.ENTREGUE_AGENTE]: t?.('pipeline.deliveredAgent') || "Entregue ao Agente",
     [transportStatus]: transportLabel,
-    [IMPORT_STATUS.DESEMBARACO]: "Desembaraço", 
-    [IMPORT_STATUS.TRANSPORTE_NACIONAL]: "Transporte Nacional",
-    [IMPORT_STATUS.CONCLUIDO]: "Concluído",
-    [IMPORT_STATUS.CANCELADO]: "Cancelado"
+    [IMPORT_STATUS.DESEMBARACO]: t?.('pipeline.clearance') || "Desembaraço", 
+    [IMPORT_STATUS.TRANSPORTE_NACIONAL]: t?.('pipeline.nationalTransport') || "Transporte Nacional",
+    [IMPORT_STATUS.CONCLUIDO]: t?.('pipeline.completed') || "Concluído",
+    [IMPORT_STATUS.CANCELADO]: t?.('pipeline.cancelled') || "Cancelado"
   };
 }

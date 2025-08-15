@@ -18,29 +18,30 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
 import ImportFinancialPreview from "@/components/imports/ImportFinancialPreview";
 import TermsConfirmation from "@/components/imports/TermsConfirmation";
+import { useTranslation } from "react-i18next";
 
-// Import form schema
+// Import form schema - validation messages will be handled by i18n in the component
 const importSchema = z.object({
-  importName: z.string().min(3, "Nome da importação deve ter pelo menos 3 caracteres"),
-  cargoType: z.enum(["FCL", "LCL"], { required_error: "Selecione o tipo de carga" }),
+  importName: z.string().min(3, "imports.validation.nameMinLength"),
+  cargoType: z.enum(["FCL", "LCL"], { required_error: "imports.validation.selectCargoType" }),
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
-  shippingMethod: z.enum(["sea", "air"], { required_error: "Selecione o método de envio" }),
-  incoterms: z.enum(["FOB", "CIF", "EXW"], { required_error: "Selecione o Incoterm" }),
-  portOfLoading: z.string().min(2, "Porto de embarque é obrigatório"),
-  portOfDischarge: z.string().min(2, "Porto de desembarque é obrigatório"),
-  finalDestination: z.string().min(2, "Destino final é obrigatório"),
-  estimatedDelivery: z.string().min(1, "Data estimada de entrega é obrigatória"),
+  shippingMethod: z.enum(["sea", "air"], { required_error: "imports.validation.selectShippingMethod" }),
+  incoterms: z.enum(["FOB", "CIF", "EXW"], { required_error: "imports.validation.selectIncoterms" }),
+  portOfLoading: z.string().min(2, "imports.validation.portOfLoadingRequired"),
+  portOfDischarge: z.string().min(2, "imports.validation.portOfDischargeRequired"),
+  finalDestination: z.string().min(2, "imports.validation.finalDestinationRequired"),
+  estimatedDelivery: z.string().min(1, "imports.validation.estimatedDeliveryRequired"),
   notes: z.string().optional(),
 });
 
 const productSchema = z.object({
-  name: z.string().min(2, "Nome do produto é obrigatório"),
+  name: z.string().min(2, "imports.validation.productNameRequired"),
   description: z.string().optional(),
   hsCode: z.string().optional(),
-  quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
-  unitPrice: z.number().min(0.01, "Preço unitário deve ser maior que 0"),
-  supplierId: z.number().min(1, "Selecione um fornecedor"),
+  quantity: z.number().min(1, "imports.validation.quantityMinimum"),
+  unitPrice: z.number().min(0.01, "imports.validation.unitPriceMinimum"),
+  supplierId: z.number().min(1, "imports.validation.selectSupplier"),
 });
 
 type ImportFormData = z.infer<typeof importSchema>;
@@ -111,6 +112,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
   const [showTermsConfirmation, setShowTermsConfirmation] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Main form
   const form = useForm<ImportFormData>({
@@ -238,21 +240,21 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
       if (isEditing) {
         queryClient.invalidateQueries({ queryKey: ['/api/imports', importId] });
         toast({
-          title: "Importação atualizada",
-          description: "A importação foi atualizada com sucesso.",
+          title: t('imports.importUpdated'),
+          description: t('imports.importUpdatedSuccess'),
         });
       } else {
         toast({
-          title: "Importação criada",
-          description: "A importação foi criada com sucesso.",
+          title: t('imports.importCreated'),
+          description: t('imports.importCreatedSuccess'),
         });
       }
       setLocation('/imports');
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar importação.",
+        title: t('common.error'),
+        description: error.message || t('imports.createError'),
         variant: "destructive",
       });
     },
@@ -281,8 +283,8 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
   const onSubmit = (data: ImportFormData) => {
     if (products.length === 0) {
       toast({
-        title: "Erro",
-        description: "Adicione pelo menos um produto à importação.",
+        title: t('common.error'),
+        description: t('imports.addAtLeastOneProduct'),
         variant: "destructive",
       });
       return;
@@ -291,8 +293,8 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
     // Check if user has approved credit and if amount is within limit
     if (!approvedCreditApplication) {
       toast({
-        title: "Crédito não aprovado",
-        description: "Você precisa de um crédito aprovado para criar importações.",
+        title: t('imports.creditNotApproved'),
+        description: t('imports.creditNotApprovedDesc'),
         variant: "destructive",
       });
       return;
@@ -322,7 +324,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Carregando dados da importação...</p>
+          <p className="text-gray-600">{t('imports.loadingImportData')}</p>
         </div>
       </div>
     );
@@ -334,10 +336,10 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
       <div className="flex items-center gap-4">
         <Button variant="ghost" onClick={() => setLocation('/imports')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('common.back')}
         </Button>
         <h1 className="text-2xl font-bold">
-          {isEditing ? "Editar Importação" : "Nova Importação"}
+          {isEditing ? t('imports.editImport') : t('imports.newImport')}
         </h1>
       </div>
 
@@ -346,9 +348,9 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
         <Alert className="border-amber-200 bg-amber-50">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800">
-            <strong>Atenção:</strong> Você precisa de um crédito aprovado para criar importações. 
+            <strong>{t('common.warning')}:</strong> {t('imports.creditRequiredToCreateImports')}
             <Button variant="link" className="p-0 h-auto text-amber-800 underline ml-1" onClick={() => setLocation('/credit')}>
-              Solicitar crédito agora
+              {t('imports.requestCreditNow')}
             </Button>
           </AlertDescription>
         </Alert>
@@ -364,7 +366,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="w-5 h-5" />
-                    Informações Básicas
+                    {t('imports.basicInformation')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -373,9 +375,9 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                     name="importName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome/Código da Importação</FormLabel>
+                        <FormLabel>{t('imports.importNameCode')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: Smartphones Galaxy S24 - Lote 001" {...field} />
+                          <Input placeholder={t('imports.importNamePlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -388,16 +390,16 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="cargoType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tipo de Carga</FormLabel>
+                          <FormLabel>{t('imports.cargoType')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
+                                <SelectValue placeholder={t('placeholders.selectType')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="FCL">FCL - Container Completo</SelectItem>
-                              <SelectItem value="LCL">LCL - Carga Consolidada</SelectItem>
+                              <SelectItem value="FCL">{t('cargo.fcl')}</SelectItem>
+                              <SelectItem value="LCL">{t('cargo.lcl')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -410,16 +412,16 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="shippingMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Método de Envio</FormLabel>
+                          <FormLabel>{t('imports.shippingMethod')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o método" />
+                                <SelectValue placeholder={t('imports.selectMethod')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="sea">Marítimo</SelectItem>
-                              <SelectItem value="air">Aéreo</SelectItem>
+                              <SelectItem value="sea">{t('imports.maritime')}</SelectItem>
+                              <SelectItem value="air">{t('imports.air')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -435,9 +437,9 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                         name="containerNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Número do Container</FormLabel>
+                            <FormLabel>{t('imports.containerNumber')}</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex: TEMU1234567" {...field} />
+                              <Input placeholder={t('imports.containerNumberPlaceholder')} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -449,9 +451,9 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                         name="sealNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Número do Lacre</FormLabel>
+                            <FormLabel>{t('imports.sealNumber')}</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex: CN123456" {...field} />
+                              <Input placeholder={t('imports.sealNumberPlaceholder')} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -467,7 +469,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Ship className="w-5 h-5" />
-                    Informações de Envio
+                    {t('imports.shippingInformation')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -476,17 +478,17 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                     name="incoterms"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Incoterms</FormLabel>
+                        <FormLabel>{t('imports.incoterms')}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o Incoterm" />
+                              <SelectValue placeholder={t('placeholders.selectIncoterm')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="FOB">FOB - Free on Board</SelectItem>
-                            <SelectItem value="CIF">CIF - Cost, Insurance & Freight</SelectItem>
-                            <SelectItem value="EXW">EXW - Ex Works</SelectItem>
+                            <SelectItem value="FOB">{t('incoterms.fob')}</SelectItem>
+                            <SelectItem value="CIF">{t('incoterms.cif')}</SelectItem>
+                            <SelectItem value="EXW">{t('incoterms.exw')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -500,11 +502,11 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="portOfLoading"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Porto de Embarque</FormLabel>
+                          <FormLabel>{t('imports.portOfLoading')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o porto de embarque" />
+                                <SelectValue placeholder={t('imports.selectPortOfLoading')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -525,11 +527,11 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="portOfDischarge"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Porto de Desembarque</FormLabel>
+                          <FormLabel>{t('imports.portOfDischarge')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o porto de desembarque" />
+                                <SelectValue placeholder={t('imports.selectPortOfDischarge')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -552,11 +554,11 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="finalDestination"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Destino Final</FormLabel>
+                          <FormLabel>{t('imports.finalDestination')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o estado de destino" />
+                                <SelectValue placeholder={t('imports.selectDestinationState')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -577,7 +579,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="estimatedDelivery"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data Estimada de Entrega</FormLabel>
+                          <FormLabel>{t('imports.estimatedDeliveryDate')}</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -592,10 +594,10 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Observações</FormLabel>
+                        <FormLabel>{t('imports.notes')}</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Informações adicionais sobre a importação..."
+                            placeholder={t('imports.notesPlaceholder')}
                             rows={3}
                             {...field} 
                           />
@@ -613,7 +615,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="w-5 h-5" />
-                      Produtos da Importação
+                      {t('imports.importProducts')}
                     </CardTitle>
                     <Button 
                       type="button"
@@ -622,7 +624,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       className="bg-emerald-600 hover:bg-emerald-700"
                     >
                       <Plus className="w-4 h-4 mr-1" />
-                      Adicionar Produto
+                      {t('imports.addProduct')}
                     </Button>
                   </div>
                 </CardHeader>
@@ -630,7 +632,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                   {products.length === 0 ? (
                     <div className="text-center py-8">
                       <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">Nenhum produto adicionado</p>
+                      <p className="text-gray-600 mb-4">{t('imports.noProductsAdded')}</p>
                       <Button 
                         type="button"
                         size="sm" 
@@ -638,7 +640,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                         variant="outline"
                       >
                         <Plus className="w-4 h-4 mr-1" />
-                        Adicionar Primeiro Produto
+                        {t('imports.addFirstProduct')}
                       </Button>
                     </div>
                   ) : (
@@ -668,15 +670,15 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                           </div>
                           <div className="grid grid-cols-3 gap-2 text-sm">
                             <div>
-                              <span className="text-gray-600">Qtd:</span>
+                              <span className="text-gray-600">{t('imports.qty')}:</span>
                               <span className="ml-1 font-medium">{product.quantity}</span>
                             </div>
                             <div>
-                              <span className="text-gray-600">Unit:</span>
+                              <span className="text-gray-600">{t('imports.unit')}:</span>
                               <span className="ml-1 font-medium">{formatCurrency(product.unitPrice, 'USD')}</span>
                             </div>
                             <div>
-                              <span className="text-gray-600">Total:</span>
+                              <span className="text-gray-600">{t('common.total')}:</span>
                               <span className="ml-1 font-medium">{formatCurrency(product.totalValue, 'USD')}</span>
                             </div>
                           </div>
@@ -686,7 +688,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       {/* Total Summary */}
                       <div className="bg-gray-50 border rounded-lg p-4">
                         <div className="flex justify-between items-center">
-                          <span className="font-medium text-gray-900">Total da Importação:</span>
+                          <span className="font-medium text-gray-900">{t('imports.importTotal')}:</span>
                           <span className="text-xl font-bold text-emerald-600">
                             {formatCurrency(totalValue, 'USD')}
                           </span>
@@ -700,14 +702,14 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
               {/* Submit Button */}
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setLocation('/imports')}>
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button 
                   type="submit" 
                   className="bg-emerald-600 hover:bg-emerald-700"
                   disabled={saveImportMutation.isPending || products.length === 0}
                 >
-                  {saveImportMutation.isPending ? (isEditing ? "Salvando..." : "Criando...") : (isEditing ? "Atualizar" : "Revisar e Confirmar")}
+                  {saveImportMutation.isPending ? (isEditing ? t('common.saving') + "..." : t('common.creating') + "...") : (isEditing ? t('common.update') : t('imports.reviewAndConfirm'))}
                 </Button>
               </div>
             </form>
@@ -732,7 +734,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <CardTitle>Adicionar Produto</CardTitle>
+              <CardTitle>{t('imports.addProduct')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...productForm}>
@@ -742,9 +744,9 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome do Produto</FormLabel>
+                        <FormLabel>{t('imports.productName')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: Samsung Galaxy S24" {...field} />
+                          <Input placeholder={t('imports.productNamePlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -756,9 +758,9 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Descrição (Opcional)</FormLabel>
+                        <FormLabel>{t('imports.descriptionOptional')}</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Descrição detalhada do produto..." {...field} />
+                          <Textarea placeholder={t('imports.productDescriptionPlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -770,11 +772,11 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                     name="supplierId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Fornecedor</FormLabel>
+                        <FormLabel>{t('common.supplier')}</FormLabel>
                         <Select onValueChange={(value) => field.onChange(Number(value))}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o fornecedor" />
+                              <SelectValue placeholder={t('placeholders.selectProvider')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -799,7 +801,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="quantity"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Quantidade</FormLabel>
+                          <FormLabel>{t('imports.quantity')}</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -818,7 +820,7 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       name="unitPrice"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Preço Unitário (USD)</FormLabel>
+                          <FormLabel>{t('imports.unitPriceUSD')}</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -841,10 +843,10 @@ export default function ImportNewEnhancedPage({ isEditing = false }: ImportNewEn
                       variant="outline" 
                       onClick={() => setShowProductForm(false)}
                     >
-                      Cancelar
+                      {t('common.cancel')}
                     </Button>
                     <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
-                      Adicionar Produto
+                      {t('imports.addProduct')}
                     </Button>
                   </div>
                 </form>

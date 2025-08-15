@@ -4,17 +4,11 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
-// Navigation labels - using Portuguese for Brazilian users
-const navTranslations = {
-  dashboard: 'Dashboard',
-  credit: 'Crédito',
-  reports: 'Relatórios',
-  settings: 'Configurações',
-  logout: 'Sair'
-};
 
 import NotificationCenter from "@/components/NotificationCenter";
+import ClientLanguageSelector from "@/components/ui/ClientLanguageSelector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +53,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -92,7 +87,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       // Show error but still redirect after a short delay
       toast({
         title: "Logout",
-        description: "Logout realizado (sessão pode persistir no servidor)",
+        description: t('auth.logoutCompleted'),
         variant: "default",
       });
 
@@ -130,60 +125,60 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const getNavigation = () => {
     if (isCustomsBroker) {
       return [
-        { path: "/", icon: Home, label: "Dashboard" },
+        { path: "/", icon: Home, label: t('nav.dashboard') },
         { 
           path: "/imports", 
           icon: Package, 
-          label: "Importações Designadas"
+          label: t('nav.imports')
         },
         { 
           path: "/suppliers", 
           icon: Building, 
-          label: "Fornecedores"
+          label: t('nav.suppliers')
         },
         { 
           path: "/products", 
           icon: Package, 
-          label: "Produtos"
+          label: t('nav.products')
         },
-        { path: "/reports", icon: BarChart3, label: "Relatórios" },
+        { path: "/reports", icon: BarChart3, label: t('nav.reports') },
       ];
     }
 
     return [
-      { path: "/", icon: Home, label: navTranslations.dashboard },
+      { path: "/", icon: Home, label: t('nav.dashboard') },
       { 
         path: "/credit", 
         icon: CreditCard, 
-        label: (isAdmin || isFinanceira) ? "Análise de Crédito" : navTranslations.credit 
+        label: (isAdmin || isFinanceira) ? t('nav.credit') : t('nav.credit')
       },
       { 
         path: "/imports", 
         icon: Package, 
         label: isFinanceira 
-          ? "Análise de Importações" 
+          ? t('nav.imports')
           : isAdmin 
-            ? "Todas as Importações" 
-            : "Minhas Importações"
+            ? t('nav.imports')
+            : t('nav.imports')
       },
       { 
         path: "/suppliers", 
         icon: Building, 
         label: isFinanceira 
-          ? "Todos Fornecedores" 
+          ? t('nav.suppliers')
           : isAdmin 
-            ? "Todos Fornecedores" 
-            : "Fornecedores"
+            ? t('nav.suppliers')
+            : t('nav.suppliers')
       },
       { 
         path: "/products", 
         icon: Package, 
-        label: "Produtos"
+        label: t('nav.products')
       },
-      { path: "/payments", icon: DollarSign, label: "Pagamentos" },
+      { path: "/payments", icon: DollarSign, label: t('nav.payments') },
       // Suporte só aparece para importadores na navegação principal
-      ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: "Suporte" }] : []),
-      { path: "/reports", icon: BarChart3, label: navTranslations.reports },
+      ...(isImporter ? [{ path: "/support", icon: MessageSquare, label: t('nav.support') }] : []),
+      { path: "/reports", icon: BarChart3, label: t('nav.reports') },
     ];
   };
 
@@ -191,9 +186,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   // Navegação adicional apenas para admins
   const adminOnlyNavigation = [
-    { path: "/users", icon: Users, label: "Gerenciar Usuários" },
-    { path: "/importers", icon: UserCog, label: "Importadores" },
-    { path: "/admin/support", icon: MessageSquare, label: "Suporte" },
+    { path: "/users", icon: Users, label: t('nav.manageUsers') },
+    { path: "/importers", icon: UserCog, label: t('nav.importers') },
+    { path: "/admin/support", icon: MessageSquare, label: t('nav.support') },
   ];
 
   const isActiveRoute = (path: string) => {
@@ -257,7 +252,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           <div>
             <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                SPARK COMEX
+                {t('nav.sparkComex')}
               </h3>
             </div>
             <div className="space-y-1">
@@ -317,11 +312,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
           {/* Navegação Administrativa - APENAS para admins e super admins */}
           {(isAdmin && !isImporter) && (
             <div>
-              <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
-                  ADMINISTRAÇÃO
-                </h3>
-              </div>
+                          <div className={`mb-3 ${sidebarCollapsed ? "lg:hidden" : ""}`}>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
+                {t('nav.administration')}
+              </h3>
+            </div>
               <div className="space-y-1">
                 {adminOnlyNavigation.map((item) => {
                   const Icon = item.icon;
@@ -376,7 +371,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                         {user?.fullName}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
-                        {user?.role === "admin" ? "Administrador" : user?.role === "financeira" ? "Financeira" : "Importador"}
+{user?.role === "admin" ? t('roles.admin') : user?.role === "financeira" ? t('roles.financeira') : t('roles.importer')}
                       </p>
                     </div>
                   </div>
@@ -411,17 +406,17 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                         {user?.role === "admin" ? (
                           <>
                             <Shield className="w-3 h-3 mr-1" />
-                            Spark Admin
+{t('roles.sparkAdmin')}
                           </>
                         ) : user?.role === "financeira" ? (
                           <>
                             <BarChart3 className="w-3 h-3 mr-1" />
-                            Financeira
+                            {t('roles.financeira')}
                           </>
                         ) : (
                           <>
                             <Truck className="w-3 h-3 mr-1" />
-                            Importador
+                            {t('roles.importer')}
                           </>
                         )}
                       </div>
@@ -435,7 +430,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex items-center w-full px-3 py-2">
                     <Settings className="w-4 h-4 mr-3" />
-                    {navTranslations.settings}
+                    {t('nav.settings')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -453,7 +448,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                     09/07/2025 - 2:45 AM
                   </div>
                   <div className="mt-1 text-gray-400">
-                    Sistema Estável
+                    {t('app.systemStable')}
                   </div>
                 </div>
                 
@@ -463,7 +458,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
                   className="text-red-600 focus:text-red-600 px-3 py-2"
                 >
                   <LogOut className="w-4 h-4 mr-3" />
-                  {logoutMutation.isPending ? `${navTranslations.logout}...` : navTranslations.logout}
+                  {logoutMutation.isPending ? `${t('nav.logout')}...` : t('nav.logout')}
                 </DropdownMenuItem>
               </div>
             </DropdownMenuContent>
@@ -494,6 +489,13 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
           </div>
           <div className="flex items-center space-x-4">
+            {/* Seletor de Idiomas */}
+            <ClientLanguageSelector />
+            
+            {/* Separador visual */}
+            <div className="w-px h-6 bg-gray-200"></div>
+            
+            {/* Centro de Notificações */}
             <NotificationCenter />
           </div>
         </div>

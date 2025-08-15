@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/formatters";
+import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,7 @@ interface PaymentSchedule {
 }
 
 export default function PaymentsPage() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -127,8 +129,8 @@ export default function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Cronograma de Pagamentos</h1>
-        <p className="text-gray-600 mt-2">Gerencie todos os seus pagamentos de importação</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t("payments.title")}</h1>
+        <p className="text-gray-600 mt-2">{t("payments.subtitle")}</p>
       </div>
 
       {/* Cards de Métricas */}
@@ -138,7 +140,7 @@ export default function PaymentsPage() {
             <div className="flex items-center">
               <CreditCard className="h-12 w-12 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Pagamentos</p>
+                <p className="text-sm font-medium text-gray-600">{t("payments.totalPayments")}</p>
                 <p className="text-2xl font-bold text-gray-900">{totalPayments}</p>
                 <p className="text-sm text-gray-500">{formatCurrency(totalAmount, 'USD')}</p>
               </div>
@@ -151,7 +153,7 @@ export default function PaymentsPage() {
             <div className="flex items-center">
               <Clock className="h-12 w-12 text-yellow-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pendentes</p>
+                <p className="text-sm font-medium text-gray-600">{t("payments.pendingPayments")}</p>
                 <p className="text-2xl font-bold text-gray-900">{pendingPayments}</p>
                 <p className="text-sm text-yellow-600">{formatCurrency(pendingAmount, 'USD')}</p>
               </div>
@@ -164,7 +166,7 @@ export default function PaymentsPage() {
             <div className="flex items-center">
               <CheckCircle className="h-12 w-12 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pagos</p>
+                <p className="text-sm font-medium text-gray-600">{t("payments.paidPayments")}</p>
                 <p className="text-2xl font-bold text-gray-900">{paidPayments}</p>
                 <p className="text-sm text-green-600">{formatCurrency(paidAmount, 'USD')}</p>
               </div>
@@ -177,7 +179,7 @@ export default function PaymentsPage() {
             <div className="flex items-center">
               <AlertCircle className="h-12 w-12 text-red-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Vencidos</p>
+                <p className="text-sm font-medium text-gray-600">{t("payments.overduePayments")}</p>
                 <p className="text-2xl font-bold text-gray-900">{overduePayments}</p>
                 <p className="text-sm text-red-600">{formatCurrency(overdueAmount, 'USD')}</p>
               </div>
@@ -201,7 +203,7 @@ export default function PaymentsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por ID ou importação..."
+                  placeholder={t('placeholders.searchPayments')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"

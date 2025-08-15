@@ -101,7 +101,7 @@ export default function SupportNewPage() {
                 <Label htmlFor="category">Categoria *</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger id="category" className="mt-1">
-                    <SelectValue placeholder="Selecione a categoria" />
+                    <SelectValue placeholder={t('select.chooseCategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="document_issue">Problema com Documentos</SelectItem>
@@ -134,7 +134,7 @@ export default function SupportNewPage() {
                 id="message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Descreva detalhadamente sua dúvida ou problema..."
+                placeholder={t('placeholders.supportMessage')}
                 rows={6}
                 className="mt-1"
               />

@@ -25,6 +25,7 @@ import {
   Activity
 } from "lucide-react";
 import { formatCurrency, formatCompactNumber } from "@/lib/formatters";
+import { useTranslation } from 'react-i18next';
 
 interface ImporterReportData {
   creditMetrics: {
@@ -63,6 +64,7 @@ interface ImporterReportData {
 }
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [selectedPeriod, setSelectedPeriod] = useState("last_30_days");
   const [selectedTab, setSelectedTab] = useState("overview");
   const { toast } = useToast();
@@ -220,17 +222,17 @@ export default function ReportsPage() {
   const reportData = calculateReportData();
 
   const periods = [
-    { value: "last_7_days", label: "Últimos 7 dias" },
-    { value: "last_30_days", label: "Últimos 30 dias" },
-    { value: "last_90_days", label: "Últimos 90 dias" },
-    { value: "last_year", label: "Último ano" },
-    { value: "custom", label: "Período personalizado" }
+    { value: "last_7_days", label: t("reports.last7Days") },
+    { value: "last_30_days", label: t("reports.last30Days") },
+    { value: "last_90_days", label: t("reports.last90Days") },
+    { value: "last_year", label: t("reports.lastYear") },
+    { value: "custom", label: t("reports.customPeriod") }
   ];
 
   const generateReport = () => {
     toast({
-      title: "Relatório gerado!",
-      description: "O relatório detalhado foi gerado e está sendo baixado.",
+      title: t("reports.reportGenerated"),
+      description: t("reports.reportGeneratedDesc"),
     });
   };
 
@@ -239,8 +241,8 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Relatórios</h1>
-          <p className="text-gray-600">Análise e insights das suas operações</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('reports.title')}</h1>
+          <p className="text-gray-600">{t('reports.subtitle')}</p>
         </div>
         <div className="flex items-center space-x-3">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -261,18 +263,18 @@ export default function ReportsPage() {
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             <Download className="w-4 h-4 mr-2" />
-            Gerar Relatório
+{t('reports.generateReport')}
           </Button>
         </div>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
         <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="credit">Crédito</TabsTrigger>
-          <TabsTrigger value="imports">Importações</TabsTrigger>
-          <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-          <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+          <TabsTrigger value="overview">{t('reports.overview')}</TabsTrigger>
+          <TabsTrigger value="credit">{t('reports.credit')}</TabsTrigger>
+          <TabsTrigger value="imports">{t('reports.imports')}</TabsTrigger>
+          <TabsTrigger value="payments">{t('reports.payments')}</TabsTrigger>
+          <TabsTrigger value="suppliers">{t('reports.suppliers')}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -283,7 +285,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Volume Total Importado</p>
+                    <p className="text-sm text-gray-600">{t('reports.totalImportedVolume')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCurrency(reportData.importMetrics.totalValue)}
                     </p>
@@ -303,13 +305,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Crédito Utilizado</p>
+                    <p className="text-sm text-gray-600">{t('reports.creditUsed')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.creditMetrics.creditUsed)}
                     </p>
                     <div className="flex items-center mt-1">
                       <span className="text-sm text-gray-500">
-                        {reportData.creditMetrics.utilizationRate.toFixed(1)}% do limite
+                        {reportData.creditMetrics.utilizationRate.toFixed(1)}% {t('reports.ofLimit')}
                       </span>
                     </div>
                   </div>
@@ -324,13 +326,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Importações Ativas</p>
+                    <p className="text-sm text-gray-600">{t('reports.activeImports')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.importMetrics.activeImports}
                     </p>
                     <div className="flex items-center mt-1">
                       <Activity className="w-4 h-4 text-orange-500 mr-1" />
-                      <span className="text-sm text-orange-500">Em andamento</span>
+                      <span className="text-sm text-orange-500">{t('reports.inProgress')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -344,13 +346,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Taxa de Entrega</p>
+                    <p className="text-sm text-gray-600">{t('reports.deliveryRate')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.performanceMetrics.onTimeDeliveryRate}%
                     </p>
                     <div className="flex items-center mt-1">
                       <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">No prazo</span>
+                      <span className="text-sm text-emerald-500">{t('reports.onTime')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -366,7 +368,7 @@ export default function ReportsPage() {
             {/* Monthly Performance */}
             <Card>
               <CardHeader>
-                <CardTitle>Performance Mensal</CardTitle>
+                <CardTitle>{t('reports.monthlyPerformance')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -374,7 +376,7 @@ export default function ReportsPage() {
                     <div key={month.month} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <p className="font-medium">{month.month}</p>
-                        <p className="text-sm text-gray-600">{month.count} importações</p>
+                        <p className="text-sm text-gray-600">{month.count} {t('reports.imports')}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{formatCurrency(month.value)}</p>
@@ -388,12 +390,12 @@ export default function ReportsPage() {
             {/* Credit Status */}
             <Card>
               <CardHeader>
-                <CardTitle>Status do Crédito</CardTitle>
+                <CardTitle>{t('reports.creditStatus')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Limite Total</span>
+                    <span className="text-sm text-gray-600">{t('reports.totalLimit')}</span>
                     <span className="font-semibold">{formatCurrency(reportData.creditMetrics.totalCreditLimit)}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -403,8 +405,8 @@ export default function ReportsPage() {
                     ></div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Utilizado: {formatCurrency(reportData.creditMetrics.creditUsed)}</span>
-                    <span className="text-emerald-600">Disponível: {formatCurrency(reportData.creditMetrics.creditAvailable)}</span>
+                    <span className="text-gray-600">{t('reports.used')}: {formatCurrency(reportData.creditMetrics.creditUsed)}</span>
+                    <span className="text-emerald-600">{t('reports.available')}: {formatCurrency(reportData.creditMetrics.creditAvailable)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -414,7 +416,7 @@ export default function ReportsPage() {
           {/* Top Suppliers */}
           <Card>
             <CardHeader>
-              <CardTitle>Principais Fornecedores</CardTitle>
+              <CardTitle>{t('reports.topSuppliers')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -427,14 +429,14 @@ export default function ReportsPage() {
                       <div>
                         <p className="font-medium">{supplier.name}</p>
                         <p className="text-sm text-gray-600">
-                          {supplier.importCount} importações • {supplier.location}
+                          {supplier.importCount} {t('reports.imports')} • {supplier.location}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-lg">{formatCurrency(supplier.totalValue)}</p>
                       <p className="text-sm text-gray-600">
-                        Média: {formatCurrency(supplier.totalValue / supplier.importCount)}
+                        {t('reports.average')}: {formatCurrency(supplier.totalValue / supplier.importCount)}
                       </p>
                     </div>
                   </div>
@@ -451,13 +453,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Limite Total</p>
+                    <p className="text-sm text-gray-600">{t('reports.totalLimit')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCurrency(reportData.creditMetrics.totalCreditLimit)}
                     </p>
                     <div className="flex items-center mt-1">
                       <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">+25% este ano</span>
+                      <span className="text-sm text-emerald-500">+25% {t('reports.thisYear')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -471,13 +473,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Crédito Utilizado</p>
+                    <p className="text-sm text-gray-600">{t('reports.creditUsed')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.creditMetrics.creditUsed)}
                     </p>
                     <div className="flex items-center mt-1">
                       <span className="text-sm text-gray-500">
-                        {reportData.creditMetrics.utilizationRate.toFixed(1)}% do limite
+                        {reportData.creditMetrics.utilizationRate.toFixed(1)}% {t('reports.ofLimit')}
                       </span>
                     </div>
                   </div>
@@ -492,13 +494,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Crédito Disponível</p>
+                    <p className="text-sm text-gray-600">{t('reports.available')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.creditMetrics.creditAvailable)}
                     </p>
                     <div className="flex items-center mt-1">
                       <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Aprovado</span>
+                      <span className="text-sm text-emerald-500">{t('reports.approved')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -512,13 +514,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Aplicações Ativas</p>
+                    <p className="text-sm text-gray-600">{t('reports.activeApplications')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.creditMetrics.activeApplications}
                     </p>
                     <div className="flex items-center mt-1">
                       <Clock className="w-4 h-4 text-yellow-500 mr-1" />
-                      <span className="text-sm text-yellow-500">Em análise</span>
+                      <span className="text-sm text-yellow-500">{t('reports.underAnalysis')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -533,12 +535,12 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Evolução do Crédito</CardTitle>
+                <CardTitle>{t('reports.creditEvolution')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Limite Aprovado</span>
+                    <span className="text-sm text-gray-600">{t('reports.approvedLimit')}</span>
                     <span className="font-semibold">{formatCurrency(reportData.creditMetrics.totalCreditLimit)}</span>
                   </div>
                   
@@ -573,7 +575,7 @@ export default function ReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Histórico de Aplicações</CardTitle>
+                <CardTitle>{t('reports.applicationHistory')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -600,7 +602,7 @@ export default function ReportsPage() {
                               : 'bg-yellow-100 text-yellow-800'
                           }`}
                         >
-                          {app.status === 'approved' ? 'Aprovado' : 'Em análise'}
+                          {app.status === 'approved' ? t('reports.approved') : t('reports.underAnalysis')}
                         </Badge>
                       </div>
                     </div>
@@ -613,7 +615,7 @@ export default function ReportsPage() {
           {/* Credit Performance Insights */}
           <Card>
             <CardHeader>
-              <CardTitle>Insights de Performance Creditícia</CardTitle>
+              <CardTitle>{t('reports.creditPerformanceInsights')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -621,27 +623,27 @@ export default function ReportsPage() {
                   <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-8 h-8 text-emerald-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Taxa de Aprovação</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('reports.approvalRate')}</h3>
                   <p className="text-3xl font-bold text-emerald-600">87%</p>
-                  <p className="text-sm text-gray-600 mt-2">Das suas aplicações foram aprovadas</p>
+                  <p className="text-sm text-gray-600 mt-2">{t('reports.ofApplicationsApproved')}</p>
                 </div>
                 
                 <div className="text-center p-6 bg-blue-50 rounded-lg">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Clock className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Tempo Médio</h3>
-                  <p className="text-3xl font-bold text-blue-600">12 dias</p>
-                  <p className="text-sm text-gray-600 mt-2">Para aprovação de crédito</p>
+                  <h3 className="font-semibold text-lg mb-2">{t('reports.averageTime')}</h3>
+                  <p className="text-3xl font-bold text-blue-600">12 {t('reports.days')}</p>
+                  <p className="text-sm text-gray-600 mt-2">{t('reports.forCreditApproval')}</p>
                 </div>
                 
                 <div className="text-center p-6 bg-purple-50 rounded-lg">
                   <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Target className="w-8 h-8 text-purple-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Score de Crédito</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('reports.creditScore')}</h3>
                   <p className="text-3xl font-bold text-purple-600">A+</p>
-                  <p className="text-sm text-gray-600 mt-2">Excelente histórico de pagamentos</p>
+                  <p className="text-sm text-gray-600 mt-2">{t('reports.excellentPaymentHistory')}</p>
                 </div>
               </div>
             </CardContent>
@@ -655,13 +657,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total de Importações</p>
+                    <p className="text-sm text-gray-600">{t('reports.totalImports')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.importMetrics.totalImports}
                     </p>
                     <div className="flex items-center mt-1">
                       <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">+8% este mês</span>
+                      <span className="text-sm text-emerald-500">+8% {t('reports.thisMonth')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -675,13 +677,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Valor Total</p>
+                    <p className="text-sm text-gray-600">{t('reports.totalValue')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.importMetrics.totalValue)}
                     </p>
                     <div className="flex items-center mt-1">
                       <DollarSign className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Volume FOB</span>
+                      <span className="text-sm text-emerald-500">{t('reports.fobVolume')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -695,13 +697,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Importações Ativas</p>
+                    <p className="text-sm text-gray-600">{t('reports.activeImports')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.importMetrics.activeImports}
                     </p>
                     <div className="flex items-center mt-1">
                       <Activity className="w-4 h-4 text-orange-500 mr-1" />
-                      <span className="text-sm text-orange-500">Em andamento</span>
+                      <span className="text-sm text-orange-500">{t('reports.inProgress')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -715,13 +717,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Taxa de Sucesso</p>
+                    <p className="text-sm text-gray-600">{t('reports.successRate')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.performanceMetrics.onTimeDeliveryRate}%
                     </p>
                     <div className="flex items-center mt-1">
                       <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Entregas no prazo</span>
+                      <span className="text-sm text-emerald-500">{t('reports.onTimeDeliveries')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -735,19 +737,19 @@ export default function ReportsPage() {
           {/* Import Status Pipeline */}
           <Card>
             <CardHeader>
-              <CardTitle>Pipeline de Importações</CardTitle>
+              <CardTitle>{t('reports.importsPipeline')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                 {[
-                  { stage: 'Planejamento', count: 1, color: 'bg-blue-500' },
-                  { stage: 'Produção', count: 1, color: 'bg-yellow-500' },
-                  { stage: 'Entregue Agente', count: 0, color: 'bg-orange-500' },
-                  { stage: 'Transporte Marítimo', count: 0, color: 'bg-purple-500' },
-                  { stage: 'Desembaraço', count: 0, color: 'bg-pink-500' },
-                  { stage: 'Transporte Nacional', count: 0, color: 'bg-indigo-500' },
-                  { stage: 'Concluído', count: 0, color: 'bg-emerald-500' },
-                  { stage: 'Cancelado', count: 0, color: 'bg-gray-500' }
+                  { stage: t('reports.planning'), count: 1, color: 'bg-blue-500' },
+                  { stage: t('reports.production'), count: 1, color: 'bg-yellow-500' },
+                  { stage: t('reports.deliveredAgent'), count: 0, color: 'bg-orange-500' },
+                  { stage: t('reports.maritimeTransport'), count: 0, color: 'bg-purple-500' },
+                  { stage: t('reports.clearance'), count: 0, color: 'bg-pink-500' },
+                  { stage: t('reports.nationalTransport'), count: 0, color: 'bg-indigo-500' },
+                  { stage: t('reports.completed'), count: 0, color: 'bg-emerald-500' },
+                  { stage: t('reports.cancelled'), count: 0, color: 'bg-gray-500' }
                 ].map((item) => (
                   <div key={item.stage} className="text-center p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div className={`w-12 h-12 ${item.color} rounded-full flex items-center justify-center mx-auto mb-2`}>
@@ -764,7 +766,7 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Análise de Performance</CardTitle>
+                <CardTitle>{t('reports.performanceAnalysis')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -774,13 +776,13 @@ export default function ReportsPage() {
                         <Clock className="w-5 h-5 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="font-medium">Tempo Médio de Entrega</p>
-                        <p className="text-sm text-gray-600">Planejamento até conclusão</p>
+                        <p className="font-medium">{t('reports.averageDeliveryTime')}</p>
+                        <p className="text-sm text-gray-600">{t('reports.planningToCompletion')}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-emerald-600">{reportData.performanceMetrics.avgDeliveryTime}</p>
-                      <p className="text-sm text-gray-600">dias</p>
+                      <p className="text-sm text-gray-600">{t('reports.days')}</p>
                     </div>
                   </div>
 
@@ -790,7 +792,7 @@ export default function ReportsPage() {
                         <Target className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium">Valor Médio por Importação</p>
+                        <p className="font-medium">{t('reports.averageValuePerImport')}</p>
                         <p className="text-sm text-gray-600">FOB value</p>
                       </div>
                     </div>
@@ -806,13 +808,13 @@ export default function ReportsPage() {
                         <BarChart3 className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
-                        <p className="font-medium">Índice de Eficiência de Custos</p>
-                        <p className="text-sm text-gray-600">Otimização de gastos</p>
+                        <p className="font-medium">{t('reports.costEfficiencyIndex')}</p>
+                        <p className="text-sm text-gray-600">{t('reports.costOptimization')}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-purple-600">{reportData.performanceMetrics.costEfficiencyIndex}%</p>
-                      <p className="text-sm text-gray-600">eficiência</p>
+                      <p className="text-sm text-gray-600">{t('reports.efficiency')}</p>
                     </div>
                   </div>
                 </div>
@@ -821,7 +823,7 @@ export default function ReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Importações Recentes</CardTitle>
+                <CardTitle>{t('reports.recentImports')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -850,8 +852,8 @@ export default function ReportsPage() {
                               : 'bg-blue-100 text-blue-800'
                           }`}
                         >
-                          {imp.status === 'concluido' ? 'Concluído' : 
-                           imp.status === 'producao' ? 'Produção' : 'Planejamento'}
+                          {imp.status === 'concluido' ? t('reports.completed') : 
+                           imp.status === 'producao' ? t('reports.production') : t('reports.planning')}
                         </Badge>
                       </div>
                     </div>
@@ -869,13 +871,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Pago</p>
+                    <p className="text-sm text-gray-600">{t('reports.totalPaid')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.paymentMetrics.totalPaid)}
                     </p>
                     <div className="flex items-center mt-1">
                       <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Liquidado</span>
+                      <span className="text-sm text-emerald-500">{t('reports.settled')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -889,13 +891,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Pagamentos Pendentes</p>
+                    <p className="text-sm text-gray-600">{t('reports.pendingPayments')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.paymentMetrics.pendingPayments)}
                     </p>
                     <div className="flex items-center mt-1">
                       <Clock className="w-4 h-4 text-yellow-500 mr-1" />
-                      <span className="text-sm text-yellow-500">A vencer</span>
+                      <span className="text-sm text-yellow-500">{t('reports.toDue')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -909,13 +911,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Pagamentos em Atraso</p>
+                    <p className="text-sm text-gray-600">{t('reports.overduePayments')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.paymentMetrics.overduePayments)}
                     </p>
                     <div className="flex items-center mt-1">
                       <AlertCircle className="w-4 h-4 text-red-500 mr-1" />
-                      <span className="text-sm text-red-500">Vencidos</span>
+                      <span className="text-sm text-red-500">{t('reports.overdue')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -929,13 +931,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Tempo Médio Pgto</p>
+                    <p className="text-sm text-gray-600">{t('reports.averagePaymentTime')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.paymentMetrics.averagePaymentTime}
                     </p>
                     <div className="flex items-center mt-1">
                       <Clock className="w-4 h-4 text-blue-500 mr-1" />
-                      <span className="text-sm text-blue-500">dias</span>
+                      <span className="text-sm text-blue-500">{t('reports.days')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -949,7 +951,7 @@ export default function ReportsPage() {
           {/* Payment Status Overview */}
           <Card>
             <CardHeader>
-              <CardTitle>Distribuição de Status de Pagamentos</CardTitle>
+              <CardTitle>{t('reports.paymentStatusDistribution')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -957,36 +959,36 @@ export default function ReportsPage() {
                   <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-10 h-10 text-emerald-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Pagamentos Realizados</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('reports.paymentsCompleted')}</h3>
                   <p className="text-3xl font-bold text-emerald-600">{formatCompactNumber(reportData.paymentMetrics.totalPaid)}</p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
                     <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '75%' }}></div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">75% do total</p>
+                  <p className="text-sm text-gray-600 mt-2">75% {t('reports.ofTotal')}</p>
                 </div>
                 
                 <div className="text-center p-6 bg-yellow-50 rounded-lg">
                   <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Clock className="w-10 h-10 text-yellow-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Pagamentos Pendentes</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('reports.pendingPayments')}</h3>
                   <p className="text-3xl font-bold text-yellow-600">{formatCompactNumber(reportData.paymentMetrics.pendingPayments)}</p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
                     <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '20%' }}></div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">20% do total</p>
+                  <p className="text-sm text-gray-600 mt-2">20% {t('reports.ofTotal')}</p>
                 </div>
                 
                 <div className="text-center p-6 bg-red-50 rounded-lg">
                   <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <AlertCircle className="w-10 h-10 text-red-600" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">Pagamentos Atrasados</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('reports.paymentsOverdue')}</h3>
                   <p className="text-3xl font-bold text-red-600">{formatCompactNumber(reportData.paymentMetrics.overduePayments)}</p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
                     <div className="bg-red-500 h-2 rounded-full" style={{ width: '5%' }}></div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">5% do total</p>
+                  <p className="text-sm text-gray-600 mt-2">5% {t('reports.ofTotal')}</p>
                 </div>
               </div>
             </CardContent>
@@ -995,7 +997,7 @@ export default function ReportsPage() {
           {/* Upcoming Payments */}
           <Card>
             <CardHeader>
-              <CardTitle>Próximos Pagamentos</CardTitle>
+              <CardTitle>{t('reports.upcomingPayments')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -1008,14 +1010,14 @@ export default function ReportsPage() {
                       <div>
                         <p className="font-medium">{payment.supplier}</p>
                         <p className="text-sm text-gray-600">
-                          Vencimento: {new Date(payment.dueDate).toLocaleDateString('pt-BR')}
+                          {t('reports.due')}: {new Date(payment.dueDate).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-lg">{formatCurrency(payment.amount)}</p>
                       <p className="text-sm text-gray-600">
-                        {Math.floor((new Date(payment.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias
+                        {Math.floor((new Date(payment.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} {t('reports.days')}
                       </p>
                     </div>
                   </div>
@@ -1028,30 +1030,30 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Análise de Pontualidade</CardTitle>
+                <CardTitle>{t('reports.punctualityAnalysis')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-green-800">Pagamentos Pontuais</p>
-                      <p className="text-sm text-green-600">Até a data de vencimento</p>
+                      <p className="font-medium text-green-800">{t('reports.punctualPayments')}</p>
+                      <p className="text-sm text-green-600">{t('reports.untilDueDate')}</p>
                     </div>
                     <div className="text-2xl font-bold text-green-600">85%</div>
                   </div>
                   
                   <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-yellow-800">Pagamentos com Atraso</p>
-                      <p className="text-sm text-yellow-600">1-7 dias de atraso</p>
+                      <p className="font-medium text-yellow-800">{t('reports.delayedPayments')}</p>
+                      <p className="text-sm text-yellow-600">{t('reports.delayDays')}</p>
                     </div>
                     <div className="text-2xl font-bold text-yellow-600">12%</div>
                   </div>
                   
                   <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-red-800">Pagamentos Críticos</p>
-                      <p className="text-sm text-red-600">Mais de 7 dias de atraso</p>
+                      <p className="font-medium text-red-800">{t('reports.criticalPayments')}</p>
+                      <p className="text-sm text-red-600">{t('reports.moreThan7Days')}</p>
                     </div>
                     <div className="text-2xl font-bold text-red-600">3%</div>
                   </div>
@@ -1061,14 +1063,14 @@ export default function ReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Métodos de Pagamento</CardTitle>
+                <CardTitle>{t('reports.paymentMethods')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { method: 'Transferência Bancária', percentage: 65, color: 'bg-blue-500' },
-                    { method: 'Carta de Crédito', percentage: 25, color: 'bg-emerald-500' },
-                    { method: 'Cobrança Documentária', percentage: 10, color: 'bg-purple-500' }
+                    { method: t('reports.bankTransfer'), percentage: 65, color: 'bg-blue-500' },
+                    { method: t('reports.letterOfCredit'), percentage: 25, color: 'bg-emerald-500' },
+                    { method: t('reports.documentaryCollection'), percentage: 10, color: 'bg-purple-500' }
                   ].map((item) => (
                     <div key={item.method} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -1099,13 +1101,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total de Fornecedores</p>
+                    <p className="text-sm text-gray-600">{t('reports.totalSuppliers')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.supplierMetrics.totalSuppliers}
                     </p>
                     <div className="flex items-center mt-1">
                       <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">+3 novos</span>
+                      <span className="text-sm text-emerald-500">+3 {t('reports.newSuppliers')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1119,13 +1121,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Fornecedores Ativos</p>
+                    <p className="text-sm text-gray-600">{t('reports.activeSuppliers')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {Math.floor(reportData.supplierMetrics.totalSuppliers * 0.8)}
                     </p>
                     <div className="flex items-center mt-1">
                       <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Com pedidos</span>
+                      <span className="text-sm text-emerald-500">{t('reports.withOrders')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -1139,13 +1141,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Volume de Negócios</p>
+                    <p className="text-sm text-gray-600">{t('reports.businessVolume')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCompactNumber(reportData.importMetrics.totalValue)}
                     </p>
                     <div className="flex items-center mt-1">
                       <DollarSign className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Total FOB</span>
+                      <span className="text-sm text-emerald-500">{t('reports.totalFOB')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1159,13 +1161,13 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Avaliação Média</p>
+                    <p className="text-sm text-gray-600">{t('reports.averageRating')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {reportData.performanceMetrics.qualityScore}/5
                     </p>
                     <div className="flex items-center mt-1">
                       <Target className="w-4 h-4 text-emerald-500 mr-1" />
-                      <span className="text-sm text-emerald-500">Qualidade</span>
+                      <span className="text-sm text-emerald-500">{t('reports.quality')}</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -1179,7 +1181,7 @@ export default function ReportsPage() {
           {/* Top Suppliers Performance */}
           <Card>
             <CardHeader>
-              <CardTitle>Principais Fornecedores por Volume</CardTitle>
+              <CardTitle>{t('reports.topSuppliersByVolume')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -1192,7 +1194,7 @@ export default function ReportsPage() {
                       <div>
                         <p className="font-medium text-lg">{supplier.name}</p>
                         <p className="text-sm text-gray-600">
-                          {supplier.importCount} importações • {supplier.location}
+                          {supplier.importCount} {t('reports.imports')} • {supplier.location}
                         </p>
                         <div className="flex items-center mt-1">
                           {[...Array(5)].map((_, i) => (
@@ -1210,7 +1212,7 @@ export default function ReportsPage() {
                     <div className="text-right">
                       <p className="font-semibold text-lg">{formatCurrency(supplier.totalValue)}</p>
                       <p className="text-sm text-gray-600">
-                        Média: {formatCurrency(supplier.totalValue / supplier.importCount)}
+                        {t('reports.average')}: {formatCurrency(supplier.totalValue / supplier.importCount)}
                       </p>
                     </div>
                   </div>
@@ -1222,7 +1224,7 @@ export default function ReportsPage() {
           {/* Regional Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle>Distribuição Regional dos Fornecedores</CardTitle>
+              <CardTitle>{t('reports.regionalDistribution')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -1234,7 +1236,7 @@ export default function ReportsPage() {
                       </div>
                       <div>
                         <p className="font-medium">{region.region}</p>
-                        <p className="text-sm text-gray-600">{region.count} fornecedores</p>
+                        <p className="text-sm text-gray-600">{region.count} {t('reports.suppliers')}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -1256,7 +1258,7 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Análise de Performance dos Fornecedores</CardTitle>
+                <CardTitle>{t('reports.supplierPerformanceAnalysis')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -1266,8 +1268,8 @@ export default function ReportsPage() {
                         <CheckCircle className="w-5 h-5 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="font-medium">Taxa de Entrega no Prazo</p>
-                        <p className="text-sm text-gray-600">Pedidos entregues pontualmente</p>
+                        <p className="font-medium">{t('reports.onTimeDeliveryRate')}</p>
+                        <p className="text-sm text-gray-600">{t('reports.deliveredPunctually')}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -1282,13 +1284,13 @@ export default function ReportsPage() {
                         <Target className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium">Qualidade Média dos Produtos</p>
-                        <p className="text-sm text-gray-600">Avaliação geral</p>
+                        <p className="font-medium">{t('reports.averageProductQuality')}</p>
+                        <p className="text-sm text-gray-600">{t('reports.generalRating')}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-blue-600">{reportData.performanceMetrics.qualityScore}/5</p>
-                      <p className="text-sm text-gray-600">estrelas</p>
+                      <p className="text-sm text-gray-600">{t('reports.stars')}</p>
                     </div>
                   </div>
 
@@ -1298,13 +1300,13 @@ export default function ReportsPage() {
                         <BarChart3 className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
-                        <p className="font-medium">Eficiência de Preços</p>
-                        <p className="text-sm text-gray-600">Competitividade no mercado</p>
+                        <p className="font-medium">{t('reports.priceEfficiency')}</p>
+                        <p className="text-sm text-gray-600">{t('reports.marketCompetitiveness')}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-purple-600">{reportData.performanceMetrics.costEfficiencyIndex}%</p>
-                      <p className="text-sm text-gray-600">eficiente</p>
+                      <p className="text-sm text-gray-600">{t('reports.efficient')}</p>
                     </div>
                   </div>
                 </div>
@@ -1313,15 +1315,15 @@ export default function ReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Fornecedores por Categoria</CardTitle>
+                <CardTitle>{t('reports.suppliersByCategory')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { category: 'Eletrônicos', count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.4), color: 'bg-blue-500' },
-                    { category: 'Têxtil', count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.25), color: 'bg-emerald-500' },
-                    { category: 'Máquinas', count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.2), color: 'bg-purple-500' },
-                    { category: 'Materiais de Construção', count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.15), color: 'bg-orange-500' }
+                    { category: t('reports.electronics'), count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.4), color: 'bg-blue-500' },
+                    { category: t('reports.textile'), count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.25), color: 'bg-emerald-500' },
+                    { category: t('reports.machines'), count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.2), color: 'bg-purple-500' },
+                    { category: t('reports.constructionMaterials'), count: Math.floor(reportData.supplierMetrics.totalSuppliers * 0.15), color: 'bg-orange-500' }
                   ].map((item) => (
                     <div key={item.category} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useTranslation } from '@/contexts/I18nContext';
 
 interface CreditAnalysisCardProps {
   creditScore: any;
@@ -40,6 +41,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const permissions = useUserPermissions();
+  const { t } = useTranslation();
 
   const handleGeneratePdf = async () => {
     if (!applicationId) return;
@@ -52,7 +54,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
       });
       
       if (!response.ok) {
-        throw new Error('Erro ao gerar PDF');
+        throw new Error(t('credit.analysis.analysisCard.pdfGenerationError'));
       }
       
       const blob = await response.blob();
@@ -66,7 +68,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
       document.body.removeChild(a);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
-      alert('Erro ao gerar PDF do dossiê');
+      alert(t('credit.analysis.analysisCard.pdfDossierError'));
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -78,16 +80,16 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Análise de Crédito 360°</CardTitle>
+            <CardTitle className="text-2xl font-bold">{t('credit.analysis.title')}</CardTitle>
           </CardHeader>
           <CardContent className="p-8 text-center">
             <div className="text-gray-500">
               <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium mb-2">Análise de Crédito não realizada</p>
+              <p className="text-lg font-medium mb-2">{t('credit.analysis.notPerformed')}</p>
               <p className="text-sm">
                 {permissions.isAdmin 
-                  ? 'Clique em "Consultar Credit Score" para iniciar a análise completa' 
-                  : 'Análise de crédito disponível apenas para administradores'
+                  ? t('credit.analysis.clickToStartAnalysis')
+                  : t('credit.analysis.onlyForAdmins')
                 }
               </p>
             </div>
@@ -99,7 +101,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0 shadow-lg transition-all duration-300"
               >
-                {isLoading ? 'Consultando...' : 'Consultar Credit Score'}
+                {isLoading ? t('credit.analysis.consulting') : t('credit.analysis.consultCreditScore')}
               </Button>
             </div>
           )}
@@ -118,10 +120,10 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
   };
 
   const getScoreLevel = (score: number) => {
-    if (score >= 700) return 'Alto';
-    if (score >= 500) return 'Médio';
-    if (score >= 300) return 'Baixo';
-    return 'Muito Baixo';
+    if (score >= 700) return t('credit.analysis.analysisCard.levelHigh');
+    if (score >= 500) return t('credit.analysis.analysisCard.levelMedium');
+    if (score >= 300) return t('credit.analysis.analysisCard.levelLow');
+    return t('credit.analysis.analysisCard.levelVeryLow');
   };
 
   const getBadgeColor = (score: number) => {
@@ -135,12 +137,12 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
     return hasIssue ? (
       <div className="flex items-center gap-1 text-red-600">
         <XCircle className="w-4 h-4" />
-        <span className="text-sm">Possui</span>
+        <span className="text-sm">{t('credit.analysis.analysisCard.has')}</span>
       </div>
     ) : (
       <div className="flex items-center gap-1 text-green-600">
         <CheckCircle className="w-4 h-4" />
-        <span className="text-sm">Não possui</span>
+        <span className="text-sm">{t('credit.analysis.analysisCard.doesNotHave')}</span>
       </div>
     );
   };
@@ -154,7 +156,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
         
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">Análise de Crédito 360°</CardTitle>
+            <CardTitle className="text-2xl font-bold">{t('credit.analysis.title')}</CardTitle>
             {onRefresh && permissions.isAdmin && (
               <Button
                 size="sm"
@@ -162,7 +164,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
                 disabled={isLoading}
                 className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0 shadow-lg transition-all duration-300"
               >
-                {isLoading ? 'Consultando...' : 'Atualizar'}
+                {isLoading ? t('credit.analysis.consulting') : t('credit.analysis.update')}
               </Button>
             )}
           </div>
@@ -180,7 +182,7 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
           {/* Header com Badge no canto direito */}
           <div className="flex justify-between items-start mb-6">
             <div className="text-left">
-              <h4 className="text-2xl font-bold text-gray-900 mb-1">Credit Score</h4>
+              <h4 className="text-2xl font-bold text-gray-900 mb-1">{t('credit.analysis.analysisCard.creditScore')}</h4>
             </div>
             <Badge 
               variant="outline" 
@@ -213,26 +215,26 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
 
           {/* Análise de Risco */}
           <div className="space-y-4">
-            <h5 className="font-semibold text-lg">Análise de Risco</h5>
+            <h5 className="font-semibold text-lg">{t('credit.analysis.riskAnalysis')}</h5>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Débitos</span>
+                <span className="text-sm font-medium">{t('credit.analysis.analysisCard.debts')}</span>
                 {getStatusIcon(creditScore.hasDebts || creditScore.cndHasDebts)}
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Protestos</span>
+                <span className="text-sm font-medium">{t('credit.analysis.protests')}</span>
                 {getStatusIcon(creditScore.hasProtests)}
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Falência/Recuperação</span>
+                <span className="text-sm font-medium">{t('credit.analysis.bankruptcyRecovery')}</span>
                 {getStatusIcon(creditScore.hasBankruptcy)}
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Ações Judiciais</span>
+                <span className="text-sm font-medium">{t('credit.analysis.lawsuits')}</span>
                 {getStatusIcon(creditScore.hasLawsuits)}
               </div>
             </div>
@@ -248,12 +250,12 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
               {isExpanded ? (
                 <>
                   <ChevronUp className="w-4 h-4 mr-2" />
-                  Ocultar Detalhes
+                  {t('credit.analysis.analysisCard.hideDetails')}
                 </>
               ) : (
                 <>
                   <ChevronDown className="w-4 h-4 mr-2" />
-                  Mostrar Detalhes
+                  {t('credit.analysis.analysisCard.showDetails')}
                 </>
               )}
             </Button>
@@ -267,12 +269,12 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
                 {isGeneratingPdf ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Gerando PDF...
+                    {t('credit.analysis.analysisCard.generatingPdf')}
                   </>
                 ) : (
                   <>
                     <Download className="w-4 h-4 mr-2" />
-                    Gerar PDF do Dossiê
+                    {t('credit.analysis.analysisCard.generateDossierPdf')}
                   </>
                 )}
               </Button>
@@ -295,9 +297,9 @@ export default function CreditAnalysisCard({ creditScore, onRefresh, isLoading, 
                   <TrendingUp className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Score QUOD - Pontuação de Crédito</CardTitle>
+                  <CardTitle className="text-lg">{t('credit.analysis.scoreQuodTitle')}</CardTitle>
                   <Badge variant="outline" className={`${getBadgeColor(score)} mt-1`}>
-                    {score} pontos
+                    {t('credit.analysis.points', { score: score.toString() })}
                   </Badge>
                 </div>
               </div>

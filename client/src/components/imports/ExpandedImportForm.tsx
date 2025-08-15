@@ -19,6 +19,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ProductManager } from "./ProductManager";
 import { CostCalculationSystem } from "./CostCalculationSystem";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
 // Expanded import form schema including customs broker fields
 const expandedImportFormSchema = z.object({
@@ -113,6 +114,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("basic");
   const [customsBrokerInfo, setCustomsBrokerInfo] = useState<{
     valid: boolean;
@@ -170,7 +172,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       console.error('Error verifying customs broker email:', error);
       setCustomsBrokerInfo({
         valid: false,
-        message: 'Erro ao verificar email'
+        message: t('forms.errorVerifyingEmail')
       });
     } finally {
       setIsVerifyingEmail(false);
@@ -233,15 +235,15 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
       toast({
-        title: "Sucesso",
-        description: isEditing ? "Importação atualizada com sucesso" : "Importação criada com sucesso"
+        title: t('common.success'),
+        description: isEditing ? t('imports.importUpdatedSuccess') : t('imports.importCreatedSuccess')
       });
       setLocation('/imports');
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar importação",
+        title: t('common.error'),
+        description: error.message || t('imports.saveError'),
         variant: "destructive"
       });
     }
@@ -265,26 +267,26 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   };
 
   const transportOptions = [
-    { value: "maritimo", label: "Marítimo", icon: Ship },
-    { value: "aereo", label: "Aéreo", icon: Plane },
-    { value: "terrestre", label: "Terrestre", icon: Truck }
+    { value: "maritimo", label: t('imports.maritime'), icon: Ship },
+    { value: "aereo", label: t('imports.air'), icon: Plane },
+    { value: "terrestre", label: t('imports.land'), icon: Truck }
   ];
 
   const statusOptions = [
-    { value: "planejamento", label: "Planejamento" },
-    { value: "producao", label: "Produção" },
-    { value: "entregue_agente", label: "Entregue ao Agente" },
-    { value: "transporte_maritimo", label: "Transporte Marítimo" },
-    { value: "transporte_aereo", label: "Transporte Aéreo" },
-    { value: "desembaraco", label: "Desembaraço" },
-    { value: "transporte_nacional", label: "Transporte Nacional" },
-    { value: "concluido", label: "Concluído" }
+    { value: "planejamento", label: t('status.planning') },
+    { value: "producao", label: t('imports.production') },
+    { value: "entregue_agente", label: t('reports.deliveredAgent') },
+    { value: "transporte_maritimo", label: t('reports.maritimeTransport') },
+    { value: "transporte_aereo", label: t('imports.airTransport') },
+    { value: "desembaraco", label: t('reports.clearance') },
+    { value: "transporte_nacional", label: t('reports.nationalTransport') },
+    { value: "concluido", label: t('status.completed') }
   ];
 
   const incotermOptions = [
-    { value: "FOB", label: "FOB - Free on Board" },
-    { value: "CIF", label: "CIF - Cost, Insurance & Freight" },
-    { value: "EXW", label: "EXW - Ex Works" }
+    { value: "FOB", label: t('incoterms.fob') },
+    { value: "CIF", label: t('incoterms.cif') },
+    { value: "EXW", label: t('incoterms.exw') }
   ];
 
   return (
@@ -293,15 +295,15 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? 'Editar Importação' : 'Nova Importação'}
+            {isEditing ? t('imports.editImport') : t('imports.newImport')}
           </h1>
           <p className="text-gray-600 mt-1">
-            {isEditing ? 'Atualize os dados da importação' : 'Preencha os dados para criar uma nova importação operacional'}
+            {isEditing ? t('imports.updateImportData') : t('imports.fillDataToCreateOperationalImport')}
           </p>
         </div>
         
         <Button variant="outline" onClick={() => setLocation('/imports')}>
-          Voltar
+          {t('common.back')}
         </Button>
       </div>
 
@@ -311,27 +313,27 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
             <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Básico
+                {t('imports.basic')}
               </TabsTrigger>
               <TabsTrigger value="products" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Produtos
+                {t('nav.products')}
               </TabsTrigger>
               <TabsTrigger value="shipping" className="flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                Transporte
+                {t('imports.transport')}
               </TabsTrigger>
               <TabsTrigger value="customs" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Despachante
+                {t('imports.customsBroker')}
               </TabsTrigger>
               <TabsTrigger value="documentation" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Documentos
+                {t('imports.documents')}
               </TabsTrigger>
               <TabsTrigger value="costs" className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
-                Custos
+                {t('imports.costs')}
               </TabsTrigger>
             </TabsList>
 
@@ -341,7 +343,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="h-5 w-5" />
-                    Informações Básicas
+                    {t('imports.basicInformation')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,9 +352,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="importName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome da Importação *</FormLabel>
+                        <FormLabel>{t('imports.importName')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Importação Equipamentos Q1 2024" />
+                          <Input {...field} placeholder={t('imports.importNameExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -364,9 +366,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="importCode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Código da Importação</FormLabel>
+                        <FormLabel>{t('imports.importCode')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: IMP-2024-001" />
+                          <Input {...field} placeholder={t('imports.importCodeExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -378,7 +380,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="creditApplicationId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Forma de Pagamento *</FormLabel>
+                        <FormLabel>{t('imports.paymentMethod')} *</FormLabel>
                         <Select onValueChange={(value) => {
                           if (value === "own_funds") {
                             field.onChange(undefined);
@@ -390,15 +392,15 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                         }} value={field.value ? field.value.toString() : form.watch("paymentMethod") === "own_funds" ? "own_funds" : undefined}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o método de pagamento" />
+                              <SelectValue placeholder={t('imports.selectPaymentMethod')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="own_funds">
                               <div className="flex flex-col">
-                                <span className="font-medium">💰 Recursos Próprios</span>
+                                <span className="font-medium">💰 {t('imports.ownFunds')}</span>
                                 <span className="text-xs text-gray-500">
-                                  Importação financiada com capital próprio
+                                  {t('imports.ownFundsDesc')}
                                 </span>
                               </div>
                             </SelectItem>
@@ -406,7 +408,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                               <>
                                 <SelectItem value="credits-header" disabled>
                                   <div className="px-2 py-1.5 text-xs font-medium text-gray-500 bg-gray-50">
-                                    Créditos Aprovados
+                                    {t('imports.approvedCredits')}
                                   </div>
                                 </SelectItem>
                                 {creditApplications.map((app: any, index: number) => (
@@ -416,7 +418,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                                         🏦 US$ {parseInt(app.finalCreditLimit || app.requestedAmount || '0').toLocaleString()}
                                       </span>
                                       <span className="text-xs text-gray-500">
-                                        Termos: {app.finalApprovedTerms || 'N/A'} dias
+                                        {t('imports.terms')}: {app.finalApprovedTerms || 'N/A'} {t('common.days')}
                                       </span>
                                     </div>
                                   </SelectItem>
@@ -435,17 +437,17 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="supplierId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Fornecedor</FormLabel>
+                        <FormLabel>{t('imports.supplier')}</FormLabel>
                         <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione um fornecedor" />
+                              <SelectValue placeholder={t('imports.selectSupplier')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {Array.isArray(suppliers) && suppliers.map((supplier: any, index: number) => (
                               <SelectItem key={supplier.id || index} value={supplier.id?.toString() || `supplier-${index}`}>
-                                {supplier.companyName || 'Fornecedor sem nome'}
+                                {supplier.companyName || t('imports.supplierWithoutName')}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -460,16 +462,16 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="cargoType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tipo de Carga *</FormLabel>
+                        <FormLabel>{t('imports.cargoType')} *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo de carga" />
+                              <SelectValue placeholder={t('imports.selectCargoType')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="FCL">FCL - Full Container Load</SelectItem>
-                            <SelectItem value="LCL">LCL - Less than Container Load</SelectItem>
+                            <SelectItem value="FCL">{t('cargo.fcl')}</SelectItem>
+                            <SelectItem value="LCL">{t('cargo.lcl')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -482,11 +484,11 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="transportMethod"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Método de Transporte *</FormLabel>
+                        <FormLabel>{t('imports.shippingMethod')} *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o método de transporte" />
+                              <SelectValue placeholder={t('imports.selectMethod')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -510,11 +512,11 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="incoterms"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Incoterms *</FormLabel>
+                        <FormLabel>{t('imports.incoterms')} *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione os incoterms" />
+                              <SelectValue placeholder={t('imports.selectIncoterms')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -535,18 +537,18 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="totalValue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valor Total *</FormLabel>
+                        <FormLabel>{t('imports.totalValue')} *</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
-                            placeholder="Será calculado automaticamente na aba Produtos" 
+                            placeholder={t('imports.autoCalculatedProducts')} 
                             type="number" 
                             disabled={true}
                             className="bg-gray-50"
                           />
                         </FormControl>
                         <p className="text-sm text-gray-500">
-                          O valor será calculado automaticamente baseado nos produtos selecionados
+                          {t('imports.autoCalculatedDesc')}
                         </p>
                         <FormMessage />
                       </FormItem>
@@ -562,10 +564,10 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="h-5 w-5" />
-                    Gestão de Produtos
+                    {t('imports.productManagement')}
                   </CardTitle>
                   <CardDescription>
-                    Selecione os produtos e quantidades para calcular automaticamente o valor total da importação
+                    {t('imports.productManagementDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -599,7 +601,7 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Anchor className="h-5 w-5" />
-                    Informações de Transporte
+                    {t('imports.shippingInformation')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,9 +610,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="origin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Porto de Origem *</FormLabel>
+                        <FormLabel>{t('imports.portOfLoading')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Shanghai, China" />
+                          <Input {...field} placeholder={t('imports.portOfLoadingExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -622,9 +624,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="destination"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Porto de Destino *</FormLabel>
+                        <FormLabel>{t('imports.portOfDischarge')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Santos, Brasil" />
+                          <Input {...field} placeholder={t('imports.portOfDischargeExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -636,9 +638,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="portOfLoading"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Porto de Embarque Específico</FormLabel>
+                        <FormLabel>{t('imports.specificLoadingPort')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Shanghai Port Terminal 1" />
+                          <Input {...field} placeholder={t('imports.specificLoadingPortExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -650,9 +652,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="portOfDischarge"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Porto de Desembarque Específico</FormLabel>
+                        <FormLabel>{t('imports.specificDischargePort')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Santos Terminal 2" />
+                          <Input {...field} placeholder={t('imports.specificDischargePortExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -664,9 +666,9 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                     name="finalDestination"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Destino Final</FormLabel>
+                        <FormLabel>{t('imports.finalDestination')}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: São Paulo, SP" />
+                          <Input {...field} placeholder={t('imports.finalDestinationExample')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

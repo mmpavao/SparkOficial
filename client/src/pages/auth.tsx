@@ -11,6 +11,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from 'react-i18next';
 import { insertUserSchema, loginSchema, type InsertUser, type LoginUser } from "@shared/schema";
 import { formatCnpj, validateCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
@@ -20,37 +21,8 @@ import logo_spark_bco from "@assets/logo-spark-bco.jpg";
 import logo_spark_comex_green_bg from "@assets/logo spark comex green bg.png";
 import logo_spark_fundo_color_ from "@assets/logo spark fundo color .png";
 
-// Temporary fallback translations while fixing the system
-const authTranslations = {
-  platformDescription: 'Plataforma completa de crédito e importação para empresas brasileiras',
-  secure: 'Seguro',
-  fast: 'Rápido', 
-  efficient: 'Eficiente',
-  welcomeBack: 'Bem-vindo de volta',
-  loginDescription: 'Entre com suas credenciais para acessar sua conta',
-  email: 'E-mail',
-  password: 'Senha',
-  rememberMe: 'Lembrar de mim',
-  forgotPassword: 'Esqueceu a senha?',
-  signIn: 'Entrar',
-  signingIn: 'Entrando...',
-  dontHaveAccount: 'Não tem conta?',
-  registerButton: 'Cadastre-se',
-  createAccount: 'Criar Conta',
-  createAccountDescription: 'Preencha os dados para criar sua conta',
-  companyName: 'Nome da Empresa',
-  cnpj: 'CNPJ',
-  fullName: 'Nome Completo',
-  phone: 'Telefone',
-  confirmPassword: 'Confirmar Senha',
-  acceptTerms: 'Aceito os termos e condições',
-  register: 'Cadastrar',
-  registering: 'Cadastrando...',
-  alreadyHaveAccount: 'Já tem conta?',
-  loginButton: 'Faça login'
-};
-
 export default function AuthPage() {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
@@ -175,20 +147,20 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-lg opacity-90 mb-8">
-            {authTranslations.platformDescription}
+            {t('auth.platformDescription')}
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm opacity-75">
             <div className="flex items-center">
               <Shield className="w-4 h-4 mr-2" />
-              <span>{authTranslations.secure}</span>
+              <span>{t('auth.secure')}</span>
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              <span>{authTranslations.fast}</span>
+              <span>{t('auth.fast')}</span>
             </div>
             <div className="flex items-center">
               <TrendingUp className="w-4 h-4 mr-2" />
-              <span>{authTranslations.efficient}</span>
+              <span>{t('auth.efficient')}</span>
             </div>
           </div>
         </div>
@@ -209,8 +181,8 @@ export default function AuthPage() {
           {isLogin ? (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{authTranslations.welcomeBack}</h2>
-                <p className="text-gray-600">{authTranslations.loginDescription}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.welcomeBack')}</h2>
+                <p className="text-gray-600">{t('auth.loginDescription')}</p>
               </div>
 
               <Form {...loginForm}>
@@ -313,7 +285,7 @@ export default function AuthPage() {
                         <Select value={field.value} onValueChange={field.onChange}>
                           <FormControl>
                             <SelectTrigger className="focus:ring-spark-500 focus:border-spark-500">
-                              <SelectValue placeholder="Selecione o tipo de usuário" />
+                              <SelectValue placeholder={t('select.chooseUserType')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -418,7 +390,7 @@ export default function AuthPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{authTranslations.email}</FormLabel>
+                          <FormLabel>{t('email')}</FormLabel>
                           <FormControl>
                             <Input 
                               type="email" 

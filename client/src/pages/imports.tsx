@@ -36,16 +36,16 @@ interface Import {
 }
 
 // Status mapping for display
-const getStatusInfo = (status: string, currentStage: string) => {
+const getStatusInfo = (status: string, currentStage: string, t: any) => {
   const statusMap: Record<string, { label: string; color: string; bgColor: string }> = {
-    planning: { label: "Planejamento", color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
-    production: { label: "Produção", color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
-    shipped: { label: "Embarcado", color: "text-indigo-600", bgColor: "bg-indigo-50 border-indigo-200" },
-    in_transit: { label: "Em Trânsito", color: "text-yellow-600", bgColor: "bg-yellow-50 border-yellow-200" },
-    customs: { label: "Desembaraço", color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
-    delivered: { label: "Entregue", color: "text-green-600", bgColor: "bg-green-50 border-green-200" },
-    completed: { label: "Concluído", color: "text-green-700", bgColor: "bg-green-100 border-green-300" },
-    cancelled: { label: "Cancelado", color: "text-red-600", bgColor: "bg-red-50 border-red-200" },
+    planning: { label: t('status.planning'), color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
+    production: { label: t('imports.production'), color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
+    shipped: { label: t('status.shipped'), color: "text-indigo-600", bgColor: "bg-indigo-50 border-indigo-200" },
+    in_transit: { label: t('imports.inTransit'), color: "text-yellow-600", bgColor: "bg-yellow-50 border-yellow-200" },
+    customs: { label: t('imports.clearance'), color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
+    delivered: { label: t('status.delivered'), color: "text-green-600", bgColor: "bg-green-50 border-green-200" },
+    completed: { label: t('status.completed'), color: "text-green-700", bgColor: "bg-green-100 border-green-300" },
+    cancelled: { label: t('status.cancelled'), color: "text-red-600", bgColor: "bg-red-50 border-red-200" },
   };
 
   return statusMap[status] || { label: status, color: "text-gray-600", bgColor: "bg-gray-50 border-gray-200" };
@@ -159,15 +159,15 @@ export default function ImportsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
-              ? "Análise de Importações" 
+              ? t('imports.analysisTitle') 
               : permissions.isAdmin 
-                ? "Todas as Importações" 
+                ? t('imports.allImportsTitle') 
                 : t('imports.title')}
           </h1>
           <p className="text-gray-600 mt-1">
             {permissions.isAdmin || permissions.isFinanceira 
-              ? "Gerencie e monitore todas as importações da plataforma"
-              : "Gerencie suas importações e acompanhe o status de cada operação"}
+              ? t('imports.adminSubtitle')
+              : t('imports.subtitle')}
           </p>
         </div>
         {!permissions.isFinanceira && !permissions.canViewAllApplications && (
@@ -218,7 +218,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Concluídas</p>
+                <p className="text-sm font-medium text-gray-600">{t('imports.completed')}</p>
                 <p className="text-2xl font-bold text-gray-900">{metrics.completedImports}</p>
               </div>
               <CheckCircle2 className="w-8 h-8 text-green-600" />
@@ -230,7 +230,7 @@ export default function ImportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Valor Total</p>
+                <p className="text-sm font-medium text-gray-600">{t('imports.totalValue')}</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCompactNumber(metrics.totalValue)}</p>
               </div>
               <Ship className="w-8 h-8 text-indigo-600" />
@@ -245,7 +245,7 @@ export default function ImportsPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <div>
               <Input
-                placeholder="Buscar importações..."
+                placeholder={t('imports.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -254,30 +254,30 @@ export default function ImportsPage() {
             <div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('common.status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Status</SelectItem>
-                  <SelectItem value="planning">Planejamento</SelectItem>
-                  <SelectItem value="production">Produção</SelectItem>
-                  <SelectItem value="shipped">Embarcado</SelectItem>
-                  <SelectItem value="in_transit">Em Trânsito</SelectItem>
-                  <SelectItem value="customs">Desembaraço</SelectItem>
-                  <SelectItem value="delivered">Entregue</SelectItem>
-                  <SelectItem value="completed">Concluído</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                  <SelectItem value="all">{t('imports.allStatus')}</SelectItem>
+                  <SelectItem value="planning">{t('status.planning')}</SelectItem>
+                  <SelectItem value="production">{t('imports.production')}</SelectItem>
+                  <SelectItem value="shipped">{t('status.shipped')}</SelectItem>
+                  <SelectItem value="in_transit">{t('imports.inTransit')}</SelectItem>
+                  <SelectItem value="customs">{t('imports.clearance')}</SelectItem>
+                  <SelectItem value="delivered">{t('status.delivered')}</SelectItem>
+                  <SelectItem value="completed">{t('status.completed')}</SelectItem>
+                  <SelectItem value="cancelled">{t('status.cancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Select value={cargoFilter} onValueChange={setCargoFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tipo de Carga" />
+                  <SelectValue placeholder={t('imports.cargoType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Tipos</SelectItem>
-                  <SelectItem value="FCL">FCL (Container Completo)</SelectItem>
-                  <SelectItem value="LCL">LCL (Carga Consolidada)</SelectItem>
+                  <SelectItem value="all">{t('imports.allTypes')}</SelectItem>
+                  <SelectItem value="FCL">{t('cargo.fclContainer')}</SelectItem>
+                  <SelectItem value="LCL">{t('cargo.lclConsolidated')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -309,7 +309,7 @@ export default function ImportsPage() {
           </Card>
         ) : (
           filteredImports.map((importItem) => {
-            const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status);
+            const statusInfo = getStatusInfo(importItem.status, importItem.currentStage || importItem.status, t);
             return (
               <Card key={importItem.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
@@ -342,21 +342,21 @@ export default function ImportsPage() {
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Valor Total</p>
+                          <p className="text-gray-600">{t('imports.totalValue')}</p>
                           <p className="font-medium">{formatCurrency(parseFloat(importItem.totalValue || "0"), importItem.currency)}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Produtos</p>
-                          <p className="font-medium">{importItem.products?.length || 0} item{(importItem.products?.length || 0) > 1 ? 's' : ''}</p>
+                          <p className="text-gray-600">{t('nav.products')}</p>
+                          <p className="font-medium">{importItem.products?.length || 0} {t('imports.items')}</p>
                         </div>
                         {importItem.containerNumber && (
                           <div>
-                            <p className="text-gray-600">Container</p>
+                            <p className="text-gray-600">{t('imports.container')}</p>
                             <p className="font-medium">{importItem.containerNumber}</p>
                           </div>
                         )}
                         <div>
-                          <p className="text-gray-600">Entrega Prevista</p>
+                          <p className="text-gray-600">{t('imports.estimatedDelivery')}</p>
                           <p className="font-medium">{importItem.estimatedDelivery ? new Date(importItem.estimatedDelivery).toLocaleDateString('pt-BR') : 'N/A'}</p>
                         </div>
                       </div>
@@ -371,7 +371,7 @@ export default function ImportsPage() {
                           ))}
                           {importItem.products.length > 3 && (
                             <Badge variant="secondary" className="bg-gray-50 text-gray-600">
-                              +{importItem.products.length - 3} mais
+                              +{importItem.products.length - 3} {t('imports.more')}
                             </Badge>
                           )}
                         </div>
@@ -390,14 +390,14 @@ export default function ImportsPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/imports/${importItem.id}`} className="flex items-center">
                               <Eye className="mr-2 h-4 w-4" />
-                              Ver Detalhes
+                              {t('common.view')} {t('common.details')}
                             </Link>
                           </DropdownMenuItem>
                           {(!permissions.isFinanceira && importItem.status === 'planejamento') && (
                             <DropdownMenuItem asChild>
                               <Link href={`/imports/${importItem.id}/edit`} className="flex items-center">
                                 <Edit className="mr-2 h-4 w-4" />
-                                Editar
+                                {t('common.edit')}
                               </Link>
                             </DropdownMenuItem>
                           )}
@@ -409,7 +409,7 @@ export default function ImportsPage() {
                                   className="text-red-600 focus:text-red-600"
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                  Cancelar
+                                  {t('imports.cancel')}
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                               <AlertDialogContent>

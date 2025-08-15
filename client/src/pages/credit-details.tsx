@@ -174,7 +174,7 @@ export default function CreditDetailsPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Falha no upload do documento');
+        throw new Error(errorData.message || t('credit.documentUploadFailed'));
       }
 
       return response.json();
@@ -186,15 +186,15 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
       setUploadingDocument(null);
       toast({
-        title: "Documento enviado",
-        description: "Documento enviado com sucesso.",
+        title: t('credit.documentSent'),
+        description: t('credit.documentSentSuccess'),
       });
     },
     onError: (error: any) => {
       console.error("Upload error:", error);
       toast({
-        title: "Erro no upload",
-        description: error.message || "Não foi possível enviar o documento. Tente novamente.",
+        title: t('credit.uploadError'),
+        description: error.message || t('credit.uploadFailedRetry'),
         variant: "destructive",
       });
       setUploadingDocument(null);
