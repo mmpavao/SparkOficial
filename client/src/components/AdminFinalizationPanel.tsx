@@ -32,8 +32,6 @@ export function AdminFinalizationPanel({ application, onUpdate }: AdminFinalizat
     enabled: !!application.userId
   });
 
-  console.log("👤 User Settings for Application:", userSettings);
-  console.log("📝 Application Data:", { userId: application.userId, creditLimit: application.creditLimit });
 
   const [formData, setFormData] = useState({
     finalCreditLimit: application.creditLimit || "",

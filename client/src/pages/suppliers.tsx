@@ -102,7 +102,7 @@ export default function SuppliersPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir fornecedor",
+        title: t("suppliers.deleteError"),
         description: error.message,
         variant: "destructive",
       });
@@ -192,7 +192,7 @@ export default function SuppliersPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Fabricantes Chineses</p>
+                <p className="text-sm font-medium text-gray-600">{t("suppliers.chineseManufacturers")}</p>
                 <p className="text-2xl font-bold">{chineseSuppliers}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-600" />
@@ -261,13 +261,13 @@ export default function SuppliersPage() {
                     },
                     {
                       icon: <Phone className="w-4 h-4 text-purple-600" />,
-                      label: "Telefone",
+                      label: t("common.phone"),
                       value: supplier.phone || 'N/A',
                       color: "bg-purple-50 border-purple-200"
                     },
                     {
                       icon: <Mail className="w-4 h-4 text-orange-600" />,
-                      label: "Email",
+                      label: t("common.email"),
                       value: supplier.email || 'N/A',
                       color: "bg-orange-50 border-orange-200"
                     },

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import { Users, UserPlus, MoreVertical, Edit, UserCheck, UserX } from "lucide-re
 import type { User } from "@shared/schema";
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -53,15 +55,15 @@ export default function AdminUsersPage() {
       apiRequest(`/api/admin/users/${userId}/role`, 'PUT', { role }),
     onSuccess: () => {
       toast({
-        title: "Role atualizada",
-        description: "Role do usuário atualizada com sucesso!",
+        title: t("success.roleUpdated"),
+        description: t("success.roleUpdatedDescription"),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao atualizar role",
+        title: t("common.error"),
+        description: error.message || t("errors.updateRoleError"),
         variant: "destructive",
       });
     },
@@ -72,15 +74,15 @@ export default function AdminUsersPage() {
       apiRequest(`/api/admin/users/${userId}/deactivate`, 'PUT'),
     onSuccess: () => {
       toast({
-        title: "Usuário desativado",
-        description: "Usuário desativado com sucesso!",
+        title: t("users.userDeactivated"),
+        description: t("users.userDeactivatedSuccess"),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao desativar usuário",
+        title: t("common.error"),
+        description: error.message || t("users.deactivateError"),
         variant: "destructive",
       });
     },
@@ -98,20 +100,20 @@ export default function AdminUsersPage() {
   const getStatusBadge = (status: string | undefined) => {
     const userStatus = status || 'active';
     return userStatus === 'active' ? (
-      <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+      <Badge className="bg-green-100 text-green-800">{t("status.active")}</Badge>
     ) : (
-      <Badge variant="destructive">Inativo</Badge>
+      <Badge variant="destructive">{t("status.inactive")}</Badge>
     );
   };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-blue-100 text-blue-800">Administrador</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">{t("roles.admin")}</Badge>;
       case 'financeira':
-        return <Badge className="bg-purple-100 text-purple-800">Financeira</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800">{t("roles.financeira")}</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Importador</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{t("roles.importer")}</Badge>;
     }
   };
 
@@ -120,15 +122,15 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h1>
-          <p className="text-gray-600">Gerencie usuários do sistema e suas permissões</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("nav.manageUsers")}</h1>
+          <p className="text-gray-600">{t("admin.manageUsersDescription")}</p>
         </div>
         <Button 
           className="bg-spark-600 hover:bg-spark-700"
           onClick={() => setLocation('/admin/users/new')}
         >
           <UserPlus className="w-4 h-4 mr-2" />
-          Novo Usuário
+          {t("admin.newUser")}
         </Button>
       </div>
 
@@ -138,16 +140,16 @@ export default function AdminUsersPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="w-12 h-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum usuário encontrado</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t("admin.noUsersFound")}</h3>
               <p className="text-gray-600 text-center">
-                Comece criando o primeiro usuário do sistema.
+                {t("admin.createFirstUserDescription")}
               </p>
               <Button 
                 className="mt-4 bg-spark-600 hover:bg-spark-700"
                 onClick={() => setLocation('/admin/users/new')}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Criar Primeiro Usuário
+                {t("admin.createFirstUser")}
               </Button>
             </CardContent>
           </Card>
@@ -158,7 +160,7 @@ export default function AdminUsersPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Usuários ({users.length})
+                  {t("admin.usersCount", { count: users.length })}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -166,12 +168,12 @@ export default function AdminUsersPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Nome</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Email</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Telefone</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">{t("common.name")}</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">{t("common.email")}</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">{t("common.phone")}</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900">Role</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-900">Ações</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">{t("common.status")}</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-900">{t("common.actions")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -195,48 +197,48 @@ export default function AdminUsersPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
-                                    "Tornar Administrador",
-                                    `Tem certeza que deseja tornar ${user.fullName} um administrador?`,
+                                    t("buttons.makeAdmin"),
+                                    t("admin.confirmMakeAdmin", { name: user.fullName }),
                                     () => updateRoleMutation.mutate({ userId: user.id, role: 'admin' })
                                   )}
                                   disabled={user.role === 'admin'}
                                 >
                                   <UserCheck className="w-4 h-4 mr-2" />
-                                  Tornar Admin
+                                  {t("admin.makeAdmin")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
-                                    "Tornar Financeira",
-                                    `Tem certeza que deseja tornar ${user.fullName} uma financeira?`,
+                                    t("buttons.makeFinanceira"),
+                                    t("admin.confirmMakeFinanceira", { name: user.fullName }),
                                     () => updateRoleMutation.mutate({ userId: user.id, role: 'financeira' })
                                   )}
                                   disabled={user.role === 'financeira'}
                                 >
                                   <UserCheck className="w-4 h-4 mr-2" />
-                                  Tornar Financeira
+                                  {t("admin.makeFinanceira")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
-                                    "Tornar Importador",
-                                    `Tem certeza que deseja tornar ${user.fullName} um importador?`,
+                                    t("buttons.makeImporter"),
+                                    t("admin.confirmMakeImporter", { name: user.fullName }),
                                     () => updateRoleMutation.mutate({ userId: user.id, role: 'importer' })
                                   )}
                                   disabled={user.role === 'importer'}
                                 >
                                   <UserCheck className="w-4 h-4 mr-2" />
-                                  Tornar Importador
+                                  {t("admin.makeImporter")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleConfirmAction(
-                                    "Desativar Usuário",
-                                    `Tem certeza que deseja desativar ${user.fullName}?`,
+                                    t("admin.deactivateUser"),
+                                    t("admin.confirmDeactivateUser", { name: user.fullName }),
                                     () => deactivateUserMutation.mutate(user.id)
                                   )}
                                   disabled={user.status === 'inactive'}
                                   className="text-red-600"
                                 >
                                   <UserX className="w-4 h-4 mr-2" />
-                                  Desativar
+                                  {t("admin.deactivate")}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -268,58 +270,58 @@ export default function AdminUsersPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             onClick={() => handleConfirmAction(
-                              "Tornar Administrador",
-                              `Tem certeza que deseja tornar ${user.fullName} um administrador?`,
+                              t("buttons.makeAdmin"),
+                              t("admin.confirmMakeAdmin", { name: user.fullName }),
                               () => updateRoleMutation.mutate({ userId: user.id, role: 'admin' })
                             )}
                             disabled={user.role === 'admin'}
                           >
                             <UserCheck className="w-4 h-4 mr-2" />
-                            Tornar Admin
+                            {t("admin.makeAdmin")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleConfirmAction(
-                              "Tornar Financeira",
-                              `Tem certeza que deseja tornar ${user.fullName} uma financeira?`,
+                              t("buttons.makeFinanceira"),
+                              t("admin.confirmMakeFinanceira", { name: user.fullName }),
                               () => updateRoleMutation.mutate({ userId: user.id, role: 'financeira' })
                             )}
                             disabled={user.role === 'financeira'}
                           >
                             <UserCheck className="w-4 h-4 mr-2" />
-                            Tornar Financeira
+                            {t("admin.makeFinanceira")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleConfirmAction(
-                              "Tornar Importador",
-                              `Tem certeza que deseja tornar ${user.fullName} um importador?`,
+                              t("buttons.makeImporter"),
+                              t("admin.confirmMakeImporter", { name: user.fullName }),
                               () => updateRoleMutation.mutate({ userId: user.id, role: 'importer' })
                             )}
                             disabled={user.role === 'importer'}
                           >
                             <UserCheck className="w-4 h-4 mr-2" />
-                            Tornar Importador
+                            {t("admin.makeImporter")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleConfirmAction(
-                              "Desativar Usuário",
-                              `Tem certeza que deseja desativar ${user.fullName}?`,
+                              t("admin.deactivateUser"),
+                              t("admin.confirmDeactivateUser", { name: user.fullName }),
                               () => deactivateUserMutation.mutate(user.id)
                             )}
                             disabled={user.status === 'inactive'}
                             className="text-red-600"
                           >
                             <UserX className="w-4 h-4 mr-2" />
-                            Desativar
+                            {t("admin.deactivate")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                     <div className="space-y-2 text-sm">
-                      <div><span className="font-medium">Email:</span> {user.email}</div>
-                      <div><span className="font-medium">Telefone:</span> {formatPhone(user.phone)}</div>
+                      <div><span className="font-medium">{t("common.email")}:</span> {user.email}</div>
+                      <div><span className="font-medium">{t("common.phone")}:</span> {formatPhone(user.phone)}</div>
                       <div className="flex items-center justify-between">
                         <div><span className="font-medium">Role:</span> {getRoleBadge(user.role)}</div>
-                        <div><span className="font-medium">Status:</span> {getStatusBadge(user.status)}</div>
+                        <div><span className="font-medium">{t("common.status")}:</span> {getStatusBadge(user.status)}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -341,7 +343,7 @@ export default function AdminUsersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setConfirmDialog({...confirmDialog, open: false})}>
-              Cancelar
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
@@ -349,7 +351,7 @@ export default function AdminUsersPage() {
                 setConfirmDialog({...confirmDialog, open: false});
               }}
             >
-              Confirmar
+              {t("common.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

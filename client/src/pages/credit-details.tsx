@@ -125,20 +125,11 @@ export default function CreditDetailsPage() {
   const { data: application, isLoading } = useQuery({
     queryKey: ["/api/credit/applications", applicationId],
     queryFn: async () => {
-      console.log("Debug - User permissions:", {
-        isFinanceira: permissions.isFinanceira,
-        isAdmin: permissions.isAdmin,
-        userRole: user?.role
-      });
-
       if (permissions.isFinanceira) {
-        console.log("Using Financeira endpoint");
         return await apiRequest(`/api/financeira/credit-applications/${applicationId}`, "GET");
       } else if (permissions.isAdmin) {
-        console.log("Using Admin endpoint");
         return await apiRequest(`/api/admin/credit-applications/${applicationId}`, "GET");
       } else {
-        console.log("Using regular endpoint");
         return await apiRequest(`/api/credit/applications/${applicationId}`, "GET");
       }
     },
@@ -219,14 +210,14 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-applications', applicationId] });
       setIsEditingCredit(false);
       toast({
-        title: "Dados atualizados",
-        description: "Os dados de crédito foram atualizados com sucesso.",
+        title: t("credit.dataUpdated"),
+        description: t("credit.creditDataUpdatedSuccess"),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro na atualização",
-        description: error.message || "Falha ao atualizar os dados.",
+        title: t("credit.updateError"),
+        description: error.message || t("credit.failedToUpdateData"),
         variant: "destructive",
       });
     },
@@ -247,7 +238,7 @@ export default function CreditDetailsPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Falha ao remover documento');
+        throw new Error(errorData.message || t("credit.failedToRemoveDocument"));
       }
 
       return response.json();
@@ -258,30 +249,27 @@ export default function CreditDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-applications", applicationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/financeira/credit-applications", applicationId] });
       toast({
-        title: "Documento removido",
-        description: "Documento removido com sucesso.",
+        title: t("credit.documentRemoved"),
+        description: t("credit.documentRemovedSuccess"),
       });
     },
     onError: (error: any) => {
       console.error("Delete error:", error);
       toast({
-        title: "Erro ao remover documento",
-        description: error.message || "Tente novamente mais tarde.",
+        title: t("credit.errorRemovingDocument"),
+        description: error.message || t("credit.tryAgainLater"),
         variant: "destructive",
       });
     },
   });
 
   const handleDocumentRemove = (documentId: string, index?: number) => {
-    console.log(`Attempting to remove document: ${documentId} with index: ${index}`);
     
     // Se o documentId já contém o formato composto (documentKey_filename), usar diretamente
     if (documentId.includes('_') && typeof index === 'number') {
-      console.log(`Removing specific document from array: ${documentId}`);
       deleteDocumentMutation.mutate({ documentId });
     } else {
       // Para documento único ou quando não há índice específico
-      console.log(`Removing document: ${documentId}`);
       deleteDocumentMutation.mutate({ documentId });
     }
   };
@@ -318,7 +306,6 @@ export default function CreditDetailsPage() {
       const response = await apiRequest(`/api/credit/applications/${applicationId}/credit-score`, 'GET');
       setCreditScore(response);
     } catch (error) {
-      console.log('No existing credit score found');
       setCreditScore(null);
     }
   };
@@ -331,14 +318,14 @@ export default function CreditDetailsPage() {
       const response = await apiRequest(`/api/credit/applications/${applicationId}/credit-score`, 'POST');
       setCreditScore(response);
       toast({
-        title: "Análise atualizada",
-        description: "Credit Score atualizado com sucesso",
+        title: t("credit.analysisUpdated"),
+        description: t("credit.creditScoreUpdatedSuccess"),
       });
     } catch (error: any) {
       console.error('Credit Score API error:', error);
       toast({
-        title: "Erro na consulta",
-        description: error.message || "Não foi possível atualizar o Credit Score",
+        title: t("credit.queryError"),
+        description: error.message || t("credit.couldNotUpdateCreditScore"),
         variant: "destructive",
       });
     } finally {
@@ -372,16 +359,16 @@ export default function CreditDetailsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       toast({
-        title: "Sucesso!",
-        description: "Solicitação de crédito cancelada com sucesso.",
+        title: t("common.success"),
+        description: t("credit.applicationCancelledSuccess"),
       });
       // Navigate back to credit applications list
       setLocation('/credit');
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível cancelar a solicitação. Tente novamente.",
+        title: t("common.error"),
+        description: t("credit.couldNotCancelApplication"),
         variant: "destructive",
       });
     },
@@ -396,32 +383,32 @@ export default function CreditDetailsPage() {
       pre_analysis: { 
         variant: "secondary" as const, 
         icon: Clock, 
-        label: "Pré-Análise" 
+        label: t("credit.preAnalysis") 
       },
       pre_approved: { 
         variant: "default" as const, 
         icon: CheckCircle, 
-        label: "Pré-Aprovado" 
+        label: t("status.preApproved") 
       },
       final_analysis: { 
         variant: "outline" as const, 
         icon: AlertTriangle, 
-        label: "Análise Final" 
+        label: t("credit.finalAnalysis") 
       },
       approved: { 
         variant: "default" as const, 
         icon: CheckCircle, 
-        label: "Aprovado" 
+        label: t("status.approved") 
       },
       rejected: { 
         variant: "destructive" as const, 
         icon: XCircle, 
-        label: "Rejeitado" 
+        label: t("status.rejected") 
       },
       cancelled: { 
         variant: "secondary" as const, 
         icon: XCircle, 
-        label: "Cancelado" 
+        label: t("status.cancelled") 
       }
     };
 
@@ -579,7 +566,7 @@ export default function CreditDetailsPage() {
             onClick={() => mounted && setLocation('/credit')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            {t("common.back")}
           </Button>
           
           {/* Edit Button - Moved to top, right after back button */}
@@ -591,16 +578,16 @@ export default function CreditDetailsPage() {
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Edit className="w-4 h-4" />
-              Editar Solicitação
+              {t("credit.editApplication")}
             </Button>
           )}
         </div>
         
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">
-            Solicitação de Crédito #{application.id}
+            {t("credit.applicationTitle", { id: application.id })}
           </h1>
-          <p className="text-gray-600">Detalhes da solicitação de crédito</p>
+          <p className="text-gray-600">{t("credit.applicationDetails")}</p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -616,18 +603,18 @@ export default function CreditDetailsPage() {
                   className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Cancelar</span>
+                  <span className="hidden sm:inline">{t("common.cancel")}</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
+                    <AlertDialogTitle>{t("credit.confirmCancellation")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Tem certeza que deseja cancelar esta solicitação de crédito? Esta ação não pode ser desfeita.
+                      {t("credit.confirmCancellationMessage")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => {
                         // Cancel application logic here
@@ -635,7 +622,7 @@ export default function CreditDetailsPage() {
                       }}
                       className="bg-red-600 hover:bg-red-700"
                     >
-                      Confirmar Cancelamento
+                      {t("credit.confirmCancellation")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -652,18 +639,18 @@ export default function CreditDetailsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="w-5 h-5" />
-                Informações da Empresa
+{t("credit.companyInformation")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-600">Razão Social</Label>
+                  <Label className="text-sm font-medium text-gray-600">{t("credit.legalCompanyName")}</Label>
                   <p className="text-gray-900">{application.legalCompanyName}</p>
                 </div>
                 {application.tradingName && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Nome Fantasia</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t("credit.tradingName")}</Label>
                     <p className="text-gray-900">{application.tradingName}</p>
                   </div>
                 )}

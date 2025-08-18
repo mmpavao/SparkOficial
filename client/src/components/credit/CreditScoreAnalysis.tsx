@@ -49,7 +49,6 @@ export default function CreditScoreAnalysis({ application }: CreditScoreAnalysis
         }
       } catch (error) {
         // No existing score, that's ok
-        console.log('No existing credit score found');
       }
     };
     

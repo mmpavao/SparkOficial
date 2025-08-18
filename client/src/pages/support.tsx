@@ -20,6 +20,7 @@ import {
   AlertCircle,
   ArrowRight
 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface SupportTicket {
   id: number;
@@ -44,6 +45,7 @@ interface SupportMessage {
 }
 
 export default function SupportPage() {
+  const { t } = useTranslation();
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [newTicket, setNewTicket] = useState({
     title: '',
@@ -77,14 +79,14 @@ export default function SupportPage() {
       setIsCreatingTicket(false);
       setNewTicket({ title: '', description: '', priority: 'medium' });
       toast({
-        title: "Sucesso",
-        description: "Ticket criado com sucesso",
+        title: t("common.success"),
+        description: t("support.ticketCreatedSuccess"),
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao criar ticket",
+        title: t("common.error"),
+        description: t("support.ticketCreationError"),
         variant: "destructive",
       });
     },
@@ -93,8 +95,8 @@ export default function SupportPage() {
   const handleCreateTicket = () => {
     if (!newTicket.title.trim() || !newTicket.description.trim()) {
       toast({
-        title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
+        title: t("common.error"),
+        description: t("validation.fillRequiredFields"),
         variant: "destructive",
       });
       return;
@@ -104,10 +106,10 @@ export default function SupportPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      open: { variant: "secondary", icon: Clock, label: "Aberto" },
-      in_progress: { variant: "default", icon: ArrowRight, label: "Em Andamento" },
-      resolved: { variant: "success", icon: CheckCircle, label: "Resolvido" },
-      closed: { variant: "outline", icon: CheckCircle, label: "Fechado" }
+      open: { variant: "secondary", icon: Clock, label: t("status.open") },
+      in_progress: { variant: "default", icon: ArrowRight, label: t("status.inProgress") },
+      resolved: { variant: "success", icon: CheckCircle, label: t("status.resolved") },
+      closed: { variant: "outline", icon: CheckCircle, label: t("status.closed") }
     } as const;
 
     const config = statusConfig[status as keyof typeof statusConfig];
@@ -124,9 +126,9 @@ export default function SupportPage() {
 
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = {
-      low: { variant: "secondary", label: "Baixa" },
-      medium: { variant: "default", label: "Média" },
-      high: { variant: "destructive", label: "Alta" }
+      low: { variant: "secondary", label: t("priority.low") },
+      medium: { variant: "default", label: t("priority.medium") },
+      high: { variant: "destructive", label: t("priority.high") }
     } as const;
 
     const config = priorityConfig[priority as keyof typeof priorityConfig];
@@ -153,16 +155,16 @@ export default function SupportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Central de Suporte
+            {t("support.title")}
           </h1>
-          <p className="text-gray-600">Abra tickets para se comunicar com nossa equipe</p>
+          <p className="text-gray-600">{t("support.subtitle")}</p>
         </div>
         <Button 
           onClick={() => setIsCreatingTicket(true)}
           className="flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Novo Ticket
+          {t("support.newTicket")}
         </Button>
       </div>
 
@@ -172,23 +174,23 @@ export default function SupportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Criar Novo Ticket
+              {t("support.createNewTicket")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title">Título do Ticket</Label>
+              <Label htmlFor="title">{t("support.ticketTitle")}</Label>
               <Input
                 id="title"
                 value={newTicket.title}
                 onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                placeholder="Descreva resumidamente o problema"
+                placeholder={t("placeholders.describeProblemBriefly")}
                 className="mt-1"
               />
             </div>
             
             <div>
-              <Label htmlFor="priority">Prioridade</Label>
+              <Label htmlFor="priority">{t("common.priority")}</Label>
               <Select 
                 value={newTicket.priority} 
                 onValueChange={(value) => setNewTicket({ ...newTicket, priority: value as any })}
@@ -197,20 +199,20 @@ export default function SupportPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="low">{t("priority.low")}</SelectItem>
+                  <SelectItem value="medium">{t("priority.medium")}</SelectItem>
+                  <SelectItem value="high">{t("priority.high")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="description">Descrição Detalhada</Label>
+              <Label htmlFor="description">{t("support.detailedDescription")}</Label>
               <Textarea
                 id="description"
                 value={newTicket.description}
                 onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                placeholder="Descreva detalhadamente o problema ou solicitação"
+                placeholder={t("placeholders.describeDetailedProblem")}
                 className="mt-1"
                 rows={4}
               />
@@ -223,13 +225,13 @@ export default function SupportPage() {
                 className="flex items-center gap-2"
               >
                 <Send className="w-4 h-4" />
-                Criar Ticket
+                {t("support.createTicket")}
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => setIsCreatingTicket(false)}
               >
-                Cancelar
+                {t("common.cancel")}
               </Button>
             </div>
           </CardContent>
@@ -238,16 +240,16 @@ export default function SupportPage() {
 
       {/* Tickets List */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Meus Tickets</h2>
+        <h2 className="text-lg font-semibold">{t("support.myTickets")}</h2>
         
         {tickets.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
               <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum ticket encontrado</h3>
-              <p className="text-gray-500 mb-4">Você ainda não criou nenhum ticket de suporte.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t("support.noTicketsFound")}</h3>
+              <p className="text-gray-500 mb-4">{t("support.noTicketsCreated")}</p>
               <Button onClick={() => setIsCreatingTicket(true)}>
-                Criar Primeiro Ticket
+                {t("support.createFirstTicket")}
               </Button>
             </CardContent>
           </Card>
@@ -267,8 +269,8 @@ export default function SupportPage() {
                         {ticket.description}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>Criado: {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}</span>
-                        <span>Atualizado: {new Date(ticket.updatedAt).toLocaleDateString('pt-BR')}</span>
+                        <span>{t("common.created")}: {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span>{t("common.updated")}: {new Date(ticket.updatedAt).toLocaleDateString('pt-BR')}</span>
                       </div>
                     </div>
                     <Button 
@@ -276,7 +278,7 @@ export default function SupportPage() {
                       size="sm"
                       onClick={() => setLocation(`/support/ticket/${ticket.id}`)}
                     >
-                      Ver Detalhes
+                      {t("common.viewDetails")}
                     </Button>
                   </div>
                 </CardContent>

@@ -12,51 +12,53 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Building2, MapPin, Phone, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Schema simplificado para fornecedor chinês
-const supplierSchema = z.object({
-  companyName: z.string().min(2, "Nome da empresa é obrigatório"),
-  contactName: z.string().min(2, "Nome do contato é obrigatório"),
-  email: z.string().email("Email inválido"),
-  phone: z.string().min(10, "Telefone é obrigatório"),
-  address: z.string().min(5, "Endereço é obrigatório"),
-  city: z.string().min(2, "Cidade é obrigatória"),
-  province: z.string().min(2, "Província é obrigatória"),
-  productCategories: z.array(z.string()).min(1, "Selecione pelo menos uma categoria"),
+const supplierSchema = (t: any) => z.object({
+  companyName: z.string().min(2, t("suppliers.validation.companyNameRequired")),
+  contactName: z.string().min(2, t("suppliers.validation.contactNameRequired")),
+  email: z.string().email(t("suppliers.validation.invalidEmail")),
+  phone: z.string().min(10, t("suppliers.validation.phoneRequired")),
+  address: z.string().min(5, t("suppliers.validation.addressRequired")),
+  city: z.string().min(2, t("suppliers.validation.cityRequired")),
+  province: z.string().min(2, t("suppliers.validation.provinceRequired")),
+  productCategories: z.array(z.string()).min(1, t("suppliers.validation.selectCategory")),
   specialization: z.string().optional(),
   minimumOrderValue: z.string().optional(),
   leadTime: z.string().optional(),
   notes: z.string().optional(),
 });
 
-type SupplierFormData = z.infer<typeof supplierSchema>;
+type SupplierFormData = z.infer<ReturnType<typeof supplierSchema>>;
 
 // Categorias de produtos comuns na China
-const productCategories = [
-  "Eletrônicos",
-  "Têxtil e Vestuário",
-  "Móveis e Decoração",
-  "Brinquedos",
-  "Automobilístico",
-  "Maquinário",
-  "Materiais de Construção",
-  "Produtos Químicos",
-  "Plásticos",
-  "Metal e Aço",
-  "Embalagens",
-  "Produtos de Beleza",
-  "Artigos Esportivos",
-  "Instrumentos Médicos",
-  "Outros"
+const getProductCategories = (t: any) => [
+  t("suppliers.categories.electronics"),
+  t("suppliers.categories.textileClothing"),
+  t("suppliers.categories.furnitureDecoration"),
+  t("suppliers.categories.toys"),
+  t("suppliers.categories.automotive"),
+  t("suppliers.categories.machinery"),
+  t("suppliers.categories.constructionMaterials"),
+  t("suppliers.categories.chemicals"),
+  t("suppliers.categories.plastics"),
+  t("suppliers.categories.metalSteel"),
+  t("suppliers.categories.packaging"),
+  t("suppliers.categories.beautyProducts"),
+  t("suppliers.categories.sportsGoods"),
+  t("suppliers.categories.medicalInstruments"),
+  t("suppliers.categories.others")
 ];
 
 export default function SupplierNew() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const form = useForm<SupplierFormData>({
-    resolver: zodResolver(supplierSchema),
+    resolver: zodResolver(supplierSchema(t)),
     defaultValues: {
       companyName: "",
       contactName: "",
@@ -75,7 +77,6 @@ export default function SupplierNew() {
 
   const createSupplierMutation = useMutation({
     mutationFn: async (data: SupplierFormData) => {
-      console.log("Creating supplier with data:", data);
       
       const apiData = {
         companyName: data.companyName,
@@ -107,8 +108,8 @@ export default function SupplierNew() {
     },
     onSuccess: () => {
       toast({
-        title: "Fornecedor criado!",
-        description: "O novo fornecedor foi cadastrado com sucesso.",
+        title: t("suppliers.supplierCreated"),
+        description: t("suppliers.supplierCreatedSuccess"),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
       setLocation('/suppliers');
@@ -116,15 +117,14 @@ export default function SupplierNew() {
     onError: (error: any) => {
       console.error("Error creating supplier:", error);
       toast({
-        title: "Erro ao criar fornecedor",
-        description: error.message || "Erro desconhecido",
+        title: t("suppliers.errorCreatingSupplier"),
+        description: error.message || t("suppliers.unknownError"),
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: SupplierFormData) => {
-    console.log("Form submitted:", data);
     createSupplierMutation.mutate(data);
   };
 
@@ -135,6 +135,8 @@ export default function SupplierNew() {
       : [...current, category];
     form.setValue("productCategories", updated);
   };
+
+  const productCategories = getProductCategories(t);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -147,11 +149,11 @@ export default function SupplierNew() {
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Voltar
+          {t("common.back")}
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Novo Fornecedor</h1>
-          <p className="text-muted-foreground">Cadastre um novo fornecedor chinês</p>
+          <h1 className="text-2xl font-bold">{t("suppliers.newSupplier")}</h1>
+          <p className="text-muted-foreground">{t("suppliers.registerNewChineseSupplier")}</p>
         </div>
       </div>
 

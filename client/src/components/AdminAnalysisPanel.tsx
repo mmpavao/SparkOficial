@@ -79,8 +79,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
     enabled: !!application.userId && permissions.isFinanceira
   });
 
-  console.log("👤 User Financial Settings for Application:", userSettings);
-  console.log("📝 Application Data:", { userId: application.userId, creditLimit: application.creditLimit });
 
   const [analysisData, setAnalysisData] = useState({
     status: application.preAnalysisStatus || "pending",
@@ -517,7 +515,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   variant="outline"
                   className="border-blue-300 text-blue-700 hover:bg-blue-50 w-full"
                   onClick={() => {
-                    console.log("Editar Termos clicked for application", application.id);
                     // TODO: Implement terms editing functionality
                   }}
                 >
@@ -528,7 +525,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                   variant="outline"
                   className="border-red-300 text-red-700 hover:bg-red-50 w-full"
                   onClick={() => {
-                    console.log("Bloquear Crédito clicked for application", application.id);
                     // TODO: Implement credit blocking functionality
                   }}
                 >
@@ -699,14 +695,6 @@ export default function AdminAnalysisPanel({ application }: AdminAnalysisPanelPr
                    application.status !== 'submitted_to_financial' && 
                    application.status !== 'approved' && 
                    application.status !== 'admin_finalized';
-                  
-                  console.log('🔍 SUBMIT BUTTON DEBUG:', {
-                    status: application.status,
-                    preAnalysisStatus: application.preAnalysisStatus,
-                    financialStatus: application.financialStatus,
-                    adminStatus: application.adminStatus,
-                    shouldShow: shouldShowSubmitButton
-                  });
                   
                   return shouldShowSubmitButton;
                 })() && (

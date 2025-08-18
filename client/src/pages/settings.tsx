@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import LanguageSelector from "@/components/ui/language-selector";
+import ClientLanguageSelector from "@/components/ui/ClientLanguageSelector";
 import { 
   User, 
   Building, 
@@ -348,7 +348,7 @@ export default function SettingsPage() {
               <div>
                 <Label className="text-base font-medium">Idioma</Label>
                 <p className="text-sm text-gray-500 mb-3">Selecione seu idioma preferido</p>
-                <LanguageSelector />
+                <ClientLanguageSelector />
               </div>
 
               <Separator />

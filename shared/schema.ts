@@ -82,10 +82,10 @@ export const insertUserSchema = z.object({
       const secondDigit = remainder < 2 ? 0 : 11 - remainder;
 
       return parseInt(cleanCnpj[13]) === secondDigit;
-    }, { message: "CNPJ inválido" }),
-  fullName: z.string().min(1, "Nome completo é obrigatório"),
-  phone: z.string().min(1, "Telefone é obrigatório"),
-  email: z.string().email("Email inválido"),
+    }, { message: "validation.cnpjInvalid" }),
+  fullName: z.string().min(1, { message: "validation.fullNameRequired" }),
+  phone: z.string().min(1, { message: "validation.phoneRequired" }),
+  email: z.string().email({ message: "validation.emailInvalid" }),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string(),
   acceptTerms: z.boolean().refine((val) => val === true, {
@@ -437,17 +437,17 @@ export const imports = pgTable("imports", {
 
 // Validation schemas for multi-step credit application
 export const companyInfoSchema = z.object({
-  legalCompanyName: z.string().min(2, "Razão social é obrigatória"),
+  legalCompanyName: z.string().min(2, { message: "validation.businessNameRequired" }),
   tradingName: z.string().optional(),
-  cnpj: z.string().min(14, "CNPJ inválido"),
+  cnpj: z.string().min(14, { message: "validation.cnpjInvalid" }),
   stateRegistration: z.string().optional(),
   municipalRegistration: z.string().optional(),
-  address: z.string().min(5, "Endereço é obrigatório"),
-  city: z.string().min(2, "Cidade é obrigatória"),
-  state: z.string().min(2, "Estado é obrigatório"),
-  zipCode: z.string().min(8, "CEP inválido"),
-  phone: z.string().min(10, "Telefone é obrigatório"),
-  email: z.string().email("Email inválido"),
+  address: z.string().min(5, { message: "validation.addressRequired" }),
+  city: z.string().min(2, { message: "validation.cityRequired" }),
+  state: z.string().min(2, { message: "validation.stateRequired" }),
+  zipCode: z.string().min(8, { message: "validation.zipCodeInvalid" }),
+  phone: z.string().min(10, { message: "validation.phoneRequired" }),
+  email: z.string().email({ message: "validation.emailInvalid" }),
   website: z.string().optional().refine((val) => {
     if (!val) return true; // Campo opcional
     // Importar a função de validação no frontend
@@ -462,30 +462,30 @@ export const companyInfoSchema = z.object({
     } catch {
       return false;
     }
-  }, "Website deve ser uma URL válida"),
+  }, { message: "validation.websiteInvalid" }),
   shareholders: z.array(z.object({
-    name: z.string().min(2, "Nome do sócio é obrigatório"),
-    cpf: z.string().min(11, "CPF inválido"),
-    percentage: z.number().min(0).max(100, "Percentual deve estar entre 0 e 100"),
-  })).min(1, "Pelo menos um sócio é obrigatório"),
+    name: z.string().min(2, { message: "validation.shareholderNameRequired" }),
+    cpf: z.string().min(11, { message: "validation.cpfInvalid" }),
+    percentage: z.number().min(0).max(100, { message: "validation.percentageRange" }),
+  })).min(1, { message: "validation.shareholderRequired" }),
 });
 
 export const commercialInfoSchema = z.object({
-  businessSector: z.string().min(1, "Setor de atuação é obrigatório"),
-  annualRevenue: z.string().min(1, "Faturamento anual é obrigatório"),
-  mainImportedProducts: z.string().min(10, "Descrição dos produtos importados é obrigatória"),
-  mainOriginMarkets: z.string().min(5, "Principais mercados de origem são obrigatórios"),
+  businessSector: z.string().min(1, { message: "validation.businessSectorRequired" }),
+  annualRevenue: z.string().min(1, { message: "validation.annualRevenueRequired" }),
+  mainImportedProducts: z.string().min(10, { message: "validation.importedProductsRequired" }),
+  mainOriginMarkets: z.string().min(5, { message: "validation.originMarketsRequired" }),
 });
 
 export const creditInfoSchema = z.object({
   requestedAmount: z.string()
     .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
-    .refine((val) => val >= 100000, { message: "Valor mínimo é USD $100.000" })
-    .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
+    .refine((val) => val >= 100000, { message: "validation.minAmount" })
+    .refine((val) => val <= 1000000, { message: "validation.maxAmount" })
     .transform((val) => val.toString()),
-  productsToImport: z.array(z.string()).min(1, "Adicione pelo menos um produto"),
-  monthlyImportVolume: z.string().min(1, "Volume mensal é obrigatório"),
-  justification: z.string().min(20, "Justificativa deve ter pelo menos 20 caracteres"),
+  productsToImport: z.array(z.string()).min(1, { message: "validation.productsRequired" }),
+  monthlyImportVolume: z.string().min(1, { message: "validation.monthlyVolumeRequired" }),
+  justification: z.string().min(20, { message: "validation.justificationMinLength" }),
 });
 
 export const documentsSchema = z.object({

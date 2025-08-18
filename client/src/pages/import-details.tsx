@@ -58,13 +58,6 @@ export default function ImportDetailsPage() {
         throw new Error('Import not found');
       }
       const data = await response.json();
-      console.log('📋 Import data received:', {
-        origin: data.origin,
-        destination: data.destination,
-        estimatedDelivery: data.estimatedDelivery,
-        estimatedArrival: data.estimatedArrival,
-        fullData: data
-      });
       return data;
     },
   });

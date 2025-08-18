@@ -27,11 +27,9 @@ import { formatUSDInput, parseUSDInput, validateUSDRange } from "@/lib/currency"
 import { normalizeUrl, isValidUrl } from "@/lib/url";
 import PreparationGuideModal from "@/components/credit/PreparationGuideModal";
 import { 
-  companyInfoSchema, 
-  commercialInfoSchema, 
-  creditInfoSchema,
   type InsertCreditApplication 
 } from "@shared/schema";
+import { createTranslatedSchemas } from "@/lib/zodTranslations";
 import { 
   Building,
   User,
@@ -282,6 +280,9 @@ export default function CreditApplicationPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
+  // Get translated schemas
+  const { companyInfoSchema, commercialInfoSchema, creditInfoSchema } = createTranslatedSchemas(t);
+
   // Redirect if not authenticated
   if (!isLoading && !isAuthenticated) {
     window.location.href = '/';
@@ -357,7 +358,6 @@ export default function CreditApplicationPage() {
     try {
       const data = await apiRequest('/api/credit/applications/temp', 'POST', {});
       setTempApplicationId(data.applicationId);
-      console.log('✅ Temporary application created:', data.applicationId);
       return data.applicationId;
     } catch (error) {
       console.error('Error creating temp application:', error);
@@ -499,7 +499,6 @@ export default function CreditApplicationPage() {
 
         apiRequest(`/api/credit/applications/${appId}/documents-batch`, 'POST', documentData)
           .then(() => {
-            console.log('✅ Document saved immediately for key:', documentKey);
             toast({
               title: "Documento salvo!",
               description: `${file.name} foi salvo com sucesso.`,
@@ -632,7 +631,6 @@ export default function CreditApplicationPage() {
   const submitApplication = async () => {
     // Enhanced protection against multiple submissions
     if (isSubmitting || submitInProgress || submissionCompleted) {
-      console.log('Submission blocked - already in progress or completed');
       return;
     }
 
@@ -643,7 +641,6 @@ export default function CreditApplicationPage() {
     // Add a longer timestamp check to prevent rapid resubmissions
     const now = Date.now();
     if ((window as any).lastSubmissionTime && (now - (window as any).lastSubmissionTime) < 30000) {
-      console.log('Submission blocked - too recent (30s cooldown)');
       setIsSubmitting(false);
       setSubmitInProgress(false);
       return;
@@ -711,12 +708,6 @@ export default function CreditApplicationPage() {
       }
 
       // Debug: Log document preparation
-      console.log('🔍 FRONTEND DEBUG - Documents prepared for submission:');
-      console.log('uploadedDocuments keys:', Object.keys(uploadedDocuments));
-      console.log('documentsForSubmission keys:', Object.keys(documentsForSubmission));
-      console.log('requiredDocuments keys:', Object.keys(requiredDocuments));
-      console.log('optionalDocuments keys:', Object.keys(optionalDocuments));
-      console.log('mandatoryDocKeys:', mandatoryDocKeys);
 
       // Create application data with embedded documents
       const applicationData = {
@@ -730,20 +721,13 @@ export default function CreditApplicationPage() {
         optionalDocuments: optionalDocuments
       };
 
-      console.log('🚀 FRONTEND DEBUG - Final applicationData structure:');
-      console.log('Has requiredDocuments:', !!applicationData.requiredDocuments);
-      console.log('Has optionalDocuments:', !!applicationData.optionalDocuments);
-      console.log('RequiredDocuments count:', Object.keys(applicationData.requiredDocuments || {}).length);
-      console.log('OptionalDocuments count:', Object.keys(applicationData.optionalDocuments || {}).length);
 
       // Submit application using temporary application if it exists
-      console.log('📤 FRONTEND DEBUG - Sending application data...');
 
       let applicationId;
 
       if (tempApplicationId) {
         // Update existing temporary application to final status
-        console.log('📝 Updating temporary application:', tempApplicationId);
 
         const updateData = {
           ...applicationData,
@@ -758,7 +742,6 @@ export default function CreditApplicationPage() {
 
         await apiRequest(`/api/credit/applications/${tempApplicationId}/finalize`, "PUT", updateData);
         applicationId = tempApplicationId;
-        console.log('✅ Temporary application finalized with ID:', applicationId);
       } else {
         // Create new application without documents
         const applicationWithoutDocs = { ...applicationData };
@@ -767,11 +750,9 @@ export default function CreditApplicationPage() {
 
         const response = await apiRequest("/api/credit/applications", "POST", applicationWithoutDocs);
         applicationId = response.id;
-        console.log('✅ New application created with ID:', applicationId);
 
         // Send documents separately if any exist
         if (Object.keys(requiredDocuments).length > 0 || Object.keys(optionalDocuments).length > 0) {
-          console.log('📎 Sending documents separately...');
 
           const documentPayload = {
             applicationId: applicationId,
@@ -780,7 +761,6 @@ export default function CreditApplicationPage() {
           };
 
           await apiRequest(`/api/credit/applications/${applicationId}/documents-batch`, "POST", documentPayload);
-          console.log('✅ Documents saved successfully');
         }
       }
 
@@ -974,7 +954,7 @@ export default function CreditApplicationPage() {
                     name="cnpj"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>CNPJ *</FormLabel>
+                        <FormLabel>{t('forms.cnpj')} *</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="00.000.000/0000-00"
@@ -1009,7 +989,7 @@ export default function CreditApplicationPage() {
                     name="municipalRegistration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Inscrição Municipal</FormLabel>
+                        <FormLabel>{t('forms.municipalRegistration')}</FormLabel>
                         <FormControl>
                           <Input placeholder="000000000" {...field} />
                         </FormControl>
@@ -1027,7 +1007,7 @@ export default function CreditApplicationPage() {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Endereço *</FormLabel>
+                          <FormLabel>{t('common.address')} *</FormLabel>
                           <FormControl>
                             <Input placeholder={t('placeholders.address')} {...field} />
                           </FormControl>
@@ -1042,7 +1022,7 @@ export default function CreditApplicationPage() {
                     name="zipCode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>CEP *</FormLabel>
+                        <FormLabel>{t('forms.zipCode')} *</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="00000-000"
@@ -1065,7 +1045,7 @@ export default function CreditApplicationPage() {
                     name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cidade *</FormLabel>
+                        <FormLabel>{t('forms.city')} *</FormLabel>
                         <FormControl>
                           <Input placeholder={t('placeholders.city')} {...field} />
                         </FormControl>
@@ -1079,7 +1059,7 @@ export default function CreditApplicationPage() {
                     name="state"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Estado *</FormLabel>
+                        <FormLabel>{t('forms.state')} *</FormLabel>
                         <FormControl>
                           <Input placeholder={t('placeholders.state')} {...field} />
                         </FormControl>
@@ -1096,7 +1076,7 @@ export default function CreditApplicationPage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone *</FormLabel>
+                        <FormLabel>{t('forms.phone')} *</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder={t('placeholders.phone')}
@@ -1117,7 +1097,7 @@ export default function CreditApplicationPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email *</FormLabel>
+                        <FormLabel>{t('forms.email')} *</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder={t('placeholders.email')} {...field} />
                         </FormControl>
@@ -1158,11 +1138,11 @@ export default function CreditApplicationPage() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                       <Users className="w-5 h-5 text-purple-600" />
-                      Estrutura Societária
+{t('forms.shareholderStructure')}
                     </h3>
                     <Button type="button" onClick={addShareholder} variant="outline" size="sm">
                       <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Sócio
+{t('forms.addPartner')}
                     </Button>
                   </div>
 
@@ -1173,7 +1153,7 @@ export default function CreditApplicationPage() {
                         name={`shareholders.${index}.name`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nome do Sócio *</FormLabel>
+                            <FormLabel>{t('forms.partnerName')} *</FormLabel>
                             <FormControl>
                               <Input placeholder={t('placeholders.fullNameComplete')} {...field} />
                             </FormControl>
@@ -1187,7 +1167,7 @@ export default function CreditApplicationPage() {
                         name={`shareholders.${index}.cpf`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>CPF *</FormLabel>
+                            <FormLabel>{t('forms.cpf')} *</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder={t('placeholders.cpf')}
@@ -1208,7 +1188,7 @@ export default function CreditApplicationPage() {
                         name={`shareholders.${index}.percentage`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Participação (%) *</FormLabel>
+                            <FormLabel>{t('forms.ownership')} *</FormLabel>
                             <FormControl>
                               <Input 
                                 type="number"
@@ -1243,9 +1223,9 @@ export default function CreditApplicationPage() {
 
                   {/* Percentage validation */}
                   <div className="text-sm text-gray-600">
-                    Total de participação: {
-                      companyForm.watch("shareholders").reduce((sum, s) => sum + (s.percentage || 0), 0)
-                    }% (deve somar 100%)
+{t('forms.totalOwnership', { 
+                      percentage: companyForm.watch("shareholders").reduce((sum, s) => sum + (s.percentage || 0), 0)
+                    })}
                   </div>
                 </div>
               </form>
@@ -1260,7 +1240,7 @@ export default function CreditApplicationPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-green-600" />
-              Informações Comerciais
+{t('credit.stepTitles.step2')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1272,7 +1252,7 @@ export default function CreditApplicationPage() {
                     name="businessSector"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Setor de Atuação *</FormLabel>
+                        <FormLabel>{t('forms.businessSector')} *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -1297,7 +1277,7 @@ export default function CreditApplicationPage() {
                     name="annualRevenue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Faturamento Anual *</FormLabel>
+                        <FormLabel>{t('forms.annualRevenue')} *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -1323,7 +1303,7 @@ export default function CreditApplicationPage() {
                   name="mainImportedProducts"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Principais Produtos Importados *</FormLabel>
+                      <FormLabel>{t('forms.mainImportedProducts')} *</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder={t('placeholders.mainProducts')}
@@ -1341,7 +1321,7 @@ export default function CreditApplicationPage() {
                   name="mainOriginMarkets"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Principais Mercados de Origem *</FormLabel>
+                      <FormLabel>{t('forms.mainOriginMarkets')} *</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder={t('placeholders.mainMarkets')}
@@ -1365,7 +1345,7 @@ export default function CreditApplicationPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-green-600" />
-              Dados do Crédito
+{t('credit.stepTitles.step3')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1384,7 +1364,7 @@ export default function CreditApplicationPage() {
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4 text-green-600" />
-                          Valor Solicitado (USD) *
+{t('forms.requestedAmount')} *
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
@@ -1416,10 +1396,10 @@ export default function CreditApplicationPage() {
                           </div>
                         </FormControl>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Valores aceitos: USD $100.000 a USD $1.000.000</span>
+                          <span className="text-gray-500">{t('forms.acceptedValues')}</span>
                           {field.value && currentValue > 0 && (
                             <span className={`font-medium ${isValid ? 'text-green-600' : 'text-red-600'}`}>
-                              {isValid ? '✓ Valor válido' : 'Valor fora da faixa permitida'}
+                              {isValid ? t('forms.validValue') : t('forms.valueOutOfRange')}
                             </span>
                           )}
                         </div>
@@ -1439,7 +1419,7 @@ export default function CreditApplicationPage() {
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-blue-600" />
-                        Produtos a Importar *
+{t('forms.productsToImport')} *
                       </FormLabel>
 
                       <div className="flex gap-2">
@@ -1456,7 +1436,7 @@ export default function CreditApplicationPage() {
                           disabled={!currentProduct.trim()}
                           className="bg-blue-600 hover:bg-blue-700"
                         >
-                          Adicionar
+{t('common.add')}
                         </Button>
                       </div>
 
@@ -1482,7 +1462,7 @@ export default function CreditApplicationPage() {
                       )}
 
                       {productTags.length === 0 && (
-                        <p className="text-sm text-gray-500">Adicione pelo menos um produto</p>
+                        <p className="text-sm text-gray-500">{t('forms.addAtLeastOneProduct')}</p>
                       )}
                       <FormMessage />
                     </FormItem>
@@ -1497,7 +1477,7 @@ export default function CreditApplicationPage() {
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-green-600" />
-                        Volume Mensal de Importação *
+{t('forms.monthlyImportVolume')} *
                       </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -1525,7 +1505,7 @@ export default function CreditApplicationPage() {
                   name="justification"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Motivo do Crédito *</FormLabel>
+                      <FormLabel>{t('forms.creditReason')} *</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder={t('placeholders.justificationCredit')}
@@ -1568,7 +1548,7 @@ export default function CreditApplicationPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="w-5 h-5 text-orange-600" />
-                Documentação
+{t('credit.stepTitles.step4')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1578,9 +1558,9 @@ export default function CreditApplicationPage() {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-amber-800">Documentação para Múltiplos Sócios</h4>
+                      <h4 className="font-medium text-amber-800">{t('forms.multipleShareholdersDocumentation')}</h4>
                       <p className="text-sm text-amber-700 mt-1">
-                        Detectamos {shareholders.length} sócios na empresa. Documentos específicos são necessários para cada sócio:
+{t('forms.shareholdersDetected', { count: shareholders.length })}
                       </p>
                       <ul className="text-sm text-amber-700 mt-2 space-y-1">
                         {shareholders.map((shareholder, index) => (
@@ -1599,20 +1579,23 @@ export default function CreditApplicationPage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-red-500" />
-                  <h3 className="text-lg font-semibold text-red-700">Documentos Obrigatórios</h3>
+                  <h3 className="text-lg font-semibold text-red-700">{t('documents.requiredDocuments')}</h3>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Para prosseguir com a solicitação, você deve anexar <strong>todos os documentos obrigatórios</strong>. Os demais podem ser enviados posteriormente:
+                  {t('documents.requiredDocumentsDescription')}
                 </p>
 
                 {/* Progress indicator */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-blue-800">
-                      Documentos Obrigatórios Anexados: {dynamicMandatoryDocuments.filter(doc => uploadedDocuments[doc.key]).length} / {dynamicMandatoryDocuments.length}
+                      {t('documents.attachedCount', { 
+                        count: dynamicMandatoryDocuments.filter(doc => uploadedDocuments[doc.key]).length,
+                        total: dynamicMandatoryDocuments.length 
+                      })}
                     </span>
                     <span className="text-xs text-blue-600">
-                      Mínimo: {minimumRequired} para enviar solicitação
+                      {t('documents.minimumRequired', { minimum: minimumRequired })}
                     </span>
                   </div>
                 </div>
@@ -1639,10 +1622,10 @@ export default function CreditApplicationPage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-blue-500" />
-                  <h3 className="text-lg font-semibold text-blue-700">Documentos Complementares</h3>
+                  <h3 className="text-lg font-semibold text-blue-700">{t('documents.complementaryDocuments')}</h3>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Estes documentos podem ser anexados agora ou posteriormente. Quanto mais documentos fornecidos, mais rápida será a análise:
+                  {t('documents.complementaryDocumentsDescription')}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1669,10 +1652,10 @@ export default function CreditApplicationPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Plus className="w-5 h-5 text-green-500" />
-                <h3 className="text-lg font-semibold text-green-700">Documentos Adicionais</h3>
+                <h3 className="text-lg font-semibold text-green-700">{t('documents.additionalDocuments')}</h3>
               </div>
               <p className="text-sm text-gray-600">
-                Tem algum documento específico que gostaria de anexar? Adicione documentos personalizados abaixo:
+                {t('documents.additionalDocumentsDescription')}
               </p>
 
               {/* Add Custom Document Input */}
@@ -1691,7 +1674,7 @@ export default function CreditApplicationPage() {
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     <Plus className="w-4 h-4 mr-1" />
-                    Adicionar
+{t('common.add')}
                   </Button>
                 </div>
               </div>
@@ -1699,7 +1682,7 @@ export default function CreditApplicationPage() {
               {/* List of Custom Documents */}
               {customDocuments.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-medium text-green-700">Seus Documentos Adicionais:</h4>
+                  <h4 className="font-medium text-green-700">{t('documents.yourAdditionalDocuments')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {customDocuments.map((customDoc) => (
                       <div key={customDoc.key} className="relative">
@@ -1758,7 +1741,7 @@ export default function CreditApplicationPage() {
           className="flex items-center gap-2"
         >
           <ChevronLeft className="w-4 h-4" />
-          Anterior
+{t('forms.previous')}
         </Button>
 
         {currentStep < 4 ? (
@@ -1766,7 +1749,7 @@ export default function CreditApplicationPage() {
             onClick={nextStep}
             className="bg-spark-600 hover:bg-spark-700 flex items-center gap-2"
           >
-            Próximo
+{t('forms.next')}
             <ChevronRight className="w-4 h-4" />
           </Button>
         ) : (
@@ -1778,17 +1761,17 @@ export default function CreditApplicationPage() {
             {isSubmitting || submitInProgress ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Enviando...
+{t('forms.sending')}
               </>
             ) : submissionCompleted ? (
               <>
                 <CheckCircle className="w-4 h-4" />
-                Enviado com Sucesso
+{t('forms.sentSuccessfully')}
               </>
             ) : (
               <>
                 <CheckCircle className="w-4 h-4" />
-                Enviar Solicitação
+{t('forms.submitApplication')}
               </>
             )}
           </Button>

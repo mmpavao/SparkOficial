@@ -12,10 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from 'react-i18next';
+import { useI18nToast } from "@/hooks/useI18nToast";
 import { insertUserSchema, loginSchema, type InsertUser, type LoginUser } from "@shared/schema";
 import { formatCnpj, validateCnpj } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
 import { Shield, Clock, TrendingUp } from "lucide-react";
+import ClientLanguageSelector from "@/components/ui/ClientLanguageSelector";
 
 import logo_spark_bco from "@assets/logo-spark-bco.jpg";
 import logo_spark_comex_green_bg from "@assets/logo spark comex green bg.png";
@@ -23,6 +25,7 @@ import logo_spark_fundo_color_ from "@assets/logo spark fundo color .png";
 
 export default function AuthPage() {
   const { t } = useTranslation();
+  const iToast = useI18nToast();
   const [isLogin, setIsLogin] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
@@ -81,17 +84,10 @@ export default function AuthPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Sucesso!",
-        description: "Login realizado com sucesso!",
-      });
+      iToast.common.loginSuccess();
     },
     onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Credenciais inválidas",
-        variant: "destructive",
-      });
+      iToast.common.loginError();
     },
   });
 
@@ -102,17 +98,10 @@ export default function AuthPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Sucesso!",
-        description: "Conta criada com sucesso!",
-      });
+      iToast.common.registerSuccess();
     },
     onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar conta",
-        variant: "destructive",
-      });
+      iToast.common.registerError();
     },
   });
 
@@ -123,11 +112,7 @@ export default function AuthPage() {
   const onRegisterSubmit = (data: InsertUser) => {
     // Validate CNPJ
     if (!validateCnpj(data.cnpj)) {
-      toast({
-        title: "Erro",
-        description: "CNPJ inválido",
-        variant: "destructive",
-      });
+      iToast.error('toast.error', 'validation.cnpjInvalid');
       return;
     }
 
@@ -135,7 +120,12 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex">
+    <div className="min-h-screen w-full flex relative">
+      {/* Language Selector - Top Right */}
+      <div className="absolute top-4 right-4 z-10">
+        <ClientLanguageSelector />
+      </div>
+      
       {/* Left Panel - Welcome Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#29bc86] text-white relative overflow-hidden">
         <div className="w-full flex flex-col justify-center items-center p-12 text-center">
@@ -192,11 +182,11 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{authTranslations.email}</FormLabel>
+                        <FormLabel>{t('common.email')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="email" 
-                            placeholder="seu@email.com" 
+                            placeholder={t('placeholders.email')} 
                             value={field.value || ""}
                             onChange={field.onChange}
                             onBlur={field.onBlur}
@@ -215,7 +205,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{authTranslations.password}</FormLabel>
+                        <FormLabel>{t('auth.password')}</FormLabel>
                         <FormControl>
                           <PasswordInput 
                             placeholder="••••••••" 
@@ -239,10 +229,10 @@ export default function AuthPage() {
                         onCheckedChange={(checked) => setRememberMe(checked === true)}
                         className="peer shrink-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 h-6 w-6 border-3 border-gray-600 rounded data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white shadow-md ml-[0px] mr-[0px] bg-[#e1e3e2]" 
                       />
-                      <span className="ml-2 text-sm text-gray-600">{authTranslations.rememberMe}</span>
+                      <span className="ml-2 text-sm text-gray-600">{t('auth.rememberMe')}</span>
                     </label>
                     <Button variant="link" className="text-spark-600 hover:text-spark-700 p-0">
-                      {authTranslations.forgotPassword}
+                      {t('auth.forgotPassword')}
                     </Button>
                   </div>
 
@@ -251,19 +241,19 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? authTranslations.signingIn : authTranslations.signIn}
+                    {loginMutation.isPending ? t('auth.signingIn') : t('auth.signIn')}
                   </Button>
                 </form>
               </Form>
 
               <div className="text-center">
-                <span className="text-gray-600">{authTranslations.dontHaveAccount} </span>
+                <span className="text-gray-600">{t('auth.dontHaveAccount')} </span>
                 <Button 
                   variant="link" 
                   onClick={switchToRegister}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  {authTranslations.registerButton}
+                  {t('auth.register')}
                 </Button>
               </div>
             </div>
@@ -271,8 +261,8 @@ export default function AuthPage() {
             /* Register Form */
             (<div className="space-y-6" key="register-form">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{authTranslations.createAccount}</h2>
-                <p className="text-gray-600">{authTranslations.createAccountDescription}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.createAccount')}</h2>
+                <p className="text-gray-600">{t('auth.createAccountDescription')}</p>
               </div>
               <Form {...registerForm} key="register-form-inner">
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
@@ -304,10 +294,10 @@ export default function AuthPage() {
                       name="companyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{authTranslations.companyName}</FormLabel>
+                          <FormLabel>{t('auth.companyName')}</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Sua Empresa Ltda" 
+                              placeholder={t('placeholders.companyName')} 
                               value={field.value || ""}
                               onChange={field.onChange}
                               onBlur={field.onBlur}
@@ -326,10 +316,10 @@ export default function AuthPage() {
                       name="cnpj"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{authTranslations.cnpj}</FormLabel>
+                          <FormLabel>{t('forms.cnpj')}</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="00.000.000/0000-00"
+                              placeholder={t('placeholders.cnpj')}
                               value={formatCnpj(field.value || "")}
                               onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
                               onBlur={field.onBlur}
@@ -349,10 +339,10 @@ export default function AuthPage() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{authTranslations.fullName}</FormLabel>
+                        <FormLabel>{t('auth.fullName')}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Seu Nome Completo"
+                            placeholder={t('placeholders.fullName')}
                             {...field}
                             className="focus:ring-spark-500 focus:border-spark-500"
                           />
@@ -368,10 +358,10 @@ export default function AuthPage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{authTranslations.phone}</FormLabel>
+                          <FormLabel>{t('common.phone')}</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="(11) 99999-9999"
+                              placeholder={t('placeholders.phone')}
                               value={formatPhone(field.value || "")}
                               onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
                               onBlur={field.onBlur}
@@ -390,11 +380,11 @@ export default function AuthPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('email')}</FormLabel>
+                          <FormLabel>{t('common.email')}</FormLabel>
                           <FormControl>
                             <Input 
                               type="email" 
-                              placeholder="seu@email.com"
+                              placeholder={t('placeholders.email')}
                               value={field.value || ""}
                               onChange={field.onChange}
                               onBlur={field.onBlur}
@@ -415,7 +405,7 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{authTranslations.password}</FormLabel>
+                          <FormLabel>{t('auth.password')}</FormLabel>
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••"
@@ -437,7 +427,7 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{authTranslations.confirmPassword}</FormLabel>
+                          <FormLabel>{t('auth.confirmPassword')}</FormLabel>
                           <FormControl>
                             <PasswordInput 
                               placeholder="••••••••"
@@ -469,7 +459,7 @@ export default function AuthPage() {
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel className="text-sm text-gray-600">
-                            {authTranslations.acceptTerms}
+                            {t('auth.acceptTerms')}
                           </FormLabel>
                         </div>
                       </FormItem>
@@ -481,18 +471,18 @@ export default function AuthPage() {
                     className="w-full bg-spark-600 hover:bg-spark-700 focus:ring-4 focus:ring-spark-200"
                     disabled={registerMutation.isPending}
                   >
-                    {registerMutation.isPending ? authTranslations.registering : authTranslations.register}
+                    {registerMutation.isPending ? t('auth.registering') : t('auth.register')}
                   </Button>
                 </form>
               </Form>
               <div className="text-center">
-                <span className="text-gray-600">{authTranslations.alreadyHaveAccount} </span>
+                <span className="text-gray-600">{t('auth.alreadyHaveAccount')} </span>
                 <Button 
                   variant="link" 
                   onClick={switchToLogin}
                   className="text-spark-600 hover:text-spark-700 p-0 font-medium"
                 >
-                  {authTranslations.loginButton}
+                  {t('auth.login')}
                 </Button>
               </div>
             </div>)

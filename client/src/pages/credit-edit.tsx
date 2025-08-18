@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
+import { createTranslatedSchemas } from "@/lib/zodTranslations";
+import { useI18nToast } from "@/hooks/useI18nToast";
 import { formatUSDInput, parseUSDInput, validateUSDRange } from "@/lib/currency";
 import { formatCnpj, validateCnpj } from "@/lib/cnpj";
 import { formatCpf, validateCpf } from "@/lib/cpf";
@@ -32,29 +34,7 @@ import {
 // Form schemas
 import { z } from "zod";
 
-const editCreditApplicationSchema = z.object({
-  legalCompanyName: z.string().min(1, "Razão social é obrigatória"),
-  tradingName: z.string().optional(),
-  cnpj: z.string().min(1, "CNPJ é obrigatório").refine(validateCnpj, "CNPJ inválido"),
-  stateRegistration: z.string().optional(),
-  municipalRegistration: z.string().optional(),
-  address: z.string().min(1, "Endereço é obrigatório"),
-  city: z.string().min(1, "Cidade é obrigatória"),
-  state: z.string().min(1, "Estado é obrigatório"),
-  zipCode: z.string().min(1, "CEP é obrigatório").refine(validateCep, "CEP inválido"),
-  phone: z.string().min(1, "Telefone é obrigatório"),
-  email: z.string().email("Email inválido"),
-  website: z.string().optional(),
-  businessSector: z.string().min(1, "Setor de negócio é obrigatório"),
-  annualRevenue: z.string().min(1, "Receita anual é obrigatória"),
-  mainImportedProducts: z.string().min(1, "Principais produtos importados são obrigatórios"),
-  mainOriginMarkets: z.string().min(1, "Principais mercados de origem são obrigatórios"),
-  requestedAmount: z.string().min(1, "Valor solicitado é obrigatório"),
-  monthlyImportVolume: z.string().min(1, "Volume mensal de importação é obrigatório"),
-  justification: z.string().min(10, "Justificativa deve ter pelo menos 10 caracteres"),
-});
-
-type EditCreditApplicationForm = z.infer<typeof editCreditApplicationSchema>;
+// Type will be inferred from translated schema
 
 export default function CreditEditPage() {
   const [match, params] = useRoute("/credit/edit/:id");
@@ -63,6 +43,11 @@ export default function CreditEditPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const iToast = useI18nToast();
+  
+  // Get translated schema
+  const { editCreditApplicationSchema } = createTranslatedSchemas(t);
+  type EditCreditApplicationForm = z.infer<typeof editCreditApplicationSchema>;
   const [productTags, setProductTags] = useState<string[]>([]);
   const [currentProduct, setCurrentProduct] = useState("");
 
@@ -149,21 +134,14 @@ export default function CreditEditPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/credit/applications", applicationId] });
-      toast({
-        title: "Sucesso!",
-        description: "Solicitação de crédito atualizada com sucesso.",
-      });
+      iToast.success('toast.success', 'credit.updateSuccess');
       // Navigate to details page after successful update
       setTimeout(() => {
         setLocation(`/credit/details/${applicationId}`);
       }, 1500);
     },
     onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar a solicitação. Tente novamente.",
-        variant: "destructive",
-      });
+      iToast.error('toast.error', 'credit.updateError');
     },
   });
 
@@ -275,7 +253,7 @@ export default function CreditEditPage() {
                   name="legalCompanyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Razão Social *</FormLabel>
+                      <FormLabel>{t('credit.legalCompanyName')} *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.businessName')} />
                       </FormControl>
@@ -303,7 +281,7 @@ export default function CreditEditPage() {
                   name="cnpj"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>CNPJ *</FormLabel>
+                      <FormLabel>{t('common.cnpj')} *</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -352,7 +330,7 @@ export default function CreditEditPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email *</FormLabel>
+                      <FormLabel>{t('common.email')} *</FormLabel>
                       <FormControl>
                         <Input {...field} type="email" placeholder={t('placeholders.email')} />
                       </FormControl>
@@ -366,7 +344,7 @@ export default function CreditEditPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone *</FormLabel>
+                      <FormLabel>{t('common.phone')} *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.phone')} />
                       </FormControl>
@@ -395,7 +373,7 @@ export default function CreditEditPage() {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Endereço *</FormLabel>
+                    <FormLabel>{t('common.address')} *</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder={t('placeholders.address')} />
                     </FormControl>
@@ -410,7 +388,7 @@ export default function CreditEditPage() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cidade *</FormLabel>
+                      <FormLabel>{t('common.city')} *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.city')} />
                       </FormControl>
@@ -424,7 +402,7 @@ export default function CreditEditPage() {
                   name="state"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Estado *</FormLabel>
+                      <FormLabel>{t('common.state')} *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.state')} />
                       </FormControl>
@@ -438,7 +416,7 @@ export default function CreditEditPage() {
                   name="zipCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>CEP *</FormLabel>
+                      <FormLabel>{t('common.zipCode')} *</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -472,7 +450,7 @@ export default function CreditEditPage() {
                   name="businessSector"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Setor de Negócio *</FormLabel>
+                      <FormLabel>{t('credit.businessSector')} *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -501,7 +479,7 @@ export default function CreditEditPage() {
                   name="annualRevenue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Receita Anual *</FormLabel>
+                      <FormLabel>{t('credit.annualRevenue')} *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -527,7 +505,7 @@ export default function CreditEditPage() {
                 name="mainImportedProducts"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Principais Produtos Importados *</FormLabel>
+                    <FormLabel>{t('credit.mainImportedProducts')} *</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
@@ -545,7 +523,7 @@ export default function CreditEditPage() {
                 name="mainOriginMarkets"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Principais Mercados de Origem *</FormLabel>
+                    <FormLabel>{t('credit.mainOriginMarkets')} *</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
@@ -575,7 +553,7 @@ export default function CreditEditPage() {
                   name="requestedAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Solicitado (USD) *</FormLabel>
+                      <FormLabel>{t('credit.requestedAmount')} (USD) *</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -597,7 +575,7 @@ export default function CreditEditPage() {
                   name="monthlyImportVolume"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Volume Mensal de Importação *</FormLabel>
+                      <FormLabel>{t('credit.monthlyImportVolume')} *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -661,7 +639,7 @@ export default function CreditEditPage() {
                 name="justification"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Justificativa *</FormLabel>
+                    <FormLabel>{t('credit.justification')} *</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 

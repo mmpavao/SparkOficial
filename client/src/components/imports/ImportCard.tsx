@@ -11,6 +11,7 @@ import { useLocation } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { UniversalCard } from "@/components/shared/UniversalCard";
 import { getImportStatusLabel, getImportStatusColor } from "@/utils/importStatus";
+import { useTranslation } from "react-i18next";
 
 interface ImportCardProps {
   importData: Import & {
@@ -26,6 +27,7 @@ interface ImportCardProps {
 export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: ImportCardProps) {
   const permissions = useUserPermissions();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const handleViewDetails = () => {
     if (onViewDetails) {
@@ -81,25 +83,25 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
       miniCards={[
         {
           icon: <Truck className="w-4 h-4 text-purple-600" />,
-          label: "Tipo",
+          label: t('imports.type'),
           value: `${importData.cargoType}`,
           color: "bg-purple-50 border-purple-200"
         },
         {
           icon: <DollarSign className="w-4 h-4 text-green-600" />,
-          label: "Valor",
+          label: t('imports.value'),
           value: formatCurrency(importData.totalValue, importData.currency || 'USD'),
           color: "bg-green-50 border-green-200"
         },
         {
           icon: <Globe className="w-4 h-4 text-blue-600" />,
-          label: "Origem",
+          label: t('imports.origin'),
           value: importData.origin || 'N/A',
           color: "bg-blue-50 border-blue-200"
         },
         {
           icon: <Clock className="w-4 h-4 text-orange-600" />,
-          label: "Criado",
+          label: t('imports.created'),
           value: formatDate(importData.createdAt || new Date()),
           color: "bg-orange-50 border-orange-200"
         }
@@ -107,18 +109,18 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
       actions={[
         {
           icon: <Eye className="w-4 h-4" />,
-          label: "Ver Detalhes",
+          label: t('imports.viewDetails'),
           onClick: handleViewDetails
         },
         {
           icon: <Edit className="w-4 h-4" />,
-          label: "Editar",
+          label: t('common.edit'),
           onClick: handleEdit,
           show: canEdit
         },
         {
           icon: <X className="w-4 h-4" />,
-          label: "Cancelar",
+          label: t('imports.cancel'),
           onClick: handleCancel,
           variant: 'destructive',
           show: canCancel
@@ -143,9 +145,9 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
           {importData.cargoType === 'LCL' && importData.products && importData.products.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Produtos:</span>
+                <span className="text-sm font-medium text-gray-700">{t('nav.products')}:</span>
                 <Badge variant="secondary" className="text-xs">
-                  {importData.products.length} {importData.products.length === 1 ? 'produto' : 'produtos'}
+                  {importData.products.length} {importData.products.length === 1 ? t('imports.product') : t('nav.products')}
                 </Badge>
               </div>
               <div className="flex flex-wrap gap-1">
@@ -156,7 +158,7 @@ export function ImportCard({ importData, onEdit, onCancel, onViewDetails }: Impo
                 ))}
                 {importData.products.length > 3 && (
                   <Badge variant="outline" className="text-xs">
-                    +{importData.products.length - 3} mais
+                    +{importData.products.length - 3} {t('imports.more')}
                   </Badge>
                 )}
               </div>

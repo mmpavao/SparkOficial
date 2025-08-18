@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { useTranslation } from '@/contexts/I18nContext';
+import { useTranslation } from 'react-i18next';
 
 interface CreditAnalysisCardProps {
   creditScore: any;

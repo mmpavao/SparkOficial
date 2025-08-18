@@ -11,6 +11,7 @@ import { IMPORT_STATUS, IMPORT_STATUS_LABELS, getImportStatusColor, getImportSta
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 interface StatusChangerProps {
   importId: number;
@@ -23,6 +24,7 @@ export function StatusChanger({ importId, currentStatus, shippingMethod, onStatu
   const [isChanging, setIsChanging] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === currentStatus) return;
@@ -40,13 +42,13 @@ export function StatusChanger({ importId, currentStatus, shippingMethod, onStatu
       }
 
       toast({
-        title: "Status atualizado",
-        description: `Status alterado para: ${IMPORT_STATUS_LABELS[newStatus as keyof typeof IMPORT_STATUS_LABELS]}`,
+        title: t('imports.statusUpdated'),
+        description: t('imports.statusChangedTo', { status: IMPORT_STATUS_LABELS[newStatus as keyof typeof IMPORT_STATUS_LABELS] }),
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Não foi possível alterar o status da importação",
+        title: t('common.error'),
+        description: t('imports.statusChangeError'),
         variant: "destructive",
       });
     } finally {
@@ -64,7 +66,7 @@ export function StatusChanger({ importId, currentStatus, shippingMethod, onStatu
           className="h-8 text-xs"
           onClick={(e) => e.stopPropagation()}
         >
-          Status <ChevronDown className="ml-1 h-3 w-3" />
+          {t('common.status')} <ChevronDown className="ml-1 h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

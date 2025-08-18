@@ -116,7 +116,6 @@ export default function UnifiedDocumentUpload({
       currentFileName: ''
     });
 
-    console.log(`🚀 Iniciando upload de ${filesToProcess.length} arquivo(s)`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -132,7 +131,6 @@ export default function UnifiedDocumentUpload({
           currentFileName: file.name
         }));
 
-        console.log(`📄 [${i + 1}/${filesToProcess.length}] Enviando: ${file.name}`);
 
         try {
           // Criar uma Promise que aguarda o upload ser processado
@@ -157,7 +155,6 @@ export default function UnifiedDocumentUpload({
           });
 
           successCount++;
-          console.log(`✅ Upload concluído: ${file.name}`);
 
         } catch (error) {
           errorCount++;
@@ -171,11 +168,6 @@ export default function UnifiedDocumentUpload({
         }
       }
 
-      // Mostrar resultado final apenas se houver uploads bem-sucedidos
-      if (successCount > 0) {
-        console.log(`🎉 Upload finalizado: ${successCount} arquivo(s) enviado(s) com sucesso`);
-        // Não mostrar notificação customizada - usar apenas logs
-      }
 
       // Mostrar erros se houver
       if (errorCount > 0) {
@@ -209,7 +201,6 @@ export default function UnifiedDocumentUpload({
     }
 
     const fileArray = Array.from(files);
-    console.log(`📁 Selecionados ${fileArray.length} arquivo(s)`);
 
     // Validar arquivos
     const validFiles: File[] = [];
@@ -330,11 +321,9 @@ export default function UnifiedDocumentUpload({
       // Usar filename como identificador único para remoção individual
       const filename = docToRemove.filename || docToRemove.originalName || `doc_${index}`;
       const compoundId = `${documentKey}_${filename}`;
-      console.log(`Removendo documento específico: ${compoundId} (índice: ${index})`);
       onRemove(compoundId, index);
     } else {
       // Para documento único, usar chave simples
-      console.log(`Removendo documento único: ${documentKey}`);
       onRemove(documentKey, 0);
     }
   };

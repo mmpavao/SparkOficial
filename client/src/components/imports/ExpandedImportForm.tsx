@@ -20,19 +20,21 @@ import { ProductManager } from "./ProductManager";
 import { CostCalculationSystem } from "./CostCalculationSystem";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import { useI18nValidation } from "@/lib/i18nValidation";
+import { useI18nToast } from "@/hooks/useI18nToast";
 
-// Expanded import form schema including customs broker fields
-const expandedImportFormSchema = z.object({
+// Create schema function to get translated validations
+const createExpandedImportFormSchema = (v: any) => z.object({
   // Basic fields (existing)
   creditApplicationId: z.number().optional(),
-  importName: z.string().min(1, "Nome da importação é obrigatório"),
+  importName: v.requiredString(1, 'validation.importNameRequired'),
   importCode: z.string().optional(),
   cargoType: z.enum(["FCL", "LCL"]),
   transportMethod: z.enum(["maritimo", "aereo", "terrestre"]),
-  origin: z.string().min(1, "Origem é obrigatória"),
-  destination: z.string().min(1, "Destino é obrigatório"),
+  origin: v.requiredString(1, 'validation.originRequired'),
+  destination: v.requiredString(1, 'validation.destinationRequired'),
   destinationState: z.string().optional(),
-  totalValue: z.string().min(1, "Valor total é obrigatório"),
+  totalValue: v.requiredString(1, 'validation.totalValueRequired'),
   currency: z.string().default("USD"),
   status: z.string().default("planejamento"),
   supplierId: z.number().optional(),
@@ -56,7 +58,7 @@ const expandedImportFormSchema = z.object({
   terminalLocation: z.string().optional(),
   
   // Customs broker (new)
-  customsBrokerEmail: z.string().email("Email inválido").optional().or(z.literal("")),
+  customsBrokerEmail: v.email().optional().or(z.literal("")),
   customsBrokerId: z.number().optional(),
   customsBrokerStatus: z.enum(["pending", "assigned", "processing", "completed"]).default("pending"),
   customsProcessingNotes: z.string().optional(),
@@ -115,6 +117,8 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const v = useI18nValidation();
+  const expandedImportFormSchema = createExpandedImportFormSchema(v);
   const [activeTab, setActiveTab] = useState("basic");
   const [customsBrokerInfo, setCustomsBrokerInfo] = useState<{
     valid: boolean;
@@ -1005,7 +1009,6 @@ export function ExpandedImportForm({ initialData, isEditing = false }: ExpandedI
                 incoterm={form.watch("incoterm") || "FOB"}
                 onCostsChange={(costs) => {
                   // Aqui você pode salvar os custos no formulário se necessário
-                  console.log("Costs updated:", costs);
                 }}
               />
 

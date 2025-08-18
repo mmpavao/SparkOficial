@@ -67,22 +67,22 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
   };
 
   const statusOptions = [
-    { value: "all", label: "Todos os Status" },
-    { value: "planejamento", label: "Planejamento" },
-    { value: "producao", label: "Produção" },
-    { value: "entregue_agente", label: "Entregue ao Agente" },
-    { value: "transporte_maritimo", label: "Transporte Marítimo" },
-    { value: "transporte_aereo", label: "Transporte Aéreo" },
-    { value: "desembaraco", label: "Desembaraço" },
-    { value: "transporte_nacional", label: "Transporte Nacional" },
-    { value: "concluido", label: "Concluído" },
-    { value: "cancelado", label: "Cancelado" }
+    { value: "all", label: t('imports.allStatus') },
+    { value: "planejamento", label: t('status.planning') },
+    { value: "producao", label: t('imports.production') },
+    { value: "entregue_agente", label: t('imports.deliveredAgent') },
+    { value: "transporte_maritimo", label: t('imports.maritimeTransport') },
+    { value: "transporte_aereo", label: t('imports.airTransport') },
+    { value: "desembaraco", label: t('imports.clearance') },
+    { value: "transporte_nacional", label: t('imports.nationalTransport') },
+    { value: "concluido", label: t('status.completed') },
+    { value: "cancelado", label: t('status.cancelled') }
   ];
 
   const cargoTypeOptions = [
-    { value: "all", label: "Todos os Tipos" },
-    { value: "FCL", label: "FCL (Container Completo)" },
-    { value: "LCL", label: "LCL (Carga Consolidada)" }
+    { value: "all", label: t('imports.allTypes') },
+    { value: "FCL", label: t('cargo.fclContainer') },
+    { value: "LCL", label: t('cargo.lclConsolidated') }
   ];
 
   return (
@@ -91,7 +91,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filtros
+            {t('imports.advancedFilters')}
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2">
                 {getActiveFilterCount()}
@@ -105,13 +105,13 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
               size="sm"
               onClick={() => setShowAdvanced(!showAdvanced)}
             >
-              {showAdvanced ? "Básicos" : "Avançados"}
+              {showAdvanced ? t('filters.basic') : t('filters.advanced')}
             </Button>
             
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-1" />
-                Limpar
+                {t('filters.clear')}
               </Button>
             )}
           </div>
@@ -138,7 +138,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
             onValueChange={(value) => handleFilterChange("status", value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t('common.status')} />
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
@@ -155,7 +155,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
             onValueChange={(value) => handleFilterChange("cargoType", value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Tipo de Carga" />
+              <SelectValue placeholder={t('imports.cargoType')} />
             </SelectTrigger>
             <SelectContent>
               {cargoTypeOptions.map((option) => (
@@ -177,10 +177,10 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
                 onValueChange={(value) => handleFilterChange("supplierId", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Fornecedor" />
+                  <SelectValue placeholder={t('suppliers.supplier')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Fornecedores</SelectItem>
+                  <SelectItem value="all">{t('suppliers.allSuppliers')}</SelectItem>
                   {suppliers.map((supplier: any) => (
                     <SelectItem key={supplier.id} value={supplier.id.toString()}>
                       {supplier.companyName}
@@ -197,7 +197,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block flex items-center gap-1">
                   <DollarSign className="h-4 w-4" />
-                  Valor Mínimo (USD)
+                  {t('filters.minValue')}
                 </label>
                 <Input
                   type="number"
@@ -210,7 +210,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block flex items-center gap-1">
                   <DollarSign className="h-4 w-4" />
-                  Valor Máximo (USD)
+                  {t('filters.maxValue')}
                 </label>
                 <Input
                   type="number"
@@ -226,7 +226,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  Data Inicial
+                  {t('filters.startDate')}
                 </label>
                 <Input
                   type="date"
@@ -238,7 +238,7 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  Data Final
+                  {t('filters.endDate')}
                 </label>
                 <Input
                   type="date"
@@ -260,29 +260,29 @@ export function ImportFilters({ onFiltersChange, initialFilters = {} }: ImportFi
                 let label = "";
                 switch(key) {
                   case "search":
-                    label = `Busca: ${value}`;
+                    label = `${t('search.general')}: ${value}`;
                     break;
                   case "status":
-                    label = `Status: ${statusOptions.find(o => o.value === value)?.label || value}`;
+                    label = `${t('common.status')}: ${statusOptions.find(o => o.value === value)?.label || value}`;
                     break;
                   case "cargoType":
-                    label = `Tipo: ${cargoTypeOptions.find(o => o.value === value)?.label || value}`;
+                    label = `${t('imports.type')}: ${cargoTypeOptions.find(o => o.value === value)?.label || value}`;
                     break;
                   case "supplierId":
                     const supplier = suppliers.find((s: any) => s.id.toString() === value);
-                    label = `Fornecedor: ${supplier?.companyName || value}`;
+                    label = `${t('suppliers.supplier')}: ${supplier?.companyName || value}`;
                     break;
                   case "minValue":
-                    label = `Min: USD ${value}`;
+                    label = `${t('filters.min')}: USD ${value}`;
                     break;
                   case "maxValue":
-                    label = `Max: USD ${value}`;
+                    label = `${t('filters.max')}: USD ${value}`;
                     break;
                   case "startDate":
-                    label = `De: ${new Date(value).toLocaleDateString('pt-BR')}`;
+                    label = `${t('filters.from')}: ${new Date(value).toLocaleDateString('pt-BR')}`;
                     break;
                   case "endDate":
-                    label = `Até: ${new Date(value).toLocaleDateString('pt-BR')}`;
+                    label = `${t('filters.to')}: ${new Date(value).toLocaleDateString('pt-BR')}`;
                     break;
                   default:
                     return null;

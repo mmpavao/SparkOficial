@@ -128,7 +128,7 @@ export default function AuthPage() {
     if (!validateCnpj(data.cnpj)) {
       toast({
         title: "Erro",
-        description: "CNPJ inválido",
+        description: t('validation.cnpjInvalid'),
         variant: "destructive",
       });
       return;

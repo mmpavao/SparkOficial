@@ -218,7 +218,6 @@ export default function PipelineDemoPage() {
             stageDetails={demoImport.stageDetails}
             interactive={true}
             onStageClick={(stage) => {
-              console.log('Stage clicked:', stage.name);
             }}
           />
         </div>

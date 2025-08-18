@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, CreditCard, Package, TrendingUp } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/formatters";
-import { useTranslation } from "@/contexts/I18nContext";
+import { useTranslation } from "react-i18next";
 import type { User, CreditApplication, Import } from "@shared/schema";
 
 export default function AdminPage() {
@@ -32,9 +32,6 @@ export default function AdminPage() {
   }) as { data: Import[], isLoading: boolean };
 
   // Debug logging
-  console.log('Admin page - isAdmin:', isAdmin);
-  console.log('Admin page - allImports:', allImports);
-  console.log('Admin page - importsLoading:', importsLoading);
 
   if (!isAdmin) {
     return (

@@ -63,17 +63,14 @@ export default function Dashboard() {
 
   // Navigation handlers
   const handleCreditClick = (creditId: number) => {
-    console.log(t('dashboard.navigatingToCredit'), creditId);
     setLocation(`/credit/details/${creditId}`);
   };
 
   const handleImportClick = (importId: number) => {
-    console.log(t('dashboard.navigatingToImport'), importId);
     setLocation(`/imports/${importId}`);
   };
 
   const handleSupplierClick = (supplierId: number) => {
-    console.log(t('dashboard.navigatingToSupplier'), supplierId);
     setLocation(`/suppliers/details/${supplierId}`);
   };
 

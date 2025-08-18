@@ -17,19 +17,20 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ProductManager } from "./ProductManager";
 import { ImportCostCalculator } from "./ImportCostCalculator";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 // Import form schema based on actual fields needed
 const importFormSchema = z.object({
-  creditApplicationId: z.number().min(1, "Aplicação de crédito é obrigatória"),
-  importName: z.string().min(1, "Nome da importação é obrigatório"),
+  creditApplicationId: z.number().min(1, "imports.validation.creditApplicationRequired"),
+  importName: z.string().min(1, "imports.validation.importNameRequired"),
   importCode: z.string().optional(),
   cargoType: z.enum(["FCL", "LCL"]),
   transportMethod: z.enum(["maritimo", "aereo", "terrestre"]),
-  origin: z.string().min(1, "Origem é obrigatória"),
-  destination: z.string().min(1, "Destino é obrigatório"),
+  origin: z.string().min(1, "imports.validation.originRequired"),
+  destination: z.string().min(1, "imports.validation.destinationRequired"),
   destinationState: z.string().optional(),
-  totalValue: z.string().min(1, "Valor total é obrigatório"),
+  totalValue: z.string().min(1, "imports.validation.totalValueRequired"),
   currency: z.string().default("USD"),
   status: z.string().default("planejamento"),
   supplierId: z.number().optional(),
@@ -39,9 +40,9 @@ const importFormSchema = z.object({
   estimatedArrival: z.string().optional(),
   notes: z.string().optional(),
   products: z.array(z.object({
-    productName: z.string().min(1, "Nome do produto é obrigatório"),
-    quantity: z.number().min(1, "Quantidade deve ser maior que zero"),
-    unitPrice: z.number().min(0, "Preço unitário deve ser maior ou igual a zero"),
+    productName: z.string().min(1, "imports.validation.productNameRequired"),
+    quantity: z.number().min(1, "imports.validation.quantityMinimum"),
+    unitPrice: z.number().min(0, "imports.validation.unitPriceMinimum"),
     totalValue: z.number().min(0),
     supplierId: z.number().optional()
   })).optional()
@@ -58,6 +59,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [cargoType, setCargoType] = useState<'FCL' | 'LCL'>(initialData?.cargoType || 'FCL');
 
   // Get suppliers for dropdown
@@ -126,15 +128,15 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
       toast({
-        title: "Sucesso",
-        description: isEditing ? "Importação atualizada com sucesso" : "Importação criada com sucesso"
+        title: t('common.success'),
+        description: isEditing ? t('imports.importUpdatedSuccess') : t('imports.importCreatedSuccess')
       });
       setLocation('/imports');
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar importação",
+        title: t('common.error'),
+        description: error.message || t('imports.saveError'),
         variant: "destructive"
       });
     }
@@ -164,20 +166,20 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
   };
 
   const transportOptions = [
-    { value: "maritimo", label: "Marítimo", icon: Ship },
-    { value: "aereo", label: "Aéreo", icon: Plane },
-    { value: "terrestre", label: "Terrestre", icon: Truck }
+    { value: "maritimo", label: t('imports.maritime'), icon: Ship },
+    { value: "aereo", label: t('imports.air'), icon: Plane },
+    { value: "terrestre", label: t('imports.land'), icon: Truck }
   ];
 
   const statusOptions = [
-    { value: "planejamento", label: "Planejamento" },
-    { value: "producao", label: "Produção" },
-    { value: "entregue_agente", label: "Entregue ao Agente" },
-    { value: "transporte_maritimo", label: "Transporte Marítimo" },
-    { value: "transporte_aereo", label: "Transporte Aéreo" },
-    { value: "desembaraco", label: "Desembaraço" },
-    { value: "transporte_nacional", label: "Transporte Nacional" },
-    { value: "concluido", label: "Concluído" }
+    { value: "planejamento", label: t('status.planning') },
+    { value: "producao", label: t('imports.production') },
+    { value: "entregue_agente", label: t('imports.deliveredAgent') },
+    { value: "transporte_maritimo", label: t('imports.maritimeTransport') },
+    { value: "transporte_aereo", label: t('imports.airTransport') },
+    { value: "desembaraco", label: t('imports.clearance') },
+    { value: "transporte_nacional", label: t('imports.nationalTransport') },
+    { value: "concluido", label: t('status.completed') }
   ];
 
   return (
@@ -186,15 +188,15 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? 'Editar Importação' : 'Nova Importação'}
+            {isEditing ? t('imports.editImport') : t('imports.newImport')}
           </h1>
           <p className="text-gray-600 mt-1">
-            {isEditing ? 'Atualize os dados da importação' : 'Preencha os dados para criar uma nova importação'}
+            {isEditing ? t('imports.updateImportData') : t('imports.fillDataToCreateOperationalImport')}
           </p>
         </div>
         
         <Button variant="outline" onClick={() => setLocation('/imports')}>
-          Voltar
+          {t('common.back')}
         </Button>
       </div>
 
@@ -208,7 +210,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Informações Básicas
+                {t('imports.basicInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,7 +219,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="importName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome da Importação *</FormLabel>
+                    <FormLabel>{t('imports.importName')} *</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder={t('placeholders.importNameExample')} />
                     </FormControl>
@@ -231,9 +233,9 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="importCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Código da Importação</FormLabel>
+                    <FormLabel>{t('imports.importCode')}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: IMP-2024-001" />
+                      <Input {...field} placeholder={t('placeholders.importCodeExample')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -245,7 +247,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="creditApplicationId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Aplicação de Crédito *</FormLabel>
+                    <FormLabel>{t('credit.creditApplication')} *</FormLabel>
                     <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
@@ -260,7 +262,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                                 US$ {parseInt(app.finalCreditLimit || app.requestedAmount).toLocaleString()}
                               </span>
                               <span className="text-xs text-gray-500">
-                                Termos: {app.finalApprovedTerms || 'N/A'} dias
+                                {t('imports.terms')}: {app.finalApprovedTerms || 'N/A'} {t('time.days')}
                               </span>
                             </div>
                           </SelectItem>
@@ -277,7 +279,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>{t('common.status')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -302,7 +304,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
           {/* Cargo Type Selection */}
           <Card>
             <CardHeader>
-              <CardTitle>Tipo de Carga</CardTitle>
+              <CardTitle>{t('imports.cargoType')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -317,8 +319,8 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   <div className="flex items-center gap-3">
                     <Package className="h-6 w-6 text-blue-600" />
                     <div>
-                      <h3 className="font-semibold">FCL (Full Container Load)</h3>
-                      <p className="text-sm text-gray-600">Container completo</p>
+                      <h3 className="font-semibold">{t('cargo.fcl')}</h3>
+                      <p className="text-sm text-gray-600">{t('cargo.fclContainer')}</p>
                     </div>
                   </div>
                 </div>
@@ -334,8 +336,8 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   <div className="flex items-center gap-3">
                     <Package className="h-6 w-6 text-green-600" />
                     <div>
-                      <h3 className="font-semibold">LCL (Less than Container Load)</h3>
-                      <p className="text-sm text-gray-600">Carga consolidada</p>
+                      <h3 className="font-semibold">{t('cargo.lcl')}</h3>
+                      <p className="text-sm text-gray-600">{t('cargo.lclConsolidated')}</p>
                     </div>
                   </div>
                 </div>
@@ -346,7 +348,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
           {/* Transport and Location */}
           <Card>
             <CardHeader>
-              <CardTitle>Transporte e Localização</CardTitle>
+              <CardTitle>{t('imports.transport')} e {t('imports.location')}</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -354,7 +356,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="transportMethod"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Método de Transporte *</FormLabel>
+                    <FormLabel>{t('imports.transportMethod')} *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -385,7 +387,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Moeda</FormLabel>
+                    <FormLabel>{t('forms.currency')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -393,10 +395,10 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                        <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
+                        <SelectItem value="USD">USD - {t('currency.usd')}</SelectItem>
+                        <SelectItem value="EUR">EUR - {t('currency.eur')}</SelectItem>
+                        <SelectItem value="CNY">CNY - {t('currency.cny')}</SelectItem>
+                        <SelectItem value="BRL">BRL - {t('currency.brl')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -409,9 +411,9 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="origin"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Origem *</FormLabel>
+                    <FormLabel>{t('imports.origin')} *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Xangai, China" />
+                      <Input {...field} placeholder={t('placeholders.portOfLoading')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -423,9 +425,9 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="destination"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Destino *</FormLabel>
+                    <FormLabel>{t('imports.destination')} *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Santos, Brasil" />
+                      <Input {...field} placeholder={t('placeholders.portOfDischarge')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -437,7 +439,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="estimatedDeparture"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data Estimada de Partida</FormLabel>
+                    <FormLabel>{t('imports.estimatedDepartureDate')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -451,7 +453,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="estimatedArrival"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data Estimada de Chegada</FormLabel>
+                    <FormLabel>{t('imports.estimatedArrivalDate')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -466,7 +468,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
           {cargoType === 'FCL' && (
             <Card>
               <CardHeader>
-                <CardTitle>Informações do Container</CardTitle>
+                <CardTitle>{t('imports.containerInformation')}</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -474,9 +476,9 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   name="containerNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número do Container</FormLabel>
+                      <FormLabel>{t('imports.containerNumber')}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: MSKU1234567" />
+                        <Input {...field} placeholder={t('placeholders.containerNumber')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -488,9 +490,9 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   name="sealNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número do Lacre</FormLabel>
+                      <FormLabel>{t('imports.sealNumber')}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: 123456" />
+                        <Input {...field} placeholder={t('placeholders.sealNumber')} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -502,7 +504,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   name="totalValue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Total *</FormLabel>
+                      <FormLabel>{t('imports.totalValue')} *</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -521,7 +523,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                   name="supplierId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Fornecedor</FormLabel>
+                      <FormLabel>{t('common.supplier')}</FormLabel>
                       <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                         <FormControl>
                           <SelectTrigger>
@@ -548,7 +550,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
           {cargoType === 'LCL' && (
             <Card>
               <CardHeader>
-                <CardTitle>Produtos</CardTitle>
+                <CardTitle>{t('nav.products')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ProductManager
@@ -563,7 +565,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
           {/* Notes */}
           <Card>
             <CardHeader>
-              <CardTitle>Observações</CardTitle>
+              <CardTitle>{t('imports.notes')}</CardTitle>
             </CardHeader>
             <CardContent>
               <FormField
@@ -571,7 +573,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notas Adicionais</FormLabel>
+                    <FormLabel>{t('imports.additionalNotes')}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
@@ -593,7 +595,7 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
               variant="outline" 
               onClick={() => setLocation('/imports')}
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit" 
@@ -601,8 +603,8 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
               className="bg-[#22c55d] hover:bg-[#16a34a]"
             >
               {createImportMutation.isPending 
-                ? (isEditing ? 'Atualizando...' : 'Criando...') 
-                : (isEditing ? 'Atualizar Importação' : 'Criar Importação')
+                ? (isEditing ? t('imports.updating') + '...' : t('imports.creating') + '...') 
+                : (isEditing ? t('imports.updateImport') : t('imports.createImport'))
               }
             </Button>
           </div>
@@ -628,12 +630,12 @@ export function ImportForm({ initialData, isEditing = false }: ImportFormProps) 
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calculator className="h-5 w-5" />
-                  Prévia Financeira
+                  {t('imports.financialPreview')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Selecione uma aplicação de crédito para ver a prévia financeira
+                  {t('imports.selectCreditApplicationPreview')}
                 </p>
               </CardContent>
             </Card>

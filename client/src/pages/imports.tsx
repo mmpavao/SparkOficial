@@ -106,13 +106,13 @@ export default function ImportsPage() {
     try {
       // API call will be implemented here
       toast({
-        title: "Importação cancelada",
-        description: "A importação foi cancelada com sucesso.",
+        title: t('imports.importCancelled'),
+        description: t('imports.importCancelledSuccess'),
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao cancelar importação.",
+        title: t('common.error'),
+        description: t('imports.cancelError'),
         variant: "destructive",
       });
     }
@@ -140,12 +140,12 @@ export default function ImportsPage() {
           <div className="flex justify-center mb-4">
             <XCircle className="h-12 w-12 text-red-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar importações</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('imports.errorLoadingImports')}</h3>
           <p className="text-gray-600 mb-4">
-            Não foi possível carregar os dados das importações.
+            {t('imports.errorLoadingImportsDesc')}
           </p>
           <Button onClick={() => window.location.reload()}>
-            Tentar Novamente
+            {t('common.tryAgain')}
           </Button>
         </div>
       </div>
@@ -414,19 +414,18 @@ export default function ImportsPage() {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+                                  <AlertDialogTitle>{t('imports.cancelImport')}</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Tem certeza que deseja cancelar a importação "{importItem.importName}"? 
-                                    Esta ação não pode ser desfeita.
+                                    {t('imports.cancelConfirmation', { importName: importItem.importName })}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Voltar</AlertDialogCancel>
+                                  <AlertDialogCancel>{t('common.back')}</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleCancelImport(importItem.id)}
                                     className="bg-red-600 hover:bg-red-700"
                                   >
-                                    Cancelar Importação
+                                    {t('imports.cancelImport')}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>

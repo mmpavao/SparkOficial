@@ -48,15 +48,15 @@ import { CreditApplication } from "@shared/schema";
 
 const createCreditApplicationSchema = (t: any) => z.object({
   requestedAmount: z.string()
-    .min(1, "Valor é obrigatório")
+    .min(1, t("credit.validation.amountRequired"))
     .transform((val) => parseFloat(val.replace(/[,$]/g, '')))
-    .refine((val) => !isNaN(val), { message: "Valor deve ser um número válido" })
-    .refine((val) => val >= 100, { message: "Valor mínimo é USD $100" })
-    .refine((val) => val <= 1000000, { message: "Valor máximo é USD $1.000.000" })
+    .refine((val) => !isNaN(val), { message: t("credit.validation.amountMustBeNumber") })
+    .refine((val) => val >= 100, { message: t("credit.validation.minimumAmount") })
+    .refine((val) => val <= 1000000, { message: t("credit.validation.maximumAmount") })
     .transform((val) => val.toString()),
   purpose: z.string()
-    .min(10, "Descrição deve ter pelo menos 10 caracteres")
-    .max(500, "Descrição muito longa (máximo 500 caracteres)"),
+    .min(10, t("credit.validation.purposeMinLength"))
+    .max(500, t("credit.validation.purposeMaxLength")),
   notes: z.string().optional(),
 });
 
@@ -198,18 +198,18 @@ export default function CreditPage() {
 
   // Cancel application handler
   const handleCancelApplication = async (applicationId: number) => {
-    if (confirm('Tem certeza que deseja cancelar esta solicitação de crédito?')) {
+    if (confirm(t("credit.confirmCancelApplication"))) {
       try {
         await apiRequest(`/api/credit/applications/${applicationId}`, 'DELETE');
         queryClient.invalidateQueries({ queryKey: [getEndpoint()] });
         toast({
           title: t("common.success"),
-          description: "Solicitação de crédito cancelada com sucesso.",
+          description: t("credit.applicationCancelledSuccess"),
         });
       } catch (error) {
         toast({
           title: t("common.error"),
-          description: "Erro ao cancelar solicitação de crédito.",
+          description: t("credit.errorCancellingApplication"),
           variant: "destructive",
         });
       }
@@ -241,15 +241,6 @@ export default function CreditPage() {
     enabled: !!user && mounted,
   });
   
-  // Debug log para verificar credit scores
-  console.log("📊 All applications data:", applications);
-  if (applications && Array.isArray(applications)) {
-    const app69 = applications.find((app: any) => app.id === 69);
-    if (app69) {
-      console.log("🔍 Application 69 found:", app69);
-      console.log("🔍 Credit Score field:", app69.creditScore);
-    }
-  }
 
   // Prevent SSR/hydration issues in production
   if (!mounted || !user) {
@@ -267,7 +258,7 @@ export default function CreditPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {permissions.isFinanceira 
-              ? "Análise Financeira - Aprovação de Crédito" 
+              ? t("credit.financialAnalysisTitle") 
               : permissions.canViewAllApplications 
                 ? t("credit.adminManagement") 
                 : t("credit.title")}
@@ -312,7 +303,7 @@ export default function CreditPage() {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-spark-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando...</p>
+              <p className="text-gray-600">{t("common.loading")}</p>
             </div>
           ) : !Array.isArray(applications) || applications.length === 0 ? (
             <div className="text-center py-8">
@@ -329,7 +320,7 @@ export default function CreditPage() {
                   // FINANCEIRA VIEW: When Financeira approves, it's FINAL for them
                   if (permissions.isFinanceira && application.financialStatus === 'approved') {
                     return { 
-                      label: 'Aprovado', 
+                      label: t("status.approved"), 
                       color: 'bg-green-100 text-green-800 border-green-200',
                       bgColor: 'bg-green-50',
                       borderColor: 'border-l-green-500'
@@ -338,7 +329,7 @@ export default function CreditPage() {
                   // FINANCEIRA VIEW: Rejected applications
                   else if (permissions.isFinanceira && application.financialStatus === 'rejected') {
                     return { 
-                      label: 'Rejeitado', 
+                      label: t("status.rejected"), 
                       color: 'bg-red-100 text-red-800 border-red-200',
                       bgColor: 'bg-red-50',
                       borderColor: 'border-l-red-500'
@@ -347,7 +338,7 @@ export default function CreditPage() {
                   // FINANCEIRA VIEW: In analysis
                   else if (permissions.isFinanceira) {
                     return { 
-                      label: 'Em Análise', 
+                      label: t("status.underAnalysis"), 
                       color: 'bg-blue-100 text-blue-800 border-blue-200',
                       bgColor: 'bg-blue-50',
                       borderColor: 'border-l-blue-500'
@@ -357,7 +348,7 @@ export default function CreditPage() {
                   // NON-FINANCEIRA USERS: Show "Aprovado" only when admin has finalized
                   if (application.adminStatus === 'admin_finalized' || application.adminStatus === 'finalized') {
                     return { 
-                      label: 'Aprovado', 
+                      label: t("status.approved"), 
                       color: 'bg-green-100 text-green-800 border-green-200',
                       bgColor: 'bg-green-50',
                       borderColor: 'border-l-green-500'
@@ -365,7 +356,7 @@ export default function CreditPage() {
                   } 
                   else if (application.financialStatus === 'rejected') {
                     return { 
-                      label: 'Rejeitado', 
+                      label: t("status.rejected"), 
                       color: 'bg-red-100 text-red-800 border-red-200',
                       bgColor: 'bg-red-50',
                       borderColor: 'border-l-red-500'
@@ -373,7 +364,7 @@ export default function CreditPage() {
                   }
                   else if (application.status === 'submitted_to_financial' || application.financialStatus === 'approved') {
                     return { 
-                      label: 'Análise Final', 
+                      label: t("credit.finalAnalysis"), 
                       color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
                       bgColor: 'bg-yellow-50',
                       borderColor: 'border-l-yellow-500'
@@ -381,7 +372,7 @@ export default function CreditPage() {
                   } 
                   else if (application.preAnalysisStatus === 'pre_approved') {
                     return { 
-                      label: 'Pré-Aprovado', 
+                      label: t("status.preApproved"), 
                       color: 'bg-green-100 text-green-800 border-green-200',
                       bgColor: 'bg-green-50',
                       borderColor: 'border-l-green-500'
@@ -389,7 +380,7 @@ export default function CreditPage() {
                   }
                   else {
                     return { 
-                      label: 'Pré-Análise', 
+                      label: t("credit.preAnalysis"), 
                       color: 'bg-gray-100 text-gray-800 border-gray-200',
                       bgColor: 'bg-gray-50',
                       borderColor: 'border-l-gray-500'

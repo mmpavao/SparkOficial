@@ -46,7 +46,7 @@ export default function ProductsPage() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
+        title: t("common.error"),
         description: t("products.cannotDeleteProduct"),
         variant: 'destructive',
       });
@@ -135,7 +135,7 @@ export default function ProductsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total de Produtos</p>
+                <p className="text-sm font-medium text-gray-600">{t("products.totalProducts")}</p>
                 <p className="text-2xl font-bold text-gray-900">{products.length}</p>
               </div>
               <Package className="w-8 h-8 text-blue-600" />
@@ -147,7 +147,7 @@ export default function ProductsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Produtos Ativos</p>
+                <p className="text-sm font-medium text-gray-600">{t("products.activeProducts")}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {products.filter((p: Product) => p.isActive).length}
                 </p>
@@ -352,14 +352,14 @@ export default function ProductsPage() {
                   
                   {product.unitOfMeasure && (
                     <div>
-                      <span className="text-gray-500">Unidade</span>
+                      <span className="text-gray-500">{t("products.unit")}</span>
                       <p className="font-medium">{product.unitOfMeasure}</p>
                     </div>
                   )}
 
                   {product.material && (
                     <div className="col-span-2">
-                      <span className="text-gray-500">Material</span>
+                      <span className="text-gray-500">{t("products.material")}</span>
                       <p className="font-medium">{product.material}</p>
                     </div>
                   )}
@@ -369,7 +369,7 @@ export default function ProductsPage() {
                 {product.unitPrice && (
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">Preço unitário</span>
+                      <span className="text-sm text-gray-500">{t("products.unitPrice")}</span>
                       <span className="text-lg font-bold text-emerald-600">
                         {product.currency || 'USD'} {parseFloat(product.unitPrice).toLocaleString('pt-BR', { 
                           minimumFractionDigits: 2, 
@@ -383,8 +383,8 @@ export default function ProductsPage() {
                 {/* Brand & Origin */}
                 {(product.brand || product.productOrigin) && (
                   <div className="mt-3 pt-3 border-t text-xs text-gray-500 space-y-1">
-                    {product.brand && <div>Marca: {product.brand}</div>}
-                    {product.productOrigin && <div>Origem: {product.productOrigin}</div>}
+                    {product.brand && <div>{t("products.brand")}: {product.brand}</div>}
+                    {product.productOrigin && <div>{t("products.origin")}: {product.productOrigin}</div>}
                   </div>
                 )}
               </CardContent>

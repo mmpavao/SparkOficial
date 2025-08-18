@@ -36,9 +36,6 @@ export default function ClientLanguageSelector() {
       // Alterar o idioma usando react-i18next
       await i18n.changeLanguage(newLanguage);
       
-      // Feedback visual
-      console.log(`✅ Idioma alterado para: ${newLanguage}`);
-      
     } catch (error) {
       console.error('❌ Erro ao alterar idioma:', error);
     } finally {

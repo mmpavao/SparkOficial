@@ -33,32 +33,32 @@ import {
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 
-// Schema de validação simplificado para importação operacional
-const operationalImportSchema = z.object({
-  importName: z.string().min(1, "Nome da importação é obrigatório"),
-  cargoType: z.string().min(1, "Tipo de carga é obrigatório"),
-  totalValue: z.string().min(1, "Valor total é obrigatório"),
-  currency: z.string().min(1, "Moeda é obrigatória"),
-  incoterms: z.string().min(1, "Incoterms é obrigatório"),
-  // Campos opcionais
-  containerNumber: z.string().optional(),
-  sealNumber: z.string().optional(),
-  weight: z.string().optional(),
-  volume: z.string().optional(),
-  transportMethod: z.string().optional(),
-  origin: z.string().optional(),
-  destination: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type OperationalImportForm = z.infer<typeof operationalImportSchema>;
-
 export default function ImportEditOperationalPage() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useRoute();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+
+  // Schema de validação simplificado para importação operacional
+  const operationalImportSchema = z.object({
+    importName: z.string().min(1, t("validation.importNameRequired")),
+    cargoType: z.string().min(1, t("validation.cargoTypeRequired")),
+    totalValue: z.string().min(1, t("validation.totalValueRequired")),
+    currency: z.string().min(1, t("validation.currencyRequired")),
+    incoterms: z.string().min(1, t("validation.incotermsRequired")),
+    // Campos opcionais
+    containerNumber: z.string().optional(),
+    sealNumber: z.string().optional(),
+    weight: z.string().optional(),
+    volume: z.string().optional(),
+    transportMethod: z.string().optional(),
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    notes: z.string().optional(),
+  });
+
+  type OperationalImportForm = z.infer<typeof operationalImportSchema>;
   
   // Fetch import data
   const { data: importData, isLoading: isLoadingImport, error } = useQuery({
@@ -66,7 +66,6 @@ export default function ImportEditOperationalPage() {
     enabled: !!id,
   });
 
-  console.log("📋 Import data received:", importData);
 
   const form = useForm<OperationalImportForm>({
     resolver: zodResolver(operationalImportSchema),
@@ -91,7 +90,6 @@ export default function ImportEditOperationalPage() {
   useEffect(() => {
     if (importData && importData.fullData) {
       const data = importData.fullData;
-      console.log("🔄 Setting form data:", data);
       
       form.reset({
         importName: data.importName || "",
@@ -121,8 +119,8 @@ export default function ImportEditOperationalPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
-        description: "Importação operacional atualizada com sucesso",
+        title: t("common.success"),
+        description: t("imports.importUpdatedSuccess"),
       });
       queryClient.invalidateQueries({ queryKey: [`/api/imports/operational/${id}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
@@ -130,15 +128,14 @@ export default function ImportEditOperationalPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao atualizar importação",
+        title: t("common.error"),
+        description: error.message || t("imports.updateError"),
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: OperationalImportForm) => {
-    console.log("📤 Submitting operational import data:", data);
     updateImportMutation.mutate(data);
   };
 
@@ -146,7 +143,7 @@ export default function ImportEditOperationalPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Carregando dados da importação...</span>
+        <span className="ml-2">{t("imports.loadingImportData")}</span>
       </div>
     );
   }
@@ -155,14 +152,14 @@ export default function ImportEditOperationalPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-lg font-semibold mb-2">Erro ao carregar importação</h2>
+          <h2 className="text-lg font-semibold mb-2">{t("imports.loadError")}</h2>
           <p className="text-muted-foreground mb-4">
-            Não foi possível carregar os dados da importação operacional.
+            {t("imports.loadErrorDesc")}
           </p>
           <Button asChild>
             <Link href="/imports">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para Importações
+              {t("imports.backToImports")}
             </Link>
           </Button>
         </div>
@@ -174,14 +171,14 @@ export default function ImportEditOperationalPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-lg font-semibold mb-2">Importação não encontrada</h2>
+          <h2 className="text-lg font-semibold mb-2">{t("imports.notFound")}</h2>
           <p className="text-muted-foreground mb-4">
-            A importação operacional solicitada não foi encontrada.
+            {t("imports.notFoundDesc")}
           </p>
           <Button asChild>
             <Link href="/imports">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para Importações
+              {t("imports.backToImports")}
             </Link>
           </Button>
         </div>
@@ -197,19 +194,19 @@ export default function ImportEditOperationalPage() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/imports">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
+              {t("common.back")}
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Editar Importação Operacional</h1>
+            <h1 className="text-2xl font-bold">{t("imports.editOperationalImport")}</h1>
             <p className="text-muted-foreground">
-              Edite os dados da importação com recursos próprios
+              {t("imports.editOperationalImportDesc")}
             </p>
           </div>
         </div>
         <Badge variant="secondary" className="flex items-center gap-2">
           <Package className="h-4 w-4" />
-          Operacional
+          {t("imports.operational")}
         </Badge>
       </div>
 
@@ -220,7 +217,7 @@ export default function ImportEditOperationalPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Informações Básicas
+                {t("imports.basicInformation")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -230,7 +227,7 @@ export default function ImportEditOperationalPage() {
                   name="importName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome da Importação *</FormLabel>
+                      <FormLabel>{t("imports.importName")} *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.importNameExample')} />
                       </FormControl>
@@ -244,7 +241,7 @@ export default function ImportEditOperationalPage() {
                   name="cargoType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Carga *</FormLabel>
+                      <FormLabel>{t("imports.cargoType")} *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -252,8 +249,8 @@ export default function ImportEditOperationalPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="FCL">FCL (Container Completo)</SelectItem>
-                          <SelectItem value="LCL">LCL (Carga Fracionada)</SelectItem>
+                          <SelectItem value="FCL">{t("cargo.fclContainer")}</SelectItem>
+                          <SelectItem value="LCL">{t("cargo.lclConsolidated")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -268,7 +265,7 @@ export default function ImportEditOperationalPage() {
                   name="totalValue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Total *</FormLabel>
+                      <FormLabel>{t("imports.totalValue")} *</FormLabel>
                       <FormControl>
                         <Input {...field} type="number" step="0.01" placeholder={t('placeholders.weight')} />
                       </FormControl>
@@ -282,7 +279,7 @@ export default function ImportEditOperationalPage() {
                   name="currency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Moeda *</FormLabel>
+                      <FormLabel>{t("imports.currency")} *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -306,7 +303,7 @@ export default function ImportEditOperationalPage() {
                   name="incoterms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Incoterms *</FormLabel>
+                      <FormLabel>{t("imports.incoterms")} *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -333,7 +330,7 @@ export default function ImportEditOperationalPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Ship className="h-5 w-5" />
-                Detalhes do Container
+                {t("imports.containerDetails")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -343,7 +340,7 @@ export default function ImportEditOperationalPage() {
                   name="containerNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número do Container</FormLabel>
+                      <FormLabel>{t("imports.containerNumber")}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.containerNumber')} />
                       </FormControl>
@@ -357,7 +354,7 @@ export default function ImportEditOperationalPage() {
                   name="sealNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número do Lacre</FormLabel>
+                      <FormLabel>{t("imports.sealNumber")}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.sealNumber')} />
                       </FormControl>
@@ -373,7 +370,7 @@ export default function ImportEditOperationalPage() {
                   name="weight"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormLabel>{t("products.weightKg")}</FormLabel>
                       <FormControl>
                         <Input {...field} type="number" step="0.01" placeholder={t('placeholders.weight')} />
                       </FormControl>
@@ -387,7 +384,7 @@ export default function ImportEditOperationalPage() {
                   name="volume"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Volume (m³)</FormLabel>
+                      <FormLabel>{t("imports.volumeM3")}</FormLabel>
                       <FormControl>
                         <Input {...field} type="number" step="0.01" placeholder={t('placeholders.volume')} />
                       </FormControl>
@@ -401,7 +398,7 @@ export default function ImportEditOperationalPage() {
                   name="transportMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Método de Transporte</FormLabel>
+                      <FormLabel>{t("imports.transportMethod")}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -409,9 +406,9 @@ export default function ImportEditOperationalPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="maritimo">Marítimo</SelectItem>
-                          <SelectItem value="aereo">Aéreo</SelectItem>
-                          <SelectItem value="rodoviario">Rodoviário</SelectItem>
+                          <SelectItem value="maritimo">{t("imports.maritime")}</SelectItem>
+                          <SelectItem value="aereo">{t("imports.air")}</SelectItem>
+                          <SelectItem value="rodoviario">{t("imports.land")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -427,7 +424,7 @@ export default function ImportEditOperationalPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Origem e Destino
+                {t("imports.originAndDestination")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -437,7 +434,7 @@ export default function ImportEditOperationalPage() {
                   name="origin"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Porto de Origem</FormLabel>
+                      <FormLabel>{t("imports.portOfLoading")}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.portOfLoading')} />
                       </FormControl>
@@ -451,7 +448,7 @@ export default function ImportEditOperationalPage() {
                   name="destination"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Porto de Destino</FormLabel>
+                      <FormLabel>{t("imports.portOfDischarge")}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder={t('placeholders.portOfDischarge')} />
                       </FormControl>
@@ -466,7 +463,7 @@ export default function ImportEditOperationalPage() {
           {/* Observações */}
           <Card>
             <CardHeader>
-              <CardTitle>Observações</CardTitle>
+              <CardTitle>{t("imports.observations")}</CardTitle>
             </CardHeader>
             <CardContent>
               <FormField
@@ -474,7 +471,7 @@ export default function ImportEditOperationalPage() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notas Internas</FormLabel>
+                    <FormLabel>{t("imports.internalNotes")}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
@@ -492,7 +489,7 @@ export default function ImportEditOperationalPage() {
           {/* Ações */}
           <div className="flex justify-end space-x-4">
             <Button variant="outline" type="button" asChild>
-              <Link href="/imports">Cancelar</Link>
+              <Link href="/imports">{t("common.cancel")}</Link>
             </Button>
             <Button 
               type="submit" 
@@ -504,7 +501,7 @@ export default function ImportEditOperationalPage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {updateImportMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+              {updateImportMutation.isPending ? t("common.saving") : t("imports.saveChanges")}
             </Button>
           </div>
         </form>

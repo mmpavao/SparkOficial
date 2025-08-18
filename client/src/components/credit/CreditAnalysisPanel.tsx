@@ -26,7 +26,7 @@ import {
 import { CreditScore } from '@/shared/schema';
 import { formatCurrency } from '@/lib/formatters';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { useTranslation } from '@/contexts/I18nContext';
+import { useTranslation } from 'react-i18next';
 
 interface CreditAnalysisPanelProps {
   creditScore: CreditScore;

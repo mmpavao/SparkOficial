@@ -92,7 +92,6 @@ export default function PreparationGuideModal({ isOpen, onClose, onContinue }: P
 
   const downloadGuide = () => {
     // TODO: Implement PDF generation
-    console.log("Generating PDF guide...");
   };
 
   const getColorClasses = (color: string) => {

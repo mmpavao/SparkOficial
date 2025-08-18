@@ -110,11 +110,11 @@ export default function PaymentsPage() {
     const today = new Date();
     
     if (status === 'paid') {
-      return <Badge className="bg-green-100 text-green-700 border-green-300">Pago</Badge>;
+      return <Badge className="bg-green-100 text-green-700 border-green-300">{t('status.paid')}</Badge>;
     } else if (due < today) {
-      return <Badge className="bg-red-100 text-red-700 border-red-300">Vencido</Badge>;
+      return <Badge className="bg-red-100 text-red-700 border-red-300">{t('status.overdue')}</Badge>;
     } else {
-      return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">Pendente</Badge>;
+      return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">{t('status.pending')}</Badge>;
     }
   };
 
@@ -193,13 +193,13 @@ export default function PaymentsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filtros
+            {t('filters.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Buscar por ID ou importação...</label>
+              <label className="text-sm font-medium">{t('placeholders.searchByIdOrImport')}</label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -211,29 +211,29 @@ export default function PaymentsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Todos os Status</label>
+              <label className="text-sm font-medium">{t('imports.allStatus')}</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os Status" />
+                  <SelectValue placeholder={t('imports.allStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Status</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="paid">Pago</SelectItem>
-                  <SelectItem value="overdue">Vencido</SelectItem>
+                  <SelectItem value="all">{t('imports.allStatus')}</SelectItem>
+                  <SelectItem value="pending">{t('status.pending')}</SelectItem>
+                  <SelectItem value="paid">{t('status.paid')}</SelectItem>
+                  <SelectItem value="overdue">{t('status.overdue')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Todos os Tipos</label>
+              <label className="text-sm font-medium">{t('imports.allTypes')}</label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os Tipos" />
+                  <SelectValue placeholder={t('imports.allTypes')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Tipos</SelectItem>
-                  <SelectItem value="down_payment">Entrada</SelectItem>
-                  <SelectItem value="installment">Parcela</SelectItem>
+                  <SelectItem value="all">{t('imports.allTypes')}</SelectItem>
+                  <SelectItem value="down_payment">{t('payments.downPayment')}</SelectItem>
+                  <SelectItem value="installment">{t('payments.installment')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -244,7 +244,7 @@ export default function PaymentsPage() {
       {/* Lista de Pagamentos - Formato Lista */}
       <Card>
         <CardHeader>
-          <CardTitle>Pagamentos Programados</CardTitle>
+          <CardTitle>{t('payments.scheduledPayments')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -252,8 +252,8 @@ export default function PaymentsPage() {
               <div key={payment.id} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-blue-900">
-                    {payment.paymentType === 'down_payment' ? 'Entrada (30%)' : 
-                     `${payment.installmentNumber}ª Parcela (${payment.paymentType})`}
+                    {payment.paymentType === 'down_payment' ? t('payments.downPaymentPercentage') : 
+                     t('payments.installmentNumber', { number: payment.installmentNumber, type: payment.paymentType })}
                   </span>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(payment.status, payment.dueDate)}
@@ -266,22 +266,22 @@ export default function PaymentsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => setLocation(`/payments/${payment.id}`)}>
                           <Eye className="mr-2 h-4 w-4" />
-                          Ver detalhes
+                          {t('common.viewDetails')}
                         </DropdownMenuItem>
                         {payment.status === 'pending' && (
                           <DropdownMenuItem onClick={() => setLocation(`/payments/${payment.id}/pay`)}>
                             <DollarSign className="mr-2 h-4 w-4" />
-                            Pagar
+                            {t('payments.pay')}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => setLocation(`/payments/${payment.id}/edit`)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Editar
+                          {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-red-600">
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Cancelar
+                          {t('common.cancel')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -289,15 +289,15 @@ export default function PaymentsPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Valor:</span>
+                    <span className="text-gray-600">{t('common.amount')}:</span>
                     <span className="ml-2 font-medium">{formatCurrency(parseFloat(payment.amount), payment.currency as 'USD' | 'BRL')}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Vencimento:</span>
+                    <span className="text-gray-600">{t('payments.dueDate')}:</span>
                     <span className="ml-2 font-medium">{new Date(payment.dueDate).toLocaleDateString('pt-BR')}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Importação:</span>
+                    <span className="text-gray-600">{t('nav.import')}:</span>
                     <span className="ml-2 font-medium">#{payment.importId}</span>
                   </div>
                 </div>
@@ -308,8 +308,8 @@ export default function PaymentsPage() {
           {filteredPayments.length === 0 && (
             <div className="text-center py-12">
               <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum pagamento encontrado</h3>
-              <p className="text-gray-600">Não há pagamentos que correspondam aos filtros selecionados.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('payments.noPaymentsFound')}</h3>
+              <p className="text-gray-600">{t('payments.noPaymentsMatchFilters')}</p>
             </div>
           )}
         </CardContent>

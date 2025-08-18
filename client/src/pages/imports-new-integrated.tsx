@@ -28,7 +28,6 @@ export default function ImportsPageIntegrated() {
   const { data: importsResponse, isLoading, refetch, error } = useQuery({
     queryKey: ['/api/imports', filters],
     queryFn: async () => {
-      console.log('🔍 Fetching imports with filters:', filters);
       
       const url = new URL('/api/imports', window.location.origin);
       
@@ -39,7 +38,6 @@ export default function ImportsPageIntegrated() {
         }
       });
 
-      console.log('🌐 Request URL:', url.toString());
 
       const response = await fetch(url.toString(), {
         credentials: 'include'
@@ -52,7 +50,6 @@ export default function ImportsPageIntegrated() {
       }
       
       const data = await response.json();
-      console.log('✅ Import data received:', data);
       return data;
     },
     retry: 2,
@@ -64,13 +61,7 @@ export default function ImportsPageIntegrated() {
     ? importsResponse 
     : importsResponse?.imports || [];
 
-  console.log('📊 Raw response:', importsResponse);
-  console.log('📊 Final imports array:', imports.length, 'items');
   
-  // Additional debugging
-  if (imports.length === 0 && importsResponse) {
-    console.warn('⚠️ No imports found. Response structure:', importsResponse);
-  }
 
   // Calculate metrics from imports data
   const metrics = useMemo(() => {
@@ -237,11 +228,11 @@ export default function ImportsPageIntegrated() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl">
-              Importações ({imports.length})
+              {t('imports.title')} ({imports.length})
             </CardTitle>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Atualizar
+              {t('common.update')}
             </Button>
           </div>
         </CardHeader>
@@ -294,19 +285,19 @@ export default function ImportsPageIntegrated() {
       <AlertDialog open={!!cancelImportId} onOpenChange={() => setCancelImportId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Importação</AlertDialogTitle>
+            <AlertDialogTitle>{t('imports.cancelImport')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza de que deseja cancelar esta importação? Esta ação não pode ser desfeita.
+              {t('imports.cancelConfirmation')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.back')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmCancel}
               className="bg-red-600 hover:bg-red-700"
               disabled={cancelImportMutation.isPending}
             >
-              {cancelImportMutation.isPending ? 'Cancelando...' : 'Confirmar Cancelamento'}
+              {cancelImportMutation.isPending ? t('common.cancelling') : t('common.confirmCancellation')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
